@@ -41,6 +41,8 @@ function zampliaRequest($endpoint, $params = [], $method = 'GET') {
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4); // Instant IPv4
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'ZAMP-KEY: ' . $ZAMPLIA_API_KEY,
