@@ -1,0 +1,1057 @@
+/* formicon ------------------*/
+.form-wrapper {
+    margin-left: 250px;
+    margin-top: 5em;
+    margin-bottom: 2em
+}
+.fcorn-login .login-right ul.social {
+    padding-left: 0;
+    list-style: none;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    text-align: center
+}
+.fcorn-login .login-right ul.social > li {
+    width: 48%;
+    display: inline-block
+}
+.fcorn-login .login-right ul.social > li:first-child {
+    background: #3b5998;
+    margin-right: 6px
+}
+.fcorn-login .login-right ul.social > li:first-child:hover {
+    background: #37538d
+}
+.fcorn-login .login-right ul.social > li:last-child:hover {
+    background: #14a8d6
+}
+.fcorn-login .login-right ul.social > li > a {
+    display: inline-block;
+    color: #fff;
+    letter-spacing: 1px;
+    padding: 7px 25px 8px
+}
+.fcorn-login .login-right ul.social > li > a:before {
+    line-height: 1.428571429;
+    margin-right: 10px;
+    position: relative;
+    top: 2px
+}
+.fcorn-login .login-right .short-desc {
+    display: block;
+    margin-bottom: 15px;
+    font-size: 12px;
+    text-shadow: 0 0 1px rgba(100, 80, 90, 0.1);
+    color: #686868;
+    text-transform: uppercase
+}
+.fcorn-login .login-right > span.icon > input {
+    display: inline-block;
+    width: inherit;
+    border: 1px solid rgba(159, 159, 159, 0.2);
+    color: #020202;
+    box-shadow: 0 0 3px rgba(60, 60, 60, 0.05);
+    padding: 10px 55px 10px 15px
+}
+.fcorn-login .login-right > .forget-pass > a {
+    float: right;
+    text-align: right;
+    font-weight: 100;
+    width: 100%;
+    font-size: 12px;
+    text-decoration: underline;
+}
+.fcorn-login .login-right > label.check-label {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+    cursor: pointer;
+    display: inline-block;
+    float: right;
+    white-space: normal;
+    line-height: 1.85;
+    top: 2px;
+    margin-top: 40px;
+    font-weight: 400;
+    position: relative;
+    font-size: 13px;
+    color: #686868
+}
+.fcorn-login .login-right > label.check-label:before {
+    content: "";
+    position: absolute;
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    left: -23px;
+    top: 5px;
+    border: 1px solid;
+}
+.fcorn-login-2 {
+    font-family: "Source Sans Pro";
+    border-radius: 2px;
+    width: 420px;
+    background: #fff;
+    border: 1px solid #eee;
+    letter-spacing: 1px;
+    box-shadow: 0 0 2px rgba(60, 60, 60, 0.1);
+    padding: 40px 40px 25px
+}
+.fcorn-login-2 span.icon,
+.fcorn-login-2 span.forget-pass {
+    display: block
+}
+.fcorn-login-2 span.icon {
+    position: relative;
+    overflow: hidden
+}
+.fcorn-login-2 span.icon:before {
+    position: absolute;
+    left: 0;
+    line-height: 1.428571429;
+    font-size: 16px;
+    padding: 10px 15px
+}
+.fcorn-login-2 span.icon > input {
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 15px;
+    border: none;
+    color: #686868;
+    border-bottom: 1px solid rgba(159, 159, 159, 0.2);
+    box-shadow: 0 0 3px rgba(60, 60, 60, 0.05);
+    padding: 10px 15px 10px 55px
+}
+.fcorn-login-2 span.icon > input:focus {
+    border-bottom: 1px solid #63c6ef;
+    outline: none
+}
+.fcorn-login-2 span.forget-pass > a {
+    float: left;
+    text-align: left;
+    font-weight: 100;
+    width: 100%;
+    font-size: 12px;
+    text-decoration: underline;
+}
+.fcorn-login-2 .login-btn > input,
+.fcorn-login-2 .signup-btn {
+    border: none;
+    width: 128px;
+    display: inline-block;
+    color: #fff;
+    text-align: center;
+    letter-spacing: 1px;
+    margin-top: 30px;
+    position: relative;
+    padding: 8px 15px
+}
+.fcorn-login-2 .login-btn:before,
+.fcorn-login-2 .signup-btn:before {
+    position: absolute;
+    font-family: entypo;
+    font-weight: 100;
+    font-size: 12px;
+    top: 10px
+}
+.fcorn-login-2 .login-btn:before {
+    content: "\e024";
+    right: -38px;
+    top: 40px
+}
+.fcorn-login-2 .signup-btn:before {
+    content: "\e071";
+    left: -38px
+}
+.fcorn-login-2 .signup-btn {
+    float: right
+}
+.fcorn-login-2 .signup-btn:hover,
+.fcorn-login-2 .signup-btn:focus {
+    text-decoration: none
+}
+.fcorn-contact .contact-right ul.social {
+    padding-left: 0;
+    list-style: none;
+    margin-top: 15px;
+    margin-bottom: 45px
+}
+.fcorn-contact .contact-right ul.social > li {
+    display: inline-block;
+    margin-right: 4px
+}
+.fcorn-contact .contact-right ul.social > li:nth-child(1) {
+    background: #3b5998
+}
+.fcorn-contact .contact-right ul.social > li:nth-child(3) {
+    background: #f44b8c
+}
+.fcorn-contact .contact-right ul.social > li:nth-child(4) {
+    background: #585858;
+    margin-right: 0
+}
+.fcorn-contact .contact-right ul.social > li > a {
+    display: inline-block;
+    color: #fff;
+    letter-spacing: 1px;
+    padding: 7px 14px
+}
+.fcorn-contact .contact-right ul.social > li > a:before {
+    line-height: 1.428571429;
+    position: relative;
+    font-size: 16px;
+    top: 2px;
+    left: 2px
+}
+.fcorn-contact .contact-right .input-wrap > span.icon > input,
+.fcorn-contact .contact-right .input-wrap select.contact-depart,
+.fcorn-contact .contact-right .input-wrap > textarea.contact-msg {
+    display: inline-block;
+    width: inherit;
+    font-weight: 100;
+    color: #686868;
+    border: 1px solid rgba(159, 159, 159, 0.2);
+    box-shadow: 0 0 3px rgba(60, 60, 60, 0.05);
+    padding: 10px 55px 10px 15px
+}
+.fcorn-contact .contact-right .input-wrap select.contact-depart,
+.fcorn-contact .contact-right .input-wrap textarea.contact-msg {
+    display: block;
+    width: 100%;
+    padding-right: 10px;
+    margin-bottom: 15px
+}
+.fcorn-contact .contact-right .input-wrap > .contact-depart-wrap:before {
+    position: absolute;
+    content: "#";
+    font-family: entypo;
+    font-size: 18px;
+    color: #686868;
+    top: 10px;
+    right: 10px
+}
+.fcorn-contact .contact-right .input-wrap textarea.contact-msg {
+    min-height: 145px;
+    margin-bottom: 0;
+    resize: vertical
+}
+.fcorn-register {
+    font-family: "Source Sans Pro";
+    /* width: 550px; */
+    background: #fff;
+    border: 1px solid #eee;
+    letter-spacing: 1px;
+    box-shadow: 0 0 2px rgba(60, 60, 60, 0.1);
+    margin: 0 auto;
+    padding: 0;
+}
+.form-padding{
+    padding: 0 30px;
+}
+.fcorn-register p.register-info {
+    background: #b5b5b5;
+    color: #0c0c0c;
+    /* font-size: 12px; */
+    font-weight: 600;
+    /* margin-top: 30px; */
+    padding: 8px 15px
+}
+.fcorn-register p.register-submit {
+    display: inline-block;
+    float: right
+}
+.fcorn-register p.register-submit > input {
+    border: none;
+    width: 200px;
+    color: #fff;
+    text-align: center;
+    letter-spacing: 1px;
+    padding: 10px 15px
+}
+.fcorn-shortcodes {
+    font-family: "Source Sans Pro";
+    width: 800px;
+    background: #fff;
+    border: 1px solid #eee;
+    letter-spacing: 1px;
+    box-shadow: 0 0 2px rgba(60, 60, 60, 0.1);
+    margin: 0 auto;
+    padding: 40px 25px
+}
+.fcorn-shortcodes .tooltips > label[class^=col-md] > input {
+    display: inline-block;
+    width: 100%;
+    font-weight: 100;
+    color: #686868;
+    border: 1px solid rgba(159, 159, 159, 0.2);
+    box-shadow: 0 0 3px rgba(60, 60, 60, 0.05);
+    position: relative;
+    padding: 10px 15px
+}
+.fcorn-shortcodes .tooltips > label[class^=col-md] .info {
+    position: absolute;
+    font-size: 11px;
+    font-weight: 400;
+    color: #fff;
+    display: inline-block;
+    background: #828282;
+    opacity: 0;
+    -webkit-transition: .25s;
+    transition: .25s;
+    padding: 5px
+}
+.fcorn-shortcodes .tooltips > label[class^=col-md] .info:before {
+    position: absolute;
+    content: "";
+    border-style: solid;
+    border-width: 5px
+}
+.fcorn-shortcodes .tooltips > label[class^=col-md] .info.left {
+    left: -150px;
+    top: 7px
+}
+.fcorn-shortcodes .tooltips > label[class^=col-md] .info.left:before {
+    top: 7px;
+    right: -9px;
+    border-color: transparent transparent transparent #828282
+}
+.fcorn-shortcodes .tooltips > label[class^=col-md] .info.right {
+    right: -150px;
+    top: 7px
+}
+.fcorn-shortcodes .tooltips > label[class^=col-md] .info.right:before {
+    top: 7px;
+    left: -9px;
+    border-color: transparent #828282 transparent transparent
+}
+.fcorn-shortcodes .tooltips > label[class^=col-md] .info.top {
+    top: -50px;
+    left: 15px
+}
+.fcorn-shortcodes .tooltips > label[class^=col-md] .info.top:before {
+    top: 25px;
+    left: 20px;
+    border-color: #828282 transparent transparent
+}
+.fcorn-shortcodes .tooltips > label[class^=col-md] .info.bottom {
+    bottom: -50px;
+    right: 15px
+}
+.fcorn-shortcodes .tooltips > label[class^=col-md] .info.bottom:before {
+    bottom: 25px;
+    right: 20px;
+    border-color: transparent transparent #828282
+}
+.fcorn-shortcodes .tooltips > label[class^=col-md] > input:focus + .info {
+    opacity: 1
+}
+.fcorn-shortcodes .tooltips > label[class^=col-md] > input:focus + .info.left {
+    left: -128px
+}
+.fcorn-shortcodes .tooltips > label[class^=col-md] > input:focus + .info.right {
+    right: -128px
+}
+.fcorn-shortcodes .tooltips > label[class^=col-md] > input:focus + .info.top {
+    top: -30px
+}
+.fcorn-shortcodes .tooltips > label[class^=col-md] > input:focus + .info.bottom {
+    bottom: -30px
+}
+.fcorn-shortcodes .toggle > .info,
+.fcorn-shortcodes .radio-toggle > .info {
+    font-size: 13px;
+    margin-left: 10px
+}
+.fcorn-shortcodes .radio-toggle > label.toggle-label,
+.fcorn-shortcodes .radio-toggle > label.toggle-label .toggle-handle {
+    border-radius: 20px
+}
+.fcorn-shortcodes .custom-check > label.check-label,
+.fcorn-shortcodes .custom-radio > label.check-label,
+.fcorn-shortcodes .custom-check > label.radio-label,
+.fcorn-shortcodes .custom-radio > label.radio-label {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+    cursor: pointer;
+    display: inline-block;
+    float: left;
+    margin-left: 25px;
+    white-space: normal;
+    line-height: 1.85;
+    top: 2px;
+    font-weight: 400;
+    position: relative;
+    font-size: 13px
+}
+.fcorn-shortcodes .custom-check > label.check-label:before,
+.fcorn-shortcodes .custom-radio > label.check-label:before,
+.fcorn-shortcodes .custom-check > label.radio-label:before,
+.fcorn-shortcodes .custom-radio > label.radio-label:before {
+    content: "";
+    position: absolute;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    left: -24px;
+    top: 4px;
+    border: 1px solid;
+}
+.fcorn-shortcodes .custom-check > label.radio-label:before,
+.fcorn-shortcodes .custom-radio > label.radio-label:before {
+    border-radius: 50%
+}
+.fcorn-shortcodes .custom-check input.radio-input:checked + .info:before,
+.fcorn-shortcodes .custom-radio input.radio-input:checked + .info:before {
+    content: "3";
+    font-size: 32px;
+    top: -8px;
+    left: -32px
+}
+.fcorn-shortcodes .input-btn {
+    text-align: center;
+    margin-bottom: 30px
+}
+.fcorn-shortcodes .input-btn input {
+    border: none;
+    width: 200px;
+    color: #fff;
+    text-align: center;
+    letter-spacing: 1px;
+    box-shadow: 0 1px 1px #1daae3;
+    padding: 10px 15px
+}
+.fcorn-shortcodes .input-btn input.hover {
+    background: #1eade8
+}
+.fcorn-shortcodes .input-btn input.active {
+    box-shadow: inset 0 0 15px #1a99cd;
+    -webkit-transform: translate(0, 1px);
+    -ms-transform: translate(0, 1px);
+    transform: translate(0, 1px)
+}
+.fcorn-shortcodes .file-input > label > .btn {
+    font-weight: 400;
+    position: absolute;
+    z-index: 999;
+    top: 22px;
+    color: #fff;
+    padding: 9px 15px
+}
+.fcorn-shortcodes .file-input > label > .btn > input[type=file] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    height: 0
+}
+.fcorn-shortcodes .file-input > input.file-replacer:focus {
+    outline: none
+}
+.fcorn-shortcodes .file-input > label > .btn.left {
+    left: 17px
+}
+.fcorn-shortcodes .file-input > input.file-replacer.left {
+    padding-left: 128px
+}
+.fcorn-shortcodes .file-input > label > .btn.right {
+    right: 17px
+}
+.fcorn-shortcodes .notify .info,
+.fcorn-shortcodes .notify .warning,
+.fcorn-shortcodes .notify .success,
+.fcorn-shortcodes .notify .error {
+    border: 1px solid;
+    position: relative;
+    color: #fff;
+    padding: 10px 15px
+}
+.fcorn-shortcodes .notify .info > .msg:before,
+.fcorn-shortcodes .notify .warning > .msg:before,
+.fcorn-shortcodes .notify .success > .msg:before,
+.fcorn-shortcodes .notify .error > .msg:before {
+    line-height: 1.428571429;
+    padding-right: 15px;
+    position: relative;
+    top: 2px
+}
+.fcorn-shortcodes .notify .info > .cancel,
+.fcorn-shortcodes .notify .warning > .cancel,
+.fcorn-shortcodes .notify .success > .cancel,
+.fcorn-shortcodes .notify .error > .cancel {
+    cursor: pointer
+}
+.fcorn-shortcodes .notify .info > .cancel:before,
+.fcorn-shortcodes .notify .warning > .cancel:before,
+.fcorn-shortcodes .notify .success > .cancel:before,
+.fcorn-shortcodes .notify .error > .cancel:before {
+    position: absolute;
+    right: 10px;
+    font-size: 18px;
+    line-height: 1.428571429
+}
+.fcorn-shortcodes .notify .info {
+    background: #b5b5b5
+}
+.fcorn-shortcodes .notify .warning {
+    background: #efce17
+}
+.fcorn-shortcodes .notify .success {
+    background: #25c872
+}
+.fcorn-shortcodes .notify .error {
+    background: #fa6573
+}
+.fcorn-shortcodes .search-box {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    margin-bottom: 30px
+}
+.fcorn-shortcodes .search-box > input.search {
+    display: inline-block;
+    width: 100%;
+    font-weight: 100;
+    color: #686868;
+    border: 1px solid rgba(159, 159, 159, 0.2);
+    box-shadow: 0 0 3px rgba(60, 60, 60, 0.05);
+    position: relative;
+    overflow: hidden;
+    padding: 10px 15px
+}
+.fcorn-shortcodes .search-box > .btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+    display: block
+}
+.fcorn-shortcodes .search-box > .btn:before {
+    position: relative;
+    right: -35px;
+    color: #fff;
+    font-size: 20px
+}
+.fcorn-shortcodes .search-box > .btn > input {
+    display: inline-block;
+    border: none;
+    padding: 11px 25px
+}
+.fcorn-shortcodes .ratings > label.rating-star {
+    cursor: pointer;
+    float: right;
+    left: -100px;
+    color: #828282;
+    overflow: hidden;
+    position: relative;
+    -webkit-transition: .2s;
+    transition: .2s
+}
+.fcorn-shortcodes .ratings > label.rating-star:before {
+    font-size: 30px;
+    line-height: 1.428571429
+}
+.fcorn-shortcodes .subscribe-box {
+    margin-bottom: 30px;
+    position: relative;
+    background: #fff;
+    border: 1px solid #eee;
+    letter-spacing: 1px;
+    box-shadow: 0 0 2px rgba(60, 60, 60, 0.1)
+}
+.fcorn-shortcodes .subscribe-box > .head {
+    color: #fff;
+    margin: 0 0 30px;
+    padding: 10px 15px
+}
+.fcorn-shortcodes .subscribe-box > .email {
+    width: 100%;
+    display: block;
+    position: relative
+}
+.fcorn-shortcodes .subscribe-box > .email:before {
+    position: absolute;
+    line-height: 1.428571429;
+    right: 45px;
+    top: 10px;
+    font-size: 18px;
+    z-index: 999
+}
+.fcorn-shortcodes .subscribe-box > .email > input {
+    display: block;
+    width: 85%;
+    font-weight: 100;
+    color: #686868;
+    border: 1px solid rgba(159, 159, 159, 0.2);
+    box-shadow: 0 0 3px rgba(60, 60, 60, 0.05);
+    position: relative;
+    margin: 0 auto 20px;
+    padding: 10px 15px
+}
+.fcorn-shortcodes .subscribe-box > .submit-btn {
+    width: 100%;
+    display: block;
+    margin-bottom: 30px
+}
+.fcorn-shortcodes .subscribe-box > .submit-btn > input {
+    width: 85%;
+    display: block;
+    color: #fff;
+    border: none;
+    text-align: center;
+    box-shadow: 0 1px 1px #1788b6;
+    margin: 0 auto;
+    padding: 8px 15px
+}
+.fcorn-grids {
+    font-family: "Source Sans Pro";
+    width: 800px;
+    background: #fff;
+    border: 1px solid #eee;
+    letter-spacing: 1px;
+    box-shadow: 0 0 2px rgba(60, 60, 60, 0.1);
+    margin: 0 auto;
+    padding: 30px 35px
+}
+.fcorn-grids p > input:focus {
+    border: 1px solid #8fd5f1;
+    outline: none
+}
+.fcorn-checkout {
+    font-family: "Source Sans Pro";
+    width: 960px;
+    margin: 0 auto;
+    padding: 0
+}
+.fcorn-checkout .billing-box,
+.fcorn-checkout .payment-box {
+    background: #fff;
+    border: 1px solid #eee;
+    letter-spacing: 1px;
+    box-shadow: 0 0 2px rgba(60, 60, 60, 0.1);
+    padding: 15px 25px
+}
+.fcorn-checkout .billing-box h2.head,
+.fcorn-checkout .payment-box h2.head {
+    font-size: 24px;
+    line-height: 1.5;
+    color: #fff;
+    margin-bottom: 30px;
+    padding: 15px 20px
+}
+.fcorn-checkout .billing-box h2.head > span,
+.fcorn-checkout .payment-box h2.head > span {
+    display: block;
+    font-size: 12px;
+    text-indent: 2px
+}
+.fcorn-checkout .billing-box p[class^=col-md] > span.extern-type,
+.fcorn-checkout .payment-box p[class^=col-md] > span.extern-type {
+    position: absolute;
+    right: 15px
+}
+.fcorn-checkout .payment-box p.checkout-submit,
+.fcorn-checkout .payment-box p.checkout-paypal {
+    display: inline-block;
+    margin-left: 15px
+}
+.fcorn-checkout .payment-box p.checkout-submit > input {
+    border: none;
+    width: 180px;
+    color: #fff;
+    text-align: center;
+    letter-spacing: 1px;
+    box-shadow: 0 1px 1px #1daae3;
+    padding: 10px 15px
+}
+.fcorn-checkout .payment-box p.checkout-paypal > a {
+    border: 1px solid #f2f2f2;
+    display: inline-block;
+    text-align: center;
+    width: 215px;
+    position: relative;
+    top: -1px;
+    color: #686868;
+    font-weight: 700;
+    box-shadow: 0 1px 1px rgba(200, 200, 200, 0.3);
+    padding: 8px
+}
+.fcorn-checkout .payment-box p.checkout-paypal > a:active {
+    box-shadow: none;
+    -webkit-transform: translate(0, 1px);
+    -ms-transform: translate(0, 1px);
+    transform: translate(0, 1px)
+}
+.fcorn-checkout .payment-box p.checkout-paypal > a > img {
+    margin-left: 10px;
+    width: 24px;
+    height: 24px
+}
+.sidebar ul.main-nav > li > a:hover,
+.sidebar ul.main-nav > li > a:active,
+.sidebar ul.main-nav > li > a:focus,
+.fcorn-login .login-right ul.social > li > a:active,
+.fcorn-login .login-right ul.social > li > a:focus,
+.fcorn-login .login-right ul.social > li > a:hover,
+.fcorn-contact .contact-right ul.social > li > a:active,
+.fcorn-contact .contact-right ul.social > li > a:focus,
+.fcorn-contact .contact-right ul.social > li > a:hover,
+.fcorn-checkout .payment-box p.checkout-paypal > a:hover,
+.fcorn-checkout .payment-box p.checkout-paypal > a:active,
+.fcorn-checkout .payment-box p.checkout-paypal > a:focus {
+    text-decoration: none;
+    outline: none
+}
+.fcorn-login,
+.fcorn-contact {
+    font-family: "Source Sans Pro";
+    width: 640px;
+    background: #fff;
+    border: 1px solid #eee;
+    letter-spacing: 1px;
+    box-shadow: 0 0 2px rgba(60, 60, 60, 0.1);
+    margin: 0 auto;
+    padding: 0
+}
+.fcorn-login .login-left,
+.fcorn-contact .contact-left {
+    color: #fff;
+    font-weight: 100;
+    box-shadow: 0 0 2px rgba(60, 60, 60, 0.1);
+    padding: 25px
+}
+.fcorn-login .login-left .head,
+.fcorn-contact .contact-left .head {
+    margin-top: 15px;
+    margin-bottom: 50px
+}
+.fcorn-login .login-left label.input-label,
+.fcorn-contact .contact-left label.input-label {
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display: block;
+    margin-bottom: 15px;
+    font-weight: 100;
+    background: #78ccee;
+    padding: 10px 15px
+}
+.fcorn-login .login-left .login-btn,
+.fcorn-contact .contact-left .contact-btn {
+    border: none;
+    width: 100%;
+    color: #fff;
+    background: #6fc9ed;
+    text-align: center;
+    letter-spacing: 1px;
+    box-shadow: 0 1px 1px #34b2e5;
+    margin-top: 50px;
+    padding: 10px 15px
+}
+.fcorn-login .login-left .login-btn:focus,
+.fcorn-login-2 .login-btn > input:focus,
+.fcorn-login-2 .signup-btn:focus,
+.fcorn-contact .contact-left .contact-btn:focus,
+.fcorn-register p.register-submit > input:focus,
+.fcorn-shortcodes .input-btn input:hover,
+.fcorn-shortcodes .input-btn input:active,
+.fcorn-shortcodes .input-btn input:focus,
+.fcorn-shortcodes .search-box > .btn > input:focus,
+.fcorn-shortcodes .subscribe-box > .submit-btn > input:focus,
+.fcorn-checkout .payment-box p.checkout-submit > input:focus {
+    border: none;
+    outline: none
+}
+.fcorn-login .login-left .login-btn:hover,
+.fcorn-contact .contact-left .contact-btn:hover {
+    background: #66c5ec
+}
+.fcorn-login .login-left .login-btn:active,
+.fcorn-contact .contact-left .contact-btn:active,
+.fcorn-register p.register-submit > input:active,
+.fcorn-shortcodes .subscribe-box > .submit-btn > input:active,
+.fcorn-checkout .payment-box p.checkout-submit > input:active {
+    box-shadow: inset 0 0 10px #1daae3;
+    -webkit-transform: translate(0, 1px);
+    -ms-transform: translate(0, 1px);
+    transform: translate(0, 1px)
+}
+.fcorn-login .login-right,
+.fcorn-contact .contact-right {
+    background: #fff;
+    text-align: center;
+    padding: 25px 40px
+}
+.fcorn-login .login-right ul.social > li:last-child,
+.fcorn-contact .contact-right ul.social > li:nth-child(2) {
+    background: #15b3e4
+}
+.fcorn-login .login-right > span.icon,
+.fcorn-contact .contact-right .input-wrap > span.icon {
+    display: block;
+    width: 100%;
+    margin-bottom: 15px;
+    position: relative;
+    overflow: hidden
+}
+.fcorn-login .login-right > span.icon:before,
+.fcorn-contact .contact-right .input-wrap > span.icon:before {
+    position: absolute;
+    right: 0;
+    border-left: 1px solid rgba(159, 159, 159, 0.2);
+    line-height: 1.428571429;
+    font-size: 16px;
+    padding: 10px 15px
+}
+.fcorn-login .login-right > span.icon > input:focus,
+.fcorn-contact .contact-right .input-wrap > span.icon > input:focus,
+.fcorn-contact .contact-right .input-wrap select.contact-depart:focus,
+.fcorn-contact .contact-right .input-wrap > textarea.contact-msg:focus,
+.fcorn-register p > input:focus,
+.fcorn-register p > select:focus,
+.fcorn-shortcodes .tooltips > label[class^=col-md] > input:focus,
+.fcorn-shortcodes .search-box > input.search:focus,
+.fcorn-shortcodes .subscribe-box > .email > input:focus,
+.fcorn-checkout .billing-box p > input:focus,
+.fcorn-checkout .payment-box p > input:focus,
+.fcorn-checkout .billing-box p > select:focus,
+.fcorn-checkout .payment-box p > select:focus {
+    border: 1px solid #63c6ef;
+    outline: none
+}
+.fcorn-login .login-right > label.check-label > input.check-input,
+.fcorn-register p.register-toggle > label.toggle-label > input.toggle-input,
+.fcorn-shortcodes .toggle > label.toggle-label > input.toggle-input,
+.fcorn-shortcodes .radio-toggle > label.toggle-label > input.toggle-input,
+.fcorn-shortcodes .custom-check > label.check-label > input.check-input,
+.fcorn-shortcodes .custom-radio > label.check-label > input.check-input,
+.fcorn-shortcodes .custom-check > label.radio-label > input.check-input,
+.fcorn-shortcodes .custom-radio > label.radio-label > input.check-input,
+.fcorn-shortcodes .custom-check > label.check-label > input.radio-input,
+.fcorn-shortcodes .custom-radio > label.check-label > input.radio-input,
+.fcorn-shortcodes .custom-check > label.radio-label > input.radio-input,
+.fcorn-shortcodes .custom-radio > label.radio-label > input.radio-input,
+.fcorn-shortcodes .ratings > input[type=radio],
+.fcorn-checkout .payment-box p.checkout-toggle > label.toggle-label > input.toggle-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0
+}
+.fcorn-login .login-right > label.check-label .info,
+.fcorn-login-2 .login-btn,
+.fcorn-contact .contact-right .input-wrap > .contact-depart-wrap,
+.fcorn-register p.gender-wrap,
+.fcorn-register p.country-wrap,
+.fcorn-register p.register-toggle,
+.fcorn-shortcodes .custom-check,
+.fcorn-shortcodes .custom-radio,
+.fcorn-shortcodes .custom-check > label.check-label .info,
+.fcorn-shortcodes .custom-radio > label.check-label .info,
+.fcorn-shortcodes .custom-check > label.radio-label .info,
+.fcorn-shortcodes .custom-radio > label.radio-label .info,
+.fcorn-checkout .billing-box p.state-wrap,
+.fcorn-checkout .payment-box p.state-wrap,
+.fcorn-checkout .billing-box p.country-wrap,
+.fcorn-checkout .payment-box p.country-wrap,
+.fcorn-checkout .billing-box p.city-wrap,
+.fcorn-checkout .payment-box p.city-wrap,
+.fcorn-checkout .billing-box p.card-type-wrap,
+.fcorn-checkout .payment-box p.card-type-wrap,
+.fcorn-checkout .billing-box p.month-wrap,
+.fcorn-checkout .payment-box p.month-wrap,
+.fcorn-checkout .payment-box p.checkout-toggle {
+    position: relative
+}
+.fcorn-login .login-right > label.check-label > input.check-input:checked + .info:before,
+.fcorn-shortcodes .custom-check input.check-input:checked + .info:before,
+.fcorn-shortcodes .custom-radio input.check-input:checked + .info:before,
+.fcorn-shortcodes .custom-check input.radio-input:checked + .info:before,
+.fcorn-shortcodes .custom-radio input.radio-input:checked + .info:before {
+    content: "J";
+    font-family: entypo;
+    position: absolute;
+    font-size: 12px;
+    line-height: 1;
+    text-align: center;
+    left: -22px;
+    top: 2px
+}
+.fcorn-login-2 span.icon > input:-moz-placeholder,
+.fcorn-login-2 span.icon > input::-moz-placeholder,
+.fcorn-login-2 span.icon > input:-ms-input-placeholder,
+.fcorn-login-2 span.icon > input::-webkit-input-placeholder {
+    color: #b5b5b5;
+    text-align: center
+}
+.fcorn-login-2 .login-btn > input:hover,
+.fcorn-login-2 .signup-btn:hover,
+.fcorn-register p.register-submit > input:hover,
+.fcorn-shortcodes .search-box > .btn > input:hover,
+.fcorn-shortcodes .subscribe-box > .submit-btn > input:hover,
+.fcorn-checkout .payment-box p.checkout-submit > input:hover {
+    background: #39b7eb
+}
+.fcorn-contact .contact-right .input-wrap select.contact-depart,
+.fcorn-register p > select,
+.fcorn-checkout .billing-box p > select,
+.fcorn-checkout .payment-box p > select {
+    text-indent: .01px;
+    -webkit-appearance: none;
+    -moz-appearance: none
+}
+.fcorn-contact .contact-right .input-wrap select.contact-depart:focus,
+.fcorn-register p > select:focus,
+.fcorn-checkout .billing-box p > select:focus,
+.fcorn-checkout .payment-box p > select:focus {
+    border: 1px solid rgba(159, 159, 159, 0.2)
+}
+.fcorn-contact .contact-right .input-wrap select.contact-depart::-ms-expand,
+.fcorn-register p > select::-ms-expand,
+.fcorn-checkout .billing-box p > select::-ms-expand,
+.fcorn-checkout .payment-box p > select::-ms-expand {
+    display: none
+}
+.fcorn-register p,
+.fcorn-shortcodes .tooltips > label[class^=col-md],
+.fcorn-shortcodes .notify,
+.fcorn-grids p,
+.fcorn-checkout .billing-box p,
+.fcorn-checkout .payment-box p {
+    margin-bottom: 30px
+}
+.fcorn-register p > input,
+.fcorn-register p > select,
+.fcorn-shortcodes .file-input > input.file-replacer,
+.fcorn-grids p > input,
+.fcorn-checkout .billing-box p > input,
+.fcorn-checkout .payment-box p > input,
+.fcorn-checkout .billing-box p > select,
+.fcorn-checkout .payment-box p > select {
+    display: inline-block;
+    width: 100%;
+    font-weight: 100;
+    color: #686868;
+    /* border: 1px solid rgba(159, 159, 159, 0.2); */
+    box-shadow: 0 0 3px rgba(60, 60, 60, 0.05);
+    padding: 6px 15px
+}
+.fcorn-register p.gender-wrap:before,
+.fcorn-register p.country-wrap:before,
+.fcorn-checkout .billing-box p.state-wrap:before,
+.fcorn-checkout .payment-box p.state-wrap:before,
+.fcorn-checkout .billing-box p.country-wrap:before,
+.fcorn-checkout .payment-box p.country-wrap:before,
+.fcorn-checkout .billing-box p.city-wrap:before,
+.fcorn-checkout .payment-box p.city-wrap:before,
+.fcorn-checkout .billing-box p.card-type-wrap:before,
+.fcorn-checkout .payment-box p.card-type-wrap:before,
+.fcorn-checkout .billing-box p.month-wrap:before,
+.fcorn-checkout .payment-box p.month-wrap:before {
+    position: absolute;
+    content: "#";
+    font-family: entypo;
+    font-size: 18px;
+    color: #686868;
+    top: 10px;
+    right: 25px
+}
+.fcorn-register p > span.extern-type,
+.fcorn-checkout .billing-box p > span.extern-type,
+.fcorn-checkout .payment-box p > span.extern-type {
+    float: right;
+    text-align: right;
+    font-size: 12px;
+    display: block;
+    color: #b5b5b5
+}
+.fcorn-register p.register-toggle > .info,
+.fcorn-checkout .payment-box p.checkout-toggle > .info {
+    font-size: 13px;
+    margin-left: 20px
+}
+.fcorn-register p.register-toggle > label.toggle-label,
+.fcorn-shortcodes .toggle > label.toggle-label,
+.fcorn-shortcodes .radio-toggle > label.toggle-label,
+.fcorn-checkout .payment-box p.checkout-toggle > label.toggle-label {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+    cursor: pointer;
+    display: inline-block;
+    width: 60px;
+    height: 24px;
+    float: left;
+    position: relative;
+    font-size: 10px;
+    color: #fff
+}
+.fcorn-register p.register-toggle > label.toggle-label:before,
+.fcorn-register p.register-toggle > label.toggle-label:after,
+.fcorn-shortcodes .toggle > label.toggle-label:before,
+.fcorn-shortcodes .radio-toggle > label.toggle-label:before,
+.fcorn-shortcodes .toggle > label.toggle-label:after,
+.fcorn-shortcodes .radio-toggle > label.toggle-label:after,
+.fcorn-checkout .payment-box p.checkout-toggle > label.toggle-label:before,
+.fcorn-checkout .payment-box p.checkout-toggle > label.toggle-label:after {
+    position: absolute;
+    top: 30%;
+    line-height: 1.1;
+    font-weight: 100
+}
+.fcorn-register p.register-toggle > label.toggle-label:before,
+.fcorn-shortcodes .toggle > label.toggle-label:before,
+.fcorn-shortcodes .radio-toggle > label.toggle-label:before,
+.fcorn-checkout .payment-box p.checkout-toggle > label.toggle-label:before {
+    content: attr(data-on);
+    left: 7px
+}
+.fcorn-register p.register-toggle > label.toggle-label:after,
+.fcorn-shortcodes .toggle > label.toggle-label:after,
+.fcorn-shortcodes .radio-toggle > label.toggle-label:after,
+.fcorn-checkout .payment-box p.checkout-toggle > label.toggle-label:after {
+    content: attr(data-off);
+    right: 7px
+}
+.fcorn-register p.register-toggle > label.toggle-label .toggle-handle,
+.fcorn-shortcodes .toggle > label.toggle-label .toggle-handle,
+.fcorn-shortcodes .radio-toggle > label.toggle-label .toggle-handle,
+.fcorn-checkout .payment-box p.checkout-toggle > label.toggle-label .toggle-handle {
+    position: absolute;
+    background: #fff;
+    left: 0;
+    top: 0;
+    border: 1px solid;
+    display: inline-block;
+    -webkit-transition: .2s;
+    transition: .2s;
+    box-shadow: inset 0 0 5px rgba(50, 50, 50, 0.1);
+    width: 50%;
+    height: inherit
+}
+.fcorn-register p.register-toggle > label.toggle-label > input.toggle-input:checked ~ .toggle-handle,
+.fcorn-shortcodes .toggle > label.toggle-label > input.toggle-input:checked ~ .toggle-handle,
+.fcorn-shortcodes .radio-toggle > label.toggle-label > input.toggle-input:checked ~ .toggle-handle,
+.fcorn-checkout .payment-box p.checkout-toggle > label.toggle-label > input.toggle-input:checked ~ .toggle-handle {
+    left: 30px
+}
+.fcorn-shortcodes .toggle,
+.fcorn-shortcodes .radio-toggle,
+.fcorn-shortcodes .file-input {
+    position: relative;
+    margin-bottom: 30px
+}
+.register-info{
+    color: #911919;
+   font-weight: 500;
+   font-size: 15px;
+   margin: 0 0 20px 0 !important; 
+   text-decoration: underline;
+}
+.form-theme textarea {
+ height: auto !important;
+}

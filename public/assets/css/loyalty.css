@@ -1,0 +1,111 @@
+.bg-gray-dark {
+    background-color: #26271A !important;
+    background-image: url(../img/bg-header/1.png);
+}
+
+.white-logo-right {
+    border-left: 1px solid rgba(251, 202, 26, 0.2);
+    margin-left: 10px;
+    padding-left: 10px;
+  }
+  
+  .navbar-light .navbar-nav .nav-link {
+    color: rgb(213, 160, 27);
+  }
+  .navbar-light .navbar-nav .nav-link:focus, .navbar-light .navbar-nav .nav-link:hover {
+    color: #fff;
+  }
+  
+  .phone {
+    background: black;
+    font-size: 10px;
+    color: #fbca1a;
+    padding: 5px;
+    border-radius: 22px;
+    margin-right: 3px;
+  }
+  .side-by-side {
+    width: 100%; 
+    margin: 0;
+  
+  }
+  .side-by-side li {
+    display: inline;
+  }
+  .social-handler ul li .facebook, .social-handler ul li .twitter, .social-handler ul li .linkedin, .social-handler ul li .youtube, .social-handler ul li .instagram {
+    background: black;
+    font-size: 12px;
+    color: #fbca1a;
+    padding: 6px;
+    border-radius: 50%;
+    margin-right: 3px;
+    height: 25px;
+    width: 25px;
+    text-align: center;
+  }
+
+  .ml120{
+    margin-left: 150px;
+  }
+
+  .box-shdw{
+    box-shadow: rgba(0, 0, 0, 0.15) -0.5px 1.95px 1.95px 2.6px!important;
+    
+  }
+
+  .layout-box-content-format1 label {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    color: #393b24 !important;
+    letter-spacing: 0;
+  }
+
+  .layout-box-content-format1 .form-block-subtitle {
+    color: #1c1c1c;
+    /* border: 1px solid #1e1f14; */
+    padding: 3px;
+    border-radius: 5px;
+    background-color: #ffc107;
+  
+  }
+  .layout-box-content-format1 .card .card-body {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+  }
+  .req_star{
+    color: red;
+  }
+
+  .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #d29c13 !important;
+    color: white;
+  }
+  .layout-box-content-format1 .select2-container--default .select2-selection--single {
+    border: 1px solid #d2d2d2;
+    height: 32px;
+    line-height: 38px !important;
+  }
+
+  .custom-file-button input[type=file] {
+    margin-left: -2px !important;
+    cursor: pointer;
+  }
+  
+  .custom-file-button input[type=file]::-webkit-file-upload-button {
+    display: none;
+  }
+  
+  .custom-file-button input[type=file]::file-selector-button {
+    display: none;
+  }
+  
+  /* .custom-file-button:hover label {
+    background-color: #dde0e3;
+    cursor: pointer;
+  } */
+
+  .custom-file-button label {
+    background-color: #d29c13;
+    cursor: pointer;
+  }
+

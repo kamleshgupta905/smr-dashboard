@@ -1,0 +1,153 @@
+/*================================================================================
+	Item Name: Materialize - Material Design Admin Template
+	Version: 5.0
+	Author: PIXINVENT
+	Author URL: https://themeforest.net/user/pixinvent/portfolio
+================================================================================
+
+NOTE:
+------
+PLACE HERE YOUR OWN CSS CODES AND IF NEEDED, OVERRIDE THE STYLES FROM THE OTHER STYLESHEETS.
+WE WILL RELEASE FUTURE UPDATES SO IN ORDER TO NOT OVERWRITE YOUR STYLES IT'S BETTER LIKE THIS.  */
+
+#breadcrumbs-wrapper{
+	margin-top: -15px!important;
+}
+
+.sidenav li > a {
+	font-size: 13px!important;
+}
+
+/* .custome-form input:not([type]), 
+.custome-form input[type="text"]:not(.browser-default), 
+.custome-form input[type="password"]:not(.browser-default), 
+.custome-form input[type="email"]:not(.browser-default), 
+.custome-form input[type="url"]:not(.browser-default), 
+.custome-form input[type="time"]:not(.browser-default), 
+.custome-form input[type="date"]:not(.browser-default), 
+.custome-form input[type="datetime"]:not(.browser-default), 
+.custome-form input[type="datetime-local"]:not(.browser-default), 
+.custome-form input[type="tel"]:not(.browser-default), 
+.custome-form input[type="number"]:not(.browser-default), 
+.custome-form input[type="search"]:not(.browser-default), 
+.custome-form textarea.materialize-textarea {
+	font-size: 1rem !important;
+	height: 2.8rem !important;
+	margin: 0 0 13px !important;
+	border: 1px solid #ac99bf !important;;
+	border-radius: 6px !important;
+	text-indent: 18px !important;
+} */
+
+.custome-form input ,.custome-form textarea {
+	font-size: 1rem !important;
+	height: 2.8rem !important;
+	margin: 0 0 13px !important;
+	border: 1px solid #ac99bf !important;;
+	border-radius: 6px !important;
+	text-indent: 18px !important;
+} 
+
+.custome-form .input-field > label {
+	font-size: 1rem !important;
+	top: 8px !important;
+	color: #5c216d !important;
+	left: 26px !important;
+	background: #FFF !important;
+	width: auto !important;
+	padding-left: 10px !important;
+	padding-right: 10px !important;
+	text-transform: uppercase;
+}
+
+.topminus50{
+	margin-top: -50px;
+}
+
+/* #main .section-data-tables .dataTables_wrapper table.dataTable tbody {
+	height: auto !important;
+  } */
+
+
+  /* .table{width:auto;table-layout:fixed} */
+  .customDataTable .table.dataTable {
+	border-collapse: collapse !important
+  }
+  .customDataTable table.dataTable thead th {
+	white-space: nowrap !important;
+	text-transform: uppercase;
+	font-size: 12px;
+	letter-spacing: 0.2px;
+	font-weight: 700;
+	text-align: left;
+	background: #faf4fd;
+	color: #5230A0;
+	border-radius: 0;
+  }
+  .customDataTable table.dataTable tbody tr {
+	  border: 0;
+  }
+  .customDataTable table.dataTable tbody tr td:first-child { border: 1px solid #eee;}
+
+
+  .customDataTable .dataTables_filter {
+	text-align: right;
+	margin-top: -40px;
+  }
+
+  .customDataTable table.dataTable thead > tr > th.sorting_asc,
+  .customDataTable table.dataTable thead > tr > th.sorting_desc,
+  .customDataTable table.dataTable thead > tr > th.sorting,
+  .customDataTable table.dataTable thead > tr > td.sorting_asc,
+  .customDataTable table.dataTable thead > tr > td.sorting_desc,
+  .customDataTable table.dataTable thead > tr > td.sorting {
+	padding-right: 60px;
+  }
+
+  .customDataTable table.dataTable td{
+	/* border-bottom: 1px solid #dadada;
+	border-collapse: collapse; */
+	border: 1px solid #eee;
+	border-collapse: collapse;
+	padding: 6px 18px;
+	font-size: 14px;
+	letter-spacing: 0.5px;
+	border-radius: 0;
+  }
+  .customDataTable .dataTables_wrapper  .row:nth-child(2) {
+	overflow-x: scroll;
+  }
+
+
+
+  .select2-container--default .select2-selection--multiple, .select2-container--default .select2-selection--single, .select2-container--default.select2-container--focus .select2-selection--multiple {
+	height: 46px;
+	border: none;
+	border: 1px solid #b5b5b5 !important;
+	border-radius: 8px;
+	outline: 0;
+	padding: 0 12px !important;
+  }
+
+  .select2-container--default .select2-selection--single .select2-selection__arrow b {
+	border-color: rgb(113, 113, 113) transparent transparent !important;
+	border-width: 8px 6px 0 6px !important;
+	margin-left: -15px !important;
+  }
+  .btn {
+	  height: 42px !important;
+  }
+
+  .filter-card-view {
+	border-radius:12px;
+  }
+  .card-top-style {
+	border-top: 13px solid #6429a1;
+	border-top-left-radius: 10px;
+	border-top-right-radius: 10px;
+  }
+
+ .select-wrapper input.select-dropdown {
+	border: 0px !important;
+	text-indent: 0px !important;
+ }

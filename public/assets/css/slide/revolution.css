@@ -1,0 +1,30 @@
+.small_light_white{
+	font-size: 25px !important;
+}
+.large_bold_white,
+.small_light_white{
+	text-shadow: 2px 2px 5px #555;
+}
+.small_light_white.other_light{
+	font-weight: normal !important;
+}
+.medium_text.other_text{
+	font-size: 1rem !important;
+}
+.tp-caption a,
+.title-header-parallax a{
+	color: #fff !important;
+	padding: 12px 25px;
+	font-size: 0.875rem !important;
+	border: solid 2px !important;
+	font-weight: normal !important; 
+}
+.tp-caption a i,
+.title-header-parallax a i{
+	color: #444 !important;
+	font-size: 1.4rem;
+	font-weight: bold;
+	border-right: 1px solid #fff;
+	padding: 0 10px 0 0;
+	margin-right: 10px;
+}

@@ -1,0 +1,164 @@
+/* Backgrounds ----------------------------------------------------------*/
+.divisor-service-process .circle,
+.form-theme .btn,
+.info-login .head-info-login span,
+.title-vertical-line:after,
+.item-blog-post .head-item-blog-post,
+#menu .navbar-default .navbar-nav > .open > a,#menu .navbar-default .navbar-nav > .active > a,
+.item-event .event-icon,
+.fcorn-login-2 .login-btn > input,
+.fcorn-login-2 .signup-btn,
+.fcorn-register p.register-submit > input ,
+.fcorn-shortcodes .input-btn input.normal ,
+.fcorn-shortcodes .input-btn input.active ,
+.fcorn-checkout .payment-box p.checkout-submit > input ,
+.fcorn-checkout .billing-box h2.head,
+.fcorn-checkout .payment-box h2.head ,
+.fcorn-login .login-left,
+.fcorn-contact .contact-left ,
+.fcorn-register p.register-toggle > label.toggle-label,
+.fcorn-shortcodes .toggle > label.toggle-label,
+.fcorn-shortcodes .radio-toggle > label.toggle-label,
+.fcorn-checkout .payment-box p.checkout-toggle > label.toggle-label ,
+.fcorn-login-2 span.forget-pass > a,
+.fcorn-shortcodes .file-input > label > .btn,
+.fcorn-shortcodes .search-box > .btn > input,
+.fcorn-shortcodes .subscribe-box > .head ,
+.fcorn-shortcodes .subscribe-box > .submit-btn > input,
+.btn-primary,
+.btn-primary:hover,
+.skin_base,
+.list-styles li i,
+.widget .input-group-addon.btn-search input,
+.nav-tabs li.active a,
+.nav-tabs li.active a:hover,
+.nav-tabs li a:hover,
+.selector span.custom-select:before,
+.pagination > .active > a,
+.pagination .active,
+.tooltip-inner,
+.owl-theme .owl-controls .owl-buttons div,
+#theme-options .layout-style li.active{
+	background: #542076 !important; 
+	background-color: #542076 !important; 
+}
+.post-meta,
+.opacy_bg_03{
+	background: #542076;  
+	background: rgba(136, 196, 37, 0.6);
+}
+.overlay{
+	background: #542076 url("../../../img/more.png") no-repeat center center;;
+	background: rgba(255, 240, 0, 0.6) url("../../../img/img-theme/more.png") no-repeat center center;
+}
+
+/* Colors ----------------------------------------------------------*/
+.color-skin,
+.item-boxed-service a,
+.services-lines li .item-service-line a,
+.owl-theme .owl-controls .owl-prev,
+.owl-theme .owl-controls .owl-next,
+.contact-footer li i,
+.breadcrumbs .breadcrumbs-home i,
+.title-downloads .logo-clients,
+.subtitle-downloads h4 i,
+.title-vertical-line h2 span,
+.info-item-blog-post a,
+#menu .dropdown-menu ul li a:hover,
+.contact-list li a,
+.contact-list li h4 i,
+#menu .yamm-content i,
+#menu .dropdown-menu li .big-icon,
+#menu .dropdown-menu > li > a:hover,
+#menu .dropdown-menu > li > a:focus,
+.medium_text.other_text,
+.item-boxed-service-02 h4,
+.title-big h2,
+.opacy_bg_02 .title-header-parallax a i,
+.title-subtitle h5,
+.event-info h4 a,
+.brand-color,
+.section-title-01 h5,
+.credit-detail ul li a,
+.documents .document a,
+.fcorn-login-2 .login-btn:before,
+.fcorn-login-2 .signup-btn:before ,
+.fcorn-login-2 span.icon:before,
+.fcorn-login .login-right > span.icon:before,
+.fcorn-contact .contact-right .input-wrap > span.icon:before ,
+.fcorn-login .login-right > label.check-label > input.check-input:checked + .info:before,
+.fcorn-shortcodes .custom-check input.check-input:checked + .info:before,
+.fcorn-shortcodes .custom-radio input.check-input:checked + .info:before,
+.fcorn-shortcodes .custom-check input.radio-input:checked + .info:before,
+.fcorn-shortcodes .custom-radio input.radio-input:checked + .info:before ,
+.fcorn-login .login-right > .forget-pass > a ,
+.fcorn-shortcodes .ratings > input[type=radio]:hover ~ label,
+.fcorn-shortcodes .ratings > input[type=radio]:checked ~ label ,
+.fcorn-shortcodes .subscribe-box > .email:before,
+.item-gallery .head-gallery h4,
+.user-area .panel .list-group a,
+.blog-post-section h4 i,
+.single-blog h4 i,
+.single-blog h4 a,
+.footer-down ul li a:hover,
+.nav-tabs li i,
+.title-results a,
+blockquote > a,
+.crumbs li a,
+.page-error h1 i,
+.sitemap li a:hover,
+.pagination > li > a, .pagination > li > span,
+address i,
+address a{
+	color: #542076 !important;
+}
+
+/* Borders ----------------------------------------------------------*/
+.image-clients-downloads li:hover, 
+.layout-boxed-margin .fond-header,
+.pagination > .active > a,
+.pagination > .active:hover > a,
+.crumbs ul,
+.portfolioFilter .current, .portfolioFilter a:hover,
+.post-format-icon > i,
+.fcorn-register p.register-toggle > label.toggle-label .toggle-handle,
+.fcorn-shortcodes .toggle > label.toggle-label .toggle-handle,
+.fcorn-shortcodes .radio-toggle > label.toggle-label .toggle-handle,
+.fcorn-checkout .payment-box p.checkout-toggle > label.toggle-label .toggle-handle,
+.fcorn-login .login-right > label.check-label:before,
+.fcorn-shortcodes .custom-check > label.check-label:before,
+.fcorn-shortcodes .custom-radio > label.check-label:before,
+.fcorn-shortcodes .custom-check > label.radio-label:before,
+.fcorn-shortcodes .custom-radio > label.radio-label:before{
+	border-color: #542076 !important;
+}
+.crumbs:before{
+	border-bottom: 20px solid #542076;
+}
+.tooltip.top .tooltip-arrow,
+.item-team{
+  border-top-color: #542076;
+}
+.nav-tabs li.active:after {
+	border: 10px solid #542076;
+	border-left-color: transparent;
+	border-right-color: transparent;
+	border-bottom-color: transparent;
+	content: "";
+	left: 50%;
+	margin-left: -10px;
+	position: absolute;
+	z-index: 101;
+}
+.title-widget:after {
+  border-top: 15px solid  #542076;
+}
+#menu .dropdown-menu{
+	border-bottom-color: #542076;
+}
+.info-login .head-info-login span:before{
+	 border-left: 18px solid #542076 !important;
+}
+.item-blog-post .head-item-blog-post:before{
+    border-top: 20px solid #542076 !important;
+}
