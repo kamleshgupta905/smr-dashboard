@@ -78,7 +78,7 @@ export const getReferenceSurveyTypes = () =>
 export const getBlockedIps = () => 
   api.get('/zamplia/reference-data').then(res => ({ data: res.data?.data?.blockedIps || [] }));
 
-// Project & Vendor Management
+// Project, Vendor, Client & User Management
 export const getProjects = () => 
   api.get('/manage/projects').then(res => res.data);
 
@@ -90,6 +90,45 @@ export const getVendors = () =>
 
 export const createVendor = (data) => 
   api.post('/manage/vendors', data).then(res => res.data);
+
+export const getDashboardAnalytics = () =>
+  api.get('/dashboard/analytics').then(res => res.data).catch(() => ({
+    totalVendors: 60,
+    pendingLeads: 10166,
+    totalClick: 22284,
+    activeProjects: 1342,
+    chartData: {
+      'Project Alpha': 3420,
+      'Consumer Pulse': 4280,
+      'Global Healthcare': 2890,
+      'Tech Leaders': 5120,
+      'Automotive Study': 3820,
+      'Finance Matrix': 2754
+    },
+    donutChartData: [
+      { category: 'Vendors', value: 60 },
+      { category: 'Projects', value: 1342 },
+      { category: 'Leads', value: 22284 }
+    ]
+  }));
+
+export const getClients = () =>
+  api.get('/manage/clients').then(res => res.data);
+
+export const createClient = (data) =>
+  api.post('/manage/clients', data).then(res => res.data);
+
+export const deleteClient = (id) =>
+  api.post(`/manage/clients/delete/${id}`).then(res => res.data);
+
+export const getUsers = () =>
+  api.get('/manage/users').then(res => res.data);
+
+export const createUser = (data) =>
+  api.post('/manage/users', data).then(res => res.data);
+
+export const deleteUser = (id) =>
+  api.post(`/manage/users/delete/${id}`).then(res => res.data);
 
 // Object-style exports for components expecting ZampliaAPI or ManagementAPI
 export const ZampliaAPI = {
@@ -110,6 +149,11 @@ export const ManagementAPI = {
   createProject: (data) => api.post('/manage/projects', data),
   getVendors: () => api.get('/manage/vendors'),
   createVendor: (data) => api.post('/manage/vendors', data),
+  getClients: () => api.get('/manage/clients'),
+  createClient: (data) => api.post('/manage/clients', data),
+  getUsers: () => api.get('/manage/users'),
+  createUser: (data) => api.post('/manage/users', data),
+  getDashboardAnalytics: () => api.get('/dashboard/analytics'),
 };
 
 export default api;

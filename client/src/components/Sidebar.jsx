@@ -7,6 +7,8 @@ import {
   Database,
   Users,
   Briefcase,
+  Building2,
+  UserCheck,
   X
 } from 'lucide-react';
 
@@ -15,10 +17,12 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'surveys', label: 'Live Inventory', icon: Layers },
+    { id: 'users', label: 'User Management', icon: UserCheck },
+    { id: 'clients', label: 'Client Management', icon: Building2 },
+    { id: 'vendors', label: 'Supplier / Vendor', icon: Users },
+    { id: 'surveys', label: 'API Survey & Live Feeds', icon: Layers },
     { id: 'top-picks', label: 'Top Picks', icon: Flame },
     { id: 'projects', label: 'Custom Projects', icon: Briefcase },
-    { id: 'vendors', label: 'Vendors / Panels', icon: Users },
     { id: 'reconciliation', label: 'Reconciliation', icon: FileCheck2 },
     { id: 'reference', label: 'Reference Catalogs', icon: Database },
   ];

@@ -8,6 +8,8 @@ import ProjectsPage from './pages/ProjectsPage';
 import VendorsPage from './pages/VendorsPage';
 import ReconciliationPage from './pages/ReconciliationPage';
 import ReferenceDataPage from './pages/ReferenceDataPage';
+import ClientsPage from './pages/ClientsPage';
+import UserManagementPage from './pages/UserManagementPage';
 import QuotasModal from './components/QuotasModal';
 import QualsModal from './components/QualsModal';
 import AssignVendorModal from './components/AssignVendorModal';
@@ -100,10 +102,12 @@ export default function App() {
 
   const pageTitles = {
     dashboard: 'Marketplace Dashboard',
-    surveys: 'Live Survey Inventory',
+    users: 'User Management',
+    clients: 'Client Management',
+    vendors: 'Vendors & Sample Panels',
+    surveys: 'API Survey & Live Feeds',
     'top-picks': 'High-Yield Top Picks',
     projects: 'Custom Client Projects',
-    vendors: 'Vendors & Sample Panels',
     reconciliation: 'Zamplia Reconciliation & Audit',
     reference: 'Reference Catalogs & Blocked IPs'
   };
@@ -155,6 +159,9 @@ export default function App() {
               onOpenAssign={setAssignModalId}
             />
           )}
+
+          {activeTab === 'users' && <UserManagementPage />}
+          {activeTab === 'clients' && <ClientsPage />}
 
           {activeTab === 'surveys' && (
             <SurveysPage 

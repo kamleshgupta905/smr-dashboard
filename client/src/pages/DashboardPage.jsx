@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import StatsCards from '../components/StatsCards';
+import ApitoolAnalytics from '../components/ApitoolAnalytics';
+import { getDashboardAnalytics } from '../services/api';
 import { normalizeSurveys } from '../utils/normalize';
 import { 
   Zap, 
@@ -25,6 +27,14 @@ export default function DashboardPage({
   onOpenQuals, 
   onOpenAssign 
 }) {
+  const [analyticsData, setAnalyticsData] = useState(null);
+
+  useEffect(() => {
+    getDashboardAnalytics().then(res => {
+      setAnalyticsData(res?.data || res || null);
+    }).catch(() => {});
+  }, []);
+
   const normalized = normalizeSurveys(surveys);
   const topSurveys = [...normalized]
     .sort((a, b) => (b.cpi || 0) - (a.cpi || 0))
@@ -88,7 +98,15 @@ export default function DashboardPage({
         </div>
       </div>
 
-      {/* Overview Stat Cards */}
+      {/* VMH Executive Analytics: 4 Sparkline Cards, Performance Bar Chart, Vendor Distribution Donut Chart */}
+      <ApitoolAnalytics data={analyticsData} />
+
+      {/* Zamplia Survey Inventory Stat Cards */}
+      <div style={{ marginBottom: '14px', marginTop: '10px' }}>
+        <h3 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Zap size={16} color="#059669" /> Live Zamplia Survey Marketplace Metrics
+        </h3>
+      </div>
       <StatsCards stats={stats} totalSurveys={normalized.length} />
 
       {/* Grid: High-Yield Surveys & System Health */}
