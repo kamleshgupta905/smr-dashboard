@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Activity, ShieldCheck, RefreshCw, Zap } from 'lucide-react';
+import { Menu, Activity, ShieldCheck, RefreshCw, Zap, LogOut, User } from 'lucide-react';
 
 export default function Navbar({ 
   pageTitle = 'Marketplace Dashboard', 
@@ -7,7 +7,8 @@ export default function Navbar({
   syncing, 
   isSyncing, 
   surveyCount = 0,
-  onToggleMobileMenu 
+  onToggleMobileMenu,
+  onLogout 
 }) {
   const isCurrentlySyncing = syncing || isSyncing;
 
@@ -52,6 +53,34 @@ export default function Navbar({
           >
             <RefreshCw size={14} className={isCurrentlySyncing ? 'spin' : ''} />
             <span>{isCurrentlySyncing ? 'Syncing...' : 'Sync Zamplia'}</span>
+          </button>
+        )}
+
+        <div className="badge badge-neutral" style={{ padding: '6px 12px', fontSize: '12px', background: '#F1F5F9', color: '#334155', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <User size={13} style={{ color: '#0F172A' }} /> Vmhgroup
+        </div>
+
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            title="Log out from SMR Dashboard"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '7px 12px',
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              borderRadius: '8px',
+              color: '#EF4444',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            <LogOut size={13} />
+            <span>Logout</span>
           </button>
         )}
       </div>

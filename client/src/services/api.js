@@ -5,10 +5,23 @@ const api = axios.create({
   timeout: 30000,
 });
 
+// Request interceptor to attach authentication token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('smr_auth_token');
+  if (token) {
+    config.headers['X-SMR-Auth'] = 'Vmhgroup:Jelly';
+  }
+  return config;
+});
+
 // Response interceptor to streamline data unwrapping
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('smr_auth_token');
+      localStorage.removeItem('smr_auth_user');
+    }
     console.error('API call failed:', error.response?.data || error.message);
     return Promise.reject(error);
   }

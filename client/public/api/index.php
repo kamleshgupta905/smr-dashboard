@@ -96,6 +96,30 @@ $rawInput = file_get_contents('php://input');
 $body = json_decode($rawInput, true) ?? $_POST;
 
 // -------------------------------------------------------------
+// Security Gate: Protect with Vmhgroup : Jelly
+// -------------------------------------------------------------
+$authHeader = $_SERVER['HTTP_X_SMR_AUTH'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+$isHealthCheck = ($route === 'health' || $route === 'api/health');
+$isRedirect = (str_starts_with($route, 'redirects') || str_starts_with($route, 'vendor'));
+
+if (!$isHealthCheck && !$isRedirect) {
+    $isAuthorized = ($authHeader === 'Vmhgroup:Jelly') ||
+                    (isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) &&
+                     strtolower($_SERVER['PHP_AUTH_USER']) === 'vmhgroup' &&
+                     $_SERVER['PHP_AUTH_PW'] === 'Jelly');
+
+    if (!$isAuthorized) {
+        http_response_code(401);
+        echo json_encode([
+            'success' => false,
+            'status' => 'UNAUTHORIZED',
+            'message' => 'Access Denied. SMR Dashboard is protected. Please login with valid credentials.'
+        ]);
+        exit;
+    }
+}
+
+// -------------------------------------------------------------
 // Routes
 // -------------------------------------------------------------
 

@@ -11,12 +11,16 @@ import ReferenceDataPage from './pages/ReferenceDataPage';
 import QuotasModal from './components/QuotasModal';
 import QualsModal from './components/QualsModal';
 import AssignVendorModal from './components/AssignVendorModal';
+import LoginPage from './components/LoginPage';
 import { normalizeSurveys } from './utils/normalize';
 import { CheckCircle2, AlertTriangle, X } from 'lucide-react';
 
 import { getSurveys, getSurveyStats, syncSurveys } from './services/api';
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('smr_auth_token') === 'authenticated_vmhgroup';
+  });
   const [activeTab, setActiveTab] = useState('dashboard');
   const [surveys, setSurveys] = useState([]);
   const [stats, setStats] = useState(null);
@@ -58,8 +62,10 @@ export default function App() {
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (isAuthenticated) {
+      loadData();
+    }
+  }, [isAuthenticated]);
 
   const handleSync = async () => {
     setSyncing(true);
@@ -102,6 +108,19 @@ export default function App() {
     reference: 'Reference Catalogs & Blocked IPs'
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('smr_auth_token');
+    localStorage.removeItem('smr_auth_user');
+    setIsAuthenticated(false);
+  };
+
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={() => {
+      setIsAuthenticated(true);
+      loadData();
+    }} />;
+  }
+
   return (
     <div className="layout-root">
       {/* Sidebar Navigation */}
@@ -120,6 +139,7 @@ export default function App() {
           syncing={syncing} 
           surveyCount={surveys.length}
           onToggleMobileMenu={() => setMobileMenuOpen(prev => !prev)}
+          onLogout={handleLogout}
         />
 
         <main className="page-body">
