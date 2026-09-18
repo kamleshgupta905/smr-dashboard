@@ -504,7 +504,7 @@ if (preg_match('#^(api/)?manage/users(/delete/(\d+))?#', $route, $um)) {
 
     if ($db) {
         try {
-            $users = $db->query("SELECT u.id, u.name, u.username, u.mobile_no, u.email, u.is_active, u.is_online, r.role as role_name FROM users u LEFT JOIN role r ON u.role_id = r.id ORDER BY u.id DESC")->fetchAll();
+            $users = $db->query("SELECT u.id, u.name, u.username, u.mobile_no, u.email, u.is_active, u.is_online, r.role as role_name FROM users u LEFT JOIN roles r ON u.role_id = r.id ORDER BY u.id DESC")->fetchAll();
             if (!empty($users)) {
                 echo json_encode(['success' => true, 'data' => $users]);
                 exit;

@@ -241,6 +241,11 @@ hr {
                                 name="role_id"
                                 id="role_id"
                                 value="{{ getEditData($mode, $usereditData, 'role_id') }}" />
+                                
+                                
+                                  <x-input-component column="col-md-6" type="text" label="Supplier Id" name="supplier_id" id="supplierid"
+                                placeholder="Enter Supplier Id"
+                                value="{{ getEditData($mode, $usereditData, 'supplier_id') }}" />
 
                         </div>
                     </div>

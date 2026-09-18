@@ -9,6 +9,8 @@ import VendorsPage from './pages/VendorsPage';
 import ReconciliationPage from './pages/ReconciliationPage';
 import ReferenceDataPage from './pages/ReferenceDataPage';
 import ClientsPage from './pages/ClientsPage';
+import SecurityFraudPage from './pages/SecurityFraudPage';
+import ApiDeveloperCenterPage from './pages/ApiDeveloperCenterPage';
 import UserManagementPage from './pages/UserManagementPage';
 import QuotasModal from './components/QuotasModal';
 import QualsModal from './components/QualsModal';
@@ -29,7 +31,16 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [toast, setToast] = useState(null);
+
+  const handleToggleSidebar = () => {
+    if (window.innerWidth < 992) {
+      setMobileMenuOpen(prev => !prev);
+    } else {
+      setSidebarCollapsed(prev => !prev);
+    }
+  };
 
   // Modal states
   const [quotasModalId, setQuotasModalId] = useState(null);
@@ -102,14 +113,16 @@ export default function App() {
 
   const pageTitles = {
     dashboard: 'Marketplace Dashboard',
-    users: 'User Management',
-    clients: 'Client Management',
+    users: 'User Management (RBAC)',
+    clients: 'Demand Clients & S2S Integration',
     vendors: 'Vendors & Sample Panels',
-    surveys: 'API Survey & Live Feeds',
+    surveys: 'Allocated Survey Marketplace',
+    'developer-center': 'API Developer Center & Interactive Sandbox',
     'top-picks': 'High-Yield Top Picks',
+    security: 'Security & Fraud Screening Engine',
     projects: 'Custom Client Projects',
     reconciliation: 'Zamplia Reconciliation & Audit',
-    reference: 'Reference Catalogs & Blocked IPs'
+    reference: 'Reference Catalogs & Taxonomies'
   };
 
   const handleLogout = () => {
@@ -126,26 +139,30 @@ export default function App() {
   }
 
   return (
-    <div className="layout-root">
-      {/* Sidebar Navigation */}
+    <div className="page-wrapper">
+      {/* VMH Sidebar Navigation */}
       <Sidebar 
         activeTab={activeTab} 
         onTabChange={setActiveTab}
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
+        collapsed={sidebarCollapsed}
       />
 
-      {/* Main Content Area */}
-      <div className="main-content">
-        <Navbar 
-          pageTitle={pageTitles[activeTab] || 'Dashboard'}
-          onSync={handleSync} 
-          syncing={syncing} 
-          surveyCount={surveys.length}
-          onToggleMobileMenu={() => setMobileMenuOpen(prev => !prev)}
-          onLogout={handleLogout}
-        />
+      {/* VMH Fixed Topbar with Working Sidebar Toggle & Sleek Bell */}
+      <Navbar 
+        pageTitle={pageTitles[activeTab] || 'Dashboard'}
+        onSync={handleSync} 
+        syncing={syncing} 
+        surveyCount={surveys.length}
+        onToggleSidebar={handleToggleSidebar}
+        onToggleMobileMenu={handleToggleSidebar}
+        sidebarCollapsed={sidebarCollapsed}
+        onLogout={handleLogout}
+      />
 
+      {/* VMH Main Content Area */}
+      <div className={`page-content-tab ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <main className="page-body">
           {activeTab === 'dashboard' && (
             <DashboardPage 
@@ -162,11 +179,14 @@ export default function App() {
 
           {activeTab === 'users' && <UserManagementPage />}
           {activeTab === 'clients' && <ClientsPage />}
+          {activeTab === 'security' && <SecurityFraudPage />}
+          {activeTab === 'developer-center' && <ApiDeveloperCenterPage />}
 
           {activeTab === 'surveys' && (
             <SurveysPage 
               surveys={surveys}
               loading={loading}
+              onRefresh={handleSync}
               onOpenQuotas={setQuotasModalId}
               onOpenQuals={setQualsModalId}
               onOpenAssign={setAssignModalId}
@@ -186,6 +206,25 @@ export default function App() {
           {activeTab === 'vendors' && <VendorsPage />}
           {activeTab === 'reconciliation' && <ReconciliationPage />}
           {activeTab === 'reference' && <ReferenceDataPage />}
+
+          {/* VMH Enterprise Footer */}
+          <footer style={{
+            margin: '24px -16px -16px -16px',
+            padding: '14px 20px',
+            borderTop: '1px solid #e3ebf6',
+            background: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '11.5px',
+            color: '#8997bd'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img src="/vmh-logo.png" alt="VMH" style={{ height: '18px', width: 'auto' }} />
+              <span>&copy; {new Date().getFullYear()} <strong>VMH GROUP'S</strong> &bull; Survey Marketplace & Routing Platform</span>
+            </div>
+            <span style={{ fontSize: '11px', color: '#1761fd', fontWeight: 600 }}>v3.4 Production Engine</span>
+          </footer>
         </main>
       </div>
 

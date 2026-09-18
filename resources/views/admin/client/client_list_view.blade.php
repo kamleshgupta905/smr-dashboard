@@ -11,6 +11,13 @@
 </script>
 @endif
 
+@if (session()->has('error'))
+<script>
+    showToast('error', '{{ session('error') }}');
+</script>
+@endif
+
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -391,7 +398,7 @@ td {
                                         <i class="fas fa-eye"></i>
                                     </a>
 
-                                    <button class="deleteClientBtn" data-id="{{ $client->id }}">
+                                    <button class="deleteClientBtn" data-url="{{ url('admin/client/delete') }}/{{ $client->id }}"data-id="{{ $client->id }}">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>

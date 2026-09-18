@@ -264,14 +264,19 @@ td {
     <div class="card card-primary list-view">
 
         <!-- HEADER -->
-        <div class="card-header">
-            <h3 class="card-title">Supplier List</h3>
-            
+       <div class="card-header">
+            <div class="row align-items-center w-100">
+                <div class="col">
+                    <h3 class="card-title mb-0">
+                        Supplier List
+                    </h3>
+                </div>
 
-            <div class="btn-group btn-group-sm">
-                <a href="{{ url('admin/') }}/vendor/addedit" class="btn">
-                    <i class="fas fa-plus"></i> Add Supplier
-                </a>
+                <div class="col-auto">
+                    <a href="{{ url('admin/') }}/vendor/addedit" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus"></i> Add Supplier
+                    </a>
+                </div>
             </div>
         </div>
 

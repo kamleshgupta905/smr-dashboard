@@ -58,15 +58,9 @@ Route::prefix('admin')->middleware(['admin_auth'])->group(function () {
     Route::post('client/status', [ClientController::class, 'status']);
     Route::get('client/delete/{id}', [ClientController::class, 'delete']);
     Route::get('client/filter', [ClientController::class, 'filterClients']);
-    //This is for Zamplia Supply API Integration 
-    Route::get('api_survey', [ApiController::class, 'getAllocatedSurveys'])->name('admin.api_survey');
-    Route::get('api_survey/sync', [ApiController::class, 'ajaxSyncSurveys'])->name('admin.api_survey.sync');
-    Route::get('api_survey/qualifications/{surveyId}', [ApiController::class, 'getSurveyQualificationsAjax'])->name('admin.api_survey.qualifications');
-    Route::get('api_survey/quotas/{surveyId}', [ApiController::class, 'getSurveyQuotasAjax'])->name('admin.api_survey.quotas');
-    Route::get('api_survey/global-stats/{surveyId?}', [ApiController::class, 'getGlobalStatsAjax'])->name('admin.api_survey.global_stats');
-    Route::get('api_survey/reconciliation', [ApiController::class, 'reconciliationView'])->name('admin.api_survey.reconciliation');
-    Route::get('api_survey/reference-data', [ApiController::class, 'referenceDataView'])->name('admin.api_survey.reference_data');
-    Route::get('survey/view/{surveyId}', [ApiController::class, 'viewSurvey'])->name('admin.survey.view');
+    //This is for Api intigration 
+    Route::get('api_survey', [ApiController::class, 'getAllocatedSurveys']);
+    Route::get('survey/view/{surveyId}',[ApiController::class, 'viewSurvey'])->name('admin.survey.view');
     //Inhouse Team Route 
      Route::get('team/list', [TeamController::class, 'index']);
      Route::get('team/add', [TeamController::class, 'add']);

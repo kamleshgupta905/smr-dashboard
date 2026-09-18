@@ -1,42 +1,72 @@
 const mongoose = require('mongoose');
 const zampliaService = require('../services/zampliaService');
+const marketXcelService = require('../services/marketXcelService');
 const ApiSurvey = require('../models/ApiSurvey');
 const VendorEntryLink = require('../models/VendorEntryLink');
 
 // In-memory cache fallback for when MongoDB is not running
 let lastCachedSurveys = [];
 
-// Get All Allocated Surveys (with fallback to MongoDB or cache)
+// Get All Allocated Surveys (supporting Zamplia, Market Xcel, and Multi-channel)
 exports.getSurveys = async (req, res) => {
   try {
     const tab = req.query.tab || 'allocated';
+    const sourceFilter = req.query.source || 'all';
 
     if (tab === 'top_picks') {
       const topPicksRes = await zampliaService.getTopPickSurveys();
       return res.json({ success: true, data: topPicksRes.data || [] });
     }
 
-    // Try live API first
+    // Fetch Market Xcel Projects
+    let mxSurveys = [];
+    try {
+      const mxRes = await marketXcelService.getAllocatedProjects();
+      if (mxRes.success && Array.isArray(mxRes.data)) {
+        mxSurveys = mxRes.data.map(p => ({
+          ...p,
+          client: 'Market Xcel',
+          clientCode: 'MX_DEMAND',
+          cpi: parseFloat(p.cost_per_interview || p.cpi || 2.70),
+          loi: parseInt(p.length_of_interview || p.loi || 10, 10),
+          ir: parseInt(p.incidence_rate || p.ir || 90, 10),
+          country: p.survey_country || 'United States',
+          status: p.survey_status || 'Live',
+        }));
+      }
+    } catch (e) {
+      console.warn('Market Xcel fetch error:', e.message);
+    }
+
+    if (sourceFilter === 'marketxcel') {
+      return res.json({ success: true, data: mxSurveys, source: 'marketxcel' });
+    }
+
+    // Try live Zamplia API
     const apiRes = await zampliaService.getAllocatedSurveys();
+    let zampliaSurveys = [];
     if (apiRes.success && Array.isArray(apiRes.data) && apiRes.data.length > 0) {
-      lastCachedSurveys = apiRes.data;
-      // Background sync to MongoDB only if connected
+      zampliaSurveys = apiRes.data.map(s => ({
+        ...s,
+        client: 'Zamplia',
+        clientCode: 'ZAMP_GLOBAL',
+        device_type: s.device_type || 'Desktop,Mobile,Tablet',
+      }));
+      lastCachedSurveys = zampliaSurveys;
       if (mongoose.connection.readyState === 1) {
         zampliaService.syncSurveysToDb().catch(console.error);
       }
-      return res.json({ success: true, data: apiRes.data, source: 'live' });
+    } else if (lastCachedSurveys.length > 0) {
+      zampliaSurveys = lastCachedSurveys;
     }
 
-    // Fallback to local MongoDB if connected
-    if (mongoose.connection.readyState === 1) {
-      const localSurveys = await ApiSurvey.find().sort({ createdAt: -1 });
-      if (localSurveys && localSurveys.length > 0) {
-        return res.json({ success: true, data: localSurveys, source: 'database' });
-      }
+    if (sourceFilter === 'zamplia') {
+      return res.json({ success: true, data: zampliaSurveys, source: 'zamplia' });
     }
 
-    // Fallback to in-memory cache
-    return res.json({ success: true, data: lastCachedSurveys, source: 'in_memory_cache' });
+    // Combined multi-client inventory
+    const combined = [...mxSurveys, ...zampliaSurveys];
+    return res.json({ success: true, data: combined, source: 'multi_client_marketplace' });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
@@ -169,14 +199,18 @@ exports.getReconciliation = async (req, res) => {
   }
 };
 
-// Get Reference Data (Languages, Demographics, Industry, Blocked IPs)
+// Get Reference Data (Languages, Demographics, Industry, Blocked IPs, Survey Groups, Categories)
 exports.getReferenceData = async (req, res) => {
   try {
-    const [languages, industries, surveyTypes, blockedIps] = await Promise.all([
+    const zampliaDemandService = require('../services/zampliaDemandService');
+    const [languages, industries, surveyTypes, blockedIps, demographics, surveyGroups, categories] = await Promise.all([
       zampliaService.getLanguages(),
       zampliaService.getIndustry(),
       zampliaService.getSurveyTypes(),
       zampliaService.getBlockedIps(),
+      zampliaService.getDemographics(),
+      zampliaService.getSurveyGroups(),
+      zampliaDemandService.getCategory(),
     ]);
 
     const defaultLanguages = [
@@ -222,6 +256,9 @@ exports.getReferenceData = async (req, res) => {
         industries: (industries.data && industries.data.length > 0) ? industries.data : defaultIndustries,
         surveyTypes: (surveyTypes.data && surveyTypes.data.length > 0) ? surveyTypes.data : defaultSurveyTypes,
         blockedIps: blockedIps.data || [],
+        demographics: demographics.data || [],
+        surveyGroups: surveyGroups.data || [],
+        categories: categories.data || [],
       },
     });
   } catch (error) {

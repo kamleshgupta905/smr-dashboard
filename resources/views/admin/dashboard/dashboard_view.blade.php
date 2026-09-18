@@ -146,163 +146,191 @@ canvas {
 
 <script>
 
-// ===== TREND GENERATOR (TOP CHARTS SAME) =====
+// ================= MINI CHART =================
+
 function trend(base) {
+    base = parseInt(base) || 0;
+
     let arr = [];
+
     for (let i = 0; i < 7; i++) {
-        arr.push(base + Math.floor(Math.random() * 10 - 5));
+        arr.push(Math.max(0, base + Math.floor(Math.random() * 10 - 5)));
     }
+
     return arr;
 }
 
-// ===== MINI CHART =====
-function miniChart(id, data, color) {
-    new Chart(document.getElementById(id), {
-        type: 'line',
-        data: {
-            labels: ['M','T','W','T','F','S','S'],
-            datasets: [{
-                data: data,
-                borderColor: color,
-                backgroundColor: color + '20',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0
+function miniChart(id, data, color){
+
+    const el=document.getElementById(id);
+
+    if(!el) return;
+
+    new Chart(el,{
+        type:'line',
+        data:{
+            labels:['M','T','W','T','F','S','S'],
+            datasets:[{
+                data:data,
+                borderColor:color,
+                backgroundColor:color+'20',
+                fill:true,
+                tension:.4,
+                pointRadius:0
             }]
         },
-        options: {
-            plugins: { legend: { display: false }},
-            scales: { x: { display: false }, y: { display: false }}
+        options:{
+            responsive:true,
+            plugins:{
+                legend:{display:false}
+            },
+            scales:{
+                x:{display:false},
+                y:{display:false}
+            }
         }
     });
+
 }
 
-// ===== TOP CHARTS =====
-miniChart('chart1', trend({{ $totalVendors }}), '#4F46E5');
-miniChart('chart2', trend({{ $pendingLeads }}), '#F59E0B');
-miniChart('chart3', trend({{ $totalClick }}), '#10B981');
-miniChart('chart4', trend({{ $activeProjects }}), '#EF4444');
+miniChart('chart1',trend({{ $totalVendors ?? 0 }}),'#4F46E5');
+miniChart('chart2',trend({{ $pendingLeads ?? 0 }}),'#F59E0B');
+miniChart('chart3',trend({{ $totalClick ?? 0 }}),'#10B981');
+miniChart('chart4',trend({{ $activeProjects ?? 0 }}),'#EF4444');
 
 
-// ===== BAR CHART (PREMIUM) =====
-const rawData = <?php echo $chartData; ?>;
+// ================= BAR CHART =================
 
-let labels = [];
-let values = [];
+const rawData = {!! $chartData ?? '{}' !!};
 
-for (let key in rawData) {
-    labels.push(key);
-    values.push(rawData[key].quantity ?? 0);
+let labels=[];
+let values=[];
+
+for(let project in rawData){
+
+    labels.push(project);
+
+    let total=0;
+
+    Object.values(rawData[project]).forEach(function(clicks){
+        total += parseInt(clicks);
+    });
+
+    values.push(total);
+
 }
 
-const ctxBar = document.getElementById('barChart').getContext('2d');
+if(document.getElementById('barChart')){
 
-// gradient
-const gradient = ctxBar.createLinearGradient(0, 0, 0, 300);
-gradient.addColorStop(0, '#6366F1');
-gradient.addColorStop(1, '#4F46E5');
+    const ctx=document.getElementById('barChart').getContext('2d');
 
-new Chart(ctxBar, {
-    type: 'bar',
-    data: {
-        labels: labels,
-        datasets: [{
-            data: values,
-            backgroundColor: gradient,
-            borderRadius: 12,
-            barThickness: 22
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                backgroundColor: '#0F172A',
-                titleColor: '#fff',
-                bodyColor: '#CBD5F5',
-                padding: 10,
-                borderColor: '#4F46E5',
-                borderWidth: 1
-            }
+    const gradient=ctx.createLinearGradient(0,0,0,300);
+
+    gradient.addColorStop(0,'#6366F1');
+    gradient.addColorStop(1,'#4F46E5');
+
+    new Chart(ctx,{
+        type:'bar',
+        data:{
+            labels:labels,
+            datasets:[{
+                data:values,
+                backgroundColor:gradient,
+                borderRadius:12,
+                barThickness:22
+            }]
         },
-        scales: {
-            x: {
-                grid: { display: false },
-                ticks: { color: '#64748B' }
-            },
-            y: {
-                grid: { color: '#E5E7EB' },
-                ticks: { color: '#64748B' }
-            }
-        }
-    }
-});
-
-
-// ===== DONUT CHART (PREMIUM) =====
-const donutData = <?php echo $donutChartData ?? json_encode([]); ?>;
-
-const ctxDonut = document.getElementById('donutChart');
-
-// plugin for center text
-const centerText = {
-    id: 'centerText',
-    beforeDraw(chart) {
-        const { width } = chart;
-        const { height } = chart;
-        const ctx = chart.ctx;
-
-        ctx.restore();
-        ctx.font = "bold 20px Inter";
-        ctx.textBaseline = "middle";
-
-        const total = donutData.reduce((sum, d) => sum + d.value, 0);
-        const text = total;
-
-        const textX = Math.round((width - ctx.measureText(text).width) / 2);
-        const textY = height / 2;
-
-        ctx.fillStyle = "#0F172A";
-        ctx.fillText(text, textX, textY);
-        ctx.save();
-    }
-};
-
-new Chart(ctxDonut, {
-    type: 'doughnut',
-    data: {
-        labels: donutData.map(d => d.category),
-        datasets: [{
-            data: donutData.map(d => d.value),
-            backgroundColor: [
-                '#4F46E5',
-                '#6366F1',
-                '#818CF8',
-                '#A5B4FC'
-            ],
-            borderWidth: 0,
-            hoverOffset: 8
-        }]
-    },
-    options: {
-        cutout: '75%',
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    color: '#64748B',
-                    padding: 15
+        options:{
+            responsive:true,
+            plugins:{
+                legend:{
+                    display:false
                 }
             },
-            tooltip: {
-                backgroundColor: '#0F172A',
-                titleColor: '#fff',
-                bodyColor: '#CBD5F5'
+            scales:{
+                x:{
+                    grid:{
+                        display:false
+                    }
+                },
+                y:{
+                    beginAtZero:true
+                }
             }
         }
-    },
-    plugins: [centerText]
-});
+    });
+
+}
+
+
+
+// ================= DONUT =================
+
+const donutData = {!! $donutChartData ?? '[]' !!};
+
+if(document.getElementById('donutChart') && donutData.length){
+
+    const centerText={
+        id:'centerText',
+        beforeDraw(chart){
+
+            const ctx=chart.ctx;
+            const width=chart.width;
+            const height=chart.height;
+
+            ctx.restore();
+
+            ctx.font='bold 20px Arial';
+
+            let total=0;
+
+            donutData.forEach(function(i){
+                total+=parseInt(i.value);
+            });
+
+            const x=(width-ctx.measureText(total).width)/2;
+
+            const y=height/2;
+
+            ctx.fillStyle='#0F172A';
+            ctx.fillText(total,x,y);
+
+            ctx.save();
+
+        }
+    };
+
+    new Chart(document.getElementById('donutChart'),{
+
+        type:'doughnut',
+
+        data:{
+            labels:donutData.map(x=>x.category),
+            datasets:[{
+                data:donutData.map(x=>x.value),
+                backgroundColor:[
+                    '#4F46E5',
+                    '#6366F1',
+                    '#818CF8',
+                    '#A5B4FC'
+                ],
+                borderWidth:0
+            }]
+        },
+
+        options:{
+            cutout:'75%',
+            plugins:{
+                legend:{
+                    position:'bottom'
+                }
+            }
+        },
+
+        plugins:[centerText]
+
+    });
+
+}
 
 </script>

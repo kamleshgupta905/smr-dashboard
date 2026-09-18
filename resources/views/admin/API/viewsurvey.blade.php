@@ -339,31 +339,31 @@ hr {
                         </h2>
                     </div>
 
-                    <div class="col-md-1 mb-2 mb-md-0">
-                        <button class="btn btn-outline-danger w-100"
-                            id="project-status"
-                            type="button"
-                            data-id="{{ $projectsData['SurveyId'] }}">
+                    <!--<div class="col-md-1 mb-2 mb-md-0">-->
+                    <!--    <button class="btn btn-outline-danger w-100"-->
+                    <!--        id="project-status"-->
+                    <!--        type="button"-->
+                    <!--        data-id="{{ $projectsData['SurveyId'] }}">-->
 
-                            <i class="fas fa-{{ ($projectsData['SurveyStatus'] ?? 0) == 1 ? 'pause' : 'play' }}"></i>
-                        </button>
-                    </div>
+                    <!--        <i class="fas fa-{{ ($projectsData['SurveyStatus'] ?? 0) == 1 ? 'pause' : 'play' }}"></i>-->
+                    <!--    </button>-->
+                    <!--</div>-->
 
-                    <div class="col-md-1 mb-2 mb-md-0">
-                        <a href="{{ url('admin/project/addedit') }}/{{ $projectsData['SurveyId'] }}"
-                            class="btn btn-outline-primary w-100">
-                            Edit
-                        </a>
-                    </div>
+                    <!--<div class="col-md-1 mb-2 mb-md-0">-->
+                    <!--    <a href="{{ url('admin/project/addedit') }}/{{ $projectsData['SurveyId'] }}"-->
+                    <!--        class="btn btn-outline-primary w-100">-->
+                    <!--        Edit-->
+                    <!--    </a>-->
+                    <!--</div>-->
 
-                    <div class="col-md-2 mb-2 mb-md-0">
-                        <span class="btn btn-outline-secondary w-100"
-                            id="duplicate"
-                            data-id="{{ $projectsData['SurveyId'] }}"
-                            style="cursor: pointer;">
-                            Duplicate
-                        </span>
-                    </div>
+                    <!--<div class="col-md-2 mb-2 mb-md-0">-->
+                    <!--    <span class="btn btn-outline-secondary w-100"-->
+                    <!--        id="duplicate"-->
+                    <!--        data-id="{{ $projectsData['SurveyId'] }}"-->
+                    <!--        style="cursor: pointer;">-->
+                    <!--        Duplicate-->
+                    <!--    </span>-->
+                    <!--</div>-->
                 </div>
 
                 <div class="row mt-4">
@@ -459,7 +459,7 @@ hr {
 
                         <div class="row">
                             <div class="col-md-6">
-                                <p>
+                                <p class="cpi_column">
                                     <strong>
                                         Cost Per Complete (CPI):
                                         ${{ $projectsData['CPI'] ?? 0 }}
@@ -529,102 +529,6 @@ hr {
                         <hr>
 
                         {!! $projectsData['StudyTypes'] ?? 'No Description Available' !!}
-                    </div>
-                </div>
-
-                {{-- ZAMPLIA QUALIFICATIONS CARD --}}
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5><i class="fas fa-user-check text-primary me-2"></i> Survey Qualifications & Targeting Criteria</h5>
-                            <span class="badge badge-info">{{ count($qualifications ?? []) }} Requirements</span>
-                        </div>
-                        <hr>
-                        @if(!empty($qualifications) && is_array($qualifications))
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-sm table-striped">
-                                    <thead>
-                                        <tr class="bg-light">
-                                            <th>Question / Demographic</th>
-                                            <th>Condition</th>
-                                            <th>Allowed / Required Answers</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($qualifications as $qual)
-                                            <tr>
-                                                <td><strong>{{ $qual['Name'] ?? $qual['QualificationId'] ?? 'Demographic Criterion' }}</strong></td>
-                                                <td><span class="badge badge-secondary">{{ $qual['Operator'] ?? 'Equals' }}</span></td>
-                                                <td>
-                                                    @if(is_array($qual['Answers'] ?? null))
-                                                        <code>{{ implode(', ', $qual['Answers']) }}</code>
-                                                    @else
-                                                        <code>{{ $qual['Answers'] ?? 'Any' }}</code>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @else
-                            <div class="alert alert-light border mb-0 text-muted">
-                                <i class="fas fa-info-circle me-1"></i> No specific qualification filters required by Zamplia for this survey.
-                            </div>
-                        @endif
-                    </div>
-                </div>
-
-                {{-- ZAMPLIA QUOTAS CARD --}}
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5><i class="fas fa-chart-pie text-success me-2"></i> Quotas & Capacity Status</h5>
-                            <span class="badge badge-success">{{ count($quotas ?? []) }} Quota Groups</span>
-                        </div>
-                        <hr>
-                        @if(!empty($quotas) && is_array($quotas))
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-sm table-striped">
-                                    <thead>
-                                        <tr class="bg-light">
-                                            <th>Quota Name / ID</th>
-                                            <th>Completes Required</th>
-                                            <th>Remaining Open Slots</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($quotas as $q)
-                                            @php
-                                                $rem = $q['RemainingQuota'] ?? $q['CompletesRemaining'] ?? null;
-                                                $isClosed = ($q['IsClosed'] ?? 0) == 1 || ($rem !== null && $rem <= 0);
-                                            @endphp
-                                            <tr>
-                                                <td><strong>{{ $q['QuotaName'] ?? $q['QuotaId'] ?? 'General Bucket' }}</strong></td>
-                                                <td>{{ $q['NumberOfRespondents'] ?? $q['CompletesRequired'] ?? 'N/A' }}</td>
-                                                <td>
-                                                    <span class="badge badge-{{ $isClosed ? 'danger' : 'success' }}">
-                                                        {{ $rem !== null ? $rem : 'Open' }}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    @if($isClosed)
-                                                        <span class="badge badge-danger">Closed</span>
-                                                    @else
-                                                        <span class="badge badge-success">Active / Open</span>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @else
-                            <div class="alert alert-light border mb-0 text-muted">
-                                <i class="fas fa-info-circle me-1"></i> No quota bucket limits defined. Standard survey cap applies.
-                            </div>
-                        @endif
                     </div>
                 </div>
 
@@ -737,7 +641,11 @@ hr {
 
 
 
-
+<script>
+    @if(session('surveysAdmin.role') == 8)
+    $('.cpi_column').hide();
+@endif
+</script>
 
 
 <script src="{{ asset('assets/admin/') }}/js/projects.js"></script>

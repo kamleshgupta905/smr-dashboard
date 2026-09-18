@@ -10,6 +10,9 @@ const surveyRoutes = require('./routes/surveyRoutes');
 const routerRoutes = require('./routes/routerRoutes');
 const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
+const clientRoutes = require('./routes/clientRoutes');
+const securityRoutes = require('./routes/securityRoutes');
+const apiExplorerRoutes = require('./routes/apiExplorerRoutes');
 const zampliaService = require('./services/zampliaService');
 
 const app = express();
@@ -40,6 +43,9 @@ app.get('/health', (req, res) => {
 app.use('/api/zamplia', surveyRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/manage', projectRoutes);
+app.use('/api/clients', clientRoutes);
+app.use('/api/security', securityRoutes);
+app.use('/api/explorer', apiExplorerRoutes);
 
 // High-Speed Traffic Router & Callbacks (Root Level)
 app.use('/', routerRoutes);

@@ -45,8 +45,15 @@ function generateMenuHtml($menus, $level = 0)
 {
     $html = '';
 
-    // 👇 Hidden menu routes (yaha jo hide karna hai add kar)
-    $hideMenus = ['changepassword', 'menupermission', 'payments'];
+    $roleId = session('surveysAdmin.role_id');
+
+    // Existing hidden menus
+    $hideMenus = ['projects', 'leads', 'changepassword', 'menupermission', 'payments'];
+
+    // Supplier allowed menus
+    $supplierAllowedMenus = [
+        'dashboard'
+    ];
 
     if ($level == 1) {
         $html .= '<ul class="nav nav-treeview">';
@@ -54,19 +61,22 @@ function generateMenuHtml($menus, $level = 0)
 
     foreach ($menus as $item) {
 
-        // 🚫 Hide specific menus
+        // Existing hidden menus
         if (in_array($item['route'], $hideMenus)) {
             continue;
         }
 
-        // 🔥 Active logic
+        // Supplier restriction
+        if ($roleId == 8 && !in_array($item['route'], $supplierAllowedMenus)) {
+            continue;
+        }
+
         $isActive = request()->is('admin/' . $item['route']) || isActiveChildMenu($item['children'])
             ? 'active menu-open'
             : '';
 
         $url = "/admin/" . $item['route'];
 
-        // 👉 If has children (Dropdown)
         if (!empty($item['children']) && count($item['children']) > 0) {
 
             $html .= '<li class="nav-item has-treeview ' . $isActive . '">
@@ -77,14 +87,12 @@ function generateMenuHtml($menus, $level = 0)
                     </p>
                 </a>';
 
-            // 🔁 Recursive call
             $html .= generateMenuHtml($item['children'], 1);
 
             $html .= '</li>';
 
         } else {
 
-            // 🔐 Permission check
             if ($item['route'] && !empty(MenuPermission::where([
                 'menu_id' => $item['id'],
                 'user_id' => session('surveysAdmin.userId')
@@ -100,39 +108,27 @@ function generateMenuHtml($menus, $level = 0)
         }
     }
 
-    // ✅ Static menus (NOW OUTSIDE LOOP → no duplicate)
     if ($level == 0) {
 
-        // 🔨 Bid
+        // API Survey
         $html .= '<li class="nav-item">
-            <a class="nav-link" href="/admin/bid/list">
-                <i class="nav-icon fas fa-gavel"></i>
-                <p>Bid</p>
-            </a>
-        </li>';
-
-        // 👥 Team
-        // $html .= '<li class="nav-item">
-        //     <a class="nav-link" href="/admin/team/list">
-        //         <i class="nav-icon fas fa-user-friends"></i>
-        //         <p>Team</p>
-        //     </a>
-        // </li>';
-
-        // 📢 Lead (with icon added)
-        // $html .= '<li class="nav-item">
-        //     <a class="nav-link" href="/admin/lead/list">
-        //         <i class="nav-icon fas fa-bullhorn"></i>
-        //         <p>Lead</p>
-        //     </a>
-        // </li>';
-        // 📢 Lead (with icon added)
-       $html .= '<li class="nav-item">
             <a class="nav-link" href="/admin/api_survey">
                 <i class="nav-icon fas fa-plug"></i>
                 <p>API Survey</p>
             </a>
         </li>';
+
+        // Supplier My Profile
+        if ($roleId == 8) {
+
+            $html .= '<li class="nav-item">
+                <a class="nav-link" href="/admin/vendor/view/' . session('surveysAdmin.supplier_id') . '">
+                    <i class="nav-icon fas fa-user"></i>
+                    <p>My Profile</p>
+                </a>
+            </li>';
+
+        }
     }
 
     if ($level == 1) {

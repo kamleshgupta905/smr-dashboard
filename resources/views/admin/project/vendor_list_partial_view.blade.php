@@ -9,7 +9,7 @@
             <th>VID</th>
             <th>Name</th>
             <th>Email</th>
-            <th>CPI</th>
+            <th>Commission</th>
             <th>Limit</th>
             <th>Status</th>
             <th>Clicks</th>
@@ -72,7 +72,7 @@ $links = DB::table('vendor_entry_links')
                 <td><a href="mailto:{{ $List->email }}">{{ $List->email }}</a></td>
 
                 <td>
-                    {{ $isApiProject ? ($projectsData->CPI ?? 0) : ($projectsData->cost_per_complete ?? 0) }}
+                    {{ $List->commission_type === 'flat_rate'? ($List->per_complete ?? 0): ($List->cpi_percentage ?? 0) . '%' }}
                 </td>
                 <td>
                     {{ $isApiProject ? ($projectsData->TotalCompleteRequired ?? 0) : ($projectsData->max_limit ?? 0) }}
@@ -80,9 +80,7 @@ $links = DB::table('vendor_entry_links')
 
                <td>
                     @php
-                        $status = $isApiProject
-                            ? ((($projectsData->SurveyStatus ?? 0) == 1) ? 'Live' : 'Paused')
-                            : ($projectsData->status ?? 'Live');
+                        $status = $projectsData->status ?? 'Live';
                     @endphp
 
                     <span class="{{ strtolower($status) }}-status">
@@ -160,6 +158,7 @@ $(document).ready(function () {
                     // API Project
                     liveUrl = link.live_url;
                     testUrl = link.test_url;
+                   entry_link = link.entry_link + (link.entry_link.includes('?') ? '&api=1' : '?api=1');
 
                 @else
 
@@ -180,14 +179,8 @@ $(document).ready(function () {
                         <div>
                             🔴 <strong>Live URL</strong><br>
 
-                            <a href="${liveUrl}" target="_blank">
-                                ${liveUrl}
-                            </a>
-
-                            <i class="fas fa-copy"
-                                style="cursor:pointer;margin-left:8px;"
-                                onclick="navigator.clipboard.writeText('${liveUrl}')">
-                            </i>
+                            <a href="{{ url('/') }}/${entry_link}" target="_blank" style="font-size: 1rem;" class="redirect-url">{{ url('/') }}/${entry_link}</a> <i class="fas fa-copy copy-icon"></i>
+                           
                         </div>
 
                         @if(!$isApiProject)

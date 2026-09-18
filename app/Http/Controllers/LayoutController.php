@@ -8,19 +8,48 @@ use Illuminate\Support\Facades\URL;
 
 class LayoutController extends Controller
 {
-    public static function loadAdmin($data = [])
-    {
-        $lastSlug = request()->segment(count(request()->segments()));
-        $menu = Menu::where('route', $lastSlug)->first();
-        if ($menu) {
-            $isUserAllowed = MenuPermission::where('menu_id', $menu->id)->where('user_id', session('surveysAdmin.userId'))->first();
-            if (empty($isUserAllowed)) {
-                session()->flash('error', 'You are not authorized to access this URL');
-                return redirect('admin/dashboard');
-            }
+   public static function loadAdmin($data = [])
+{
+    $currentRoute = request()->segment(2);
+
+    $roleId = session('surveysAdmin.role_id');
+
+    // Supplier Access Control
+    if ($roleId == 8) {
+
+        // Supplier ke liye sirf ye routes allowed hain
+        $allowedRoutes = [
+            'dashboard',
+            'api_survey',
+            'vendor'
+        ];
+
+        if (!in_array($currentRoute, $allowedRoutes)) {
+            abort(403, 'Unauthorized');
         }
-        return view('admin/layout', $data);
     }
+
+    // Existing Menu Permission Check
+    $lastSlug = request()->segment(count(request()->segments()));
+    $menu = Menu::where('route', $lastSlug)->first();
+
+    if ($menu) {
+
+        $isUserAllowed = MenuPermission::where([
+            'menu_id' => $menu->id,
+            'user_id' => session('surveysAdmin.userId')
+        ])->first();
+
+        if (empty($isUserAllowed)) {
+
+            // Redirect Loop se bachne ke liye
+            abort(403, 'You are not authorized to access this page.');
+
+        }
+    }
+
+    return view('admin/layout', $data);
+}
     public static function loadWeb($data = [])
     {
         return view('web/layout', $data);

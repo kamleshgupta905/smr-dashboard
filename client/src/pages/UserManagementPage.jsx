@@ -60,149 +60,149 @@ export default function UserManagementPage() {
 
   return (
     <div>
-      {/* Header Bar */}
-      <div className="card" style={{
-        padding: '20px 24px',
-        marginBottom: '20px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '16px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '42px',
-            height: '42px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #4F46E5, #6366F1)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#FFFFFF'
-          }}>
-            <UsersIcon size={22} />
+      {/* Dastone Page Title Box */}
+      <div className="page-title-box">
+        <div>
+          <div className="breadcrumb-trail">
+            <span className="link">VMH</span>
+            <span className="separator">/</span>
+            <span className="link">Settings</span>
+            <span className="separator">/</span>
+            <span className="current">User Accounts</span>
           </div>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#0F172A' }}>User List</h1>
-            <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>System administrators, operators & account privileges</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h4 className="page-title">
+              User Management & Access Privileges
+            </h4>
+            <span className="badge-soft-success" style={{
+              padding: '2px 8px',
+              borderRadius: '20px',
+              fontSize: '11px',
+              fontWeight: 700,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px'
+            }}>
+              <span className="pulse-dot" />
+              {filtered.length} Staff Accounts Active
+            </span>
           </div>
         </div>
 
-        <button 
-          className="btn btn-primary"
-          onClick={() => setShowAddModal(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-        >
-          <Plus size={16} /> Add User
-        </button>
-      </div>
-
-      {/* Filter Bar */}
-      <div className="card" style={{ padding: '16px 20px', marginBottom: '18px' }}>
-        <div style={{ position: 'relative', maxWidth: '360px' }}>
-          <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
-          <input 
-            type="text" 
-            placeholder="Search name, username or email..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input-field"
-            style={{ paddingLeft: '36px', height: '40px', fontSize: '13px' }}
-          />
+        <div className="title-box-actions">
+          <button 
+            className="btn btn-primary"
+            onClick={() => setShowAddModal(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px', borderRadius: '4px' }}
+          >
+            <Plus size={14} /> Add User
+          </button>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="table-custom" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                <th style={{ padding: '14px 16px', width: '70px' }}>Sl No.</th>
-                <th style={{ padding: '14px 16px' }}>Name</th>
-                <th style={{ padding: '14px 16px' }}>User Name</th>
-                <th style={{ padding: '14px 16px' }}>Mobile No.</th>
-                <th style={{ padding: '14px 16px' }}>Email</th>
-                <th style={{ padding: '14px 16px', textAlign: 'center' }}>Role</th>
-                <th style={{ padding: '14px 16px', textAlign: 'center' }}>Status</th>
-                <th style={{ padding: '14px 16px', textAlign: 'center' }}>Login</th>
-                <th style={{ padding: '14px 16px', textAlign: 'center', width: '100px' }}>Action</th>
+      {/* Table (Dastone Report Card) */}
+      <div className="report-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="report-card-header">
+          <div style={{ position: 'relative', width: '280px' }}>
+            <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#8997bd' }} />
+            <input 
+              type="text" 
+              placeholder="Search name, username or email..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="input-control"
+              style={{ paddingLeft: '34px', width: '100%', height: '34px', fontSize: '12px' }}
+            />
+          </div>
+
+          <span className="badge-soft-primary" style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 600 }}>
+            {filtered.length} Total Users
+          </span>
+        </div>
+
+        <div className="table-wrapper" style={{ margin: 0, border: 'none', borderRadius: 0 }}>
+          <table className="custom-table" style={{ width: '100%' }}>
+            <thead className="thead-light">
+              <tr>
+                <th style={{ width: '60px', textAlign: 'center' }}>#</th>
+                <th>Name</th>
+                <th>User Name</th>
+                <th>Mobile No.</th>
+                <th>Email</th>
+                <th style={{ textAlign: 'center' }}>Role</th>
+                <th style={{ textAlign: 'center' }}>Status</th>
+                <th style={{ textAlign: 'center' }}>Login</th>
+                <th style={{ textAlign: 'center', width: '90px' }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="9" style={{ textAlign: 'center', padding: '36px', color: '#64748B' }}>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '36px', color: '#8997bd' }}>
+                    <div className="spinner" style={{ margin: '0 auto 12px auto' }} />
                     Loading users...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan="9" style={{ textAlign: 'center', padding: '36px', color: '#64748B' }}>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '36px', color: '#8997bd', fontSize: '13px' }}>
                     No users found.
                   </td>
                 </tr>
               ) : (
                 filtered.map((user, idx) => (
-                  <tr key={user.id || idx} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    <td style={{ padding: '14px 16px', color: '#64748B', fontWeight: 600 }}>{idx + 1}</td>
-                    <td style={{ padding: '14px 16px', fontWeight: 700, color: '#0F172A' }}>{user.name}</td>
-                    <td style={{ padding: '14px 16px', color: '#4F46E5', fontWeight: 600 }}>{user.username}</td>
-                    <td style={{ padding: '14px 16px', color: '#64748B', fontSize: '13px' }}>{user.mobile_no || 'N/A'}</td>
-                    <td style={{ padding: '14px 16px', color: '#334155', fontSize: '13px' }}>{user.email || 'N/A'}</td>
-                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                      <span style={{
-                        background: '#EEF2FF',
-                        color: '#4F46E5',
-                        padding: '4px 10px',
-                        borderRadius: '12px',
+                  <tr key={user.id || idx}>
+                    <td style={{ textAlign: 'center', color: '#8997bd', fontSize: '12px', fontWeight: 600 }}>{idx + 1}</td>
+                    <td style={{ fontWeight: 700, color: '#1d2c48', fontSize: '13.5px' }}>{user.name}</td>
+                    <td>
+                      <span className="badge-soft-primary" style={{ fontFamily: 'monospace', fontWeight: 700, padding: '2px 7px', borderRadius: '4px', fontSize: '11.5px' }}>
+                        {user.username}
+                      </span>
+                    </td>
+                    <td style={{ color: '#7081b9', fontSize: '12.5px' }}>{user.mobile_no || 'N/A'}</td>
+                    <td style={{ color: '#303e67', fontSize: '12.5px' }}>{user.email || 'N/A'}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span className="badge-soft-primary" style={{
+                        padding: '2px 8px',
+                        borderRadius: '4px',
                         fontSize: '11px',
-                        fontWeight: 700,
-                        border: '1px solid #C7D2FE'
+                        fontWeight: 700
                       }}>
                         {user.role_name || user.role || 'Admin'}
                       </span>
                     </td>
-                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                    <td style={{ textAlign: 'center' }}>
                       {user.is_active === 'Y' ? (
-                        <span style={{ color: '#16A34A', fontSize: '12px', fontWeight: 700, background: '#DCFCE7', padding: '3px 8px', borderRadius: '10px' }}>Active</span>
+                        <span className="badge-soft-success" style={{ padding: '2px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <span className="pulse-dot" /> Active
+                        </span>
                       ) : (
-                        <span style={{ color: '#DC2626', fontSize: '12px', fontWeight: 700, background: '#FEE2E2', padding: '3px 8px', borderRadius: '10px' }}>Inactive</span>
+                        <span className="badge-soft-danger" style={{ padding: '2px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <span className="pulse-dot pulse-danger" /> Inactive
+                        </span>
                       )}
                     </td>
-                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                    <td style={{ textAlign: 'center' }}>
                       {user.is_online === 'Y' ? (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#16A34A', fontSize: '11px', fontWeight: 700 }}>
-                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#16A34A', display: 'inline-block' }}></span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#03d87f', fontSize: '11.5px', fontWeight: 700 }}>
+                          <span className="pulse-dot" />
                           Online
                         </span>
                       ) : (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#94A3B8', fontSize: '11px', fontWeight: 600 }}>
-                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#CBD5E1', display: 'inline-block' }}></span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#8997bd', fontSize: '11.5px', fontWeight: 600 }}>
+                          <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#cbd5e1', display: 'inline-block' }}></span>
                           Offline
                         </span>
                       )}
                     </td>
-                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                    <td style={{ textAlign: 'center' }}>
                       <button
+                        className="btn btn-soft-danger btn-sm"
                         onClick={() => handleDelete(user.id)}
-                        style={{
-                          background: '#FEF2F2',
-                          color: '#DC2626',
-                          border: '1px solid #FECACA',
-                          borderRadius: '8px',
-                          padding: '6px 10px',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          fontSize: '12px',
-                          fontWeight: 600
-                        }}
+                        style={{ padding: '4px 8px', borderRadius: '4px' }}
                         title="Delete User"
                       >
-                        <Trash2 size={13} />
+                        <Trash2 size={12} />
                       </button>
                     </td>
                   </tr>

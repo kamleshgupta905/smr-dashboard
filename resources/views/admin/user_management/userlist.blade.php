@@ -47,7 +47,7 @@ body::before {
     width: 100%;
     margin: 0 auto;
     position: relative;
-    z-index: 1;
+    z-index: auto;
 }
 
 /* =====================================================

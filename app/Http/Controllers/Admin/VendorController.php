@@ -13,12 +13,35 @@ use Illuminate\Support\Facades\Validator;
 
 class VendorController extends Controller
 {
-    public function index()
-    {
-        $result["vendorList"] = DB::table('vendor')->orderByDesc('id')->get();
-        $body['bodyView'] = view('admin/vendor/vendor_list_view', $result);
-        return LayoutController::loadAdmin($body);
+public function index()
+{
+   
+    // Supplier Login
+    if (session('surveysAdmin.role') == 8) {
+
+        $supplierCode = session('surveysAdmin.supplier_id');
+        
+
+        $vendor = DB::table('vendor')
+            ->where('vendor_id', $supplierCode)
+            ->first();
+
+        if (!$vendor) {
+            abort(404, 'Supplier not found.');
+        }
+
+        // Supplier ko seedha apni profile pe bhejo
+        return redirect('admin/vendor/view/' . $vendor->id);
     }
+
+    // Admin Login
+    $result["vendorList"] = DB::table('vendor')
+        ->orderByDesc('id')
+        ->get();
+
+    $body['bodyView'] = view('admin/vendor/vendor_list_view', $result);
+    return LayoutController::loadAdmin($body);
+}
 
   public function VendorList_index(){
       
@@ -152,181 +175,7 @@ public function VendorList_Update(Request $request, $id)
 
 
 
-    // public function addEditAction(Request $request)
-    // {
-    //     $mode = $request->post('mode');
-    //     $name = $request->post('name');
-    //     $email = $request->post('email');
-
-    //     $validator = Validator::make($request->all(), [
-    //         'name' => 'required',
-    //         'email' => 'required|email',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         $error = $validator->errors();
-    //         return response()->json(['msg_status' => 0, 'errors' => $error]);
-    //     } else {
-    //         if ($mode == "Add") {
-    //             $dataArray = [
-    //                 'vendor_id' => SerialMaster::generateSerialNumber('VENDOR'),
-    //                 'name' => $name,
-    //                 'email' => $email,
-    //                 'date' => now()
-    //             ];
-
-    //             $insertId = CommonDataModel::insertSingleTableData('vendor', $dataArray);
-    //             return response()->json(['msg_status' => 1, 'data' => $insertId]);
-    //         } else {
-    //             $id = $request->post('id');
-    //             $dataArray = [
-    //                 'name' => $name,
-    //                 'email' => $email,
-    //                 'date' => now()
-    //             ];
-
-    //             CommonDataModel::UpdateSingleTableData('vendor', $dataArray, ['id' => $id], $id);
-    //             return response()->json(['msg_status' => 1, 'data' => $id]);
-    //         }
-    //     }
-    // }
-
-//   public function addEditAction(Request $request)
-//     {
-//         $mode = $request->post('mode');
-//         $id = $request->post('id');
-
-//         // 🔹 Step 1: Validate input
-//         $validator = Validator::make($request->all(), [
-//             'name'             => 'required|string|max:255',
-//             'email' => 'required|email|max:255|unique:vendor,email',
-//             'commission_type'  => 'nullable|in:revenue_share,flat_rate',
-//             'cpi_percentage'   => 'nullable|numeric',
-//             'per_complete'     => 'nullable|numeric',
-//             'monthly_cap'      => 'nullable|numeric',
-//             'project_type'     => 'nullable|string|max:255',
-//             'audience_type'    => 'nullable|string|max:255',
-//             'block_pii_survey' => 'nullable|boolean',
-//         ]);
-
-//         if ($validator->fails()) {
-//             return response()->json([
-//                 'msg_status' => 0,
-//                 'errors' => $validator->errors(),
-//             ]);
-//         }
-
-//         // 🔹 Step 2: Prepare data for vendor table
-//         $dataArray = [
-//             'name'                     => $request->post('name'),
-//             'email'                    => $request->post('email'),
-//             'is_api_supplier'          => $request->has('is_api_supplier') ? 1 : 0,
-//             'commission_type'          => $request->post('commission_type') ?? null,
-//             'cpi_percentage'           => $request->post('cpi_percentage') ?? null,
-//             'per_complete'             => $request->post('per_complete') ?? null,
-//             'monthly_cap'              => $request->post('monthly_cap') ?? null,
-//             'project_type'             => $request->post('project_type') ?? null,
-//             'audience_type'            => $request->post('audience_type') ?? null,
-//             'block_pii_survey'         => $request->has('block_pii_survey') ? 1 : 0,
-//             'encryption_method'        => $request->post('encryption_method') ?? null,
-//             'updated_at'               => now(),
-//         ];
-
-//         try {
-//             // 🔹 Step 3: Insert / Update vendor
-//           if ($mode === "Add") {
-
-//                 $dataArray['vendor_id'] = SerialMaster::generateSerialNumber('VENDOR');
-//                 $dataArray['created_at'] = now();
-
-//                 // ✅ Save redirect URLs from user input ONLY
-//                 $dataArray['redirect_success_url'] = $request->post('redirect_success_url');
-//                 $dataArray['redirect_fail_url'] = $request->post('redirect_fail_url');
-//                 $dataArray['redirect_over_quota_url'] = $request->post('redirect_over_quota_url');
-//                 $dataArray['redirect_quality_termination_url'] = $request->post('redirect_quality_termination_url');
-//                 $dataArray['redirect_postback_success_url'] = $request->post('redirect_postback_success_url');
-
-//                 $supplierId = CommonDataModel::insertSingleTableData('vendor', $dataArray);
-
-//             } else {
-
-//                 $supplierId = $id;
-
-//                 // ✅ Update with manual redirect fields
-//                 $dataArray['redirect_success_url'] = $request->post('redirect_success_url');
-//                 $dataArray['redirect_fail_url'] = $request->post('redirect_fail_url');
-//                 $dataArray['redirect_over_quota_url'] = $request->post('redirect_over_quota_url');
-//                 $dataArray['redirect_quality_termination_url'] = $request->post('redirect_quality_termination_url');
-//                 $dataArray['redirect_postback_success_url'] = $request->post('redirect_postback_success_url');
-
-//                 CommonDataModel::UpdateSingleTableData('vendor', $dataArray, ['id' => $supplierId], $supplierId);
-//             }
-
-//             // 🔹 Step 4: Save Contacts
-//             if ($request->has('contacts')) {
-//                 DB::table('supplier_contacts')->where('supplier_id', $supplierId)->delete();
-
-//                 foreach ($request->contacts as $index => $contact) {
-//                     DB::table('supplier_contacts')->insert([
-//                         'supplier_id' => $supplierId,
-//                         'name'        => $contact['name'] ?? null,
-//                         'email'       => $contact['email'] ?? null,
-//                         'phone'       => $contact['phone'] ?? null,
-//                         'is_primary'  => ($request->primary_contact == $index) ? 1 : 0,
-//                         'created_at'  => now(),
-//                     ]);
-//                 }
-//             }
-
-//             // 🔹 Step 5: Save Selected Countries
-//             if ($request->has('selected_countries')) {
-//                 DB::table('supplier_country')->where('supplier_id', $supplierId)->delete();
-
-//                 foreach ($request->selected_countries as $countryId) {
-//                     DB::table('supplier_country')->insert([
-//                         'supplier_id' => $supplierId,
-//                         'country_id'  => $countryId,
-//                         'created_at'  => now(),
-//                     ]);
-//                 }
-//             }
-
-//             // 🔹 Step 6: Save Blocked Clients
-//             if ($request->has('blocked_clients')) {
-//                 DB::table('supplier_blocked_clients')->where('supplier_id', $supplierId)->delete();
-
-//                 foreach ($request->blocked_clients as $clientId) {
-//                     DB::table('supplier_blocked_clients')->insert([
-//                         'supplier_id' => $supplierId,
-//                         'client_id'   => $clientId,
-//                         'created_at'  => now(),
-//                     ]);
-//                 }
-//             }
-
-//             // 🔹 Step 7: Success Response
-//             return response()->json([
-//                 'msg_status' => 1,
-//                 'data' => $supplierId,
-//                 'message' => $mode === 'Add'
-//                     ? 'Vendor Added Successfully (Redirect URLs generated automatically)'
-//                     : 'Vendor Updated Successfully',
-//             ]);
-
-//         } catch (\Exception $e) {
-//             \Log::error('❌ Error in addEditAction', [
-//                 'error' => $e->getMessage(),
-//                 'trace' => $e->getTraceAsString(),
-//             ]);
-
-//             return response()->json([
-//                 'msg_status' => 0,
-//                 'message' => 'An unexpected error occurred while saving the vendor.',
-//                 'error' => $e->getMessage(),
-//             ]);
-//         }
-//     }
-
+   
 
 public function addEditAction(Request $request)
 {
@@ -500,21 +349,47 @@ public function addEditAction(Request $request)
 
 
 
-    public function view($id)
-    {
-        $result["vendorData"] = DB::table('vendor')->where('id', $id)->first();
-        
-         $result["leadList"] =  DB::table('leads')
-            ->join('projects', 'leads.project_id', '=', 'projects.id')
-            ->join('vendor', 'vendor.id', '=', 'leads.vendor_id')
-            ->select('leads.*', 'projects.project_id', 'projects.name as project_name', 'projects.cost_per_complete as cpi', 'vendor.email as vendor_email', 'vendor.id as vid')
-            ->where('vendor.id', $id)
-            ->orderByDesc('leads.id')
-            ->get();
-        
-        $body['bodyView'] = view('admin/vendor/vendor_view', $result);
-        return LayoutController::loadAdmin($body);
+   public function view($id)
+{
+    // ✅ Supplier can view only his own profile
+    if (session('surveysAdmin.role') == 8) {
+
+        $supplierCode = session('surveysAdmin.supplier_id');
+
+        $vendor = DB::table('vendor')
+            ->where('vendor_id', $supplierCode)
+            ->first();
+
+        if (!$vendor) {
+            abort(403, 'Supplier not found.');
+        }
+
+        // Force supplier to open only his own profile
+        $id = $vendor->id;
     }
+
+    $result["vendorData"] = DB::table('vendor')
+        ->where('id', $id)
+        ->first();
+
+    $result["leadList"] = DB::table('leads')
+        ->join('projects', 'leads.project_id', '=', 'projects.id')
+        ->join('vendor', 'vendor.id', '=', 'leads.vendor_id')
+        ->select(
+            'leads.*',
+            'projects.project_id',
+            'projects.name as project_name',
+            'projects.cost_per_complete as cpi',
+            'vendor.email as vendor_email',
+            'vendor.id as vid'
+        )
+        ->where('vendor.id', $id)
+        ->orderByDesc('leads.id')
+        ->get();
+
+    $body['bodyView'] = view('admin/vendor/vendor_view', $result);
+    return LayoutController::loadAdmin($body);
+}
 
     public function status(Request $request)
     {

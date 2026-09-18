@@ -4,216 +4,299 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\LayoutController;
-use App\Models\ApiSurvey;
-use App\Services\ZampliaSupplyService;
+use App\Models\admin\CommonDataModel;
+use App\Models\admin\SerialMaster;
+use App\Rules\URLRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Validator;
+use App\Models\admin\User;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Models\ApiSurvey;
 
 class ApiController extends Controller
 {
-    protected ZampliaSupplyService $zampliaService;
-
-    public function __construct(ZampliaSupplyService $zampliaService)
-    {
-        $this->zampliaService = $zampliaService;
-    }
+    // protected $baseUrl = 'https://surveysupplysandbox.zamplia.com/api/v1';
+    // protected $apiKey = 's5YnczOM9ahIKuSdwzKvPyTlBUvBLfqG';
+    protected $baseUrl = 'https://surveysupply.zamplia.com/api/v1/';
+    protected $apiKey = 'RCgqJ2hfoVZdwgPkwGnjMwTIi0CSKQ2u';
 
     /**
-     * Get Allocated Surveys (Main Dashboard View)
+     * Get Allocated Surveys
      */
-    public function getAllocatedSurveys(Request $request)
-    {
-        try {
-            $tab = $request->get('tab', 'allocated');
-            $forceSync = $request->boolean('sync', false);
 
-            if ($tab === 'top_picks') {
-                $response = $this->zampliaService->getTopPickSurveys();
-                $surveys = $response['data'] ?? [];
+// public function getAllocatedSurveys()
+// {
+//     try {
+//         $response = Http::withHeaders([
+//             'ZAMP-KEY' => $this->apiKey,
+//             'Accept'   => 'application/json',
+//         ])->get($this->baseUrl . '/Surveys/GetAllocatedSurveys');
+
+//         if ($response->successful()) {
+
+//             $apiResponse = $response->json();
+
+//             // Corrected path
+//             $result['surveys'] = $apiResponse['result']['data'] ?? [];
+
+//             // Save surveys to database
+//             foreach ($result['surveys'] as $survey) {
+
+//                 ApiSurvey::updateOrCreate(
+//                     [
+//                         'SurveyId' => $survey['SurveyId'],
+//                     ],
+//                     [
+//                         'Name'                   => $survey['Name'] ?? null,
+//                         'TotalCompleteRequired' => $survey['TotalCompleteRequired'] ?? null,
+//                         'CPI'                    => $survey['CPI'] ?? null,
+//                         'LOI'                    => $survey['LOI'] ?? null,
+//                         'IR'                     => $survey['IR'] ?? null,
+
+//                         'LastUpdateTimeStamp'   => !empty($survey['LastUpdateTimeStamp'])
+//                             ? date('Y-m-d H:i:s', strtotime($survey['LastUpdateTimeStamp']))
+//                             : null,
+
+//                         'IsSurveyGroupExist'    => $survey['IsSurveyGroupExist'] ?? 0,
+//                         'LanguageCode'          => $survey['LanguageCode'] ?? null,
+
+//                         'SurveyEndDate'         => !empty($survey['SurveyEndDate'])
+//                             ? date('Y-m-d H:i:s', strtotime($survey['SurveyEndDate']))
+//                             : null,
+
+//                         'Device'                => $survey['Device'] ?? null,
+//                         'IndustryId'            => $survey['IndustryId'] ?? null,
+//                         'StudyTypes'            => $survey['StudyTypes'] ?? null,
+//                         'IsRecontactSurvey'     => $survey['IsRecontactSurvey'] ?? 0,
+//                         'CollectPII'            => $survey['CollectPII'] ?? null,
+//                         'LanguageId'            => $survey['LanguageId'] ?? null,
+//                         'FieldDays'             => $survey['FieldDays'] ?? null,
+
+//                         'SurveyCreatedAt'       => !empty($survey['SurveyCreatedAt'])
+//                             ? date('Y-m-d H:i:s', strtotime($survey['SurveyCreatedAt']))
+//                             : null,
+
+//                         'status'                => $survey['status'] ?? null,
+//                     ]
+//                 );
+//             }
+
+//             $body['bodyView'] = view('admin.API.survey', $result);
+
+//             return LayoutController::loadAdmin($body);
+//         }
+
+//         return redirect()->back()->with('error', 'Failed to fetch survey data');
+
+//     } catch (\Exception $e) {
+       
+//         return redirect()->back()->with('error', $e->getMessage());
+//     }
+// }
+
+public function getAllocatedSurveys()
+{
+    try {
+
+        // ===========================
+        // Supplier Login
+        // ===========================
+        if (session('surveysAdmin.role') == 8) {
+
+            $supplierCode = session('surveysAdmin.supplier_id');
+
+            // Vendor Record
+            $vendor = DB::table('vendor')
+                ->where('vendor_id', $supplierCode)
+                ->first();
+               
+
+            if (isset($vendor)) {
+
+                // Assigned SurveyIds
+                $surveyIds = DB::table('vendor_entry_links')
+                    ->where('vendor_id', $vendor->id)
+                    ->pluck('project_id')
+                    ->toArray();
+                    
+
+                $result['surveys'] = ApiSurvey::whereIn('SurveyId', $surveyIds)
+                    ->orderByDesc('id')
+                    ->get();
+                   
+
             } else {
-                // If requested or if local DB is empty, sync from Zamplia
-                $localCount = ApiSurvey::count();
-                if ($forceSync || $localCount === 0) {
-                    $this->zampliaService->syncSurveysToDatabase();
-                }
 
-                $surveysFromApi = $this->zampliaService->getAllocatedSurveys();
-                if ($surveysFromApi['success'] && !empty($surveysFromApi['data'])) {
-                    $surveys = $surveysFromApi['data'];
-                    // Asynchronously/silently keep local DB up to date
-                    $this->zampliaService->syncSurveysToDatabase($surveys);
-                } else {
-                    // Fallback to local DB if API call returns empty or error
-                    $surveys = ApiSurvey::orderBy('created_at', 'desc')->get()->toArray();
-                }
+                $result['surveys'] = collect();
             }
-
-            $result['surveys'] = $surveys;
-            $result['activeTab'] = $tab;
-            $result['stats'] = [
-                'total' => count($surveys),
-                'live'  => collect($surveys)->filter(fn($s) => ($s['status'] ?? '') === 'Live')->count(),
-                'avg_cpi' => collect($surveys)->avg('CPI') ? number_format(collect($surveys)->avg('CPI'), 2) : '0.00',
-            ];
 
             $body['bodyView'] = view('admin.API.survey', $result);
+
             return LayoutController::loadAdmin($body);
-
-        } catch (\Exception $e) {
-            Log::error('getAllocatedSurveys error', ['error' => $e->getMessage()]);
-            return redirect()->back()->with('error', 'Error loading surveys: ' . $e->getMessage());
         }
-    }
 
-    /**
-     * AJAX action to sync surveys with Zamplia on demand
-     */
-    public function ajaxSyncSurveys()
-    {
-        try {
-            $syncResult = $this->zampliaService->syncSurveysToDatabase();
-            return response()->json([
-                'status'  => $syncResult['success'] ? 'success' : 'error',
-                'message' => $syncResult['message'],
-                'count'   => $syncResult['count'] ?? 0,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => $e->getMessage(),
-            ], 500);
-        }
-    }
+        // ===========================
+        // Admin Login
+        // ===========================
 
-    /**
-     * View Single Survey Details with Qualifications and Quotas
-     */
-    public function viewSurvey($surveyId)
-    {
-        try {
-            $response = $this->zampliaService->getSurveyById($surveyId);
+        $response = Http::withHeaders([
+            'ZAMP-KEY' => $this->apiKey,
+            'Accept'   => 'application/json',
+        ])->get($this->baseUrl . '/Surveys/GetAllocatedSurveys');
 
-            if (!$response['success'] || empty($response['data'])) {
-                return redirect()->back()->with('error', 'Survey details not found on Zamplia');
+        if ($response->successful()) {
+
+            $apiResponse = $response->json();
+
+            $result['surveys'] = $apiResponse['result']['data'] ?? [];
+
+            // Save surveys
+            foreach ($result['surveys'] as $survey) {
+
+                ApiSurvey::updateOrCreate(
+                    [
+                        'SurveyId' => $survey['SurveyId'],
+                    ],
+                    [
+                        'Name'                  => $survey['Name'] ?? null,
+                        'TotalCompleteRequired' => $survey['TotalCompleteRequired'] ?? null,
+                        'CPI'                   => $survey['CPI'] ?? null,
+                        'LOI'                   => $survey['LOI'] ?? null,
+                        'IR'                    => $survey['IR'] ?? null,
+
+                        'LastUpdateTimeStamp' => !empty($survey['LastUpdateTimeStamp'])
+                            ? date('Y-m-d H:i:s', strtotime($survey['LastUpdateTimeStamp']))
+                            : null,
+
+                        'IsSurveyGroupExist' => $survey['IsSurveyGroupExist'] ?? 0,
+                        'LanguageCode'       => $survey['LanguageCode'] ?? null,
+
+                        'SurveyEndDate' => !empty($survey['SurveyEndDate'])
+                            ? date('Y-m-d H:i:s', strtotime($survey['SurveyEndDate']))
+                            : null,
+
+                        'Device'            => $survey['Device'] ?? null,
+                        'IndustryId'        => $survey['IndustryId'] ?? null,
+                        'StudyTypes'        => $survey['StudyTypes'] ?? null,
+                        'IsRecontactSurvey' => $survey['IsRecontactSurvey'] ?? 0,
+                        'CollectPII'        => $survey['CollectPII'] ?? null,
+                        'LanguageId'        => $survey['LanguageId'] ?? null,
+                        'FieldDays'         => $survey['FieldDays'] ?? null,
+
+                        'SurveyCreatedAt' => !empty($survey['SurveyCreatedAt'])
+                            ? date('Y-m-d H:i:s', strtotime($survey['SurveyCreatedAt']))
+                            : null,
+
+                        'status' => $survey['status'] ?? null,
+                    ]
+                );
             }
 
-            $surveyData = $response['data'][0] ?? $response['data'];
+            // Admin always sees latest DB data
+            $result['surveys'] = ApiSurvey::orderByDesc('id')->get();
 
-            // Fetch Qualifications and Quotas in parallel for this survey
-            $qualsResponse = $this->zampliaService->getSurveyQualifications($surveyId);
-            $quotasResponse = $this->zampliaService->getSurveyQuotas($surveyId);
-            $statsResponse = $this->zampliaService->getSurveyGlobalStats($surveyId);
+            $body['bodyView'] = view('admin.API.survey', $result);
 
+            return LayoutController::loadAdmin($body);
+        }
+
+        return redirect()->back()->with('error', 'Failed to fetch survey data');
+
+    } catch (\Exception $e) {
+
+        return redirect()->back()->with('error', $e->getMessage());
+    }
+}
+
+public function viewSurvey($surveyId)
+{
+    try {
+
+        $response = Http::withHeaders([
+            'ZAMP-KEY' => $this->apiKey,
+            'Accept'   => 'application/json',
+        ])->get($this->baseUrl . '/Surveys/GetSurveyById', [
+            'SurveyId' => $surveyId
+        ]);
+
+        if ($response->successful()) {
+
+            $apiResponse = $response->json();
+
+            $surveyData = $apiResponse['result']['data'][0] ?? [];
+
+            if (empty($surveyData)) {
+                return redirect()->back()->with(
+                    'error',
+                    'Survey details not found'
+                );
+            }
+
+            /*
+            =====================================
+            PROJECT DATA FROM API
+            =====================================
+            */
             $result['projectsData'] = $surveyData;
-            $result['qualifications'] = $qualsResponse['data'] ?? [];
-            $result['quotas'] = $quotasResponse['data'] ?? [];
-            $result['globalStats'] = $statsResponse['data'][0] ?? null;
+
+            /*
+            =====================================
+            API SURVEY FLAG
+            =====================================
+            */
             $result['is_api_survey'] = 1;
+
+            /*
+            =====================================
+            OPTIONAL: BID OPTIONS
+            =====================================
+            */
             $result['bidOptions'] = [];
 
-            // Fetch assigned vendors from local DB
+            /*
+            =====================================
+            OPTIONAL: VENDORS
+            =====================================
+            */
             $result['vendors'] = DB::table('vendor')
                 ->where('project_id', $surveyId)
                 ->get()
                 ->filter();
 
-            $body['bodyView'] = view('admin.API.viewsurvey', $result);
+            /*
+            =====================================
+            LOAD VIEW
+            =====================================
+            */
+            $body['bodyView'] = view(
+                'admin.API.viewsurvey',
+                $result
+            );
+
             return LayoutController::loadAdmin($body);
-
-        } catch (\Exception $e) {
-            Log::error('viewSurvey error', ['surveyId' => $surveyId, 'error' => $e->getMessage()]);
-            return redirect()->back()->with('error', $e->getMessage());
         }
-    }
 
-    /**
-     * AJAX endpoint to fetch qualifications for modal popup
-     */
-    public function getSurveyQualificationsAjax($surveyId)
-    {
-        $response = $this->zampliaService->getSurveyQualifications($surveyId);
-        return response()->json([
-            'status' => $response['success'] ? 'success' : 'error',
-            'data'   => $response['data'] ?? [],
-            'message'=> $response['message'] ?? null,
+        return redirect()->back()->with(
+            'error',
+            'Failed to fetch survey details'
+        );
+
+    } catch (\Exception $e) {
+
+        \Log::error('View Survey API Error', [
+            'survey_id' => $surveyId,
+            'error'     => $e->getMessage()
         ]);
-    }
 
-    /**
-     * AJAX endpoint to fetch quotas for modal popup
-     */
-    public function getSurveyQuotasAjax($surveyId)
-    {
-        $response = $this->zampliaService->getSurveyQuotas($surveyId);
-        return response()->json([
-            'status' => $response['success'] ? 'success' : 'error',
-            'data'   => $response['data'] ?? [],
-            'message'=> $response['message'] ?? null,
-        ]);
-    }
-
-    /**
-     * AJAX endpoint to fetch survey stats
-     */
-    public function getGlobalStatsAjax($surveyId = null)
-    {
-        $response = $this->zampliaService->getSurveyGlobalStats($surveyId);
-        return response()->json([
-            'status' => $response['success'] ? 'success' : 'error',
-            'data'   => $response['data'] ?? [],
-        ]);
-    }
-
-    /**
-     * Reconciliation View
-     */
-    public function reconciliationView(Request $request)
-    {
-        try {
-            $startDate = $request->get('start_date', date('Y-m-d', strtotime('-7 days')));
-            $endDate = $request->get('end_date', date('Y-m-d'));
-            $status = $request->get('status', 'Complete');
-
-            $response = $this->zampliaService->getReconciliation($startDate, $endDate, $status);
-
-            $result['reconciliationData'] = $response['data'] ?? [];
-            $result['startDate'] = $startDate;
-            $result['endDate'] = $endDate;
-            $result['status'] = $status;
-            $result['apiSuccess'] = $response['success'];
-
-            $body['bodyView'] = view('admin.API.reconciliation', $result);
-            return LayoutController::loadAdmin($body);
-
-        } catch (\Exception $e) {
-            Log::error('reconciliationView error', ['error' => $e->getMessage()]);
-            return redirect()->back()->with('error', 'Error fetching reconciliation data: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Reference Data View (Demographics, Languages, Industry, Blocked IPs)
-     */
-    public function referenceDataView()
-    {
-        try {
-            $languages = $this->zampliaService->getLanguages();
-            $industries = $this->zampliaService->getIndustry();
-            $surveyTypes = $this->zampliaService->getSurveyTypes();
-            $blockedIps = $this->zampliaService->getBlockedIps();
-
-            $result['languages'] = $languages['data'] ?? [];
-            $result['industries'] = $industries['data'] ?? [];
-            $result['surveyTypes'] = $surveyTypes['data'] ?? [];
-            $result['blockedIps'] = $blockedIps['data'] ?? [];
-
-            $body['bodyView'] = view('admin.API.reference_data', $result);
-            return LayoutController::loadAdmin($body);
-
-        } catch (\Exception $e) {
-            Log::error('referenceDataView error', ['error' => $e->getMessage()]);
-            return redirect()->back()->with('error', 'Error fetching reference data: ' . $e->getMessage());
-        }
+        return redirect()->back()->with(
+            'error',
+            $e->getMessage()
+        );
     }
 }
+ 
+}
+

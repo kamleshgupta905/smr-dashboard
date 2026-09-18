@@ -112,6 +112,7 @@ class UserController extends Controller
             $username = $request->post('username');
             $password = $request->post('password');
             $role_id = $request->post('role_id');
+            $supplier_id = $request->post('supplier_id');
             $mobile_no = $request->post('mobile_no');
             $email = $request->post('email');
             $menuIds = explode(",", $request->post('MenuString'));
@@ -141,6 +142,7 @@ class UserController extends Controller
             $model->username = $username;
             $model->email = $email;
             $model->role_id = $role_id;
+            $model->supplier_id = $supplier_id;
             $model->mobile_no = $mobile_no;
             $model->save();
 
@@ -204,37 +206,41 @@ class UserController extends Controller
         $request->session()->flash('message', 'User status update successfully');
         return redirect('admin/user');
     }
-   public function delete(Request $request, $id)
-    {
-        $user = User::find($id);
+  public function delete(Request $request, $id)
+{
+    $user = User::find($id);
 
-        if (!$user) {
-            if ($request->ajax()) {
-                return response()->json([
-                    'msg_status' => 0,
-                    'msg_data' => 'User not found.'
-                ]);
-            }
-            $request->session()->flash('error', 'User not found.');
-            return redirect('admin/user');
-        }
-
-        // Delete related menu_permissions records first
-        \DB::table('menu_permissions')->where('user_id', $id)->delete();
-
-        // Now delete the user
-        $user->delete();
-
+    if (!$user) {
         if ($request->ajax()) {
             return response()->json([
-                'msg_status' => 1,
-                'msg_data' => 'User deleted successfully.'
+                'msg_status' => 0,
+                'msg_data' => 'User not found.'
             ]);
         }
 
-        $request->session()->flash('message', 'User deleted successfully.');
+        $request->session()->flash('error', 'User not found.');
         return redirect('admin/user');
     }
+
+    // Delete related menu_permissions records first
+    \DB::table('menu_permissions')->where('user_id', $id)->delete();
+
+    // Delete related user activity records first
+    \DB::table('user_account_activitys')->where('user_id', $id)->delete();
+
+    // Now delete the user
+    $user->delete();
+
+    if ($request->ajax()) {
+        return response()->json([
+            'msg_status' => 1,
+            'msg_data' => 'User deleted successfully.'
+        ]);
+    }
+
+    $request->session()->flash('message', 'User deleted successfully.');
+    return redirect('admin/user');
+}
 
     public function getloginLogoutDetailByUserId(Request $request)
     {

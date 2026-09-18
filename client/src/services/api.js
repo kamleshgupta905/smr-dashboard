@@ -78,6 +78,22 @@ export const getReferenceSurveyTypes = () =>
 export const getBlockedIps = () => 
   api.get('/zamplia/reference-data').then(res => ({ data: res.data?.data?.blockedIps || [] }));
 
+export const getReferenceDemographics = () => 
+  api.get('/zamplia/reference-data').then(res => ({ data: res.data?.data?.demographics || [] }));
+
+export const getReferenceSurveyGroups = () => 
+  api.get('/zamplia/reference-data').then(res => ({ data: res.data?.data?.surveyGroups || [] }));
+
+export const getReferenceCategories = () => 
+  api.get('/zamplia/reference-data').then(res => ({ data: res.data?.data?.categories || [] }));
+
+// Zamplia Demand API Helpers
+export const createDemandProject = (data) =>
+  api.post('/explorer/zamplia/demand/create-project', data).then(res => res.data);
+
+export const getDemandFeasibility = (params) =>
+  api.get('/explorer/zamplia/demand/feasibility', { params }).then(res => res.data);
+
 // Project, Vendor, Client & User Management
 export const getProjects = () => 
   api.get('/manage/projects').then(res => res.data);
@@ -113,13 +129,53 @@ export const getDashboardAnalytics = () =>
   }));
 
 export const getClients = () =>
-  api.get('/manage/clients').then(res => res.data);
+  api.get('/clients').then(res => res.data?.data || res.data);
 
 export const createClient = (data) =>
-  api.post('/manage/clients', data).then(res => res.data);
+  api.post('/clients', data).then(res => res.data);
 
 export const deleteClient = (id) =>
-  api.post(`/manage/clients/delete/${id}`).then(res => res.data);
+  api.delete(`/clients/${id}`).then(res => res.data);
+
+export const syncClientInventory = (clientCode) =>
+  api.post(`/clients/sync/${clientCode}`).then(res => res.data);
+
+export const testS2sCallback = (payload) =>
+  api.post('/clients/test-s2s', payload).then(res => res.data);
+
+export const testHashing = (payload) =>
+  api.post('/clients/test-hashing', payload).then(res => res.data);
+
+// Security & Fraud Policies API
+export const getSecurityPolicy = () =>
+  api.get('/security/policy').then(res => res.data?.data || res.data);
+
+export const updateSecurityPolicy = (data) =>
+  api.put('/security/policy', data).then(res => res.data);
+
+export const simulateTrafficCheck = (data) =>
+  api.post('/security/simulate-check', data).then(res => res.data);
+
+// High-speed Router & Test Simulation API
+export const generateStandardVendorLink = (projectId, vendorId) =>
+  api.post('/router/generate-vendor-link', { projectId, vendorId }).then(res => res.data);
+
+export const simulateTestRouting = (payload) =>
+  api.post('/router/simulate-test', payload).then(res => res.data);
+
+// Market Xcel Master Data APIs (from official demand.php documentation)
+export const getMarketXcelCountries = () =>
+  api.get('/explorer/marketxcel/countries').then(res => res.data?.data || []);
+
+export const getMarketXcelLanguages = () =>
+  api.get('/explorer/marketxcel/languages').then(res => res.data?.data || []);
+
+export const getMarketXcelQuestions = (countryId, langId) =>
+  api.get(`/explorer/marketxcel/questions?country_id=${countryId || 229}&language_id=${langId || 5}`).then(res => res.data);
+
+// Universal Interactive API Test Runner (All Market Xcel & Zamplia APIs)
+export const runUniversalApiTest = (payload) =>
+  api.post('/explorer/run-test', payload).then(res => res.data);
 
 export const getUsers = () =>
   api.get('/manage/users').then(res => res.data);
@@ -149,11 +205,23 @@ export const ManagementAPI = {
   createProject: (data) => api.post('/manage/projects', data),
   getVendors: () => api.get('/manage/vendors'),
   createVendor: (data) => api.post('/manage/vendors', data),
-  getClients: () => api.get('/manage/clients'),
-  createClient: (data) => api.post('/manage/clients', data),
+  getClients: () => api.get('/clients'),
+  createClient: (data) => api.post('/clients', data),
   getUsers: () => api.get('/manage/users'),
   createUser: (data) => api.post('/manage/users', data),
   getDashboardAnalytics: () => api.get('/dashboard/analytics'),
 };
 
+export const SecurityAPI = {
+  getPolicy: getSecurityPolicy,
+  updatePolicy: updateSecurityPolicy,
+  simulateCheck: simulateTrafficCheck,
+};
+
+export const RouterAPI = {
+  generateVendorLink: generateStandardVendorLink,
+  simulateTest: simulateTestRouting,
+};
+
 export default api;
+

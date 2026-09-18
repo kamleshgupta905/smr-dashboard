@@ -56,7 +56,8 @@ class LoginController extends Controller
                 ];
                 $user_activity_id = DB::table('user_account_activitys')->insertGetId($arr);
 
-                $result = ['userId' => $user_id, 'userName' => $userName, 'userActivityId' => $user_activity_id, 'year_id' => $year_id];
+            $result = ['userId' => $user_id, 'userName' => $userName, 'userActivityId' => $user_activity_id, 'year_id' => $year_id,'role' => $result->role_id,
+                    'supplier_id'    => $result->supplier_id,];
                 $this->setSessionData($result);
 
                 return redirect('admin/dashboard');
@@ -70,26 +71,41 @@ class LoginController extends Controller
         }
     }
 
-    public function logout()
-    {
-        $surveysAdmin = session()->get('surveysAdmin');
-        $userId = $surveysAdmin['userId'];
-        $user_activity_id = $surveysAdmin['userActivityId'];
+   public function logout()
+{
+    $surveysAdmin = session()->get('surveysAdmin');
 
-        $user = User::find($userId);
-        $user->is_online = "0";
+    $userId = $surveysAdmin['userId'];
+    $user_activity_id = $surveysAdmin['userActivityId'];
+
+    $user = User::find($userId);
+
+    if ($user) {
+        $user->is_online = "N";
         $user->save();
-
-        $arr = [
-            "logout_time" => now(),
-        ];
-        DB::table('user_account_activitys')->where(['id' => $user_activity_id])->update($arr);
-        CommonDataModel::insertLogData('user_account_activitys', $arr, $user_activity_id, config('constants.LOG_U'));
-
-        session()->forget('surveysAdmin');
-        session()->flash('logout', 'Logout sucessfully');
-        return redirect('admin');
     }
+
+    $arr = [
+        "logout_time" => now(),
+    ];
+
+    DB::table('user_account_activitys')
+        ->where(['id' => $user_activity_id])
+        ->update($arr);
+
+    CommonDataModel::insertLogData(
+        'user_account_activitys',
+        $arr,
+        $user_activity_id,
+        config('constants.LOG_U')
+    );
+
+    session()->forget('surveysAdmin');
+
+    session()->flash('logout', 'Logout sucessfully');
+
+    return redirect('admin');
+}
 
     private function setSessionData($result)
     {

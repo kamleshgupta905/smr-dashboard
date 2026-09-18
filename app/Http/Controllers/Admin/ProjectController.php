@@ -11,16 +11,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
-use App\Services\ZampliaSupplyService;
 
 class ProjectController extends Controller
 {
-    protected ZampliaSupplyService $zampliaService;
-
-    public function __construct(ZampliaSupplyService $zampliaService)
-    {
-        $this->zampliaService = $zampliaService;
-    }
+    protected $baseUrl = 'https://surveysupply.zamplia.com/api/v1/Surveys/GenerateLink';
+    protected $apiKey = 'RCgqJ2hfoVZdwgPkwGnjMwTIi0CSKQ2u';
 
 public function index(Request $request)
 {
@@ -434,11 +429,73 @@ foreach($bidOptions as $option) {
         return response()->json(['status' => false]);
     }
 
+// public function vendorListPartialView(Request $request)
+// {
+//     $project_id = $request->post('project_id');
+
+//     $result["assignedVendorList"] = DB::table('vendor_projects as vp')
+//         ->join('vendor as v', 'v.id', '=', 'vp.vendor_id')
+//         ->where('vp.project_id', $project_id)
+//         ->where('v.is_active', 'Y')
+//         ->select(
+//             'v.id',
+//             'v.vendor_id',
+//             'v.name',
+//             'v.email',
+//             'v.clicks_count',
+//             'v.complete_count',
+//             'v.terminates_count',
+//             'vp.assigned_at'
+//         )
+//         ->orderBy('vp.id', 'DESC')
+//         ->get();
+
+//     /*
+//     |--------------------------------------------------------------------------
+//     | Check Normal Project First
+//     |--------------------------------------------------------------------------
+//     */
+
+//     $project = DB::table('projects')
+//         ->where('id', $project_id)
+//         ->first();
+
+//     if ($project) {
+
+//         $result['isApiProject'] = false;
+//         $result['projectsData'] = $project;
+
+//     } else {
+
+//         /*
+//         |--------------------------------------------------------------------------
+//         | API Survey
+//         |--------------------------------------------------------------------------
+//         */
+
+//         $project = DB::table('api_surveys')
+//             ->where('SurveyId', $project_id)
+//             ->first();
+
+//         $result['isApiProject'] = true;
+//         $result['projectsData'] = $project;
+//     }
+
+//     return view('admin/project/vendor_list_partial_view', $result)->render();
+// }
+
+
 public function vendorListPartialView(Request $request)
 {
     $project_id = $request->post('project_id');
 
-    $result["assignedVendorList"] = DB::table('vendor_projects as vp')
+    /*
+    |--------------------------------------------------------------------------
+    | Assigned Vendor List
+    |--------------------------------------------------------------------------
+    */
+
+    $vendorQuery = DB::table('vendor_projects as vp')
         ->join('vendor as v', 'v.id', '=', 'vp.vendor_id')
         ->where('vp.project_id', $project_id)
         ->where('v.is_active', 'Y')
@@ -446,14 +503,34 @@ public function vendorListPartialView(Request $request)
             'v.id',
             'v.vendor_id',
             'v.name',
+            'v.commission_type',
+            'v.cpi_percentage',
+            'v.per_complete',
             'v.email',
-            'v.clicks_count',
-            'v.complete_count',
-            'v.terminates_count',
+            'vp.clicks_count',
+            'vp.complete_count',
+            'vp.terminates_count',
             'vp.assigned_at'
-        )
+        );
+        
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vendor Login - Show Only Logged-in Vendor
+    |--------------------------------------------------------------------------
+    */
+
+    if (session('surveysAdmin.role') == 8) {
+
+        $supplierCode = session('surveysAdmin.supplier_id');
+
+        $vendorQuery->where('v.vendor_id', $supplierCode);
+    }
+
+    $result["assignedVendorList"] = $vendorQuery
         ->orderBy('vp.id', 'DESC')
         ->get();
+
 
     /*
     |--------------------------------------------------------------------------
@@ -490,11 +567,32 @@ public function vendorListPartialView(Request $request)
 }
 
 
-    public function vendorList()
-    {
-        $vendorList = DB::table('vendor')->where(['is_active' => 'Y'])->whereNull('project_id')->whereNull('client_id')->get();
-        return response()->json(['vendorList' => $vendorList]);
+   public function vendorList()
+{
+    if (session('surveysAdmin.role') == 8) {
+
+        $supplierCode = session('surveysAdmin.supplier_id');
+
+        $vendorList = DB::table('vendor')
+            ->where('is_active', 'Y')
+            ->whereNull('project_id')
+            ->whereNull('client_id')
+            ->where('vendor_id', $supplierCode)
+            ->first();
+
+    } else {
+
+        $vendorList = DB::table('vendor')
+            ->where('is_active', 'Y')
+            ->whereNull('project_id')
+            ->whereNull('client_id')
+            ->get();
     }
+
+    return response()->json([
+        'vendorList' => $vendorList
+    ]);
+}
     
 
     
@@ -600,42 +698,24 @@ public function vendorListPartialView(Request $request)
             |--------------------------------------------------------------------------
             */
 
-           if ($request->is_api_survey == 1) {
+          if ($request->is_api_survey == 1) {
 
-    /*
-    |--------------------------------------------------------------------------
-    | GENERATE LINK API CALL VIA SERVICE
-    |--------------------------------------------------------------------------
-    */
+    $entryUrl = "vendor/auth/{$vendorId}/project/{$project_unique_id}?user=xxxx&api=1";
 
-    $linkResult = $this->zampliaService->generateLink(
-        $project_id,
-        request()->ip(),
-        $vendorId
+    DB::table('vendor_entry_links')->updateOrInsert(
+        [
+            'vendor_id'  => $vendorId,
+            'project_id' => $project_id
+        ],
+        [
+            'entry_link' => $entryUrl,
+            'live_url'   => null,
+            'test_url'   => null,
+            'created_at' => now(),
+            'updated_at' => now()
+        ]
     );
 
-    $liveLink = $linkResult['data'][0]['SignedLiveLink'] 
-        ?? $linkResult['data'][0]['LiveLink'] 
-        ?? null;
-
-DB::table('vendor_entry_links')->updateOrInsert(
-[
-    'vendor_id'  => $vendorId,
-    'project_id' => $project_id
-],
-[
-    'entry_link' => $liveLink,
-    'live_url'   => $liveLink,
-    'created_at' => now(),
-    'updated_at' => now()
-]
-
-);
-\Log::info('Generated Link', [
-    'vendor_id' => $vendorId,
-    'project_id' => $project_id,
-    'link' => $liveLink
-]);
     $mailData = (object)[
         'email'        => $vendor->email,
         'project_id'   => $project_unique_id,
@@ -643,7 +723,6 @@ DB::table('vendor_entry_links')->updateOrInsert(
         'cpi'          => 'N/A',
         'client_id'    => $client_id
     ];
-
 }
             /*
             |--------------------------------------------------------------------------

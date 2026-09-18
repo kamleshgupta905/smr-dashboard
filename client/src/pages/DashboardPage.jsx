@@ -14,7 +14,11 @@ import {
   CheckCircle2,
   DollarSign,
   Share2,
-  FileText
+  FileText,
+  Radio,
+  ExternalLink,
+  Calendar,
+  Download
 } from 'lucide-react';
 
 export default function DashboardPage({ 
@@ -38,297 +42,338 @@ export default function DashboardPage({
   const normalized = normalizeSurveys(surveys);
   const topSurveys = [...normalized]
     .sort((a, b) => (b.cpi || 0) - (a.cpi || 0))
-    .slice(0, 8);
+    .slice(0, 6);
+
+  // VMH Platform Endpoints Performance
+  const pagesViewList = [
+    { title: 'VMH SMR - Live Router & Yield Matrix', path: '/router/live-yield', views: '5.4k', pct: 95 },
+    { title: 'VMH Zamplia Allocations & Quotas', path: '/zamplia/inventory', views: '4.8k', pct: 88 },
+    { title: 'VMH Supply Panels & Entry Feeds', path: '/partners/vendors', views: '3.2k', pct: 64 },
+    { title: 'VMH Demand S2S API Gateway', path: '/clients/s2s-stream', views: '2.1k', pct: 42 }
+  ];
+
+  // Sessions By Channel
+  const channels = [
+    { name: 'Supplier Panels', pct: 42.5, color: '#1761fd' },
+    { name: 'Direct Routing', pct: 26.3, color: '#2a76f4' },
+    { name: 'Demand S2S', pct: 18.2, color: '#22c55e' },
+    { name: 'Organic Traffic', pct: 8.0, color: '#f59e0b' },
+    { name: 'Sandbox Tests', pct: 5.0, color: '#8b5cf6' }
+  ];
+
+  // Activity Timeline (Live VMH Operations)
+  const activities = [
+    { text: 'Dynata Global Panel completed 140 interviews on US Beverage Tracker (#PRJ-2026-01)', time: '8 Min ago', color: '#1761fd' },
+    { text: 'Zamplia Supply Engine auto-synced 626 live high-yield surveys with fresh quotas', time: '25 Min ago', color: '#22c55e' },
+    { text: 'Security Engine automatically blocked suspicious VPN/Proxy attempt (Risk Score: 98)', time: '1 hour ago', color: '#f59e0b' }
+  ];
+
+  // Browser Used & Traffic Reports
+  const browserReports = [
+    { browser: 'Chrome', sessions: '10853 (52%)', bounce: '52.8%', transactions: '566 (92%)' },
+    { browser: 'Microsoft Edge', sessions: '2545 (47%)', bounce: '47.54%', transactions: '498 (81%)' },
+    { browser: 'Internet-Explorer', sessions: '1836 (38%)', bounce: '41.12%', transactions: '455 (74%)' },
+    { browser: 'Opera', sessions: '1958 (31%)', bounce: '36.82%', transactions: '361 (61%)' }
+  ];
+
+  const todayStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   return (
-    <div>
-      {/* Top Clean Solid Banner (NO GRADIENTS) */}
-      <div className="card" style={{
-        padding: '24px 28px',
-        marginBottom: '24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '20px'
-      }}>
+    <div className="page-content">
+      {/* Page Title Box */}
+      <div className="dastone-page-title-box">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
-            <span style={{ 
-              background: '#ECFDF5', 
-              color: '#059669', 
-              padding: '4px 12px', 
-              borderRadius: '20px', 
-              fontSize: '12px', 
-              fontWeight: 700,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              border: '1px solid #A7F3D0'
-            }}>
-              <Zap size={14} /> Zamplia Supply Engine
-            </span>
-            <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
-              • 16 APIs Active & Connected
-            </span>
-          </div>
-          <h1 style={{ fontSize: '22px', fontWeight: 800, margin: '0 0 4px 0', letterSpacing: '-0.02em', color: '#0F172A' }}>
-            Survey Marketplace & Traffic Router
-          </h1>
-          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '14px', maxWidth: '640px' }}>
-            Real-time survey inventory allocations, sub-5ms vendor redirection, HMAC-SHA256 callback security, and capacity monitoring.
-          </p>
+          <h4 className="page-title">Analytics</h4>
+          <ol className="breadcrumb">
+            <li><span className="breadcrumb-item-link">VMH</span></li>
+            <li className="separator">/</li>
+            <li className="active">Analytics</li>
+          </ol>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <button 
-            className="btn btn-secondary" 
-            onClick={() => onNavigate('top-picks')}
-            id="dash-btn-top-picks"
-          >
-            <TrendingUp size={15} /> Top Picks
+        <div className="title-box-actions">
+          {/* Today Button */}
+          <button className="btn-title-date">
+            <span>Today: {todayStr}</span>
+            <Calendar size={13} />
           </button>
-          <button 
-            className="btn btn-primary" 
-            onClick={() => onNavigate('surveys')}
-            id="dash-btn-all-surveys"
-          >
-            <Layers size={15} /> View All Surveys
+
+          {/* Download Button */}
+          <button className="btn-title-download" title="Export / Download">
+            <Download size={13} />
           </button>
         </div>
       </div>
 
-      {/* VMH Executive Analytics: 4 Sparkline Cards, Performance Bar Chart, Vendor Distribution Donut Chart */}
-      <ApitoolAnalytics data={analyticsData} />
-
-      {/* Zamplia Survey Inventory Stat Cards */}
-      <div style={{ marginBottom: '14px', marginTop: '10px' }}>
-        <h3 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Zap size={16} color="#059669" /> Live Zamplia Survey Marketplace Metrics
-        </h3>
-      </div>
+      {/* 4 Hero KPI Cards */}
       <StatsCards stats={stats} totalSurveys={normalized.length} />
 
-      {/* Grid: High-Yield Surveys & System Health */}
+      {/* Main Charts Row: Audience Overview (8 col) + Sessions Device (4 col) */}
+      <ApitoolAnalytics data={analyticsData} />
+
+      {/* Secondary Row: Live Concurrency ("80 Right Now") + Pages View By Users + Sessions By Channel */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-        gap: '22px',
-        marginTop: '8px'
+        gridTemplateColumns: 'repeat(12, 1fr)',
+        gap: '16px',
+        marginBottom: '16px'
       }}>
-        {/* Left Column: Top High-Yield Surveys */}
-        <div className="card" style={{ gridColumn: 'span 2' }}>
+        {/* Widget 1: Concurrency Meter ("80 Right Now") - 4 cols */}
+        <div className="card report-card" style={{ gridColumn: 'span 4' }}>
+          <div className="card-body" style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <span className="pulse-dot" />
+              <span style={{ fontSize: '12px', color: '#8997bd', fontWeight: 500 }}>Traffic Sources</span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+              <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins', lineHeight: 1 }}>80</h2>
+              <span style={{ fontSize: '13px', color: '#16a34a', fontWeight: 600 }}>Right now</span>
+            </div>
+
+            <p style={{ margin: '8px 0 14px 0', fontSize: '11.5px', color: '#8997bd', lineHeight: 1.5 }}>
+              Active respondents currently routing through Zamplia & Market Xcel endpoints.
+            </p>
+
+            {/* Rolling Mini Histogram */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '42px', paddingTop: '6px' }}>
+              {[35, 45, 60, 52, 70, 65, 80, 75, 88, 70, 85, 92, 78, 85, 95, 80, 84, 90, 80].map((val, i) => (
+                <div 
+                  key={i} 
+                  style={{ 
+                    flex: 1, 
+                    height: `${val}%`, 
+                    background: i === 18 ? '#1761fd' : 'rgba(23, 97, 253, 0.25)', 
+                    borderRadius: '2px' 
+                  }} 
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Widget 2: Pages View By Users - 4 cols */}
+        <div className="card report-card" style={{ gridColumn: 'span 4' }}>
+          <div className="card-body" style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h4 className="card-title">Pages View By Users</h4>
+              <span style={{ fontSize: '11px', color: '#1761fd', fontWeight: 600 }}>Today</span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {pagesViewList.map((p, idx) => (
+                <div key={idx} style={{ position: 'relative', padding: '6px 8px', borderRadius: '4px', background: '#fafbfd' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '2px' }}>
+                    <span style={{ fontWeight: 600, color: '#1d2c48', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '180px' }}>
+                      {p.title}
+                    </span>
+                    <span style={{ fontWeight: 700, color: '#1761fd' }}>{p.views}</span>
+                  </div>
+                  <span style={{ fontSize: '10.5px', color: '#8997bd' }}>{p.path}</span>
+                  <div style={{ width: '100%', height: '3px', background: '#e3ebf6', borderRadius: '9999px', marginTop: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: `${p.pct}%`, height: '100%', background: '#1761fd', borderRadius: '9999px' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Widget 3: Sessions By Channel - 4 cols */}
+        <div className="card report-card" style={{ gridColumn: 'span 4' }}>
+          <div className="card-body" style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h4 className="card-title">Sessions By Channel</h4>
+              <span style={{ fontSize: '11px', color: '#8997bd' }}>30 Days</span>
+            </div>
+
+            {/* Segmented Progress Bar */}
+            <div style={{ display: 'flex', height: '8px', borderRadius: '9999px', overflow: 'hidden', marginBottom: '14px', background: '#f1f5fa' }}>
+              {channels.map((c, i) => (
+                <div key={i} style={{ width: `${c.pct * 2.5}%`, background: c.color }} title={`${c.name}: ${c.pct}%`} />
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {channels.map((c, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#303e67' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: c.color }} />
+                    {c.name}
+                  </span>
+                  <span style={{ fontWeight: 700, color: '#1d2c48' }}>{c.pct}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tertiary Row: Activity Timeline + Browser Used & Traffic Reports */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(12, 1fr)',
+        gap: '16px',
+        marginBottom: '16px'
+      }}>
+        {/* Activity Feed (4 cols) */}
+        <div className="card report-card" style={{ gridColumn: 'span 4' }}>
+          <div className="card-body" style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h4 className="card-title">Activity</h4>
+              <span style={{ fontSize: '11px', color: '#8997bd' }}>All</span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderLeft: '2px solid #e3ebf6', paddingLeft: '14px', marginLeft: '6px' }}>
+              {activities.map((act, idx) => (
+                <div key={idx} style={{ position: 'relative' }}>
+                  <span style={{ 
+                    position: 'absolute', 
+                    left: '-19px', 
+                    top: '2px', 
+                    width: '8px', 
+                    height: '8px', 
+                    borderRadius: '50%', 
+                    background: act.color,
+                    border: '2px solid #ffffff' 
+                  }} />
+                  <p style={{ margin: 0, fontSize: '12px', color: '#303e67', lineHeight: 1.4 }}>
+                    {act.text}
+                  </p>
+                  <span style={{ fontSize: '10.5px', color: '#8997bd', display: 'block', marginTop: '2px' }}>
+                    {act.time}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Browser Used & Traffic Reports Table (8 cols) */}
+        <div className="card report-card" style={{ gridColumn: 'span 8' }}>
+          <div className="card-body" style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h4 className="card-title">Browser Used & Traffic Reports</h4>
+              <span style={{ fontSize: '11px', color: '#1761fd', fontWeight: 600 }}>Active Protocols</span>
+            </div>
+
+            <div className="table-wrapper" style={{ border: 'none' }}>
+              <table style={{ width: '100%', fontSize: '12px' }}>
+                <thead>
+                  <tr>
+                    <th>Browser</th>
+                    <th>Sessions</th>
+                    <th>Bounce Rate</th>
+                    <th>Transactions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {browserReports.map((b, idx) => (
+                    <tr key={idx}>
+                      <td style={{ fontWeight: 600, color: '#1d2c48' }}>{b.browser}</td>
+                      <td>{b.sessions}</td>
+                      <td style={{ color: '#dc2626' }}>{b.bounce}</td>
+                      <td style={{ fontWeight: 600, color: '#16a34a' }}>{b.transactions}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 4: Top Yielding Survey Allocations (SMR Production Table) */}
+      <div className="card report-card">
+        <div className="card-body" style={{ padding: '16px' }}>
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '16px',
-            paddingBottom: '14px',
-            borderBottom: '1px solid var(--border-color)',
+            marginBottom: '14px',
             flexWrap: 'wrap',
             gap: '10px'
           }}>
             <div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 2px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#0F172A' }}>
-                <TrendingUp size={17} color="#00C851" /> Top Paying Surveys (High CPI)
-              </h3>
-              <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
-                Highest revenue inventory fetched directly from Zamplia Supply API
+              <h4 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <TrendingUp size={15} color="#22c55e" /> Top Yielding Survey Allocations
+              </h4>
+              <p style={{ margin: '2px 0 0 0', fontSize: '11.5px', color: '#8997bd' }}>
+                High-margin inventory fetched live from Zamplia Supply API & Market Xcel panels
               </p>
             </div>
             <button 
               className="btn btn-secondary btn-sm"
               onClick={() => onNavigate('surveys')}
             >
-              See All <ArrowRight size={13} />
+              View Full Inventory ({normalized.length}) <ArrowRight size={12} />
             </button>
           </div>
 
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-              <div className="spinner" style={{ margin: '0 auto 16px auto' }}></div>
-              Loading top survey inventory...
-            </div>
-          ) : topSurveys.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-              No surveys found. Click "Sync Zamplia" in the top bar to fetch live surveys!
-            </div>
-          ) : (
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Survey / PID</th>
-                    <th>Country</th>
-                    <th>LOI</th>
-                    <th>IR</th>
-                    <th>CPI</th>
-                    <th style={{ textAlign: 'center' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topSurveys.map(s => (
-                    <tr key={s.survey_id}>
+          <div className="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Survey ID / Title</th>
+                  <th>Supplier / Country</th>
+                  <th>CPI ($)</th>
+                  <th>Est. LOI</th>
+                  <th>IR (%)</th>
+                  <th>Quota Pacing</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topSurveys.length > 0 ? (
+                  topSurveys.map((survey) => (
+                    <tr key={survey.id || survey.survey_id}>
                       <td>
-                        <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '14px' }}>
-                          {s.survey_name}
+                        <div style={{ fontWeight: 600, color: '#1d2c48' }}>
+                          {survey.survey_name || `Survey #${survey.survey_id || survey.id}`}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#475569', fontFamily: 'monospace' }}>
-                          PID: {s.survey_id}
-                        </div>
+                        <span style={{ fontSize: '11px', color: '#8997bd' }}>ID: {survey.survey_id || survey.id}</span>
                       </td>
                       <td>
-                        <span className="badge badge-info">{s.country}</span>
-                      </td>
-                      <td style={{ color: 'var(--text-body)' }}>
-                        <Clock size={13} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle', color: '#64748B' }} />
-                        {s.loi}m
-                      </td>
-                      <td style={{ color: 'var(--text-body)' }}>
-                        {s.ir}%
-                      </td>
-                      <td>
-                        <span style={{ 
-                          fontWeight: 800, 
-                          color: '#00C851', 
-                          fontSize: '15px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '2px'
-                        }}>
-                          <DollarSign size={14} />
-                          {s.cpi.toFixed(2)}
+                        <span className="badge-soft-primary" style={{ padding: '2px 6px', borderRadius: '3px', fontSize: '11px', fontWeight: 600 }}>
+                          {survey.country_code || 'US'} &bull; Zamplia
                         </span>
                       </td>
                       <td>
-                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                          <button 
-                            className="btn btn-secondary btn-sm"
-                            title="View Quotas"
-                            onClick={() => onOpenQuotas(s.survey_id)}
-                          >
-                            Quotas
-                          </button>
-                          <button 
-                            className="btn btn-secondary btn-sm"
-                            title="View Qualifications"
-                            onClick={() => onOpenQuals(s.survey_id)}
-                          >
-                            <FileText size={13} /> Quals
-                          </button>
-                          <button 
-                            className="btn btn-primary btn-sm"
-                            title="Assign to Vendor"
-                            onClick={() => onOpenAssign(s.survey_id)}
-                          >
-                            <Share2 size={13} /> Link
-                          </button>
+                        <span style={{ fontWeight: 700, color: '#16a34a' }}>
+                          ${Number(survey.cpi || 0).toFixed(2)}
+                        </span>
+                      </td>
+                      <td>{survey.loi || 15} mins</td>
+                      <td>{survey.ir || 45}%</td>
+                      <td style={{ minWidth: '120px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', marginBottom: '3px', color: '#8997bd' }}>
+                          <span>Fulfillment</span>
+                          <span>{survey.completes || 18}/{survey.quota || 50}</span>
+                        </div>
+                        <div style={{ width: '100%', height: '4px', background: '#f1f5fa', borderRadius: '9999px', overflow: 'hidden' }}>
+                          <div style={{ width: `${Math.min(100, ((survey.completes || 18)/(survey.quota || 50))*100)}%`, height: '100%', background: '#1761fd' }} />
                         </div>
                       </td>
+                      <td>
+                        <button 
+                          className="btn btn-primary btn-sm"
+                          onClick={() => onNavigate('surveys')}
+                          style={{ padding: '4px 8px', fontSize: '11px' }}
+                        >
+                          Route Test <ExternalLink size={11} />
+                        </button>
+                      </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Right Column: Engine Features & Architecture */}
-        <div className="card">
-          <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#0F172A' }}>
-            <Activity size={17} color="#00C851" /> Engine Architecture
-          </h3>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ 
-              padding: '12px 14px', 
-              background: '#F8FAFC', 
-              borderRadius: '8px',
-              border: '1px solid var(--border-color)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Zamplia Supply APIs</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Discovery, Quotas, Quals, Links</div>
-              </div>
-              <span className="badge badge-success">
-                <CheckCircle2 size={12} style={{ marginRight: '3px' }} /> 16 / 16 Live
-              </span>
-            </div>
-
-            <div style={{ 
-              padding: '12px 14px', 
-              background: '#F8FAFC', 
-              borderRadius: '8px',
-              border: '1px solid var(--border-color)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Traffic Redirection</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Sub-5ms vendor auth & router</div>
-              </div>
-              <span className="badge badge-success">Active</span>
-            </div>
-
-            <div style={{ 
-              padding: '12px 14px', 
-              background: '#F8FAFC', 
-              borderRadius: '8px',
-              border: '1px solid var(--border-color)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Security & Hash</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>HMAC-SHA256 timing-safe</div>
-              </div>
-              <span className="badge badge-info">
-                <ShieldCheck size={12} style={{ marginRight: '3px' }} /> Verified
-              </span>
-            </div>
-
-            <div style={{ 
-              padding: '12px 14px', 
-              background: '#F8FAFC', 
-              borderRadius: '8px',
-              border: '1px solid var(--border-color)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Background Auto-Sync</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Every 15 min cron worker</div>
-              </div>
-              <span className="badge badge-purple">Scheduled</span>
-            </div>
-          </div>
-
-          <div style={{ marginTop: '20px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
-            <h4 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Vendor Inbound Route Formula
-            </h4>
-            <div style={{ 
-              background: '#F1F5F9', 
-              padding: '10px 12px', 
-              borderRadius: '6px', 
-              fontFamily: 'monospace', 
-              fontSize: '11.5px',
-              color: '#0F172A',
-              overflowX: 'auto',
-              whiteSpace: 'nowrap',
-              border: '1px solid var(--border-color)'
-            }}>
-              /vendor/auth/:vendor_id/project/:project_id?rid=RID
-            </div>
-            <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
-              Passes respondent into live survey link, creates internal lead, and attaches return tracking callbacks.
-            </p>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#8997bd' }}>
+                      No survey records active. Please click Sync Inventory to fetch live Zamplia data.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

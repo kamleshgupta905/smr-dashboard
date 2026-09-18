@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\admin\Vendors;
 
 class ApiSurvey extends Model
 {
@@ -29,4 +30,8 @@ class ApiSurvey extends Model
         'SurveyCreatedAt',
         'status',
     ];
+    public function vendors()
+{
+    return $this->hasMany(Vendors::class, 'project_id', 'id');
+}
 }

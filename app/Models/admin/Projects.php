@@ -5,6 +5,7 @@ namespace App\Models\admin;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use App\Models\ApiSurvey;
 
 class Projects extends Model
 {
@@ -12,22 +13,22 @@ class Projects extends Model
 
     protected $table = 'projects';
 
-    public static function getEventCounts($id)
-    {
-        return self::withCount([
-            'vendors as complete_count' => function ($query) {
-                $query->select(DB::raw('SUM(complete_count)'));
-            },
-            'vendors as terminates_count' => function ($query) {
-                $query->select(DB::raw('SUM(terminates_count)'));
-            },
-            'vendors as clicks_count' => function ($query) {
-                $query->select(DB::raw('SUM(clicks_count)'));
-            }
-        ])
-        ->where('id', $id)
-        ->first();
-    }
+   public static function getEventCounts($id, $isApi = false)
+{
+    $model = $isApi ? new ApiSurvey() : new self();
+
+    return $model->withCount([
+        'vendors as complete_count' => function ($query) {
+            $query->select(DB::raw('SUM(complete_count)'));
+        },
+        'vendors as terminates_count' => function ($query) {
+            $query->select(DB::raw('SUM(terminates_count)'));
+        },
+        'vendors as clicks_count' => function ($query) {
+            $query->select(DB::raw('SUM(clicks_count)'));
+        }
+    ])->where('id', $id)->first();
+}
 
     public function vendors()
     {

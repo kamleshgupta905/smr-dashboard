@@ -5,7 +5,7 @@
     }
 
     .card {
-        background: linear-gradient(135deg, #111827, #2d80f0) !important;
+        /* background: linear-gradient(135deg, #111827, #2d80f0) !important; */
         transition: all 0.3s ease;
         border-radius: 15px;
         border: 1px solid black;
@@ -50,7 +50,10 @@
                 <!-- Heading -->
                 <div class="d-flex justify-content-between align-items-center py-3">
                     <h2 class="h5 mb-0 text-muted">Client Details</h2>
-                    <a href="{{ url('admin/client/addedit') }}/{{ $userData->id }}" class="btn btn-outline-primary">Edit</a>
+                    <div class="d-flex gap-5">
+                        <a href="{{ url('admin/client/addedit') }}/{{ $userData->id }}" class="btn btn-outline-primary">Edit</a>
+                        <a href="{{ url('admin/client/') }}" class="btn btn-outline-primary">Clients List</a>
+                    </div>
                 </div>
 
                 <!-- Basic Details -->
@@ -211,13 +214,13 @@
                         <hr>
                 
                         @if($userData->complete_url)
-                            <p>Complete URL: {{ url('/') }}/{{ $userData->complete_url }}</p>
+                            <p><strong>Complete URL:</strong> {{ url('/') }}/{{ $userData->complete_url }}</p>
                         @endif
                         @if($userData->terminate_url)
-                            <p>Terminate URL: {{ url('/') }}/{{ $userData->terminate_url }}</p>
+                            <p><strong>Terminate URL:</strong> {{ url('/') }}/{{ $userData->terminate_url }}</p>
                         @endif
                         @if($userData->quotafull_url)
-                            <p>Quotafull URL: {{ url('/') }}/{{ $userData->quotafull_url }}</p>
+                            <p><strong>Quotafull URL:</strong> {{ url('/') }}/{{ $userData->quotafull_url }}</p>
                         @endif
                     </div>
                 </div>

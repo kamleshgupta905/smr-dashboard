@@ -1,88 +1,142 @@
-import React from 'react';
-import { Menu, Activity, ShieldCheck, RefreshCw, Zap, LogOut, User } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Menu, RefreshCw, Search, Bell, User, Settings, LogOut } from 'lucide-react';
 
 export default function Navbar({ 
-  pageTitle = 'Marketplace Dashboard', 
-  onSync, 
-  syncing, 
-  isSyncing, 
-  surveyCount = 0,
+  onToggleSidebar,
   onToggleMobileMenu,
-  onLogout 
+  sidebarCollapsed,
+  onLogout,
+  onSync,
+  syncing,
+  surveyCount
 }) {
-  const isCurrentlySyncing = syncing || isSyncing;
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleToggle = () => {
+    if (onToggleSidebar) {
+      onToggleSidebar();
+    } else if (onToggleMobileMenu) {
+      onToggleMobileMenu();
+    }
+  };
 
   return (
-    <header className="navbar admin-top-bar">
-      <div className="navbar-left">
-        {onToggleMobileMenu && (
+    <header className={`dastone-topbar ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      {/* Left Topbar Content */}
+      <div className="topbar-left-side">
+        <button 
+          className={`topbar-menu-toggle ${sidebarCollapsed ? 'active' : ''}`}
+          onClick={handleToggle}
+          aria-label="Toggle navigation menu"
+          title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <Menu size={20} color="#475569" />
+        </button>
+
+        {/* Sync Zamplia Button (Dastone soft pill style with animated refresh) */}
+        {onSync && (
           <button 
-            className="mobile-menu-btn" 
-            onClick={onToggleMobileMenu}
-            aria-label="Toggle navigation menu"
+            className="btn-new-task"
+            onClick={onSync}
+            disabled={syncing}
+            title="Fetch live inventory from Zamplia Supply API"
           >
-            <Menu size={20} />
+            <RefreshCw size={13} className={syncing ? 'sync-spin' : ''} />
+            <span>{syncing ? 'Syncing...' : 'Sync Zamplia'}</span>
           </button>
         )}
-        <h2 className="page-title" style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>
-          {pageTitle}
-        </h2>
       </div>
 
-      <div className="navbar-right">
-        {surveyCount > 0 && (
-          <div className="badge badge-purple" style={{ padding: '6px 12px', fontSize: '12px' }}>
-            <Zap size={13} style={{ marginRight: '3px' }} /> {surveyCount} Surveys
+      {/* Right Topbar Content */}
+      <div className="topbar-right-side">
+        
+        {/* Search Icon Button */}
+        <button className="topbar-icon-action" title="Search Marketplace">
+          <Search size={18} color="#68728c" />
+        </button>
+
+        {/* Live Inventory Notification Bell with Clean Floating Badge */}
+        <button 
+          className="topbar-bell-btn" 
+          title={`${surveyCount || 'Live'} Surveys Available in Pool`}
+          onClick={onSync}
+        >
+          <Bell size={18} strokeWidth={2.2} color="#334155" />
+          <span className="badge-notification-count">
+            {surveyCount ? (surveyCount > 99 ? '99+' : surveyCount) : '2'}
+          </span>
+        </button>
+
+        {/* User Profile (Avatar + Admin) with Dropdown */}
+        <div className="user-profile-menu" ref={dropdownRef}>
+          <div 
+            className="user-profile-trigger"
+            onClick={() => setDropdownOpen(prev => !prev)}
+            title="VMH Admin Profile & Settings"
+          >
+            <span className="user-profile-name">
+              {localStorage.getItem('smr_auth_user') || 'Admin'}
+            </span>
+            <img 
+              src="/vmh-logo.png" 
+              alt="VMH Admin" 
+              className="user-profile-avatar"
+              style={{ objectFit: 'contain', background: '#ffffff', padding: '1px' }}
+            />
           </div>
-        )}
 
-        <div className="badge badge-success" style={{ padding: '6px 12px', fontSize: '12px' }}>
-          <Activity size={13} style={{ marginRight: '3px' }} /> API Connected
+          {/* Admin Dropdown Menu with Profile, Settings & Logout */}
+          {dropdownOpen && (
+            <div className="dastone-user-dropdown">
+              <div className="dropdown-header">
+                <div className="name">{localStorage.getItem('smr_auth_user') || 'Admin'} (Super Admin)</div>
+                <div className="email">admin@vmhgroupsmr.com</div>
+              </div>
+
+              <button 
+                className="dropdown-item" 
+                onClick={() => setDropdownOpen(false)}
+              >
+                <User size={15} color="#1761fd" />
+                <span>Profile</span>
+              </button>
+
+              <button 
+                className="dropdown-item" 
+                onClick={() => setDropdownOpen(false)}
+              >
+                <Settings size={15} color="#9ba7ca" />
+                <span>Settings</span>
+              </button>
+
+              <div className="dropdown-divider" />
+
+              <button 
+                className="dropdown-item logout"
+                onClick={() => {
+                  setDropdownOpen(false);
+                  if (onLogout) onLogout();
+                }}
+              >
+                <LogOut size={15} color="#f5325c" />
+                <span>Logout</span>
+              </button>
+            </div>
+          )}
         </div>
 
-        <div className="badge badge-info" style={{ padding: '6px 12px', fontSize: '12px' }}>
-          <ShieldCheck size={13} style={{ marginRight: '3px' }} /> HMAC Active
-        </div>
-
-        {onSync && (
-          <button
-            className="btn btn-primary btn-sm"
-            onClick={onSync}
-            disabled={isCurrentlySyncing}
-            style={{ padding: '8px 16px', fontSize: '13px' }}
-          >
-            <RefreshCw size={14} className={isCurrentlySyncing ? 'spin' : ''} />
-            <span>{isCurrentlySyncing ? 'Syncing...' : 'Sync Zamplia'}</span>
-          </button>
-        )}
-
-        <div className="badge badge-neutral" style={{ padding: '6px 12px', fontSize: '12px', background: '#F1F5F9', color: '#334155', display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <User size={13} style={{ color: '#0F172A' }} /> Vmhgroup
-        </div>
-
-        {onLogout && (
-          <button
-            onClick={onLogout}
-            title="Log out from SMR Dashboard"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '7px 12px',
-              background: 'rgba(239, 68, 68, 0.1)',
-              border: '1px solid rgba(239, 68, 68, 0.2)',
-              borderRadius: '8px',
-              color: '#EF4444',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            <LogOut size={13} />
-            <span>Logout</span>
-          </button>
-        )}
       </div>
     </header>
   );
