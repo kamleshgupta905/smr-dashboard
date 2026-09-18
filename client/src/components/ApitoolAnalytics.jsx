@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Monitor, Smartphone, Tablet, ChevronDown } from 'lucide-react';
+import { Monitor, Smartphone, Tablet } from 'lucide-react';
+import AnimatedCounter from './AnimatedCounter';
 
 export default function ApitoolAnalytics({ data }) {
   const [timeframe, setTimeframe] = useState('yearly');
@@ -35,23 +36,34 @@ export default function ApitoolAnalytics({ data }) {
   const newVisits = currentDataset.newVisits;
   const uniqueVisits = currentDataset.uniqueVisits;
 
-  const maxVal = 250;
-  const minVal = 0;
-  const range = 250;
+  // Senior Developer Dynamic Scaling: Automatically adapts so Monthly/Yearly/Today never overflow!
+  const rawMax = Math.max(...newVisits, ...uniqueVisits, 10);
+  let maxVal = 250;
+  if (rawMax > 500) maxVal = 1000;
+  else if (rawMax > 250) maxVal = 500;
+  else if (rawMax > 120) maxVal = 250;
+  else maxVal = 150;
+
+  const range = maxVal;
   const svgWidth = 720;
   const svgHeight = 230;
-  const paddingX = 35;
-  const paddingY = 20;
+  const paddingX = 40;
+  const paddingY = 25;
   const chartW = svgWidth - paddingX * 2;
   const chartH = svgHeight - paddingY * 2;
   const stepX = chartW / (labels.length - 1);
+
+  // Dynamic Y-axis ticks
+  const gridTicks = [0, Math.round(maxVal * 0.25), Math.round(maxVal * 0.5), Math.round(maxVal * 0.75), maxVal];
 
   // Generate smooth bezier curve path for SVG
   const generatePath = (values) => {
     const points = values.map((val, idx) => {
       const x = paddingX + idx * stepX;
-      const y = svgHeight - paddingY - (val / range) * chartH;
-      return { x, y };
+      // Clamped to chart height to prevent negative rendering
+      const clampedVal = Math.min(Math.max(val, 0), range);
+      const y = svgHeight - paddingY - (clampedVal / range) * chartH;
+      return { x, y, val };
     });
 
     let pathD = `M ${points[0].x} ${points[0].y}`;
@@ -125,76 +137,121 @@ export default function ApitoolAnalytics({ data }) {
               </div>
             </div>
 
-            {/* SVG Spline Chart */}
-            <div style={{ flex: 1, minHeight: '230px', position: 'relative' }}>
+            {/* SVG Spline Chart with Apple-grade Drawing & Clip Containment */}
+            <div style={{ flex: 1, minHeight: '230px', position: 'relative', overflow: 'hidden' }}>
               <svg 
                 viewBox={`0 0 ${svgWidth} ${svgHeight}`} 
-                style={{ width: '100%', height: '220px', overflow: 'visible' }}
+                style={{ width: '100%', height: '220px', overflow: 'hidden', display: 'block' }}
               >
                 <defs>
+                  <clipPath id="chart-area-clip">
+                    <rect x="0" y="0" width={svgWidth} height={svgHeight} />
+                  </clipPath>
                   <linearGradient id="vmh_blue_gradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1761fd" stopOpacity="0.22" />
+                    <stop offset="0%" stopColor="#1761fd" stopOpacity="0.25" />
                     <stop offset="100%" stopColor="#1761fd" stopOpacity="0.00" />
                   </linearGradient>
                 </defs>
 
-                {/* Horizontal Grid Lines & Y-Axis values */}
-                {[0, 50, 100, 150, 200, 250].map((val) => {
-                  const y = svgHeight - paddingY - (val / range) * chartH;
-                  return (
-                    <g key={val}>
-                      <text x="12" y={y + 4} fill="#8997bd" fontSize="10.5" fontFamily="Roboto">{val}</text>
-                      <line 
-                        x1={paddingX} 
-                        y1={y} 
-                        x2={svgWidth - paddingX} 
-                        y2={y} 
-                        stroke="#e3ebf6" 
-                        strokeDasharray="3 3" 
-                        strokeWidth="1" 
+                {/* Main chart drawing grouped inside clipPath */}
+                <g clipPath="url(#chart-area-clip)">
+                  {/* Horizontal Grid Lines & Y-Axis values */}
+                  {gridTicks.map((val) => {
+                    const y = svgHeight - paddingY - (val / range) * chartH;
+                    return (
+                      <g key={val}>
+                        <text x="8" y={y + 4} fill="#8997bd" fontSize="10.5" fontFamily="Roboto">{val}</text>
+                        <line 
+                          x1={paddingX} 
+                          y1={y} 
+                          x2={svgWidth - paddingX} 
+                          y2={y} 
+                          stroke="#e3ebf6" 
+                          strokeDasharray="3 3" 
+                          strokeWidth="1" 
+                        />
+                      </g>
+                    );
+                  })}
+
+                  {/* Area Fill with Apple Fade-In */}
+                  <path 
+                    key={`fill-${timeframe}`}
+                    d={newVisitsCurve.fillD} 
+                    fill="url(#vmh_blue_gradient)" 
+                    className="apple-chart-area"
+                  />
+
+                  {/* Apple Smooth Spline Drawing Curves */}
+                  <path 
+                    key={`new-${timeframe}`}
+                    d={newVisitsCurve.pathD} 
+                    fill="none" 
+                    stroke="#1761fd" 
+                    strokeWidth="2.75" 
+                    strokeLinecap="round" 
+                    className="apple-chart-path"
+                  />
+                  <path 
+                    key={`unique-${timeframe}`}
+                    d={uniqueVisitsCurve.pathD} 
+                    fill="none" 
+                    stroke="#94a3b8" 
+                    strokeWidth="2" 
+                    strokeDasharray="4 3" 
+                    strokeLinecap="round" 
+                    className="apple-chart-path"
+                  />
+
+                  {/* Data Points on Hover */}
+                  {newVisitsCurve.points.map((p, idx) => (
+                    <g 
+                      key={idx} 
+                      onMouseEnter={() => setHoverIndex(idx)}
+                      onMouseLeave={() => setHoverIndex(null)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <circle 
+                        cx={p.x} 
+                        cy={p.y} 
+                        r={hoverIndex === idx ? 6 : 3.5} 
+                        fill="#ffffff" 
+                        stroke="#1761fd" 
+                        strokeWidth="2.5" 
+                        className="apple-chart-point"
+                      />
+                      <circle 
+                        cx={uniqueVisitsCurve.points[idx].x} 
+                        cy={uniqueVisitsCurve.points[idx].y} 
+                        r={hoverIndex === idx ? 5 : 2.5} 
+                        fill="#ffffff" 
+                        stroke="#94a3b8" 
+                        strokeWidth="1.75" 
+                        className="apple-chart-point"
                       />
                     </g>
-                  );
-                })}
-
-                {/* Area Fill */}
-                <path d={newVisitsCurve.fillD} fill="url(#vmh_blue_gradient)" />
-
-                {/* Stroke Curves */}
-                <path d={newVisitsCurve.pathD} fill="none" stroke="#1761fd" strokeWidth="2.5" strokeLinecap="round" />
-                <path d={uniqueVisitsCurve.pathD} fill="none" stroke="#94a3b8" strokeWidth="2" strokeDasharray="4 3" strokeLinecap="round" />
-
-                {/* Data Points on Hover */}
-                {newVisitsCurve.points.map((p, idx) => (
-                  <g 
-                    key={idx} 
-                    onMouseEnter={() => setHoverIndex(idx)}
-                    onMouseLeave={() => setHoverIndex(null)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <circle cx={p.x} cy={p.y} r={hoverIndex === idx ? 5 : 3.5} fill="#ffffff" stroke="#1761fd" strokeWidth="2" />
-                    <circle cx={uniqueVisitsCurve.points[idx].x} cy={uniqueVisitsCurve.points[idx].y} r={hoverIndex === idx ? 4 : 2.5} fill="#ffffff" stroke="#94a3b8" strokeWidth="1.5" />
-                  </g>
-                ))}
+                  ))}
+                </g>
               </svg>
 
               {/* Tooltip */}
               {hoverIndex !== null && newVisitsCurve.points[hoverIndex] && (
                 <div style={{
                   position: 'absolute',
-                  top: `${newVisitsCurve.points[hoverIndex].y - 44}px`,
+                  top: `${Math.max(newVisitsCurve.points[hoverIndex].y - 48, 10)}px`,
                   left: `${(newVisitsCurve.points[hoverIndex].x / svgWidth) * 100}%`,
                   transform: 'translateX(-50%)',
                   background: '#1d2c48',
                   color: '#ffffff',
-                  padding: '6px 12px',
-                  borderRadius: '4px',
+                  padding: '7px 14px',
+                  borderRadius: '6px',
                   fontSize: '11px',
                   fontWeight: 600,
                   whiteSpace: 'nowrap',
-                  boxShadow: '0 4px 14px rgba(29, 44, 72, 0.25)',
+                  boxShadow: '0 6px 18px rgba(29, 44, 72, 0.3)',
                   pointerEvents: 'none',
-                  zIndex: 10
+                  zIndex: 20,
+                  transition: 'all 0.15s cubic-bezier(0.16, 1, 0.3, 1)'
                 }}>
                   <div>{labels[hoverIndex]}: <strong>{newVisits[hoverIndex]}k</strong> New Visits</div>
                   <div style={{ color: '#8997bd', fontSize: '10px' }}>{uniqueVisits[hoverIndex]}k Unique Visits</div>
@@ -202,7 +259,7 @@ export default function ApitoolAnalytics({ data }) {
               )}
 
               {/* X-Axis Month Labels */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 35px 0 35px', fontSize: '11.5px', color: '#8997bd', fontFamily: 'Roboto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 40px 0 40px', fontSize: '11.5px', color: '#8997bd', fontFamily: 'Roboto' }}>
                 {labels.map((lbl, idx) => (
                   <span key={idx} style={{ fontWeight: hoverIndex === idx ? 700 : 400, color: hoverIndex === idx ? '#1761fd' : '#8997bd' }}>
                     {lbl}
@@ -230,7 +287,8 @@ export default function ApitoolAnalytics({ data }) {
                       fontWeight: deviceFilter === tab ? 600 : 400,
                       padding: '2px 6px',
                       borderRadius: '3px',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
                     }}
                   >
                     {tab}
@@ -243,7 +301,7 @@ export default function ApitoolAnalytics({ data }) {
               01 January 2026 to 31 December 2026
             </p>
 
-            {/* SVG Donut */}
+            {/* SVG Donut with Apple-style Fitness Rings Animation */}
             <div style={{ position: 'relative', width: '150px', height: '150px', margin: '4px auto' }}>
               <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
                 {(() => {
@@ -268,6 +326,7 @@ export default function ApitoolAnalytics({ data }) {
                         strokeWidth="12"
                         strokeDasharray={strokeDasharray}
                         strokeDashoffset={strokeDashoffset}
+                        className="apple-donut-ring"
                       />
                     );
                   });
@@ -282,12 +341,14 @@ export default function ApitoolAnalytics({ data }) {
                 justifyContent: 'center',
                 pointerEvents: 'none'
               }}>
-                <span style={{ fontSize: '18px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins' }}>8,040</span>
-                <span style={{ fontSize: '10px', color: '#8997bd', textTransform: 'uppercase' }}>Sessions</span>
+                <span style={{ fontSize: '18px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins' }}>
+                  <AnimatedCounter value={8040} duration={1600} />
+                </span>
+                <span style={{ fontSize: '10px', color: '#8997bd', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sessions</span>
               </div>
             </div>
 
-            {/* 4-Column Table: Device | Sassions | Day | Week */}
+            {/* 4-Column Table: Device | Sessions | Day | Week */}
             <div style={{ marginTop: '10px' }}>
               <table style={{ width: '100%', fontSize: '11.5px', borderCollapse: 'collapse' }}>
                 <thead>
@@ -306,7 +367,7 @@ export default function ApitoolAnalytics({ data }) {
                         {dev.name}
                       </td>
                       <td style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 600, color: '#1d2c48' }}>
-                        {dev.sessions}
+                        <AnimatedCounter value={dev.sessions} duration={1200} />
                       </td>
                       <td style={{ textAlign: 'right', padding: '6px 4px', color: '#dc2626' }}>
                         {dev.day}
