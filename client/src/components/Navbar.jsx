@@ -67,16 +67,13 @@ export default function Navbar({
           <Search size={18} color="#68728c" />
         </button>
 
-        {/* Live Inventory Notification Bell with Clean Floating Badge */}
+        {/* Notifications Bell (Clean Icon Only, No Number Badge) */}
         <button 
           className="topbar-bell-btn" 
-          title={`${surveyCount || 'Live'} Surveys Available in Pool`}
+          title="Notifications"
           onClick={onSync}
         >
-          <Bell size={18} strokeWidth={2.2} color="#334155" />
-          <span className="badge-notification-count">
-            {surveyCount ? (surveyCount > 99 ? '99+' : surveyCount) : '2'}
-          </span>
+          <Bell size={19} strokeWidth={2} color="#68728c" />
         </button>
 
         {/* User Profile (Avatar + Admin) with Dropdown */}
