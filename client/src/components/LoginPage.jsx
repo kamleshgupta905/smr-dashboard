@@ -52,7 +52,7 @@ export default function LoginPage({ onLogin }) {
         localStorage.setItem('smr_auth_role', 'admin');
         onLogin();
       } else {
-        setError('Authentication failed. Default Super Admin: Vmhgroup / Jelly');
+        setError('Authentication failed. Please verify your admin username and password.');
         setLoading(false);
       }
     }
@@ -200,12 +200,9 @@ export default function LoginPage({ onLogin }) {
                 Public user self-registration is disabled. Only authorized <strong>Admin</strong> accounts can log in to the VMH SMR platform.
               </p>
               <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '4px', padding: '10px', fontSize: '11.5px', color: '#1e293b', marginBottom: '14px' }}>
-                <strong>How to add or invite an Admin:</strong>
+                <strong>Account Authorization:</strong>
                 <div style={{ marginTop: '4px', color: '#64748b' }}>
-                  Simply open your linked <strong>Google Sheet ("Admins" tab)</strong> and add a new row with:
-                  <div style={{ marginTop: '4px', fontFamily: 'monospace', color: '#0284c7' }}>
-                    Role: "admin" &bull; Status: "Active"
-                  </div>
+                  If you require staff or administrative access, please contact your VMH Super Administrator to provision your credentials.
                 </div>
               </div>
               <button 
@@ -335,17 +332,6 @@ export default function LoginPage({ onLogin }) {
               >
                 {loading ? 'Authenticating...' : 'Log In'}
               </button>
-
-              <div style={{ marginTop: '12px', textAlign: 'center' }}>
-                <a 
-                  href="http://localhost:5000/api/auth/google/authorize" 
-                  target="_blank" 
-                  rel="noreferrer"
-                  style={{ fontSize: '11.5px', color: '#1761fd', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                >
-                  <span>&#128279; 1-Click Connect Google Sheet</span>
-                </a>
-              </div>
             </form>
           )}
 
@@ -357,7 +343,7 @@ export default function LoginPage({ onLogin }) {
             borderTop: '1px solid #f1f5fa',
             paddingTop: '14px'
           }}>
-            Google Sheet + Cloud Auth &bull; <strong>Strict Admin-Only Access</strong> &bull; 256-Bit SSL
+            VMH GROUP'S SMR &bull; <strong>Enterprise Admin Security</strong> &bull; 256-Bit SSL
           </div>
         </div>
       </div>

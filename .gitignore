@@ -13,3 +13,5 @@ token.json
 *.zip
 .DS_Store
 __MACOSX/
+.vercel
+client/.vercel
