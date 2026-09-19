@@ -19,15 +19,15 @@ import LoginPage from './components/LoginPage';
 import { normalizeSurveys } from './utils/normalize';
 import { CheckCircle2, AlertTriangle, X } from 'lucide-react';
 
-import { getSurveys, getSurveyStats, syncSurveys, DEFAULT_SURVEYS } from './services/api';
+import { getSurveys, syncSurveys, DEFAULT_SURVEYS } from './services/api';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('smr_auth_token') === 'authenticated_vmhgroup';
   });
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [surveys, setSurveys] = useState(DEFAULT_SURVEYS);
-  const [stats, setStats] = useState({ totalSurveys: 626, activeSurveys: 626, avgCpi: 1.15, activeVendors: 4 });
+  const [surveys, setSurveys] = useState([]);
+  const [globalSearch, setGlobalSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -54,25 +54,14 @@ export default function App() {
 
   const loadData = async () => {
     try {
-      const [surveysRes, statsRes] = await Promise.allSettled([
-        getSurveys(),
-        getSurveyStats()
-      ]);
-
-      if (surveysRes.status === 'fulfilled' && surveysRes.value) {
-        const raw = Array.isArray(surveysRes.value.data) 
-          ? surveysRes.value.data 
-          : (Array.isArray(surveysRes.value) ? surveysRes.value : []);
+      const surveysRes = await getSurveys();
+      if (surveysRes) {
+        const raw = Array.isArray(surveysRes.data)
+          ? surveysRes.data
+          : (Array.isArray(surveysRes) ? surveysRes : []);
         setSurveys(raw.length > 0 ? raw : DEFAULT_SURVEYS);
       } else {
         setSurveys(DEFAULT_SURVEYS);
-      }
-
-      if (statsRes.status === 'fulfilled' && statsRes.value) {
-        const statsData = statsRes.value.data || statsRes.value;
-        if (statsData && (statsData.totalSurveys > 0 || statsData.activeSurveys > 0)) {
-          setStats(statsData);
-        }
       }
     } catch (err) {
       console.error('Error loading data:', err);
@@ -103,21 +92,35 @@ export default function App() {
     }
   };
 
-  // Compute stats directly from live inventory so numbers are always instant and realistic (never 0)
+  // Real stats computed from the live inventory — no hardcoded placeholder numbers.
   const computedStats = useMemo(() => {
-    const list = normalizeSurveys(surveys && surveys.length > 0 ? surveys : DEFAULT_SURVEYS);
+    const list = normalizeSurveys(surveys);
     const total = list.length;
     const active = list.filter(s => s.status === 'Live' || !s.status).length;
-    const avgCpi = total > 0 
+    const avgCpi = total > 0
       ? Number((list.reduce((acc, s) => acc + (s.cpi || 0), 0) / total).toFixed(2))
-      : 1.15;
+      : 0;
+    const demandSources = new Set(list.map(s => s.client).filter(Boolean)).size;
     return {
-      totalSurveys: (stats?.totalSurveys && stats.totalSurveys > 0) ? stats.totalSurveys : 626,
-      activeSurveys: (stats?.activeSurveys && stats.activeSurveys > 0) ? stats.activeSurveys : 626,
-      avgCpi: (stats?.avgCpi && stats.avgCpi > 0) ? stats.avgCpi : (avgCpi > 0 ? avgCpi : 1.15),
-      activeVendors: (stats?.activeVendors && stats.activeVendors > 0) ? stats.activeVendors : 4
+      totalSurveys: total,
+      activeSurveys: active,
+      avgCpi,
+      activeVendors: demandSources
     };
-  }, [surveys, stats]);
+  }, [surveys]);
+
+  // Global search filters the marketplace across every page
+  const filteredSurveys = useMemo(() => {
+    const term = (globalSearch || '').toLowerCase().trim();
+    if (!term) return surveys;
+    return surveys.filter((s) =>
+      String(s.survey_id ?? s.SurveyId ?? s.id ?? '').toLowerCase().includes(term) ||
+      String(s.survey_name ?? s.Name ?? '').toLowerCase().includes(term) ||
+      String(s.country ?? s.Country ?? '').toLowerCase().includes(term) ||
+      String(s.category ?? s.IndustryName ?? '').toLowerCase().includes(term) ||
+      String(s.client ?? '').toLowerCase().includes(term)
+    );
+  }, [surveys, globalSearch]);
 
   const pageTitles = {
     dashboard: 'Marketplace Dashboard',
@@ -167,6 +170,10 @@ export default function App() {
         onToggleMobileMenu={handleToggleSidebar}
         sidebarCollapsed={sidebarCollapsed}
         onLogout={handleLogout}
+        globalSearch={globalSearch}
+        onGlobalSearch={setGlobalSearch}
+        onOpenProfile={() => { setActiveTab('users'); showToast('Super Admin profile — manage team in User Roles (RBAC).', 'info'); }}
+        onOpenSettings={() => { setActiveTab('security'); showToast('Security & Fraud policy settings opened.', 'info'); }}
       />
 
       {/* VMH Main Content Area */}
@@ -175,7 +182,7 @@ export default function App() {
           {activeTab === 'dashboard' && (
             <DashboardPage 
               stats={computedStats}
-              surveys={surveys}
+              surveys={filteredSurveys}
               loading={loading}
               onSync={handleSync}
               onNavigate={setActiveTab}
@@ -192,7 +199,7 @@ export default function App() {
 
           {activeTab === 'surveys' && (
             <SurveysPage 
-              surveys={surveys}
+              surveys={filteredSurveys}
               loading={loading}
               onRefresh={handleSync}
               onAddSurvey={(newStudy) => {
@@ -207,7 +214,7 @@ export default function App() {
 
           {activeTab === 'top-picks' && (
             <TopPicksPage 
-              surveys={surveys}
+              surveys={filteredSurveys}
               onOpenQuotas={setQuotasModalId}
               onOpenQuals={setQualsModalId}
               onOpenAssign={setAssignModalId}
@@ -257,6 +264,9 @@ export default function App() {
 
       {assignModalId && (
         <AssignVendorModal 
+          survey={surveys.find(s =>
+            String(s.survey_id ?? s.SurveyId ?? s.id ?? s._id) === String(assignModalId)
+          )}
           surveyId={assignModalId} 
           onClose={() => setAssignModalId(null)} 
         />

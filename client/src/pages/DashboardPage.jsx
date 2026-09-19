@@ -78,6 +78,29 @@ export default function DashboardPage({
 
   const todayStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
+  // Export the current Top Allocations table as CSV
+  const handleExportCsv = () => {
+    const headers = ['Survey ID', 'Title', 'Country', 'CPI', 'LOI', 'IR', 'Required', 'Remaining'];
+    const rows = topSurveys.map(s => [
+      s.survey_id,
+      `"${String(s.survey_name || '').replace(/"/g, '""')}"`,
+      s.country,
+      s.cpi,
+      s.loi,
+      s.ir,
+      s.TotalCompleteRequired || s.target_completes || '',
+      '',
+    ]);
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `vmh-smr-top-allocations-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="page-content">
       {/* Page Title Box */}
@@ -98,8 +121,8 @@ export default function DashboardPage({
             <Calendar size={13} />
           </button>
 
-          {/* Download Button */}
-          <button className="btn-title-download" title="Export / Download">
+          {/* Download Button (working CSV export) */}
+          <button className="btn-title-download" title="Export top allocations as CSV" onClick={handleExportCsv} aria-label="Export CSV">
             <Download size={13} />
           </button>
         </div>
@@ -357,7 +380,7 @@ export default function DashboardPage({
                       <td>
                         <button 
                           className="btn btn-primary btn-sm"
-                          onClick={() => onNavigate('surveys')}
+                          onClick={() => onOpenAssign && onOpenAssign(survey.survey_id || survey.id)}
                           style={{ padding: '4px 8px', fontSize: '11px' }}
                         >
                           Route Test <ExternalLink size={11} />

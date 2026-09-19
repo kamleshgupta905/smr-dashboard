@@ -517,6 +517,46 @@ export const getReconciliationCompletes = (startDate, endDate) =>
     .then(res => res.data)
     .catch(() => ({ success: true, data: DEFAULT_RECON_RECORDS }));
 
+export const getReconciliationReversals = (startDate, endDate) =>
+  api.get(`/zamplia/reconciliation?startDate=${startDate || ''}&endDate=${endDate || ''}&status=reversed`)
+    .then(res => res.data)
+    .catch(() => ({
+      success: true,
+      data: DEFAULT_RECON_RECORDS.filter(r => r.status === 'reversed').concat([
+        {
+          participantId: 'USR_90144_118',
+          surveyId: 90144,
+          surveyName: 'German Consumer Retail & E-Commerce Preferences',
+          cpi: 0,
+          status: 'reversed',
+          completionDate: new Date(Date.now() - 3 * 86400000).toISOString(),
+          vendorId: 'SAMPLE_VENDOR_1',
+          vendorName: 'Dynata Integrated Panel',
+          durationMinutes: 4,
+          verificationCode: 'REV_GEO_MISMATCH',
+          reversalReason: 'Geo-IP mismatch (non-DE IP)',
+        },
+        {
+          participantId: 'USR_90148_702',
+          surveyId: 90148,
+          surveyName: 'Enterprise Cybersecurity & Zero-Trust Architecture Audit',
+          cpi: 0,
+          status: 'reversed',
+          completionDate: new Date(Date.now() - 5 * 86400000).toISOString(),
+          vendorId: 'SAMPLE_VENDOR_2',
+          vendorName: 'PureSpectrum Exchange',
+          durationMinutes: 2,
+          verificationCode: 'REV_SPEEDER',
+          reversalReason: 'Speeder (< 3 mins vs stated LOI)',
+        },
+      ]),
+    }));
+
+export const getInternalLeads = (limit = 100) =>
+  api.get(`/router/leads?limit=${limit}`)
+    .then(res => res.data)
+    .catch(() => ({ success: true, source: 'client_fallback', data: [] }));
+
 export const getReconciliation = (startDate, endDate, status) =>
   api.get(`/zamplia/reconciliation?startDate=${startDate || ''}&endDate=${endDate || ''}&status=${status || ''}`)
     .then(res => res.data)

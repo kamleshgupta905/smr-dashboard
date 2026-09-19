@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Lead = require('../models/Lead');
 const Vendor = require('../models/Vendor');
 const VendorEntryLink = require('../models/VendorEntryLink');
@@ -252,6 +253,69 @@ exports.handleQualityTerminate = async (req, res) => {
     `);
   } catch (error) {
     return res.status(500).send('Error processing security terminate.');
+  }
+};
+
+/**
+ * Internal Live Traffic Ledger
+ * Route: GET /api/router/leads?limit=100
+ * Returns the most recent vendor clicks with outcomes — backs the
+ * "Internal Live Traffic" reconciliation tab. Falls back to a
+ * realistic sample when MongoDB is offline so the UI stays testable.
+ */
+exports.getRecentLeads = async (req, res) => {
+  try {
+    const limit = Math.min(Number(req.query.limit) || 100, 500);
+
+    if (mongoose.connection.readyState === 1) {
+      const leads = await Lead.find()
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .lean();
+
+      return res.json({
+        success: true,
+        source: 'mongodb',
+        data: leads.map((l) => ({
+          LeadId: l._id,
+          SurveyId: l.projectId,
+          VendorCode: l.vendorId,
+          SupplierTransactionId: l.uid,
+          EventDate: l.clickTime || l.createdAt,
+          Status: l.status,
+          DurationMinutes: l.completionTime && l.clickTime
+            ? Math.round((new Date(l.completionTime) - new Date(l.clickTime)) / 60000)
+            : null,
+          IpAddress: l.ipAddress,
+        })),
+      });
+    }
+
+    // Offline fallback sample so the ledger UI works without MongoDB
+    const now = Date.now();
+    const sample = [
+      { status: 'Complete', mins: 13, vendor: 'VND-DYN-01', survey: '90142' },
+      { status: 'Pending', mins: null, vendor: 'VND-CNT-02', survey: '90144' },
+      { status: 'Terminates', mins: 4, vendor: 'VND-PS-03', survey: 'MX-896' },
+      { status: 'Quality Terminate', mins: 2, vendor: 'VND-DYN-01', survey: '90145' },
+      { status: 'Complete', mins: 18, vendor: 'VND-LCD-04', survey: '90142' },
+      { status: 'Quota Full', mins: 6, vendor: 'VND-CNT-02', survey: 'MX-896' },
+      { status: 'Complete', mins: 11, vendor: 'VND-TLN-05', survey: '90144' },
+      { status: 'Pending', mins: null, vendor: 'VND-DYN-01', survey: '90142' },
+    ].map((row, i) => ({
+      LeadId: `demo_${now}_${i}`,
+      SurveyId: row.survey,
+      VendorCode: row.vendor,
+      SupplierTransactionId: `TXN_${row.survey}_${String(9000 + i)}`,
+      EventDate: new Date(now - (i + 1) * 9 * 60000).toISOString(),
+      Status: row.status,
+      DurationMinutes: row.mins,
+      IpAddress: '103.21.58.' + (10 + i),
+    }));
+
+    return res.json({ success: true, source: 'in_memory_sample', data: sample });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 

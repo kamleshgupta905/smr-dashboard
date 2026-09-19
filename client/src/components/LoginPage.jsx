@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Lock, User, Eye, EyeOff, AlertCircle, Zap, ShieldCheck } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, AlertCircle, Zap, ShieldCheck, KeyRound } from 'lucide-react';
 
 export default function LoginPage({ onLogin }) {
-  const [username, setUsername] = useState('Vmhgroup');
-  const [password, setPassword] = useState('Jelly');
+  // Empty by default — no credentials should ever be prefilled on a production login screen.
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -42,7 +43,7 @@ export default function LoginPage({ onLogin }) {
       }
     } catch (err) {
       console.warn('Live auth request failed, checking Super Admin fallback:', err);
-      // Resilient fallback for Vmhgroup / Jelly
+      // Resilient fallback so the demo stays usable when the backend is unreachable.
       const validUser = username.trim().toLowerCase() === 'vmhgroup';
       const validPass = password === 'Jelly';
 
@@ -310,6 +311,25 @@ export default function LoginPage({ onLogin }) {
                 <a href="#forgot" style={{ color: '#8997bd', textDecoration: 'none' }}>
                   Forgot password?
                 </a>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '8px',
+                background: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                borderRadius: '4px',
+                padding: '10px 12px',
+                marginBottom: '16px',
+                fontSize: '11.5px',
+                color: '#1e40af',
+                lineHeight: 1.5
+              }}>
+                <KeyRound size={14} style={{ flexShrink: 0, marginTop: '1px' }} />
+                <span>
+                  <strong>Demo access:</strong> username <code style={{ background: '#dbeafe', padding: '1px 5px', borderRadius: '3px', fontFamily: 'monospace' }}>Vmhgroup</code> &bull; password <code style={{ background: '#dbeafe', padding: '1px 5px', borderRadius: '3px', fontFamily: 'monospace' }}>Jelly</code>
+                </span>
               </div>
 
               <button

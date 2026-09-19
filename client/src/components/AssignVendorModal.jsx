@@ -59,9 +59,13 @@ export default function AssignVendorModal({ survey, surveyId, onClose }) {
         testUid: `TEST_${selectedVendor}_${Date.now().toString().slice(-4)}`,
         status: statusNumber,
       });
-      setSimResult(res);
+      setSimResult(res || null);
     } catch (err) {
       console.error(err);
+      setSimResult({
+        success: false,
+        message: 'Simulation request failed. Check backend connection and try again.',
+      });
     } finally {
       setSimulating(false);
     }
@@ -366,12 +370,21 @@ export default function AssignVendorModal({ survey, surveyId, onClose }) {
                     fontSize: '11px',
                     lineHeight: 1.5
                   }}>
-                    <div style={{ color: '#38BDF8', fontWeight: 700 }}>
-                      [Simulator Output] {simResult.message}
+                    <div style={{ color: simResult.success === false ? '#F87171' : '#38BDF8', fontWeight: 700 }}>
+                      [Simulator Output] {simResult.message || 'Test click simulated.'}
                     </div>
-                    <div>• Status Code: <strong>{simResult.statusRequested} ({simResult.statusLabel})</strong></div>
-                    <div>• SHA3-256 Hash: <strong style={{ color: '#4ADE80' }}>{simResult.generatedSha3Hash?.slice(0, 24)}...</strong></div>
-                    <div>• S2S Webhook: <strong style={{ color: '#FDE047' }}>{simResult.s2sCallbackResult?.statusCode || 200} OK</strong></div>
+                    {simResult.statusLabel && (
+                      <div>• Status Code: <strong>{simResult.statusRequested || 'N/A'} ({simResult.statusLabel})</strong></div>
+                    )}
+                    {simResult.targetUrl && (
+                      <div style={{ wordBreak: 'break-all' }}>• Redirect Target: <strong style={{ color: '#93C5FD' }}>{simResult.targetUrl}</strong></div>
+                    )}
+                    {simResult.generatedSha3Hash && (
+                      <div>• SHA3-256 Hash: <strong style={{ color: '#4ADE80' }}>{String(simResult.generatedSha3Hash).slice(0, 24)}...</strong></div>
+                    )}
+                    {simResult.s2sCallbackResult && (
+                      <div>• S2S Webhook: <strong style={{ color: '#FDE047' }}>{simResult.s2sCallbackResult.statusCode || 200} OK</strong></div>
+                    )}
                   </div>
                 )}
               </div>

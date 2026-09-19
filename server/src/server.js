@@ -13,6 +13,7 @@ const projectRoutes = require('./routes/projectRoutes');
 const clientRoutes = require('./routes/clientRoutes');
 const securityRoutes = require('./routes/securityRoutes');
 const apiExplorerRoutes = require('./routes/apiExplorerRoutes');
+const analyticsController = require('./controllers/analyticsController');
 const zampliaService = require('./services/zampliaService');
 
 const app = express();
@@ -46,6 +47,9 @@ app.use('/api/manage', projectRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/security', securityRoutes);
 app.use('/api/explorer', apiExplorerRoutes);
+
+// Dashboard Analytics (was missing -> 404)
+app.get('/api/dashboard/analytics', analyticsController.getAnalytics);
 
 // High-Speed Traffic Router & Callbacks (Root Level)
 app.use('/', routerRoutes);

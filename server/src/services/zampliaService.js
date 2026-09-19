@@ -307,29 +307,72 @@ class ZampliaService {
         ];
 
       case '/Surveys/GetReconciliation':
+        // Per-transaction ledger shape (matches Zamplia Supply API docs):
+        // each record = one respondent transaction with its own status + payout,
+        // not a per-survey aggregate. Drives Completes / Reversals / audit UI.
         return [
           {
-            ReconciliationId: 'REC_2026_03_01',
+            ReconciliationId: 'REC_2026_03_0001',
             SurveyId: 90142,
             SurveyName: 'Global Electric Vehicle & Mobility Outlook 2026',
-            ValidatedCompletes: 240,
-            ReversedCompletes: 4,
-            ReversalReason: 'Speeders (< 3 mins) & Fraud Cops flag',
-            NetApprovedAmount: '$1,132.80',
-            PaymentStatus: 'Reconciled & Credited',
-            Period: `${params.StartDate || '2026-03-01'} to ${params.EndDate || '2026-03-15'}`,
+            SupplierTransactionId: 'TXN_90142_000881',
+            CompleteDate: '2026-03-02T14:22:00Z',
+            Cpi: 4.80,
+            Status: 'Complete',
+            DurationMinutes: 13,
           },
           {
-            ReconciliationId: 'REC_2026_03_02',
+            ReconciliationId: 'REC_2026_03_0002',
+            SurveyId: 90142,
+            SurveyName: 'Global Electric Vehicle & Mobility Outlook 2026',
+            SupplierTransactionId: 'TXN_90142_000882',
+            CompleteDate: '2026-03-02T15:05:00Z',
+            Cpi: 4.80,
+            Status: 'Complete',
+            DurationMinutes: 16,
+          },
+          {
+            ReconciliationId: 'REC_2026_03_0003',
+            SurveyId: 90142,
+            SurveyName: 'Global Electric Vehicle & Mobility Outlook 2026',
+            SupplierTransactionId: 'TXN_90142_000903',
+            CompleteDate: '2026-03-03T09:41:00Z',
+            Cpi: 0.00,
+            Status: 'Reversed',
+            ReversalReason: 'Speeder (< 3 mins vs stated LOI)',
+            DurationMinutes: 2,
+          },
+          {
+            ReconciliationId: 'REC_2026_03_0004',
             SurveyId: 90144,
             SurveyName: 'German Consumer Retail & E-Commerce Preferences',
-            ValidatedCompletes: 410,
-            ReversedCompletes: 2,
-            ReversalReason: 'Geo-IP mismatch (Non-DE IP)',
-            NetApprovedAmount: '$1,591.20',
-            PaymentStatus: 'Reconciled & Credited',
-            Period: `${params.StartDate || '2026-03-01'} to ${params.EndDate || '2026-03-15'}`,
-          }
+            SupplierTransactionId: 'TXN_90144_002114',
+            CompleteDate: '2026-03-04T11:18:00Z',
+            Cpi: 3.90,
+            Status: 'Complete',
+            DurationMinutes: 11,
+          },
+          {
+            ReconciliationId: 'REC_2026_03_0005',
+            SurveyId: 90144,
+            SurveyName: 'German Consumer Retail & E-Commerce Preferences',
+            SupplierTransactionId: 'TXN_90144_002156',
+            CompleteDate: '2026-03-05T17:47:00Z',
+            Cpi: 0.00,
+            Status: 'Reversed',
+            ReversalReason: 'Geo-IP mismatch (non-DE IP)',
+            DurationMinutes: 9,
+          },
+          {
+            ReconciliationId: 'REC_2026_03_0006',
+            SurveyId: 90145,
+            SurveyName: 'Cloud SaaS Infrastructure Purchasing Habits',
+            SupplierTransactionId: 'TXN_90145_000412',
+            CompleteDate: '2026-03-06T10:02:00Z',
+            Cpi: 9.20,
+            Status: 'Complete',
+            DurationMinutes: 21,
+          },
         ];
 
       default:

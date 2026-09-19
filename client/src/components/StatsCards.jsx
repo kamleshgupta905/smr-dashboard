@@ -1,56 +1,66 @@
 import React from 'react';
-import { Users, Clock, Activity, Briefcase, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
+import { Database, DollarSign, CheckCircle2, Building2, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
 import AnimatedCounter from './AnimatedCounter';
 
-export default function StatsCards({ stats, totalSurveys, liveSurveys, avgCpi, totalVendors, onNavigate }) {
-  // Use live stats if available or verified defaults from template image 2 (avoid 0 fallback)
-  const surveyCount = (stats?.totalSurveys && stats.totalSurveys > 0) ? stats.totalSurveys : (totalSurveys && totalSurveys > 0 ? totalSurveys : 626);
-  const liveCount = (stats?.activeSurveys && stats.activeSurveys > 0) ? stats.activeSurveys : (stats?.liveSurveys && stats.liveSurveys > 0 ? stats.liveSurveys : (liveSurveys && liveSurveys > 0 ? liveSurveys : 626));
-  const rawAvg = (stats?.avgCpi && stats.avgCpi > 0) ? stats.avgCpi : (avgCpi && avgCpi > 0 ? avgCpi : 1.15);
-  const vendorCount = (stats?.activeVendors && stats.activeVendors > 0) ? stats.activeVendors : (totalVendors || 4);
+export default function StatsCards({ stats, totalSurveys, onNavigate }) {
+  // Real metrics derived from the live marketplace inventory (App.jsx computes these)
+  const totalStudies = (stats?.totalSurveys && stats.totalSurveys > 0)
+    ? stats.totalSurveys
+    : (totalSurveys || 0);
+
+  const liveStudies = (stats?.activeSurveys && stats.activeSurveys > 0)
+    ? stats.activeSurveys
+    : totalStudies;
+
+  const avgCpi = (stats?.avgCpi && stats.avgCpi > 0) ? stats.avgCpi : 0;
+  const demandSources = (stats?.activeVendors && stats.activeVendors > 0) ? stats.activeVendors : 0;
 
   const cardItems = [
     {
-      title: 'Sessions',
-      numericValue: surveyCount,
-      trend: '8.5%',
-      trendLabel: 'New Sessions To...',
+      title: 'Total Surveys',
+      numericValue: totalStudies,
+      trend: liveStudies > 0 ? `${Math.round((liveStudies / Math.max(totalStudies, 1)) * 100)}%` : '—',
+      trendLabel: 'Allocation Filled',
       isPositive: true,
-      icon: Users,
+      icon: Database,
       clickable: true,
-      hint: `View ${surveyCount} Surveys`,
+      hint: `View ${totalStudies} studies`,
       onClick: () => onNavigate && onNavigate('surveys'),
     },
     {
-      title: 'Avg.Sessions',
-      rawText: '00:18',
-      trend: '1.5%',
-      trendLabel: 'Weekly Avg.Sessi...',
-      isPositive: true,
-      icon: Clock,
-      clickable: false,
-    },
-    {
-      title: 'Bounce Rate',
-      numericValue: typeof rawAvg === 'number' ? rawAvg : parseFloat(rawAvg || 1.15),
+      title: 'Avg. CPI',
+      numericValue: avgCpi,
       prefix: '$',
       decimals: 2,
-      trend: '35%',
-      trendLabel: 'Bounce Rate Wee...',
-      isPositive: false,
-      icon: Activity,
-      clickable: false,
+      trend: avgCpi >= 3 ? 'High Yield' : 'Standard',
+      trendLabel: 'Revenue / Complete',
+      isPositive: avgCpi >= 3,
+      icon: DollarSign,
+      clickable: true,
+      hint: 'Browse Top Picks',
+      onClick: () => onNavigate && onNavigate('top-picks'),
     },
     {
-      title: 'Goal Completions',
-      numericValue: liveCount,
-      trend: '10.5%',
-      trendLabel: 'Completions We...',
+      title: 'Live Inventory',
+      numericValue: liveStudies,
+      trend: 'Open',
+      trendLabel: 'Accepting Traffic',
       isPositive: true,
-      icon: Briefcase,
+      icon: CheckCircle2,
       clickable: true,
-      hint: `View ${liveCount} Quotas`,
+      hint: `Inspect ${liveStudies} live quotas`,
       onClick: () => onNavigate && onNavigate('surveys'),
+    },
+    {
+      title: 'Demand Sources',
+      numericValue: demandSources,
+      trend: 'Connected',
+      trendLabel: 'Zamplia + Market Xcel',
+      isPositive: true,
+      icon: Building2,
+      clickable: true,
+      hint: 'Manage clients',
+      onClick: () => onNavigate && onNavigate('clients'),
     },
   ];
 
@@ -59,25 +69,28 @@ export default function StatsCards({ stats, totalSurveys, liveSurveys, avgCpi, t
       {cardItems.map((item, idx) => {
         const Icon = item.icon;
         return (
-          <div 
-            key={idx} 
+          <div
+            key={idx}
             className={`dastone-kpi-card ${item.clickable ? 'clickable-kpi-card' : ''}`}
             onClick={item.onClick}
-            title={item.clickable ? `Click to view ${item.numericValue || 626} live surveys` : undefined}
+            title={item.clickable ? item.hint : undefined}
+            role={item.clickable ? 'button' : undefined}
+            tabIndex={item.clickable ? 0 : undefined}
+            onKeyDown={(e) => { if (item.clickable && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); item.onClick && item.onClick(); } }}
           >
             <div className="kpi-card-content">
               <div>
                 <p className="kpi-title">{item.title}</p>
                 <h3 className="kpi-value">
-                  {item.rawText ? (
-                    item.rawText
-                  ) : (
-                    <AnimatedCounter 
-                      value={item.numericValue} 
-                      prefix={item.prefix || ''} 
-                      suffix={item.suffix || ''} 
-                      decimals={item.decimals || 0} 
+                  {item.numericValue > 0 || item.numericValue === 0 ? (
+                    <AnimatedCounter
+                      value={item.numericValue}
+                      prefix={item.prefix || ''}
+                      suffix={item.suffix || ''}
+                      decimals={item.decimals || 0}
                     />
+                  ) : (
+                    '—'
                   )}
                 </h3>
                 <div className="kpi-trend-row">

@@ -1,11 +1,13 @@
 {
     "private": true,
     "scripts": {
-        "dev": "npm run dev --prefix client",
+        "dev": "sh ./scripts/preview.sh",
         "client": "npm run dev --prefix client",
         "server": "npm run dev --prefix server",
         "start": "npm run start --prefix server",
-        "build": "npm run build --prefix client && node -e \"const fs=require('fs'); if(fs.existsSync('client/dist')){fs.cpSync('client/dist', 'dist', {recursive: true});}\""
+        "build": "npm run build --prefix client && node -e \"const fs=require('fs'); if(fs.existsSync('client/dist')){fs.cpSync('client/dist', 'dist', {recursive: true});}\"",
+        "install:all": "cd client && npm install && cd ../server && npm install",
+        "preview": "sh ./scripts/preview.sh"
     },
     "devDependencies": {
         "axios": "^1.1.2",

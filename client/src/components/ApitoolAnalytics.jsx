@@ -88,6 +88,17 @@ export default function ApitoolAnalytics({ data }) {
     { name: 'Mobiles', icon: Smartphone, sessions: 3654, day: '-5', week: '-6', color: '#ff9f43' },
   ];
 
+  // Device filter drives both the table and the donut proportions
+  const visibleDevices = deviceFilter === 'All'
+    ? deviceList
+    : deviceList.filter(d => d.name.toLowerCase().startsWith(deviceFilter.toLowerCase()));
+  const safeDevices = visibleDevices.length > 0 ? visibleDevices : deviceList;
+  const totalDeviceSessions = safeDevices.reduce((acc, d) => acc + d.sessions, 0) || 1;
+  const donutSegments = safeDevices.map(d => ({
+    share: d.sessions / totalDeviceSessions,
+    color: d.color,
+  }));
+
   return (
     <div style={{ marginBottom: '16px' }}>
       <div style={{
@@ -253,8 +264,8 @@ export default function ApitoolAnalytics({ data }) {
                   zIndex: 20,
                   transition: 'all 0.15s cubic-bezier(0.16, 1, 0.3, 1)'
                 }}>
-                  <div>{labels[hoverIndex]}: <strong>{newVisits[hoverIndex]}k</strong> New Visits</div>
-                  <div style={{ color: '#8997bd', fontSize: '10px' }}>{uniqueVisits[hoverIndex]}k Unique Visits</div>
+                  <div>{labels[hoverIndex]}: <strong>{newVisits[hoverIndex]}</strong> New Visits</div>
+                  <div style={{ color: '#8997bd', fontSize: '10px' }}>{uniqueVisits[hoverIndex]} Unique Visits</div>
                 </div>
               )}
 
@@ -306,11 +317,6 @@ export default function ApitoolAnalytics({ data }) {
               <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
                 {(() => {
                   let cumulativePercent = 0;
-                  const donutSegments = [
-                    { share: 0.45, color: '#f59e0b' },
-                    { share: 0.32, color: '#22c55e' },
-                    { share: 0.23, color: '#1761fd' }
-                  ];
                   return donutSegments.map((item, idx) => {
                     const strokeDasharray = `${item.share * 251.2} 251.2`;
                     const strokeDashoffset = `-${cumulativePercent * 251.2}`;
@@ -342,7 +348,7 @@ export default function ApitoolAnalytics({ data }) {
                 pointerEvents: 'none'
               }}>
                 <span style={{ fontSize: '18px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins' }}>
-                  <AnimatedCounter value={8040} duration={1600} />
+                  <AnimatedCounter value={totalDeviceSessions} duration={1600} />
                 </span>
                 <span style={{ fontSize: '10px', color: '#8997bd', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sessions</span>
               </div>
@@ -360,7 +366,7 @@ export default function ApitoolAnalytics({ data }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {deviceList.map((dev, idx) => (
+                  {safeDevices.map((dev, idx) => (
                     <tr key={idx} style={{ borderBottom: '1px solid #f1f5fa' }}>
                       <td style={{ padding: '6px 4px', display: 'flex', alignItems: 'center', gap: '6px', color: '#303e67' }}>
                         <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: dev.color }} />
