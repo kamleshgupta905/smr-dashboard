@@ -817,6 +817,33 @@ select:disabled {
   border-color: #d1dced;
 }
 
+.clickable-kpi-card {
+  cursor: pointer;
+  position: relative;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.clickable-kpi-card:hover {
+  transform: translateY(-3px);
+  border-color: #1761fd !important;
+  box-shadow: 0 8px 24px -4px rgba(23, 97, 253, 0.16), 0 0 0 1px #1761fd !important;
+}
+
+.clickable-kpi-card:hover .kpi-action-link {
+  color: #0b4fe0 !important;
+  text-decoration: underline;
+}
+
+.clickable-kpi-card:hover .kpi-icon-bubble {
+  background: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  transform: scale(1.08);
+}
+
+.clickable-kpi-card:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
 .kpi-card-content {
   display: flex;
   justify-content: space-between;

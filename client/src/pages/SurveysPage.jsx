@@ -15,7 +15,7 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
   const [sortBy, setSortBy] = useState('cpi-desc');
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState(null);
-  const pageSize = 12;
+  const [pageSize, setPageSize] = useState(15);
 
   const normalized = useMemo(() => normalizeSurveys(surveys), [surveys]);
 
@@ -435,13 +435,45 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: '#F8FAFC'
+          background: '#F8FAFC',
+          flexWrap: 'wrap',
+          gap: '12px'
         }}>
-          <span style={{ fontSize: '12.5px', color: '#64748B' }}>
-            Showing <strong>{(page - 1) * pageSize + 1}</strong> to <strong>{Math.min(page * pageSize, filtered.length)}</strong> of <strong>{filtered.length}</strong> studies
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '12.5px', color: '#64748B' }}>
+              Showing <strong>{filtered.length === 0 ? 0 : (page - 1) * pageSize + 1}</strong> to <strong>{Math.min(page * pageSize, filtered.length)}</strong> of <strong>{filtered.length}</strong> live studies
+            </span>
 
-          <div style={{ display: 'flex', gap: '6px' }}>
+            {/* Page Size Selector */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748B' }}>
+              <span>Show:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="input-control"
+                style={{ width: 'auto', height: '28px', padding: '2px 8px', fontSize: '12px' }}
+              >
+                <option value={15}>15 per page</option>
+                <option value={25}>25 per page</option>
+                <option value={50}>50 per page</option>
+                <option value={100}>100 per page</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            <button
+              className="btn btn-secondary btn-sm"
+              disabled={page === 1}
+              onClick={() => setPage(1)}
+              title="First Page"
+              style={{ padding: '4px 8px', fontSize: '11px' }}
+            >
+              First
+            </button>
             <button
               className="btn btn-secondary btn-sm"
               disabled={page === 1}
@@ -449,15 +481,24 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
             >
               <ChevronLeft size={14} /> Previous
             </button>
-            <span style={{ display: 'flex', alignItems: 'center', padding: '0 8px', fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
-              {page} / {totalPages}
+            <span style={{ display: 'flex', alignItems: 'center', padding: '0 10px', fontSize: '12px', fontWeight: 700, color: '#0F172A', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '4px', height: '30px' }}>
+              Page {page} of {totalPages}
             </span>
             <button
               className="btn btn-secondary btn-sm"
               disabled={page >= totalPages}
-              onClick={() => setPage(p => p + 1)}
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             >
               Next <ChevronRight size={14} />
+            </button>
+            <button
+              className="btn btn-secondary btn-sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage(totalPages)}
+              title="Last Page"
+              style={{ padding: '4px 8px', fontSize: '11px' }}
+            >
+              Last
             </button>
           </div>
         </div>

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Users, Clock, Activity, Briefcase, TrendingUp, TrendingDown } from 'lucide-react';
+import { Users, Clock, Activity, Briefcase, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
 import AnimatedCounter from './AnimatedCounter';
 
-export default function StatsCards({ stats, totalSurveys, liveSurveys, avgCpi, totalVendors }) {
+export default function StatsCards({ stats, totalSurveys, liveSurveys, avgCpi, totalVendors, onNavigate }) {
   // Use live stats if available or verified defaults from template image 2 (avoid 0 fallback)
   const surveyCount = (stats?.totalSurveys && stats.totalSurveys > 0) ? stats.totalSurveys : (totalSurveys && totalSurveys > 0 ? totalSurveys : 626);
   const liveCount = (stats?.activeSurveys && stats.activeSurveys > 0) ? stats.activeSurveys : (stats?.liveSurveys && stats.liveSurveys > 0 ? stats.liveSurveys : (liveSurveys && liveSurveys > 0 ? liveSurveys : 626));
@@ -17,6 +17,9 @@ export default function StatsCards({ stats, totalSurveys, liveSurveys, avgCpi, t
       trendLabel: 'New Sessions To...',
       isPositive: true,
       icon: Users,
+      clickable: true,
+      hint: `View ${surveyCount} Surveys`,
+      onClick: () => onNavigate && onNavigate('surveys'),
     },
     {
       title: 'Avg.Sessions',
@@ -25,6 +28,7 @@ export default function StatsCards({ stats, totalSurveys, liveSurveys, avgCpi, t
       trendLabel: 'Weekly Avg.Sessi...',
       isPositive: true,
       icon: Clock,
+      clickable: false,
     },
     {
       title: 'Bounce Rate',
@@ -35,6 +39,7 @@ export default function StatsCards({ stats, totalSurveys, liveSurveys, avgCpi, t
       trendLabel: 'Bounce Rate Wee...',
       isPositive: false,
       icon: Activity,
+      clickable: false,
     },
     {
       title: 'Goal Completions',
@@ -43,6 +48,9 @@ export default function StatsCards({ stats, totalSurveys, liveSurveys, avgCpi, t
       trendLabel: 'Completions We...',
       isPositive: true,
       icon: Briefcase,
+      clickable: true,
+      hint: `View ${liveCount} Quotas`,
+      onClick: () => onNavigate && onNavigate('surveys'),
     },
   ];
 
@@ -51,7 +59,12 @@ export default function StatsCards({ stats, totalSurveys, liveSurveys, avgCpi, t
       {cardItems.map((item, idx) => {
         const Icon = item.icon;
         return (
-          <div key={idx} className="dastone-kpi-card">
+          <div 
+            key={idx} 
+            className={`dastone-kpi-card ${item.clickable ? 'clickable-kpi-card' : ''}`}
+            onClick={item.onClick}
+            title={item.clickable ? `Click to view ${item.numericValue || 626} live surveys` : undefined}
+          >
             <div className="kpi-card-content">
               <div>
                 <p className="kpi-title">{item.title}</p>
@@ -78,6 +91,22 @@ export default function StatsCards({ stats, totalSurveys, liveSurveys, avgCpi, t
                   </span>
                   <span className="kpi-trend-label">{item.trendLabel}</span>
                 </div>
+
+                {item.clickable && (
+                  <div className="kpi-action-link" style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    marginTop: '8px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: '#1761fd',
+                    cursor: 'pointer'
+                  }}>
+                    <span>{item.hint}</span>
+                    <ArrowRight size={11} />
+                  </div>
+                )}
               </div>
 
               {/* Circular Soft Icon Bubble (Exact Match to Image 2) */}

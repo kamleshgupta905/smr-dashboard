@@ -106,7 +106,7 @@ export default function DashboardPage({
       </div>
 
       {/* 4 Hero KPI Cards */}
-      <StatsCards stats={stats} totalSurveys={normalized.length} />
+      <StatsCards stats={stats} totalSurveys={normalized.length} onNavigate={onNavigate} />
 
       {/* Main Charts Row: Audience Overview (8 col) + Sessions Device (4 col) */}
       <ApitoolAnalytics data={analyticsData} />
