@@ -13,6 +13,7 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import { getVendors, createVendor } from '../services/api';
+import ModalPortal from '../components/ModalPortal';
 
 const FALLBACK_VENDORS = [
   {
@@ -349,8 +350,9 @@ export default function VendorsPage() {
 
       {/* Add Vendor Modal */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+        <ModalPortal isOpen={showModal} onClose={() => setShowModal(false)}>
+          <div className="modal-overlay" onClick={() => setShowModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
             <div className="modal-header">
               <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0F172A' }}>Add Sample Vendor</h3>
               <button 
@@ -450,6 +452,7 @@ export default function VendorsPage() {
             </form>
           </div>
         </div>
+      </ModalPortal>
       )}
     </div>
   );

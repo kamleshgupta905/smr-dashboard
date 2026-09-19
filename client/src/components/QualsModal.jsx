@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, UserCheck, AlertCircle } from 'lucide-react';
 import { ZampliaAPI } from '../services/api';
+import ModalPortal from './ModalPortal';
 
 export default function QualsModal({ survey, surveyId, onClose }) {
   const [quals, setQuals] = useState([]);
@@ -22,8 +23,9 @@ export default function QualsModal({ survey, surveyId, onClose }) {
   }, [currentId]);
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+    <ModalPortal isOpen={true} onClose={onClose}>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <UserCheck size={18} color="#00C851" />
@@ -100,8 +102,9 @@ export default function QualsModal({ survey, surveyId, onClose }) {
               <span style={{ fontSize: '13px', fontWeight: 600 }}>No specific qualification filters required. Open to general population.</span>
             </div>
           )}
+          </div>
         </div>
       </div>
-    </div>
+    </ModalPortal>
   );
 }

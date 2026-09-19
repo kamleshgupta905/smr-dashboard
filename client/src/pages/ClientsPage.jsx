@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getClients, createClient, deleteClient, syncClientInventory, testS2sCallback, testHashing } from '../services/api';
 import { Building2, Plus, Search, CheckCircle2, XCircle, Trash2, Globe, ShieldCheck, X, Copy, Check, RefreshCw, Send, Key, Code } from 'lucide-react';
+import ModalPortal from '../components/ModalPortal';
 
 export default function ClientsPage() {
   const [clients, setClients] = useState([]);
@@ -183,32 +184,34 @@ export default function ClientsPage() {
 
       {/* Test Log Modal Overlay */}
       {testResult && (
-        <div className="modal-overlay" onClick={() => setTestResult(null)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '580px' }}>
-            <div className="modal-header">
-              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1d2c48' }}>
-                {testResult.type} — {testResult.client}
-              </h3>
-              <button onClick={() => setTestResult(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8997bd' }}>
-                <X size={18} />
-              </button>
-            </div>
-            <div className="modal-body" style={{ padding: '16px' }}>
-              <pre style={{
-                background: '#1d2c48',
-                color: '#03d87f',
-                padding: '14px',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontFamily: 'monospace',
-                overflowX: 'auto',
-                margin: 0
-              }}>
-                {JSON.stringify(testResult.details, null, 2)}
-              </pre>
+        <ModalPortal isOpen={!!testResult} onClose={() => setTestResult(null)}>
+          <div className="modal-overlay" onClick={() => setTestResult(null)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '580px' }}>
+              <div className="modal-header">
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1d2c48' }}>
+                  {testResult.type} — {testResult.client}
+                </h3>
+                <button onClick={() => setTestResult(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8997bd' }}>
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="modal-body" style={{ padding: '16px' }}>
+                <pre style={{
+                  background: '#1d2c48',
+                  color: '#03d87f',
+                  padding: '14px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontFamily: 'monospace',
+                  overflowX: 'auto',
+                  margin: 0
+                }}>
+                  {JSON.stringify(testResult.details, null, 2)}
+                </pre>
+              </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* Filter / Search Bar (Dastone Report Card) */}
@@ -395,8 +398,9 @@ export default function ClientsPage() {
 
       {/* Onboard Client Modal */}
       {showAddModal && (
-        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+        <ModalPortal isOpen={showAddModal} onClose={() => setShowAddModal(false)}>
+          <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
             <div className="modal-header">
               <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0F172A' }}>
                 Onboard Enterprise Demand Client
@@ -512,6 +516,7 @@ export default function ClientsPage() {
             </form>
           </div>
         </div>
+      </ModalPortal>
       )}
     </div>
   );

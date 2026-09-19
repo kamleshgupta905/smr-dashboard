@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, PieChart, AlertCircle } from 'lucide-react';
 import { ZampliaAPI } from '../services/api';
+import ModalPortal from './ModalPortal';
 
 export default function QuotasModal({ survey, surveyId, onClose }) {
   const [quotas, setQuotas] = useState([]);
@@ -22,8 +23,9 @@ export default function QuotasModal({ survey, surveyId, onClose }) {
   }, [currentId]);
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+    <ModalPortal isOpen={true} onClose={onClose}>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <PieChart size={18} color="#00C851" />
@@ -103,6 +105,7 @@ export default function QuotasModal({ survey, surveyId, onClose }) {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </ModalPortal>
   );
 }

@@ -1075,7 +1075,7 @@ tbody tr:hover {
   }
   to { 
     opacity: 1; 
-    transform: translateY(0); 
+    transform: none; 
   }
 }
 
@@ -1196,14 +1196,69 @@ tbody tr:hover {
   transform: translateY(0px) scale(0.97);
 }
 
-/* Modal animation & backdrop blur */
+/* Modal animation, layout & backdrop */
 .modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(15, 23, 42, 0.7) !important;
+  backdrop-filter: blur(5px) !important;
+  -webkit-backdrop-filter: blur(5px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 10000 !important;
+  padding: 16px !important;
+  overflow-y: auto !important;
   animation: modalOverlayFade 0.2s ease-out;
-  backdrop-filter: blur(2px);
 }
 
 .modal-content, .modal-dialog, .modal-container, .modal-card {
+  background: #ffffff !important;
+  border-radius: 14px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid #e2e8f0 !important;
+  width: 100% !important;
+  max-width: 620px;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  position: relative !important;
+  margin: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
   animation: modalScaleIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-header {
+  padding: 16px 22px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  background: #f8fafc !important;
+  border-top-left-radius: 14px !important;
+  border-top-right-radius: 14px !important;
+  flex-shrink: 0 !important;
+}
+
+.modal-body {
+  padding: 22px !important;
+  overflow-y: auto !important;
+  flex: 1 !important;
+}
+
+.modal-footer {
+  padding: 14px 22px !important;
+  border-top: 1px solid #e2e8f0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  background: #f8fafc !important;
+  border-bottom-left-radius: 14px !important;
+  border-bottom-right-radius: 14px !important;
+  flex-shrink: 0 !important;
 }
 
 /* Toast animation */

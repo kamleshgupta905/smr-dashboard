@@ -7,7 +7,7 @@ import {
 import { normalizeSurveys } from '../utils/normalize';
 import DemandProjectModal from '../components/DemandProjectModal';
 
-export default function SurveysPage({ surveys = [], loading, onRefresh, onOpenQuotas, onOpenQuals, onOpenAssign }) {
+export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSurvey, onOpenQuotas, onOpenQuals, onOpenAssign }) {
   const [demandModalOpen, setDemandModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('ALL');
@@ -467,7 +467,29 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onOpenQu
       <DemandProjectModal
         isOpen={demandModalOpen}
         onClose={() => setDemandModalOpen(false)}
-        onSuccess={() => {
+        onSuccess={(created) => {
+          if (created && onAddSurvey) {
+            const countryMap = { 229: 'United States', 38: 'Canada', 228: 'United Kingdom', 80: 'Germany', 99: 'India' };
+            const langMap = { 5: 'en-US', 6: 'en-GB', 9: 'de-DE', 12: 'fr-FR', 18: 'hi-IN' };
+            const newStudy = {
+              surveyId: created.ProjectId || Math.floor(100000 + Math.random() * 900000),
+              name: created.ProjectName || 'New Research Study',
+              cpi: Number(created.CPI || 3.50),
+              loi: Number(created.LOI || 12),
+              ir: Number(created.IR || 80),
+              client: 'Zamplia Demand',
+              clientCode: 'ZAMP_DEMAND',
+              status: 'Live',
+              totalRequired: Number(created.TotalCompleteRequired || 500),
+              completesNeeded: Number(created.TotalCompleteRequired || 500),
+              device: 'Desktop,Mobile,Tablet',
+              languageCode: langMap[created.LanguageId] || 'en-US',
+              country: countryMap[created.CountryId] || 'United States',
+              category: created.StudyType ? `${created.StudyType} Research` : 'Consumer Research',
+              studyType: created.StudyType || 'Consumer'
+            };
+            onAddSurvey(newStudy);
+          }
           if (onRefresh) onRefresh();
         }}
       />

@@ -195,6 +195,10 @@ export default function App() {
               surveys={surveys}
               loading={loading}
               onRefresh={handleSync}
+              onAddSurvey={(newStudy) => {
+                setSurveys(prev => [newStudy, ...prev]);
+                showToast(`✓ Study #${newStudy.surveyId} launched & added to marketplace!`);
+              }}
               onOpenQuotas={setQuotasModalId}
               onOpenQuals={setQualsModalId}
               onOpenAssign={setAssignModalId}

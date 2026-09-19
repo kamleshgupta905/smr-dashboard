@@ -4,6 +4,7 @@ import {
   DollarSign, Clock, Target, Globe, Layers, Sparkles, RefreshCw 
 } from 'lucide-react';
 import { createDemandProject, getDemandFeasibility } from '../services/api';
+import ModalPortal from './ModalPortal';
 
 export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -51,8 +52,9 @@ export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
     setError(null);
     try {
       const res = await createDemandProject(formData);
-      setCreatedProject(res.data || res);
-      if (onSuccess) onSuccess();
+      const project = res.data || res;
+      setCreatedProject(project);
+      if (onSuccess) onSuccess(project);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create demand project on Zamplia');
     } finally {
@@ -61,36 +63,15 @@ export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(15, 23, 42, 0.65)',
-      backdropFilter: 'blur(4px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 9999,
-      padding: '20px'
-    }}>
-      <div style={{
-        background: '#FFFFFF',
-        borderRadius: '16px',
-        width: '100%',
-        maxWidth: '750px',
-        maxHeight: '90vh',
-        overflowY: 'auto',
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)',
-        border: '1px solid #E2E8F0'
-      }}>
-        {/* Header */}
-        <div style={{
-          padding: '20px 24px',
-          borderBottom: '1px solid #E2E8F0',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          background: '#F8FAFC'
-        }}>
+    <ModalPortal isOpen={isOpen} onClose={onClose}>
+      <div className="modal-overlay" onClick={onClose}>
+        <div 
+          className="modal-content" 
+          onClick={e => e.stopPropagation()} 
+          style={{ maxWidth: '760px', maxHeight: '88vh' }}
+        >
+          {/* Header */}
+          <div className="modal-header">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{
@@ -472,5 +453,6 @@ export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
         </div>
       </div>
     </div>
-  );
+  </ModalPortal>
+);
 }

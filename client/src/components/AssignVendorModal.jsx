@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, Link2, Copy, Check, Share2, Play, ShieldAlert, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 import { ManagementAPI, RouterAPI } from '../services/api';
+import ModalPortal from './ModalPortal';
 
 export default function AssignVendorModal({ survey, surveyId, onClose }) {
   const [vendors, setVendors] = useState([]);
@@ -78,8 +79,9 @@ export default function AssignVendorModal({ survey, surveyId, onClose }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '640px' }}>
+    <ModalPortal isOpen={true} onClose={onClose}>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '640px' }}>
         {/* Header */}
         <div className="modal-header" style={{ borderBottom: '1px solid #E2E8F0', paddingBottom: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -378,5 +380,6 @@ export default function AssignVendorModal({ survey, surveyId, onClose }) {
         </div>
       </div>
     </div>
-  );
+  </ModalPortal>
+);
 }

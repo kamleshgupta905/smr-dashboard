@@ -13,6 +13,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { getProjects, createProject } from '../services/api';
+import ModalPortal from '../components/ModalPortal';
 
 const FALLBACK_PROJECTS = [
   {
@@ -426,8 +427,9 @@ export default function ProjectsPage() {
 
       {/* Add Project Modal */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+        <ModalPortal isOpen={showModal} onClose={() => setShowModal(false)}>
+          <div className="modal-overlay" onClick={() => setShowModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '520px' }}>
             <div className="modal-header">
               <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0F172A' }}>Create New Client Project</h3>
               <button 
@@ -612,6 +614,7 @@ export default function ProjectsPage() {
             </form>
           </div>
         </div>
+      </ModalPortal>
       )}
     </div>
   );
