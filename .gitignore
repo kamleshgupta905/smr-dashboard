@@ -10,6 +10,7 @@ credentials.json
 token.json
 /storage/*.key
 /client/dist/
+/dist/
 *.zip
 .DS_Store
 __MACOSX/
