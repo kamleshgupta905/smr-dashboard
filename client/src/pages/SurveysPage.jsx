@@ -29,17 +29,36 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
 
   const filtered = useMemo(() => {
     let list = normalized.filter((s) => {
-      if (selectedCountry !== 'ALL' && s.country !== selectedCountry) return false;
-      if (selectedChannel !== 'ALL') {
-        const clientName = s.client || (String(s.survey_id).startsWith('MX') ? 'Market Xcel' : 'Zamplia');
-        if (clientName !== selectedChannel) return false;
+      // 1. Country Filter (case-insensitive)
+      if (selectedCountry !== 'ALL') {
+        const sCountry = (s.country || '').trim().toUpperCase();
+        const selCountry = selectedCountry.trim().toUpperCase();
+        if (sCountry !== selCountry) return false;
       }
+
+      // 2. Channel / Demand Source Filter
+      if (selectedChannel !== 'ALL') {
+        const clientStr = (s.client || '').toLowerCase();
+        const idStr = String(s.survey_id || '').toLowerCase();
+        if (selectedChannel === 'Market Xcel') {
+          const isMx = clientStr.includes('market xcel') || idStr.startsWith('mx');
+          if (!isMx) return false;
+        } else if (selectedChannel === 'Zamplia') {
+          const isZamp = clientStr.includes('zamplia') || (!idStr.startsWith('mx') && !clientStr.includes('market xcel'));
+          if (!isZamp) return false;
+        }
+      }
+
+      // 3. Search Filter (Multi-field fuzzy search)
       if (!searchTerm) return true;
-      const term = searchTerm.toLowerCase();
+      const term = searchTerm.toLowerCase().trim();
       return (
-        s.survey_name.toLowerCase().includes(term) ||
-        String(s.survey_id).toLowerCase().includes(term) ||
-        (s.category && s.category.toLowerCase().includes(term))
+        (s.survey_name || '').toLowerCase().includes(term) ||
+        String(s.survey_id || '').toLowerCase().includes(term) ||
+        (s.category || '').toLowerCase().includes(term) ||
+        (s.country || '').toLowerCase().includes(term) ||
+        (s.client || '').toLowerCase().includes(term) ||
+        (s.studyType || '').toLowerCase().includes(term)
       );
     });
 
@@ -227,7 +246,8 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
                 paginatedSurveys.map((s, idx) => {
                   const globalIdx = (page - 1) * pageSize + idx + 1;
                   const isExpanded = expandedId === s.survey_id;
-                  const clientName = s.client || (String(s.survey_id).startsWith('MX') ? 'Market Xcel' : 'Zamplia');
+                  const isMarketXcel = (s.client || '').toLowerCase().includes('market xcel') || String(s.survey_id).startsWith('MX');
+                  const clientName = isMarketXcel ? 'Market Xcel' : 'Zamplia';
                   const quotaTarget = s.complete_needed || s.target_completes || 200;
                   const quotaFilled = s.live_click_quota || Math.round(quotaTarget * 0.65);
                   const fillPercent = Math.min(100, Math.round((quotaFilled / quotaTarget) * 100));
@@ -419,8 +439,25 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
               ) : (
                 <tr>
                   <td colSpan="10" style={{ textAlign: 'center', padding: '50px 20px', color: '#64748B' }}>
-                    <AlertCircle size={32} style={{ margin: '0 auto 8px auto', display: 'block', opacity: 0.5 }} />
-                    No allocated surveys match your filter criteria.
+                    <AlertCircle size={32} style={{ margin: '0 auto 8px auto', display: 'block', opacity: 0.5, color: '#EA580C' }} />
+                    <div style={{ fontWeight: 700, color: '#0F172A', marginBottom: '4px', fontSize: '14px' }}>
+                      No allocated surveys match your filter criteria.
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#64748B', marginBottom: '14px' }}>
+                      Try clearing your search term, changing country, or switching demand channels.
+                    </div>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => {
+                        setSelectedChannel('ALL');
+                        setSelectedCountry('ALL');
+                        setSearchTerm('');
+                        setPage(1);
+                      }}
+                      style={{ padding: '6px 14px', fontSize: '12px', fontWeight: 600 }}
+                    >
+                      Reset All Filters ({normalized.length} Surveys Available)
+                    </button>
                   </td>
                 </tr>
               )}
