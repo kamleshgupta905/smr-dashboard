@@ -4,12 +4,12 @@
  */
 export function normalizeSurvey(s) {
   if (!s) return null;
-  const id = s.SurveyId ?? s.survey_id ?? s.id ?? s._id ?? '';
-  const name = s.Name ?? s.survey_name ?? s.name ?? `Survey #${id}`;
+  const id = s.SurveyId || s.survey_id || s.surveyId || s.id || s._id || s.project_id || s.projectId || '';
+  const name = s.Name || s.survey_name || s.name || s.project_name || `Study #${id}`;
   const cpi = Number(s.CPI ?? s.cpi ?? s.Cpi ?? 0);
   const loi = Number(s.LOI ?? s.loi ?? s.Loi ?? 15);
   const ir = Number(s.IR ?? s.ir ?? s.IncidenceRate ?? s.incidence_rate ?? 50);
-  const completes = s.TotalCompleteRequired ?? s.target_completes ?? s.completes ?? 500;
+  const completes = Number(s.TotalCompleteRequired ?? s.target_completes ?? s.completes ?? s.totalRequired ?? 500);
   
   let country = 'US';
   if (s.LanguageCode && typeof s.LanguageCode === 'string') {
@@ -19,13 +19,15 @@ export function normalizeSurvey(s) {
     country = s.Country || s.country;
   }
 
-  const category = s.IndustryName || s.industry_name || s.StudyTypes || (s.IndustryId ? `Industry #${s.IndustryId}` : 'Consumer');
+  const category = s.IndustryName || s.industry_name || s.category || s.StudyTypes || (s.IndustryId ? `Industry #${s.IndustryId}` : 'Market Research');
   const status = s.status || s.Status || 'Live';
 
   return {
     ...s,
     SurveyId: id,
     survey_id: id,
+    surveyId: id,
+    id: id,
     Name: name,
     survey_name: name,
     CPI: cpi,
@@ -37,6 +39,7 @@ export function normalizeSurvey(s) {
     incidence_rate: ir,
     TotalCompleteRequired: completes,
     target_completes: completes,
+    completesNeeded: s.completesNeeded ?? completes,
     country: country.toUpperCase(),
     LanguageCode: s.LanguageCode || `En-${country.toUpperCase()}`,
     category,

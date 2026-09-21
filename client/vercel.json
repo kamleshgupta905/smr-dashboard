@@ -1,5 +1,8 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+    { "source": "/api/zamplia/(.*)", "destination": "/api/index.js" },
+    { "source": "/api/zamplia", "destination": "/api/zamplia.js" },
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/((?!api/).*)", "destination": "/" }
   ]
 }

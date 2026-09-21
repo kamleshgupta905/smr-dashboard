@@ -7,7 +7,7 @@ export default function QualsModal({ survey, surveyId, onClose }) {
   const [quals, setQuals] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const currentId = survey?.SurveyId || survey?.survey_id || (typeof survey === 'string' || typeof survey === 'number' ? survey : surveyId);
+  const currentId = survey?.SurveyId || survey?.survey_id || survey?.surveyId || survey?.id || (typeof survey === 'string' || typeof survey === 'number' ? survey : surveyId);
   const currentName = survey?.Name || survey?.survey_name || `Survey #${currentId}`;
 
   useEffect(() => {

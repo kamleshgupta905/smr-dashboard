@@ -16,8 +16,8 @@ export default function AssignVendorModal({ survey, surveyId, onClose }) {
   const [simulating, setSimulating] = useState(false);
   const [simResult, setSimResult] = useState(null);
 
-  const currentId = survey?.survey_id || survey?.SurveyId || surveyId || 'MX-896';
-  const currentName = survey?.survey_name || survey?.Name || `Survey #${currentId}`;
+  const currentId = survey?.survey_id || survey?.SurveyId || survey?.surveyId || survey?.id || survey?._id || survey?.project_id || surveyId || '2042481293';
+  const currentName = survey?.survey_name || survey?.Name || survey?.name || `Survey #${currentId}`;
   const currentCpi = survey?.cpi || survey?.CPI || survey?.cost_per_interview || 2.70;
   const currentLoi = survey?.loi || survey?.LOI || survey?.length_of_interview || 10;
   const currentClient = survey?.client || (String(currentId).startsWith('MX') ? 'Market Xcel' : 'Zamplia');
