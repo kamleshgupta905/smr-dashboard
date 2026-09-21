@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import StatsCards from '../components/StatsCards';
 import ApitoolAnalytics from '../components/ApitoolAnalytics';
 import { getDashboardAnalytics } from '../services/api';
@@ -25,6 +25,9 @@ export default function DashboardPage({
   stats, 
   surveys = [], 
   loading, 
+  systemStatus, 
+  dataMode = 'unknown',
+  onRecheckStatus,
   onSync, 
   onNavigate, 
   onOpenQuotas, 
@@ -44,37 +47,109 @@ export default function DashboardPage({
     .sort((a, b) => (b.cpi || 0) - (a.cpi || 0))
     .slice(0, 6);
 
-  // VMH Platform Endpoints Performance
-  const pagesViewList = [
-    { title: 'VMH SMR - Live Router & Yield Matrix', path: '/router/live-yield', views: '5.4k', pct: 95 },
-    { title: 'VMH Zamplia Allocations & Quotas', path: '/zamplia/inventory', views: '4.8k', pct: 88 },
-    { title: 'VMH Supply Panels & Entry Feeds', path: '/partners/vendors', views: '3.2k', pct: 64 },
-    { title: 'VMH Demand S2S API Gateway', path: '/clients/s2s-stream', views: '2.1k', pct: 42 }
-  ];
+  // ---------------------------------------------------------------
+  // Real marketplace metrics — every number below is derived from the
+  // actual inventory in `normalized` (live from Zamplia, or the clearly-
+  // labelled demo catalog). No hardcoded fake stats.
+  // ---------------------------------------------------------------
 
-  // Sessions By Channel
-  const channels = [
-    { name: 'Supplier Panels', pct: 42.5, color: '#1761fd' },
-    { name: 'Direct Routing', pct: 26.3, color: '#2a76f4' },
-    { name: 'Demand S2S', pct: 18.2, color: '#22c55e' },
-    { name: 'Organic Traffic', pct: 8.0, color: '#f59e0b' },
-    { name: 'Sandbox Tests', pct: 5.0, color: '#8b5cf6' }
-  ];
+  // Open demand: completes still needed across the whole marketplace
+  const openCompletes = normalized.reduce((acc, s) => acc + (s.completesNeeded || 0), 0);
+  const totalRequired = normalized.reduce((acc, s) => acc + (s.TotalCompleteRequired || 0), 0);
+  const fulfilledCompletes = Math.max(0, totalRequired - openCompletes);
+  const fulfillmentPct = totalRequired > 0 ? Math.min(100, (fulfilledCompletes / totalRequired) * 100) : 0;
+  // Revenue at risk if open demand were delivered today (CPI x completes needed)
+  const potentialRevenue = normalized.reduce((acc, s) => acc + (s.cpi || 0) * (s.completesNeeded || 0), 0);
 
-  // Activity Timeline (Live VMH Operations)
-  const activities = [
-    { text: 'Dynata Global Panel completed 140 interviews on US Beverage Tracker (#PRJ-2026-01)', time: '8 Min ago', color: '#1761fd' },
-    { text: 'Zamplia Supply Engine auto-synced 626 live high-yield surveys with fresh quotas', time: '25 Min ago', color: '#22c55e' },
-    { text: 'Security Engine automatically blocked suspicious VPN/Proxy attempt (Risk Score: 98)', time: '1 hour ago', color: '#f59e0b' }
-  ];
+  // Channel mix: real split between Zamplia vs Market Xcel demand
+  const channelMix = useMemo(() => {
+    const count = { 'Zamplia': 0, 'Market Xcel': 0 };
+    const demand = { 'Zamplia': 0, 'Market Xcel': 0 };
+    normalized.forEach(s => {
+      const isMx = (s.client || '').toLowerCase().includes('market xcel') ||
+        String(s.survey_id || '').toLowerCase().startsWith('mx');
+      const key = isMx ? 'Market Xcel' : 'Zamplia';
+      count[key] += 1;
+      demand[key] += (s.completesNeeded || 0);
+    });
+    const total = count['Zamplia'] + count['Market Xcel'] || 1;
+    return [
+      { name: 'Zamplia', color: '#1761fd', surveys: count['Zamplia'], demand: demand['Zamplia'], pct: (count['Zamplia'] / total) * 100 },
+      { name: 'Market Xcel', color: '#22c55e', surveys: count['Market Xcel'], demand: demand['Market Xcel'], pct: (count['Market Xcel'] / total) * 100 },
+    ];
+  }, [normalized]);
 
-  // Browser Used & Traffic Reports
-  const browserReports = [
-    { browser: 'Chrome', sessions: '10853 (52%)', bounce: '52.8%', transactions: '566 (92%)' },
-    { browser: 'Microsoft Edge', sessions: '2545 (47%)', bounce: '47.54%', transactions: '498 (81%)' },
-    { browser: 'Internet-Explorer', sessions: '1836 (38%)', bounce: '41.12%', transactions: '455 (74%)' },
-    { browser: 'Opera', sessions: '1958 (31%)', bounce: '36.82%', transactions: '361 (61%)' }
-  ];
+  // Top categories by study volume (real)
+  const topCategories = useMemo(() => {
+    const map = new Map();
+    normalized.forEach(s => {
+      const c = s.category || 'Uncategorized';
+      const cur = map.get(c) || { cat: c, count: 0, demand: 0 };
+      cur.count += 1;
+      cur.demand += (s.completesNeeded || 0);
+      map.set(c, cur);
+    });
+    return [...map.values()].sort((a, b) => b.count - a.count).slice(0, 5);
+  }, [normalized]);
+  const maxCategoryCount = Math.max(1, ...topCategories.map(c => c.count));
+
+  // Country distribution (real), top 6 by open demand
+  const countryStats = useMemo(() => {
+    const map = new Map();
+    normalized.forEach(s => {
+      const c = s.countryName || s.country || 'Unknown';
+      const cur = map.get(c) || { country: c, count: 0, demand: 0 };
+      cur.count += 1;
+      cur.demand += (s.completesNeeded || 0);
+      map.set(c, cur);
+    });
+    return [...map.values()].sort((a, b) => b.demand - a.demand).slice(0, 6);
+  }, [normalized]);
+  const maxCountryDemand = Math.max(1, ...countryStats.map(c => c.demand));
+
+  // Rolling mini-histogram: studies per country (real, top 12 buckets)
+  const histogramBuckets = useMemo(() => {
+    const map = new Map();
+    normalized.forEach(s => {
+      const c = s.countryName || 'Other';
+      map.set(c, (map.get(c) || 0) + 1);
+    });
+    return [...map.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 16)
+      .map(([label, value]) => ({ label, value }));
+  }, [normalized]);
+  const maxBucket = Math.max(1, ...histogramBuckets.map(b => b.value));
+
+  // Activity feed — built from real inventory facts, not scripted text
+  const activities = useMemo(() => {
+    const top = topSurveys[0];
+    const bigCountry = countryStats[0];
+    const list = [];
+    list.push({
+      text: `${normalized.length} studies active in marketplace — ${openCompletes.toLocaleString()} completes still open`,
+      time: 'Just now', color: '#1761fd',
+    });
+    if (top) {
+      list.push({
+        text: `Highest yield study: ${top.survey_name} at $${top.cpi.toFixed(2)} CPI (rank #1)`,
+        time: 'Inventory scan', color: '#22c55e',
+      });
+    }
+    if (bigCountry) {
+      list.push({
+        text: `${bigCountry.country} leads demand with ${bigCountry.demand.toLocaleString()} open completes`,
+        time: 'Inventory scan', color: '#8b5cf6',
+      });
+    }
+    if (dataMode === 'demo') {
+      list.push({
+        text: 'Demo data mode active — live upstream APIs unreachable from this server',
+        time: 'System check', color: '#f59e0b',
+      });
+    }
+    return list;
+  }, [normalized, topSurveys, countryStats, openCompletes, dataMode]);
 
   const todayStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
@@ -84,12 +159,12 @@ export default function DashboardPage({
     const rows = topSurveys.map(s => [
       s.survey_id,
       `"${String(s.survey_name || '').replace(/"/g, '""')}"`,
-      s.country,
+      s.countryName || s.country,
       s.cpi,
       s.loi,
       s.ir,
       s.TotalCompleteRequired || s.target_completes || '',
-      '',
+      s.completesNeeded ?? '',
     ]);
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -134,67 +209,87 @@ export default function DashboardPage({
       {/* Main Charts Row: Audience Overview (8 col) + Sessions Device (4 col) */}
       <ApitoolAnalytics data={analyticsData} />
 
-      {/* Secondary Row: Live Concurrency ("80 Right Now") + Pages View By Users + Sessions By Channel */}
+      {/* Secondary Row — all metrics computed from the real inventory above */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(12, 1fr)',
         gap: '16px',
         marginBottom: '16px'
       }}>
-        {/* Widget 1: Concurrency Meter ("80 Right Now") - 4 cols */}
+        {/* Widget 1: Open Market Demand (real completes needed) - 4 cols */}
         <div className="card report-card" style={{ gridColumn: 'span 4' }}>
           <div className="card-body" style={{ padding: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
               <span className="pulse-dot" />
-              <span style={{ fontSize: '12px', color: '#8997bd', fontWeight: 500 }}>Traffic Sources</span>
+              <span style={{ fontSize: '12px', color: '#8997bd', fontWeight: 500 }}>Open Market Demand</span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-              <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins', lineHeight: 1 }}>80</h2>
-              <span style={{ fontSize: '13px', color: '#16a34a', fontWeight: 600 }}>Right now</span>
+              <h2 style={{ fontSize: '30px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins', lineHeight: 1 }}>
+                {openCompletes.toLocaleString()}
+              </h2>
+              <span style={{ fontSize: '13px', color: '#16a34a', fontWeight: 600 }}>completes open</span>
             </div>
 
-            <p style={{ margin: '8px 0 14px 0', fontSize: '11.5px', color: '#8997bd', lineHeight: 1.5 }}>
-              Active respondents currently routing through Zamplia & Market Xcel endpoints.
+            <p style={{ margin: '8px 0 4px 0', fontSize: '11.5px', color: '#8997bd', lineHeight: 1.5 }}>
+              {totalRequired.toLocaleString()} total required &bull; est. revenue at risk ${potentialRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </p>
 
-            {/* Rolling Mini Histogram */}
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '42px', paddingTop: '6px' }}>
-              {[35, 45, 60, 52, 70, 65, 80, 75, 88, 70, 85, 92, 78, 85, 95, 80, 84, 90, 80].map((val, i) => (
-                <div 
-                  key={i} 
-                  style={{ 
-                    flex: 1, 
-                    height: `${val}%`, 
-                    background: i === 18 ? '#1761fd' : 'rgba(23, 97, 253, 0.25)', 
-                    borderRadius: '2px' 
-                  }} 
+            {/* Fulfillment progress (real) */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: '#8997bd', marginBottom: '4px' }}>
+              <span>Fulfillment</span>
+              <span style={{ fontWeight: 700, color: '#1d2c48' }}>{fulfillmentPct.toFixed(1)}%</span>
+            </div>
+            <div style={{ width: '100%', height: '5px', background: '#f1f5fa', borderRadius: '9999px', overflow: 'hidden' }}>
+              <div style={{ width: `${fulfillmentPct}%`, height: '100%', background: 'linear-gradient(90deg, #1761fd, #22c55e)', borderRadius: '9999px' }} />
+            </div>
+
+            {/* Real mini histogram: studies per country */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '34px', marginTop: '12px', paddingTop: '4px' }}>
+              {histogramBuckets.map((b, i) => (
+                <div
+                  key={b.label}
+                  title={`${b.label}: ${b.value} studies`}
+                  style={{
+                    flex: 1,
+                    height: `${Math.max(8, (b.value / maxBucket) * 100)}%`,
+                    background: i === 0 ? '#1761fd' : 'rgba(23, 97, 253, 0.25)',
+                    borderRadius: '2px'
+                  }}
                 />
               ))}
             </div>
+            <div style={{ fontSize: '10px', color: '#9ba7ca', marginTop: '4px' }}>Studies by country (top {histogramBuckets.length})</div>
           </div>
         </div>
 
-        {/* Widget 2: Pages View By Users - 4 cols */}
+        {/* Widget 2: Channel Mix (real Zamplia vs Market Xcel) - 4 cols */}
         <div className="card report-card" style={{ gridColumn: 'span 4' }}>
           <div className="card-body" style={{ padding: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <h4 className="card-title">Pages View By Users</h4>
-              <span style={{ fontSize: '11px', color: '#1761fd', fontWeight: 600 }}>Today</span>
+              <h4 className="card-title">Channel Mix</h4>
+              <span style={{ fontSize: '11px', color: '#1761fd', fontWeight: 600 }}>By study count</span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {pagesViewList.map((p, idx) => (
-                <div key={idx} style={{ position: 'relative', padding: '6px 8px', borderRadius: '4px', background: '#fafbfd' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '2px' }}>
-                    <span style={{ fontWeight: 600, color: '#1d2c48', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '180px' }}>
-                      {p.title}
+            {/* Segmented bar from real counts */}
+            <div style={{ display: 'flex', height: '8px', borderRadius: '9999px', overflow: 'hidden', marginBottom: '14px', background: '#f1f5fa' }}>
+              {channelMix.map((c, i) => (
+                <div key={i} style={{ width: `${c.pct}%`, background: c.color }} title={`${c.name}: ${c.pct.toFixed(1)}%`} />
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {channelMix.map((c, i) => (
+                <div key={i}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', marginBottom: '4px' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#303e67' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: c.color }} />
+                      {c.name}
                     </span>
-                    <span style={{ fontWeight: 700, color: '#1761fd' }}>{p.views}</span>
+                    <span style={{ fontWeight: 700, color: '#1d2c48' }}>{c.pct.toFixed(1)}%</span>
                   </div>
-                  <span style={{ fontSize: '10.5px', color: '#8997bd' }}>{p.path}</span>
-                  <div style={{ width: '100%', height: '3px', background: '#e3ebf6', borderRadius: '9999px', marginTop: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: `${p.pct}%`, height: '100%', background: '#1761fd', borderRadius: '9999px' }} />
+                  <div style={{ fontSize: '10.5px', color: '#8997bd', paddingLeft: '14px' }}>
+                    {c.surveys.toLocaleString()} studies &bull; {c.demand.toLocaleString()} open completes
                   </div>
                 </div>
               ))}
@@ -202,29 +297,26 @@ export default function DashboardPage({
           </div>
         </div>
 
-        {/* Widget 3: Sessions By Channel - 4 cols */}
+        {/* Widget 3: Top Categories (real) - 4 cols */}
         <div className="card report-card" style={{ gridColumn: 'span 4' }}>
           <div className="card-body" style={{ padding: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <h4 className="card-title">Sessions By Channel</h4>
-              <span style={{ fontSize: '11px', color: '#8997bd' }}>30 Days</span>
+              <h4 className="card-title">Top Categories</h4>
+              <span style={{ fontSize: '11px', color: '#8997bd' }}>By volume</span>
             </div>
 
-            {/* Segmented Progress Bar */}
-            <div style={{ display: 'flex', height: '8px', borderRadius: '9999px', overflow: 'hidden', marginBottom: '14px', background: '#f1f5fa' }}>
-              {channels.map((c, i) => (
-                <div key={i} style={{ width: `${c.pct * 2.5}%`, background: c.color }} title={`${c.name}: ${c.pct}%`} />
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {channels.map((c, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#303e67' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: c.color }} />
-                    {c.name}
-                  </span>
-                  <span style={{ fontWeight: 700, color: '#1d2c48' }}>{c.pct}%</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {topCategories.map((c, idx) => (
+                <div key={idx}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '3px' }}>
+                    <span style={{ fontWeight: 600, color: '#1d2c48', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '170px' }}>
+                      {c.cat}
+                    </span>
+                    <span style={{ fontWeight: 700, color: '#1761fd' }}>{c.count}</span>
+                  </div>
+                  <div style={{ width: '100%', height: '3px', background: '#e3ebf6', borderRadius: '9999px', overflow: 'hidden' }}>
+                    <div style={{ width: `${(c.count / maxCategoryCount) * 100}%`, height: '100%', background: '#1761fd', borderRadius: '9999px' }} />
+                  </div>
                 </div>
               ))}
             </div>
@@ -272,31 +364,35 @@ export default function DashboardPage({
           </div>
         </div>
 
-        {/* Browser Used & Traffic Reports Table (8 cols) */}
+        {/* Country Distribution (real demand data) - 8 cols */}
         <div className="card report-card" style={{ gridColumn: 'span 8' }}>
           <div className="card-body" style={{ padding: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <h4 className="card-title">Browser Used & Traffic Reports</h4>
-              <span style={{ fontSize: '11px', color: '#1761fd', fontWeight: 600 }}>Active Protocols</span>
+              <h4 className="card-title">Country Distribution — Open Demand</h4>
+              <span style={{ fontSize: '11px', color: '#1761fd', fontWeight: 600 }}>Top {countryStats.length} markets</span>
             </div>
 
             <div className="table-wrapper" style={{ border: 'none' }}>
               <table style={{ width: '100%', fontSize: '12px' }}>
                 <thead>
                   <tr>
-                    <th>Browser</th>
-                    <th>Sessions</th>
-                    <th>Bounce Rate</th>
-                    <th>Transactions</th>
+                    <th>Country</th>
+                    <th>Active Studies</th>
+                    <th>Open Completes</th>
+                    <th style={{ width: '34%' }}>Demand Share</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {browserReports.map((b, idx) => (
+                  {countryStats.map((c, idx) => (
                     <tr key={idx}>
-                      <td style={{ fontWeight: 600, color: '#1d2c48' }}>{b.browser}</td>
-                      <td>{b.sessions}</td>
-                      <td style={{ color: '#dc2626' }}>{b.bounce}</td>
-                      <td style={{ fontWeight: 600, color: '#16a34a' }}>{b.transactions}</td>
+                      <td style={{ fontWeight: 600, color: '#1d2c48' }}>{c.country}</td>
+                      <td>{c.count.toLocaleString()}</td>
+                      <td style={{ fontWeight: 600, color: '#1761fd' }}>{c.demand.toLocaleString()}</td>
+                      <td>
+                        <div style={{ width: '100%', height: '5px', background: '#f1f5fa', borderRadius: '9999px', overflow: 'hidden' }}>
+                          <div style={{ width: `${(c.demand / maxCountryDemand) * 100}%`, height: '100%', background: '#1761fd', borderRadius: '9999px' }} />
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -358,7 +454,7 @@ export default function DashboardPage({
                       </td>
                       <td>
                         <span className="badge-soft-primary" style={{ padding: '2px 6px', borderRadius: '3px', fontSize: '11px', fontWeight: 600 }}>
-                          {survey.country_code || 'US'} &bull; Zamplia
+                          {(survey.countryName || survey.country || 'US')} &bull; {String(survey.client || 'Zamplia').includes('Market Xcel') ? 'Market Xcel' : 'Zamplia'}
                         </span>
                       </td>
                       <td>
@@ -369,13 +465,23 @@ export default function DashboardPage({
                       <td>{survey.loi || 15} mins</td>
                       <td>{survey.ir || 45}%</td>
                       <td style={{ minWidth: '120px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', marginBottom: '3px', color: '#8997bd' }}>
-                          <span>Fulfillment</span>
-                          <span>{survey.completes || 18}/{survey.quota || 50}</span>
-                        </div>
-                        <div style={{ width: '100%', height: '4px', background: '#f1f5fa', borderRadius: '9999px', overflow: 'hidden' }}>
-                          <div style={{ width: `${Math.min(100, ((survey.completes || 18)/(survey.quota || 50))*100)}%`, height: '100%', background: '#1761fd' }} />
-                        </div>
+                        {(() => {
+                          const target = survey.TotalCompleteRequired || 0;
+                          const open = survey.completesNeeded || 0;
+                          const done = Math.max(0, target - open);
+                          const pct = target > 0 ? Math.min(100, (done / target) * 100) : 0;
+                          return (
+                            <>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', marginBottom: '3px', color: '#8997bd' }}>
+                                <span>Fulfillment</span>
+                                <span>{done.toLocaleString()}/{target.toLocaleString()}</span>
+                              </div>
+                              <div style={{ width: '100%', height: '4px', background: '#f1f5fa', borderRadius: '9999px', overflow: 'hidden' }}>
+                                <div style={{ width: `${pct}%`, height: '100%', background: pct >= 75 ? '#22c55e' : '#1761fd', borderRadius: '9999px' }} />
+                              </div>
+                            </>
+                          );
+                        })()}
                       </td>
                       <td>
                         <button 

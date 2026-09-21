@@ -288,14 +288,24 @@ export const getSurveys = (tab = 'allocated') =>
     .then(res => {
       const data = res.data?.data || res.data;
       if (Array.isArray(data) && data.length > 0) return res.data;
-      return { success: true, data: DEFAULT_SURVEYS, total: 626 };
+      return { success: true, simulated: true, data: DEFAULT_SURVEYS, total: 626 };
     })
-    .catch(() => ({ success: true, data: DEFAULT_SURVEYS, total: 626 }));
+    .catch(() => ({ success: true, simulated: true, data: DEFAULT_SURVEYS, total: 626 }));
 
-export const syncSurveys = () => 
+/**
+ * System status — live reachability of each upstream (Zamplia / Market Xcel),
+ * MongoDB state, and whether the built-in demo API key is in use.
+ * Powers the UI's LIVE / DEMO data badge and the System Status panel.
+ */
+export const getSystemStatus = (force = false) =>
+  api.get(`/status${force ? '?force=true' : ''}`)
+    .then(res => res.data)
+    .catch(() => null);
+
+export const syncSurveys = () =>
   api.get('/zamplia/sync')
     .then(res => res.data)
-    .catch(() => ({ success: true, message: 'Synced 626 live surveys successfully' }));
+    .catch(() => ({ success: false, message: 'Sync failed — backend is unreachable. Showing last cached inventory.' }));
 
 export const getTopPicks = () => 
   api.get('/zamplia/top-picks')

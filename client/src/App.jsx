@@ -19,11 +19,15 @@ import LoginPage from './components/LoginPage';
 import { normalizeSurveys } from './utils/normalize';
 import { CheckCircle2, AlertTriangle, X } from 'lucide-react';
 
-import { getSurveys, syncSurveys, DEFAULT_SURVEYS } from './services/api';
+import { getSurveys, syncSurveys, getSystemStatus, DEFAULT_SURVEYS } from './services/api';
 
 export default function App() {
+  // Accept any non-empty token: the backend issues a real JWT on successful
+  // login, while the offline fallback stores 'authenticated_vmhgroup'.
+  // (Previously only the fallback string matched, so users were logged out on
+  // every page reload whenever the backend was reachable — a real bug.)
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('smr_auth_token') === 'authenticated_vmhgroup';
+    return !!localStorage.getItem('smr_auth_token');
   });
   const [activeTab, setActiveTab] = useState('dashboard');
   const [surveys, setSurveys] = useState([]);
@@ -33,6 +37,11 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [toast, setToast] = useState(null);
+  // System status: live reachability of Zamplia / Market Xcel / MongoDB.
+  // `dataMode` is 'live' only when the real Zamplia API answered successfully.
+  const [systemStatus, setSystemStatus] = useState(null);
+  const [dismissedBanner, setDismissedBanner] = useState(false);
+  const [dataMode, setDataMode] = useState('unknown');
 
   const handleToggleSidebar = () => {
     if (window.innerWidth < 992) {
@@ -53,6 +62,7 @@ export default function App() {
   };
 
   const loadData = async () => {
+    setLoading(true);
     try {
       const surveysRes = await getSurveys();
       if (surveysRes) {
@@ -60,20 +70,36 @@ export default function App() {
           ? surveysRes.data
           : (Array.isArray(surveysRes) ? surveysRes : []);
         setSurveys(raw.length > 0 ? raw : DEFAULT_SURVEYS);
+        // The server reports honestly whether this batch is live or simulated.
+        if (typeof surveysRes.simulated === 'boolean') {
+          setDataMode(surveysRes.simulated ? 'demo' : 'live');
+        }
       } else {
         setSurveys(DEFAULT_SURVEYS);
+        setDataMode('demo');
       }
     } catch (err) {
       console.error('Error loading data:', err);
       setSurveys(DEFAULT_SURVEYS);
+      setDataMode('demo');
     } finally {
       setLoading(false);
     }
   };
 
+  const loadStatus = async (force = false) => {
+    const st = await getSystemStatus(force);
+    if (st && st.success) {
+      setSystemStatus(st);
+      if (st.upstreams?.zamplia?.live) setDataMode('live');
+    }
+    return st;
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
       loadData();
+      loadStatus();
     }
   }, [isAuthenticated]);
 
@@ -81,11 +107,17 @@ export default function App() {
     setSyncing(true);
     try {
       const res = await syncSurveys();
-      await loadData();
-      showToast(`✓ Zamplia Live Sync completed successfully!`);
+      await Promise.all([loadData(), loadStatus(true)]);
+      if (res && res.success === false) {
+        showToast(res.message || 'Sync failed — check the backend connection.', 'error');
+      } else if (res && res.message) {
+        showToast(`✓ ${res.message}`, 'success');
+      } else {
+        showToast('✓ Zamplia Live Sync completed successfully!', 'success');
+      }
     } catch (err) {
       console.error('Sync failed:', err);
-      showToast('Sync completed with live inventory refresh.', 'info');
+      showToast('Sync failed — backend unreachable. Showing cached inventory.', 'error');
       await loadData();
     } finally {
       setSyncing(false);
@@ -166,6 +198,9 @@ export default function App() {
         onSync={handleSync} 
         syncing={syncing} 
         surveyCount={surveys.length}
+        systemStatus={systemStatus}
+        dataMode={dataMode}
+        onRecheckStatus={() => loadStatus(true)}
         onToggleSidebar={handleToggleSidebar}
         onToggleMobileMenu={handleToggleSidebar}
         sidebarCollapsed={sidebarCollapsed}
@@ -176,6 +211,22 @@ export default function App() {
         onOpenSettings={() => { setActiveTab('security'); showToast('Security & Fraud policy settings opened.', 'info'); }}
       />
 
+      {/* Demo-data mode banner — shown whenever the live Zamplia API is not
+          reachable, so operators are never silently shown simulated data. */}
+      {dataMode === 'demo' && !dismissedBanner && (
+        <div className="smr-status-banner" role="alert">
+          <AlertTriangle size={14} style={{ flexShrink: 0 }} />
+          <span>
+            <strong>Demo data mode:</strong> the live Zamplia / Market Xcel APIs are not reachable
+            from this server right now, so the platform is showing its built-in demo inventory.
+            All features still work. Check the <em>System Status</em> panel in the top bar for details.
+          </span>
+          <button className="smr-status-banner-close" onClick={() => setDismissedBanner(true)} aria-label="Dismiss">
+            <X size={13} />
+          </button>
+        </div>
+      )}
+
       {/* VMH Main Content Area */}
       <div className={`page-content-tab ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <main className="page-body">
@@ -184,6 +235,9 @@ export default function App() {
               stats={computedStats}
               surveys={filteredSurveys}
               loading={loading}
+              systemStatus={systemStatus}
+              dataMode={dataMode}
+              onRecheckStatus={() => loadStatus(true)}
               onSync={handleSync}
               onNavigate={setActiveTab}
               onOpenQuotas={setQuotasModalId}

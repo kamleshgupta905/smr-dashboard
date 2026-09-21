@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, RefreshCw, Search, Bell, User, Settings, LogOut, CheckCircle2, Zap, ShieldAlert } from 'lucide-react';
+import { Menu, RefreshCw, Search, Bell, User, Settings, LogOut, CheckCircle2, Zap, ShieldAlert, Radio, Database, Globe } from 'lucide-react';
 
 export default function Navbar({
   onToggleSidebar,
@@ -9,6 +9,9 @@ export default function Navbar({
   onSync,
   syncing,
   surveyCount,
+  systemStatus,
+  dataMode,
+  onRecheckStatus,
   onOpenProfile,
   onOpenSettings,
   globalSearch,
@@ -17,8 +20,10 @@ export default function Navbar({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
   const dropdownRef = useRef(null);
   const bellRef = useRef(null);
+  const statusRef = useRef(null);
   const searchInputRef = useRef(null);
 
   const notifications = [
@@ -35,6 +40,9 @@ export default function Navbar({
       }
       if (bellRef.current && !bellRef.current.contains(event.target)) {
         setBellOpen(false);
+      }
+      if (statusRef.current && !statusRef.current.contains(event.target)) {
+        setStatusOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -124,6 +132,113 @@ export default function Navbar({
 
       {/* Right Topbar Content */}
       <div className="topbar-right-side">
+
+        {/* System Status pill — LIVE (real Zamplia data) vs DEMO DATA (simulated) */}
+        {(() => {
+          const mode = dataMode || (systemStatus?.upstreams?.zamplia?.live ? 'live' : 'demo');
+          const isLive = mode === 'live';
+          const checking = !systemStatus;
+          const pill = isLive
+            ? { color: '#16a34a', bg: 'rgba(22,163,74,0.10)', label: 'LIVE DATA' }
+            : checking
+              ? { color: '#68728c', bg: '#f1f5fa', label: 'CHECKING…' }
+              : { color: '#b45309', bg: 'rgba(180,83,9,0.10)', label: 'DEMO DATA' };
+
+          const zam = systemStatus?.upstreams?.zamplia;
+          const mx = systemStatus?.upstreams?.marketXcel;
+          const mongo = systemStatus?.environment?.mongodb;
+
+          const Row = ({ ok, label, detail, checking }) => (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '7px 0', borderBottom: '1px solid #f8fafc' }}>
+              <span style={{
+                width: '8px', height: '8px', borderRadius: '50%', marginTop: '4px', flexShrink: 0,
+                background: checking ? '#94a3b8' : (ok ? '#16a34a' : '#f5325c'),
+              }} />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: '11.5px', fontWeight: 600, color: '#1d2c48' }}>{label}</div>
+                {detail && <div style={{ fontSize: '10.5px', color: '#8997bd', lineHeight: 1.35, wordBreak: 'break-word' }}>{detail}</div>}
+              </div>
+            </div>
+          );
+
+          return (
+            <div className="topbar-status-wrap" ref={statusRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setStatusOpen(prev => !prev)}
+                title="System status — live connectivity of Zamplia & Market Xcel APIs"
+                aria-label="System status"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  padding: '5px 10px', borderRadius: '999px',
+                  background: pill.bg, border: `1px solid ${pill.color}33`,
+                  fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.4px',
+                  color: pill.color, cursor: 'pointer', whiteSpace: 'nowrap',
+                }}
+              >
+                <span style={{ position: 'relative', width: '7px', height: '7px', borderRadius: '50%', background: pill.color, flexShrink: 0 }}>
+                  {isLive && <span className="pulse-ring" style={{ position: 'absolute', inset: '-3px', borderRadius: '50%', border: `1.5px solid ${pill.color}` }} />}
+                </span>
+                {pill.label}
+              </button>
+
+              {statusOpen && (
+                <div style={{
+                  position: 'absolute', right: 0, top: 'calc(100% + 10px)', width: '330px',
+                  background: '#ffffff', border: '1px solid #e3ebf6', borderRadius: '10px',
+                  boxShadow: '0 12px 32px rgba(29,44,72,0.16)', zIndex: 70, overflow: 'hidden',
+                }}>
+                  <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5fa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#1d2c48', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Globe size={14} color="#1761fd" /> System Status
+                    </span>
+                    <button
+                      onClick={() => onRecheckStatus && onRecheckStatus()}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#1761fd', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 9px', fontSize: '10.5px', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      <RefreshCw size={11} className={syncing ? 'sync-spin' : ''} /> Check now
+                    </button>
+                  </div>
+
+                  <div style={{ padding: '6px 16px' }}>
+                    {checking ? (
+                      <div style={{ padding: '16px 0', fontSize: '11.5px', color: '#8997bd' }}>Connecting to backend…</div>
+                    ) : (
+                      <>
+                        <Row
+                          ok={!!zam?.live}
+                          label={`Zamplia Supply API (${zam?.mode || 'production'})`}
+                          detail={zam?.live
+                            ? `Reachable — key accepted (HTTP ${zam?.httpStatus}, ${zam?.checkedInMs ?? '—'} ms)`
+                            : (zam?.error || 'Unreachable — serving demo inventory')}
+                        />
+                        {zam?.usingFallbackKey && (
+                          <div style={{ fontSize: '10px', color: '#b45309', margin: '-2px 0 6px 16px' }}>
+                            ⚠ Using the built-in demo key — set ZAMPLIA_API_KEY in server/.env
+                          </div>
+                        )}
+                        <Row
+                          ok={!!mx?.live}
+                          label="Market Xcel Demand API"
+                          detail={mx?.live ? `Reachable (HTTP ${mx?.httpStatus}, ${mx?.checkedInMs ?? '—'} ms)` : (mx?.error || 'Unreachable — serving demo projects')}
+                        />
+                        <Row
+                          ok={!!mongo?.connected}
+                          label="MongoDB"
+                          detail={mongo?.connected ? `Connected (${mongo?.host})` : 'Not connected — in-memory mode (changes do not persist)'}
+                        />
+                      </>
+                    )}
+                  </div>
+
+                  <div style={{ padding: '8px 16px', background: '#fafbfd', fontSize: '10px', color: '#9ba7ca', display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{systemStatus ? `Checked ${new Date(systemStatus.timestamp).toLocaleTimeString()}` : '—'}</span>
+                    <span>Server uptime {systemStatus ? `${Math.round(systemStatus.uptime / 60)}m` : '—'}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Notifications Bell with Working Dropdown */}
         <div className="topbar-bell-wrap" ref={bellRef} style={{ position: 'relative' }}>

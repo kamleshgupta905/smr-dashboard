@@ -18,6 +18,42 @@ class MarketXcelService {
         'Accept': 'application/json',
       },
     });
+    this.probe = { live: false, checkedAt: null, httpStatus: null, error: null };
+  }
+
+  /**
+   * Lightweight reachability probe for the Market Xcel API.
+   * Cached for 60s; exposed via /api/status.
+   */
+  async probeConnection(force = false, ttlMs = 60000) {
+    if (!force && this.probe.checkedAt && (Date.now() - this.probe.checkedAt < ttlMs)) {
+      return this.probe;
+    }
+    const startedAt = Date.now();
+    try {
+      const res = await this.client.get(mxConfig.endpoints.country, {
+        headers: { token: mxConfig.defaultToken },
+        timeout: 8000,
+        validateStatus: (s) => s < 500,
+      });
+      const ok = res.status === 200;
+      this.probe = {
+        live: ok,
+        checkedAt: new Date().toISOString(),
+        checkedInMs: Date.now() - startedAt,
+        httpStatus: res.status,
+        error: ok ? null : `Market Xcel responded HTTP ${res.status}`,
+      };
+    } catch (err) {
+      this.probe = {
+        live: false,
+        checkedAt: new Date().toISOString(),
+        checkedInMs: Date.now() - startedAt,
+        httpStatus: err.response ? err.response.status : null,
+        error: err.code === 'ECONNABORTED' ? 'Upstream timed out (8s)' : (err.message || 'Network unreachable'),
+      };
+    }
+    return this.probe;
   }
 
   /**

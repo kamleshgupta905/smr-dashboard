@@ -20,8 +20,9 @@ exports.getSurveys = async (req, res) => {
 
     // Fetch Market Xcel Projects
     let mxSurveys = [];
+    let mxRes = null;
     try {
-      const mxRes = await marketXcelService.getAllocatedProjects();
+      mxRes = await marketXcelService.getAllocatedProjects();
       if (mxRes.success && Array.isArray(mxRes.data)) {
         mxSurveys = mxRes.data.map(p => ({
           ...p,
@@ -45,6 +46,7 @@ exports.getSurveys = async (req, res) => {
     // Try live Zamplia API
     const apiRes = await zampliaService.getAllocatedSurveys();
     let zampliaSurveys = [];
+    const zampliaLive = apiRes.success && apiRes.source === 'live_zamplia_api';
     if (apiRes.success && Array.isArray(apiRes.data) && apiRes.data.length > 0) {
       zampliaSurveys = apiRes.data.map(s => ({
         ...s,
@@ -66,7 +68,18 @@ exports.getSurveys = async (req, res) => {
 
     // Combined multi-client inventory
     const combined = [...mxSurveys, ...zampliaSurveys];
-    return res.json({ success: true, data: combined, source: 'multi_client_marketplace' });
+    return res.json({
+      success: true,
+      data: combined,
+      source: 'multi_client_marketplace',
+      // Explicit data-provenance flags so the UI can show a "Live" vs "Demo data" badge
+      dataSources: {
+        zamplia: zampliaLive ? 'live' : 'simulated',
+        marketXcel: (mxRes && mxRes.source === 'live_marketxcel_api') ? 'live' : 'simulated',
+      },
+      simulated: !zampliaLive,
+      total: combined.length,
+    });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }

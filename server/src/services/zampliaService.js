@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const config = require('../config/zamplia');
 const HmacService = require('./hmacService');
 const ApiSurvey = require('../models/ApiSurvey');
+const { generateDemoInventory } = require('./demoInventory');
 
 class ZampliaService {
   constructor() {
@@ -16,6 +17,47 @@ class ZampliaService {
         'Accept': 'application/json',
       },
     });
+    // Connection probe cache: avoids hammering the upstream on every /api/status call
+    this.probe = { live: false, checkedAt: null, httpStatus: null, error: null, keySource: config.usingFallbackKey ? 'builtin_demo_key' : 'env' };
+  }
+
+  /**
+   * Lightweight live-connection probe for the Zamplia Supply API.
+   * Confirms network reachability AND whether the configured API key is accepted
+   * (Zamplia answers 401/403 for a bad key, so any 2xx proves the key works).
+   * Results are cached for `ttlMs` (default 60s).
+   */
+  async probeConnection(force = false, ttlMs = 60000) {
+    if (!force && this.probe.checkedAt && (Date.now() - this.probe.checkedAt < ttlMs)) {
+      return this.probe;
+    }
+    const startedAt = Date.now();
+    try {
+      const res = await this.client.get('/Surveys/GetAllocatedSurveys', {
+        params: { country: 'all', language: 'en-US' },
+        timeout: 8000,
+        validateStatus: (s) => s >= 200 && s < 500,
+      });
+      const authOk = res.status === 200;
+      this.probe = {
+        live: authOk,
+        checkedAt: new Date().toISOString(),
+        checkedInMs: Date.now() - startedAt,
+        httpStatus: res.status,
+        error: authOk ? null : (res.data?.message || res.data?.result?.message || `Zamplia rejected the request (HTTP ${res.status})`),
+        keySource: config.usingFallbackKey ? 'builtin_demo_key' : 'env',
+      };
+    } catch (err) {
+      this.probe = {
+        live: false,
+        checkedAt: new Date().toISOString(),
+        checkedInMs: Date.now() - startedAt,
+        httpStatus: err.response ? err.response.status : null,
+        error: err.code === 'ECONNABORTED' ? 'Upstream timed out (8s)' : (err.message || 'Network unreachable'),
+        keySource: config.usingFallbackKey ? 'builtin_demo_key' : 'env',
+      };
+    }
+    return this.probe;
   }
 
   async request(endpoint, params = {}) {
@@ -24,10 +66,10 @@ class ZampliaService {
       if (response.data && (response.data.result?.data || response.data.result || response.data)) {
         const payload = response.data?.result?.data ?? response.data?.result ?? response.data;
         if (Array.isArray(payload) && payload.length > 0) {
-          return { success: true, data: payload };
+          return { success: true, source: 'live_zamplia_api', data: payload };
         }
         if (typeof payload === 'object' && Object.keys(payload).length > 0) {
-          return { success: true, data: payload };
+          return { success: true, source: 'live_zamplia_api', data: payload };
         }
       }
     } catch (error) {
@@ -38,120 +80,117 @@ class ZampliaService {
     return {
       success: true,
       isSimulated: true,
+      source: 'simulated_fallback',
       data: this.getMockData(endpoint, params),
     };
+  }
+
+  /**
+   * Hand-authored flagship studies (kept as the recognizable "anchor" studies
+   * of the demo catalog, prefixed to the deterministic 622-study inventory).
+   */
+  getFlagshipDemoSurveys() {
+    return [
+      {
+        SurveyId: 90142,
+        Name: 'Global Electric Vehicle & Mobility Outlook 2026',
+        TotalCompleteRequired: 600,
+        CompletesNeeded: 340,
+        CPI: 4.80,
+        LOI: 14,
+        IR: 75,
+        Device: 'Desktop,Mobile,Tablet',
+        LanguageCode: 'en-US',
+        Country: 'United States',
+        IndustryId: 5,
+        IndustryName: 'Automotive & Mobility',
+        status: 'Live',
+        StudyTypes: 'Consumer',
+        SurveyEndDate: '2026-12-30T23:59:59Z',
+        IsSurveyGroupExist: 1,
+        IsRecontactSurvey: 0,
+        CollectPII: 0,
+      },
+      {
+        SurveyId: 90143,
+        Name: 'Healthcare Providers Digital Records Adoption',
+        TotalCompleteRequired: 300,
+        CompletesNeeded: 210,
+        CPI: 7.50,
+        LOI: 18,
+        IR: 40,
+        Device: 'Desktop,Tablet',
+        LanguageCode: 'en-US',
+        Country: 'United States',
+        IndustryId: 3,
+        IndustryName: 'Healthcare & Medical',
+        status: 'Live',
+        StudyTypes: 'B2B',
+        SurveyEndDate: '2026-11-15T23:59:59Z',
+        IsSurveyGroupExist: 0,
+        IsRecontactSurvey: 0,
+        CollectPII: 0,
+      },
+      {
+        SurveyId: 90144,
+        Name: 'German Consumer Retail & E-Commerce Preferences',
+        TotalCompleteRequired: 800,
+        CompletesNeeded: 450,
+        CPI: 3.90,
+        LOI: 10,
+        IR: 90,
+        Device: 'Desktop,Mobile,Tablet',
+        LanguageCode: 'de-DE',
+        Country: 'Germany',
+        IndustryId: 1,
+        IndustryName: 'Retail & E-Commerce',
+        status: 'Live',
+        StudyTypes: 'Consumer',
+        SurveyEndDate: '2026-10-31T23:59:59Z',
+        IsSurveyGroupExist: 0,
+        IsRecontactSurvey: 0,
+        CollectPII: 0,
+      },
+      {
+        SurveyId: 90145,
+        Name: 'Cloud SaaS Infrastructure Purchasing Habits',
+        TotalCompleteRequired: 250,
+        CompletesNeeded: 180,
+        CPI: 9.20,
+        LOI: 20,
+        IR: 30,
+        Device: 'Desktop',
+        LanguageCode: 'en-US',
+        Country: 'United States',
+        IndustryId: 2,
+        IndustryName: 'Information Technology',
+        status: 'Live',
+        StudyTypes: 'B2B',
+        SurveyEndDate: '2026-10-05T23:59:59Z',
+        IsSurveyGroupExist: 1,
+        IsRecontactSurvey: 0,
+        CollectPII: 0,
+      },
+    ];
   }
 
   getMockData(endpoint, params) {
     switch (endpoint) {
       case '/Surveys/GetAllocatedSurveys':
-        return [
-          {
-            SurveyId: 90142,
-            Name: 'Global Electric Vehicle & Mobility Outlook 2026',
-            TotalCompleteRequired: 600,
-            CPI: 4.80,
-            LOI: 14,
-            IR: 75,
-            Device: 'Desktop,Mobile,Tablet',
-            LanguageCode: 'en-US',
-            IndustryId: 5,
-            status: 'Live',
-            StudyTypes: 'Consumer',
-            SurveyEndDate: '2026-06-30T23:59:59Z',
-            IsSurveyGroupExist: 1,
-            IsRecontactSurvey: 0,
-            CollectPII: 0,
-          },
-          {
-            SurveyId: 90143,
-            Name: 'Healthcare Providers Digital Records Adoption',
-            TotalCompleteRequired: 300,
-            CPI: 7.50,
-            LOI: 18,
-            IR: 40,
-            Device: 'Desktop,Tablet',
-            LanguageCode: 'en-US',
-            IndustryId: 3,
-            status: 'Live',
-            StudyTypes: 'B2B',
-            SurveyEndDate: '2026-05-15T23:59:59Z',
-            IsSurveyGroupExist: 0,
-            IsRecontactSurvey: 0,
-            CollectPII: 0,
-          },
-          {
-            SurveyId: 90144,
-            Name: 'German Consumer Retail & E-Commerce Preferences',
-            TotalCompleteRequired: 800,
-            CPI: 3.90,
-            LOI: 10,
-            IR: 90,
-            Device: 'Desktop,Mobile,Tablet',
-            LanguageCode: 'de-DE',
-            IndustryId: 1,
-            status: 'Live',
-            StudyTypes: 'Consumer',
-            SurveyEndDate: '2026-08-20T23:59:59Z',
-            IsSurveyGroupExist: 1,
-            IsRecontactSurvey: 0,
-            CollectPII: 0,
-          },
-          {
-            SurveyId: 90145,
-            Name: 'Cloud SaaS Infrastructure Purchasing Habits',
-            TotalCompleteRequired: 250,
-            CPI: 9.20,
-            LOI: 20,
-            IR: 30,
-            Device: 'Desktop',
-            LanguageCode: 'en-US',
-            IndustryId: 2,
-            status: 'Live',
-            StudyTypes: 'B2B',
-            SurveyEndDate: '2026-04-30T23:59:59Z',
-            IsSurveyGroupExist: 1,
-            IsRecontactSurvey: 0,
-            CollectPII: 0,
-          }
-        ];
+        return [ ...this.getFlagshipDemoSurveys(), ...generateDemoInventory(622, 90146) ];
 
-      case '/Surveys/GetTopPickSurveys':
-        return [
-          {
-            SurveyId: 90145,
-            Name: 'Cloud SaaS Infrastructure Purchasing Habits',
-            CPI: 9.20,
-            LOI: 20,
-            IR: 30,
-            TotalCompleteRequired: 250,
-            CompletesNeeded: 180,
-            Rank: 1,
-            PriorityScore: 98.4,
-          },
-          {
-            SurveyId: 90143,
-            Name: 'Healthcare Providers Digital Records Adoption',
-            CPI: 7.50,
-            LOI: 18,
-            IR: 40,
-            TotalCompleteRequired: 300,
-            CompletesNeeded: 210,
-            Rank: 2,
-            PriorityScore: 94.1,
-          },
-          {
-            SurveyId: 90142,
-            Name: 'Global Electric Vehicle & Mobility Outlook 2026',
-            CPI: 4.80,
-            LOI: 14,
-            IR: 75,
-            TotalCompleteRequired: 600,
-            CompletesNeeded: 340,
-            Rank: 3,
-            PriorityScore: 89.7,
-          }
-        ];
+      case '/Surveys/GetTopPickSurveys': {
+        // Derived from the same demo inventory so Top Picks always match Inventory.
+        const inventory = [ ...this.getFlagshipDemoSurveys(), ...generateDemoInventory(622, 90146) ];
+        return [...inventory]
+          .sort((a, b) => b.CPI - a.CPI)
+          .slice(0, 8)
+          .map((s, idx) => ({
+            ...s,
+            Rank: idx + 1,
+            PriorityScore: Number(Math.min(99.9, (s.CPI * 6) + (s.IR / 10) + 40).toFixed(1)),
+          }));
+      }
 
       case '/Surveys/GetSurveyById':
         return {
