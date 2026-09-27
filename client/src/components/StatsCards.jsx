@@ -37,8 +37,8 @@ export default function StatsCards({ stats, totalSurveys, onNavigate }) {
       isPositive: avgCpi >= 3,
       icon: DollarSign,
       clickable: true,
-      hint: 'Browse Top Picks',
-      onClick: () => onNavigate && onNavigate('top-picks'),
+      hint: 'Inspect Live Surveys',
+      onClick: () => onNavigate && onNavigate('surveys'),
     },
     {
       title: 'Live Inventory',

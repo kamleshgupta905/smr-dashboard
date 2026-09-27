@@ -12,6 +12,7 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('ALL');
   const [selectedChannel, setSelectedChannel] = useState('ALL');
+  const [selectedCpiRange, setSelectedCpiRange] = useState('ALL');
   const [sortBy, setSortBy] = useState('cpi-desc');
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState(null);
@@ -49,7 +50,17 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
         }
       }
 
-      // 3. Search Filter (Multi-field fuzzy search)
+      // 3. CPI Payout Range Filter
+      if (selectedCpiRange !== 'ALL') {
+        const cpiVal = Number(s.cpi || s.CPI || 0);
+        if (selectedCpiRange === 'under-1' && cpiVal >= 1.00) return false;
+        if (selectedCpiRange === '1-to-2' && (cpiVal < 1.00 || cpiVal > 2.00)) return false;
+        if (selectedCpiRange === '2-to-3' && (cpiVal < 2.00 || cpiVal > 3.00)) return false;
+        if (selectedCpiRange === '3-to-5' && (cpiVal < 3.00 || cpiVal > 5.00)) return false;
+        if (selectedCpiRange === '5-plus' && cpiVal < 5.00) return false;
+      }
+
+      // 4. Search Filter (Multi-field fuzzy search)
       if (!searchTerm) return true;
       const term = searchTerm.toLowerCase().trim();
       return (
@@ -71,7 +82,7 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
     });
 
     return list;
-  }, [normalized, selectedCountry, selectedChannel, searchTerm, sortBy]);
+  }, [normalized, selectedCountry, selectedChannel, selectedCpiRange, searchTerm, sortBy]);
 
   const totalPages = Math.ceil(filtered.length / pageSize) || 1;
   const paginatedSurveys = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -191,6 +202,20 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
               {countries.map(c => (
                 <option key={c} value={c}>{c === 'ALL' ? '🌍 All Countries' : c}</option>
               ))}
+            </select>
+
+            <select
+              className="input-control"
+              value={selectedCpiRange}
+              onChange={(e) => { setSelectedCpiRange(e.target.value); setPage(1); }}
+              style={{ width: 'auto', height: '34px', fontSize: '12px', fontWeight: 600, color: '#15803D' }}
+            >
+              <option value="ALL">💵 All CPI Payouts</option>
+              <option value="under-1">Below $1.00 ($0 - $0.99)</option>
+              <option value="1-to-2">$1.00 - $2.00</option>
+              <option value="2-to-3">$2.00 - $3.00</option>
+              <option value="3-to-5">$3.00 - $5.00</option>
+              <option value="5-plus">$5.00+ High Payout</option>
             </select>
 
             <select

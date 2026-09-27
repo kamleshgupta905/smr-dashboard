@@ -20,7 +20,7 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
 
   // Auto-expand the dropdown containing the active tab
   useEffect(() => {
-    if (['dashboard', 'surveys', 'top-picks'].includes(activeTab)) {
+    if (['dashboard', 'surveys'].includes(activeTab)) {
       setDashboardOpen(true);
     } else if (['clients', 'vendors', 'projects'].includes(activeTab)) {
       setAppsOpen(true);
@@ -86,10 +86,10 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
           {/* Section: MAIN */}
           <div className="sidebar-section-title">MAIN</div>
 
-          {/* Dropdown 1: Dashboard (Overview, Live Surveys, Top Picks) */}
+          {/* Dropdown 1: Dashboard (Analytics, Live Surveys) */}
           <div className="sidebar-nav-group">
             <button 
-              className={`sidebar-nav-heading ${['dashboard', 'surveys', 'top-picks'].includes(activeTab) ? 'active' : ''}`}
+              className={`sidebar-nav-heading ${['dashboard', 'surveys'].includes(activeTab) ? 'active' : ''}`}
               onClick={() => setDashboardOpen(prev => !prev)}
             >
               <div className="nav-heading-left">
@@ -116,13 +116,6 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
                 >
                   <span className="bullet-circle" />
                   <span>Live Surveys</span>
-                </button>
-                <button
-                  className={`submenu-item ${activeTab === 'top-picks' ? 'active' : ''}`}
-                  onClick={() => handleNav('top-picks')}
-                >
-                  <span className="bullet-circle" />
-                  <span>Top Picks</span>
                 </button>
               </div>
             </div>

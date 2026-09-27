@@ -3,7 +3,6 @@ import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import DashboardPage from './pages/DashboardPage';
 import SurveysPage from './pages/SurveysPage';
-import TopPicksPage from './pages/TopPicksPage';
 import ProjectsPage from './pages/ProjectsPage';
 import VendorsPage from './pages/VendorsPage';
 import ReconciliationPage from './pages/ReconciliationPage';
@@ -129,7 +128,6 @@ export default function App() {
     vendors: 'Vendors & Sample Panels',
     surveys: 'Allocated Survey Marketplace',
     'developer-center': 'API Developer Center & Interactive Sandbox',
-    'top-picks': 'High-Yield Top Picks',
     security: 'Security & Fraud Screening Engine',
     projects: 'Custom Client Projects',
     reconciliation: 'Zamplia Reconciliation & Audit',
@@ -206,15 +204,6 @@ export default function App() {
                 setSurveys(prev => [newStudy, ...prev]);
                 showToast(`✓ Study #${newStudy.surveyId} launched & added to marketplace!`);
               }}
-              onOpenQuotas={setQuotasModalId}
-              onOpenQuals={setQualsModalId}
-              onOpenAssign={setAssignModalId}
-            />
-          )}
-
-          {activeTab === 'top-picks' && (
-            <TopPicksPage 
-              surveys={filteredSurveys}
               onOpenQuotas={setQuotasModalId}
               onOpenQuals={setQualsModalId}
               onOpenAssign={setAssignModalId}
