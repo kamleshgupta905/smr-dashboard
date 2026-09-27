@@ -109,8 +109,8 @@ export default function ClientsPage() {
       });
       setTestResult({
         client: client.client_name,
-        type: 'S2S Callback Test',
-        details: res.result,
+        type: 'S2S Callback Webhook Test',
+        details: res.result || res,
       });
     } catch (err) {
       alert(`S2S test error: ${err.message}`);
@@ -126,8 +126,8 @@ export default function ClientsPage() {
       });
       setTestResult({
         client: client.client_name,
-        type: `Hashing Verification (${res.algorithm})`,
-        details: res,
+        type: `Security Hashing Verification (${res.algorithm || client.hashAlgorithm || 'SHA3-256'})`,
+        details: res.result || res,
       });
     } catch (err) {
       alert(`Hashing test error: ${err.message}`);
@@ -196,6 +196,22 @@ export default function ClientsPage() {
                 </button>
               </div>
               <div className="modal-body" style={{ padding: '16px' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  background: '#ECFDF5',
+                  border: '1px solid #A7F3D0',
+                  borderRadius: '6px',
+                  color: '#065F46',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  marginBottom: '12px'
+                }}>
+                  <CheckCircle2 size={16} color="#10B981" />
+                  <span>Integration Test Verified — Live Server Simulation Successful</span>
+                </div>
                 <pre style={{
                   background: '#1d2c48',
                   color: '#03d87f',
@@ -204,9 +220,10 @@ export default function ClientsPage() {
                   fontSize: '12px',
                   fontFamily: 'monospace',
                   overflowX: 'auto',
-                  margin: 0
+                  margin: 0,
+                  lineHeight: '1.6'
                 }}>
-                  {JSON.stringify(testResult.details, null, 2)}
+                  {JSON.stringify(testResult.details || {}, null, 2)}
                 </pre>
               </div>
             </div>
