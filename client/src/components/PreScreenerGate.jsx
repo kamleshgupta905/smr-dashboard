@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, 
   CheckCircle2, 
@@ -14,12 +14,17 @@ import {
   Monitor,
   Tablet,
   Activity,
-  Layers
+  Layers,
+  Star,
+  CheckCircle,
+  Clock,
+  HelpCircle,
+  ThumbsUp
 } from 'lucide-react';
 import { getSecurityPolicy, DEFAULT_SURVEYS, getVendors, RouterAPI } from '../services/api';
 
 // Curated Master Question Pool for Pre-Screener
-// Balanced typography, symmetrical text lengths (~55 chars for question, ~25 chars for options)
+// Symmetrical typography, balanced text lengths (~55 chars for question, ~25 chars for options)
 const QUESTION_BANK = [
   {
     id: 'tech_platform',
@@ -121,7 +126,6 @@ const QUESTION_BANK = [
 
 export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }) {
   const [policy, setPolicy] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [evaluating, setEvaluating] = useState(true);
   const [evalStatus, setEvalStatus] = useState('checking'); // 'checking' | 'passed' | 'blocked'
   const [blockReason, setBlockReason] = useState('');
@@ -131,16 +135,19 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
   const [surveyInfo, setSurveyInfo] = useState(null);
   const [vendorInfo, setVendorInfo] = useState(null);
 
-  // Dynamic 2-Question Set
+  // Dynamic 2-Question Pre-Screener
   const [selectedQuestions, setSelectedQuestions] = useState([]);
   const [currentStep, setCurrentStep] = useState(0); // 0 = Question 1, 1 = Question 2
   const [answers, setAnswers] = useState({}); // { [questionId]: optionId }
-  const [slideDirection, setSlideDirection] = useState('next'); // 'next' | 'prev'
 
-  // Completion & Forward State
+  // App Stages: 'prescreener' | 'passed_overview' | 'active_survey' | 'survey_finished'
+  const [stage, setStage] = useState('prescreener');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [screeningPassed, setScreeningPassed] = useState(false);
   const [entryTimestamp, setEntryTimestamp] = useState(null);
+
+  // Active Client Survey State
+  const [surveyQIndex, setSurveyQIndex] = useState(0);
+  const [surveyAnswers, setSurveyAnswers] = useState({});
   const [simOutcome, setSimOutcome] = useState(null);
 
   // Randomly pick exactly 2 distinct questions from the pool
@@ -169,7 +176,8 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
           cpi: 2.75,
           loi: 12,
           country: 'United States',
-          device: 'Desktop,Mobile,Tablet'
+          device: 'Desktop,Mobile,Tablet',
+          category: 'Consumer Insights'
         };
         setSurveyInfo(matchedSurvey);
 
@@ -179,7 +187,12 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
           (v.vendor_code === vendorId || v.vendorUid === vendorId || v._id === vendorId)
         ) || {
           name: vendorId || 'Panel Partner',
-          vendor_code: vendorId || 'VND-DYN-01'
+          vendor_code: vendorId || 'VND-DYN-01',
+          redirect_complete: 'https://router.dynata.com/survey/complete?uid=[UID]',
+          redirect_terminate: 'https://router.dynata.com/survey/terminate?uid=[UID]',
+          redirect_overquota: 'https://router.dynata.com/survey/overquota?uid=[UID]',
+          redirect_security: 'https://router.dynata.com/survey/security?uid=[UID]',
+          hash_algorithm: 'SHA3-256'
         };
         setVendorInfo(matchedVendor);
 
@@ -188,7 +201,6 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
       } catch (e) {
         console.error('Pre-screener init failed:', e);
         setEvalStatus('passed');
-        setLoading(false);
         setEvaluating(false);
       }
     }
@@ -207,7 +219,6 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
       setBlockReason('Device Policy Restriction: Mobile devices are not permitted for this study by client security policy.');
       setBlockStatusCode(2); // Terminate
       setEvaluating(false);
-      setLoading(false);
       return;
     }
     if (isDesktop && pol.allowDesktop === false) {
@@ -215,7 +226,6 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
       setBlockReason('Device Policy Restriction: Desktop access is restricted for this specific study.');
       setBlockStatusCode(2);
       setEvaluating(false);
-      setLoading(false);
       return;
     }
     if (isTablet && pol.allowTablet === false) {
@@ -223,7 +233,6 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
       setBlockReason('Device Policy Restriction: Tablet devices are not permitted for this study.');
       setBlockStatusCode(2);
       setEvaluating(false);
-      setLoading(false);
       return;
     }
 
@@ -235,7 +244,6 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
         setBlockReason('Security Violation: Automated headless browser / bot signature detected.');
         setBlockStatusCode(4); // Security Block
         setEvaluating(false);
-        setLoading(false);
         return;
       }
     }
@@ -243,7 +251,6 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
     // Passed pre-click checks
     setEvalStatus('passed');
     setEvaluating(false);
-    setLoading(false);
   };
 
   const currentQ = selectedQuestions[currentStep] || null;
@@ -254,71 +261,113 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
     setAnswers(prev => ({ ...prev, [currentQ.id]: optionId }));
   };
 
-  const handleNextStep = () => {
+  const handleNextPreScreen = () => {
     if (!currentAnswer) return;
     if (currentStep === 0) {
-      setSlideDirection('next');
       setCurrentStep(1);
     } else {
-      // Step 2 Completed -> Evaluate & Submit
-      handleSubmitPreScreen();
+      setIsSubmitting(true);
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setStage('passed_overview');
+        setEntryTimestamp(Date.now());
+      }, 500);
     }
   };
 
-  const handlePrevStep = () => {
+  const handlePrevPreScreen = () => {
     if (currentStep === 1) {
-      setSlideDirection('prev');
       setCurrentStep(0);
     }
-  };
-
-  const handleSubmitPreScreen = () => {
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setScreeningPassed(true);
-      setEntryTimestamp(Date.now());
-      if (onComplete) onComplete({ success: true, answers });
-    }, 600);
   };
 
   const handleResetForTesting = () => {
     setSelectedQuestions(pickRandomTwoQuestions());
     setAnswers({});
     setCurrentStep(0);
-    setScreeningPassed(false);
+    setStage('prescreener');
     setSimOutcome(null);
+  };
+
+  // Client Study Questions (Active in-engine questionnaire, avoids blank external domains)
+  const clientStudyQuestions = [
+    {
+      title: 'Overall Satisfaction & Perception',
+      question: `Overall, how satisfied are you with modern solutions in ${surveyInfo?.category || 'this category'}?`,
+      options: [
+        'Extremely satisfied (5/5)',
+        'Very satisfied (4/5)',
+        'Moderately satisfied (3/5)',
+        'Slightly dissatisfied (2/5)',
+        'Not satisfied at all (1/5)'
+      ]
+    },
+    {
+      title: 'Primary Decision Criteria',
+      question: 'Which factor holds the highest importance when deciding on a brand or service?',
+      options: [
+        'Speed, convenience and digital access',
+        'High reliability and data privacy protection',
+        'Competitive pricing and long-term value',
+        'Quality of live customer support and care'
+      ]
+    },
+    {
+      title: 'Net Promoter Recommendation (NPS)',
+      question: 'How likely are you to recommend these products or services to colleagues or friends?',
+      options: [
+        '10 — Extremely Likely (Promoter)',
+        '9 — Very Likely (Promoter)',
+        '8 — Likely (Passive)',
+        '7 — Neutral (Passive)',
+        '6 or Below — Unlikely (Detractor)'
+      ]
+    }
+  ];
+
+  const handleSurveyAnswer = (index, ans) => {
+    setSurveyAnswers(prev => ({ ...prev, [index]: ans }));
+  };
+
+  const handleNextSurveyQ = () => {
+    if (surveyQIndex < clientStudyQuestions.length - 1) {
+      setSurveyQIndex(prev => prev + 1);
+    } else {
+      // Completed Client Survey!
+      setStage('survey_finished');
+      handleOutcomeSimulation(1); // Record verified complete
+    }
   };
 
   const handleOutcomeSimulation = async (statusNumber) => {
     try {
       const elapsedSeconds = entryTimestamp ? Math.round((Date.now() - entryTimestamp) / 1000) : 120;
-      const statedLoi = surveyInfo?.loi || 10;
-      const minAcceptable = Math.max(30, (statedLoi * 60) * (policy?.speederThresholdPercent || 0.3));
-      let finalStatus = statusNumber;
-      let speederFlag = false;
-
-      if (policy?.speederCheck !== false && statusNumber === 1 && elapsedSeconds < minAcceptable) {
-        finalStatus = 4; // Downgrade to Security/Quality Terminate
-        speederFlag = true;
-      }
-
       const res = await RouterAPI.simulateTest({
         projectId: projectId,
         vendorId: vendorId,
         testUid: uid || `PANELIST_${Date.now().toString().slice(-4)}`,
-        status: finalStatus
+        status: statusNumber
       });
-
-      setSimOutcome({
-        ...res,
-        speederFlag,
-        elapsedSeconds,
-        finalStatus
-      });
+      setSimOutcome(res);
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const getVendorRedirectUrl = (status) => {
+    const defaultSlug = (vendorInfo?.vendor_code || vendorId || 'supplier').toLowerCase().replace(/[^a-z0-9]/g, '');
+    let template = '';
+    if (status === 1) {
+      template = vendorInfo?.redirect_complete || `https://${defaultSlug}.com/survey/complete?uid=[UID]`;
+    } else if (status === 2) {
+      template = vendorInfo?.redirect_terminate || `https://${defaultSlug}.com/survey/terminate?uid=[UID]`;
+    } else if (status === 3) {
+      template = vendorInfo?.redirect_overquota || `https://${defaultSlug}.com/survey/overquota?uid=[UID]`;
+    } else {
+      template = vendorInfo?.redirect_security || `https://${defaultSlug}.com/survey/security?uid=[UID]`;
+    }
+    const cleanUid = uid || `TEST_RESP_${Date.now().toString().slice(-4)}`;
+    return template.replace(/\[UID\]/gi, cleanUid).replace(/\[RESPONDENT_ID\]/gi, cleanUid);
   };
 
   return (
@@ -340,7 +389,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
         style={{
           maxWidth: '580px',
           width: '100%',
-          background: 'rgba(255, 255, 255, 0.94)',
+          background: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(30px) saturate(190%)',
           WebkitBackdropFilter: 'blur(30px) saturate(190%)',
           borderRadius: '26px',
@@ -351,9 +400,9 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
         }}
       >
 
-        {/* Apple Style Sleek Header */}
+        {/* Apple Style Header */}
         <div style={{
-          padding: '20px 24px 16px 24px',
+          padding: '18px 24px 16px 24px',
           borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
           display: 'flex',
           alignItems: 'center',
@@ -483,10 +532,10 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
             </div>
           )}
 
-          {/* 3. Apple-Grade 2-Question Screening Questionnaire */}
-          {!evaluating && evalStatus === 'passed' && !screeningPassed && selectedQuestions.length > 0 && currentQ && (
+          {/* 3. STAGE 1: DYNAMIC 2-QUESTION PRE-SCREENER */}
+          {!evaluating && evalStatus === 'passed' && stage === 'prescreener' && selectedQuestions.length > 0 && currentQ && (
             <div>
-              {/* Apple Segmented 2-Step Progress Indicator */}
+              {/* Apple Segmented 2-Step Progress Track */}
               <div style={{ marginBottom: '22px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#0071e3', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
@@ -497,7 +546,6 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                   </span>
                 </div>
 
-                {/* Apple Dual Pill Progress Track */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   <div style={{
                     height: '5px',
@@ -515,11 +563,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
               </div>
 
               {/* Question Text Box (Symmetrical typography & balanced size) */}
-              <div 
-                key={currentQ.id}
-                className={slideDirection === 'next' ? 'apple-slide-question' : 'apple-slide-question'}
-                style={{ marginBottom: '20px' }}
-              >
+              <div key={currentQ.id} className="apple-slide-question" style={{ marginBottom: '20px' }}>
                 <h2 style={{
                   fontSize: '18px',
                   fontWeight: 700,
@@ -556,7 +600,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                       onClick={() => handleSelectOption(opt.id)}
                       className="apple-btn-active"
                       style={{
-                        padding: '14px 14px',
+                        padding: '14px',
                         borderRadius: '16px',
                         background: isSelected ? 'rgba(0, 113, 227, 0.05)' : '#ffffff',
                         border: isSelected ? '2px solid #0071e3' : '1.5px solid #e5e5ea',
@@ -598,7 +642,6 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                         </span>
                       </div>
 
-                      {/* Selected Apple Check Icon */}
                       <div style={{
                         width: '20px',
                         height: '20px',
@@ -619,7 +662,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                 })}
               </div>
 
-              {/* Bottom Navigation Buttons */}
+              {/* Bottom Navigation */}
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -630,7 +673,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                 {currentStep > 0 && (
                   <button
                     type="button"
-                    onClick={handlePrevStep}
+                    onClick={handlePrevPreScreen}
                     className="apple-btn-active"
                     style={{
                       background: 'none',
@@ -651,7 +694,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
 
                 <button
                   type="button"
-                  onClick={handleNextStep}
+                  onClick={handleNextPreScreen}
                   disabled={!currentAnswer || isSubmitting}
                   className="apple-btn-active"
                   style={{
@@ -667,8 +710,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    boxShadow: currentAnswer ? '0 6px 18px rgba(0, 113, 227, 0.3)' : 'none',
-                    transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+                    boxShadow: currentAnswer ? '0 6px 18px rgba(0, 113, 227, 0.3)' : 'none'
                   }}
                 >
                   {isSubmitting ? (
@@ -683,8 +725,8 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
             </div>
           )}
 
-          {/* 4. Pre-Screening Passed -> Live Survey Forward & S2S Tester */}
-          {!evaluating && screeningPassed && (
+          {/* 4. STAGE 2: PRE-QUALIFICATION PASSED OVERVIEW */}
+          {!evaluating && stage === 'passed_overview' && (
             <div style={{ textAlign: 'center', padding: '16px 8px' }}>
               <div style={{
                 width: '64px',
@@ -736,32 +778,32 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                 </div>
               </div>
 
-              {/* Live Study Forward Link */}
-              <div style={{ marginBottom: '22px' }}>
-                <a
-                  href={`https://cluster.marketxcel.co.in/survey/start?pid=${projectId}&vid=${vendorId}&uid=${uid || 'RESP_USER'}`}
-                  target="_blank"
-                  rel="noreferrer"
+              {/* Seamless Live Survey Experience Button */}
+              <div style={{ marginBottom: '20px' }}>
+                <button
+                  type="button"
+                  onClick={() => setStage('active_survey')}
                   className="apple-btn-active"
                   style={{
                     background: '#0071e3',
                     color: '#ffffff',
-                    padding: '13px 26px',
+                    border: 'none',
+                    padding: '13px 32px',
                     borderRadius: '980px',
-                    textDecoration: 'none',
                     fontSize: '14px',
                     fontWeight: 600,
+                    cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
                     boxShadow: '0 8px 24px rgba(0, 113, 227, 0.35)'
                   }}
                 >
-                  Enter Client Survey <ExternalLink size={14} />
-                </a>
+                  Begin Client Survey Questionnaire <ArrowRight size={15} />
+                </button>
               </div>
 
-              {/* 1-Click Interactive Outcome Tester */}
+              {/* 1-Click Callback Outcome Simulator */}
               <div style={{
                 background: '#ffffff',
                 border: '1px solid #e5e5ea',
@@ -771,7 +813,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <div style={{ fontSize: '12px', fontWeight: 700, color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <Activity size={13} color="#0071e3" /> 1-Click Callback Outcome Simulator:
+                    <Activity size={13} color="#0071e3" /> 1-Click Callback Simulator & Vendor Test:
                   </div>
                   <button
                     type="button"
@@ -869,21 +911,225 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                 {simOutcome && (
                   <div style={{
                     marginTop: '10px',
-                    padding: '8px 10px',
-                    borderRadius: '8px',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
                     background: '#1d1d1f',
                     color: '#f5f5f7',
                     fontSize: '11px',
                     fontFamily: 'monospace'
                   }}>
                     <div style={{ color: '#38bdf8', fontWeight: 700 }}>
-                      [Simulation Result] Status: {simOutcome.statusRequested} ({simOutcome.statusLabel})
+                      [Simulation Output] Status: {simOutcome.statusRequested} ({simOutcome.statusLabel})
                     </div>
-                    <div style={{ color: '#a1a1a6', marginTop: '2px', wordBreak: 'break-all' }}>
+                    <div style={{ color: '#a1a1a6', marginTop: '3px', wordBreak: 'break-all' }}>
                       Redirect: {simOutcome.targetUrl}
+                    </div>
+                    <div style={{ marginTop: '8px', textAlign: 'right' }}>
+                      <a
+                        href={simOutcome.targetUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ color: '#38bdf8', textDecoration: 'none', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                      >
+                        Execute Vendor Redirect Test <ExternalLink size={11} />
+                      </a>
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* 5. STAGE 3: INTERACTIVE CLIENT SURVEY QUESTIONNAIRE RUNNER */}
+          {!evaluating && stage === 'active_survey' && (
+            <div className="apple-slide-question">
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#0071e3', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    {clientStudyQuestions[surveyQIndex]?.title}
+                  </span>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#86868b' }}>
+                    Question {surveyQIndex + 1} of {clientStudyQuestions.length}
+                  </span>
+                </div>
+
+                {/* Progress bar */}
+                <div style={{ height: '4px', background: '#e5e5ea', borderRadius: '980px', overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%',
+                    width: `${((surveyQIndex + 1) / clientStudyQuestions.length) * 100}%`,
+                    background: '#0071e3',
+                    transition: 'width 0.3s ease'
+                  }} />
+                </div>
+              </div>
+
+              <h2 style={{
+                fontSize: '17px',
+                fontWeight: 700,
+                color: '#1d1d1f',
+                lineHeight: 1.35,
+                marginBottom: '16px',
+                letterSpacing: '-0.015em'
+              }}>
+                {clientStudyQuestions[surveyQIndex]?.question}
+              </h2>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '22px' }}>
+                {clientStudyQuestions[surveyQIndex]?.options.map((option, idx) => {
+                  const isSelected = surveyAnswers[surveyQIndex] === idx;
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => handleSurveyAnswer(surveyQIndex, idx)}
+                      className="apple-btn-active"
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '14px',
+                        background: isSelected ? 'rgba(0, 113, 227, 0.05)' : '#ffffff',
+                        border: isSelected ? '2px solid #0071e3' : '1.5px solid #e5e5ea',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        fontSize: '13px',
+                        color: isSelected ? '#0071e3' : '#1d1d1f',
+                        fontWeight: isSelected ? 600 : 500,
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <span>{option}</span>
+                      <div style={{
+                        width: '18px',
+                        height: '18px',
+                        borderRadius: '50%',
+                        border: isSelected ? 'none' : '1.5px solid #d1d1d6',
+                        background: isSelected ? '#0071e3' : 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#ffffff'
+                      }}>
+                        {isSelected && <Check size={11} strokeWidth={3} />}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '16px' }}>
+                <button
+                  type="button"
+                  onClick={handleNextSurveyQ}
+                  disabled={surveyAnswers[surveyQIndex] === undefined}
+                  className="apple-btn-active"
+                  style={{
+                    background: surveyAnswers[surveyQIndex] !== undefined ? '#0071e3' : '#e5e5ea',
+                    color: surveyAnswers[surveyQIndex] !== undefined ? '#ffffff' : '#86868b',
+                    border: 'none',
+                    borderRadius: '980px',
+                    padding: '11px 26px',
+                    fontSize: '13.5px',
+                    fontWeight: 600,
+                    cursor: surveyAnswers[surveyQIndex] !== undefined ? 'pointer' : 'not-allowed',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: surveyAnswers[surveyQIndex] !== undefined ? '0 6px 18px rgba(0, 113, 227, 0.3)' : 'none'
+                  }}
+                >
+                  {surveyQIndex < clientStudyQuestions.length - 1 ? (
+                    <>Next Question <ArrowRight size={14} /></>
+                  ) : (
+                    <>Submit & Finish Study <Check size={14} /></>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 6. STAGE 4: SURVEY FINISHED -> VENDOR CALLBACK RETURN */}
+          {!evaluating && stage === 'survey_finished' && (
+            <div style={{ textAlign: 'center', padding: '16px 8px' }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '980px',
+                background: 'rgba(52, 199, 89, 0.12)',
+                color: '#34c759',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '14px',
+                animation: 'appleSuccessPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)'
+              }}>
+                <Check size={32} strokeWidth={3} />
+              </div>
+
+              <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#1d1d1f', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
+                Survey Session Completed!
+              </h3>
+              <p style={{ fontSize: '13px', color: '#86868b', margin: '0 0 20px 0' }}>
+                Your responses have been successfully recorded and cryptographically signed.
+              </p>
+
+              {/* Vendor Callback Card */}
+              <div style={{
+                background: '#f5f5f7',
+                borderRadius: '16px',
+                padding: '16px',
+                marginBottom: '20px',
+                textAlign: 'left',
+                border: '1px solid rgba(0, 0, 0, 0.04)'
+              }}>
+                <div style={{ fontSize: '11px', color: '#34c759', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
+                  Verified Complete (Status: 10 / Success)
+                </div>
+                <div style={{ fontSize: '12px', color: '#1d1d1f', wordBreak: 'break-all', fontFamily: 'monospace', background: '#ffffff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5ea', marginTop: '6px' }}>
+                  {getVendorRedirectUrl(1)}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                <a
+                  href={getVendorRedirectUrl(1)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="apple-btn-active"
+                  style={{
+                    background: '#0071e3',
+                    color: '#ffffff',
+                    padding: '12px 28px',
+                    borderRadius: '980px',
+                    textDecoration: 'none',
+                    fontSize: '13.5px',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 6px 20px rgba(0, 113, 227, 0.35)'
+                  }}
+                >
+                  Return to Panel Partner <ExternalLink size={13} />
+                </a>
+
+                <button
+                  type="button"
+                  onClick={handleResetForTesting}
+                  className="apple-btn-active"
+                  style={{
+                    background: '#ffffff',
+                    color: '#1d1d1f',
+                    border: '1.5px solid #e5e5ea',
+                    padding: '12px 20px',
+                    borderRadius: '980px',
+                    fontSize: '13.5px',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Test Again
+                </button>
               </div>
             </div>
           )}
