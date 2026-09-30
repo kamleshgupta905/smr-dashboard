@@ -930,6 +930,7 @@ export const createProject = async (data) => {
   try {
     await api.post('/manage/projects', data);
   } catch {}
+  GoogleSheetAPI.syncToSheet('addProject', created);
   return { success: true, data: created };
 };
 
@@ -974,6 +975,7 @@ export const createVendor = async (data) => {
   try {
     await api.post('/manage/vendors', data);
   } catch {}
+  GoogleSheetAPI.syncToSheet('addVendor', created);
   return { success: true, data: created };
 };
 
@@ -1036,6 +1038,7 @@ export const createClient = async (data) => {
   try {
     await api.post('/clients', data);
   } catch {}
+  GoogleSheetAPI.syncToSheet('addClient', created);
   return { success: true, data: created };
 };
 
@@ -1145,6 +1148,15 @@ export const simulateTestRouting = async (payload) => {
   const statusLabel = labels[statusNumber] || 'Complete';
   const targetUrl = `https://cluster.marketxcel.co.in/survey/thankyou?status=${statusNumber}&auth=1&uid=${payload?.testUid || 'TEST_USER_99'}&hash=b4a5d89f4172c1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b89`;
   
+  // Asynchronously record routing test activity in Google Sheet if connected
+  GoogleSheetAPI.syncToSheet('logActivity', {
+    eventType: 'TEST_ROUTING_SIMULATION',
+    projectId: payload?.projectId || '2042481293',
+    vendorId: payload?.vendorId || 'VND-DYN-01',
+    statusLabel: `${statusNumber} (${statusLabel})`,
+    details: targetUrl
+  });
+
   return {
     success: true,
     statusCode: 200,
@@ -1258,6 +1270,7 @@ export const createUser = async (data) => {
   try {
     await api.post('/manage/users', data);
   } catch {}
+  GoogleSheetAPI.syncToSheet('addUser', created);
   return { success: true, data: created };
 };
 
@@ -1270,6 +1283,71 @@ export const deleteUser = async (id) => {
     await api.post(`/manage/users/delete/${id}`);
   } catch {}
   return { success: true };
+};
+
+// Google Sheets Database Connector API
+export const GoogleSheetAPI = {
+  getScriptUrl: () => {
+    try {
+      return localStorage.getItem('smr_google_script_url') || '';
+    } catch {
+      return '';
+    }
+  },
+  setScriptUrl: (url) => {
+    try {
+      localStorage.setItem('smr_google_script_url', (url || '').trim());
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  testConnection: async (url) => {
+    const targetUrl = url || GoogleSheetAPI.getScriptUrl();
+    if (!targetUrl) throw new Error('Google Apps Script Web App URL is required');
+    const res = await fetch(targetUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'testConnection' })
+    });
+    return await res.json();
+  },
+  syncToSheet: async (action, data) => {
+    const url = GoogleSheetAPI.getScriptUrl();
+    if (!url) return null;
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action, data, timestamp: new Date().toISOString() })
+      });
+      return await res.json();
+    } catch (e) {
+      console.warn('Google Sheet background sync notice:', e);
+      return null;
+    }
+  },
+  syncAllData: async () => {
+    const url = GoogleSheetAPI.getScriptUrl();
+    if (!url) throw new Error('Please configure and connect your Google Apps Script URL first.');
+    const clients = await getClients();
+    const vendorsRes = await getVendors();
+    const projectsRes = await getProjects();
+    const usersRes = await getUsers();
+    
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'syncAll',
+        clients: clients,
+        vendors: vendorsRes.data || [],
+        projects: projectsRes.data || [],
+        users: usersRes.data || []
+      })
+    });
+    return await res.json();
+  }
 };
 
 // Object-style exports for components expecting ZampliaAPI or ManagementAPI

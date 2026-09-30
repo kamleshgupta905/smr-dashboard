@@ -14,6 +14,7 @@ import UserManagementPage from './pages/UserManagementPage';
 import QuotasModal from './components/QuotasModal';
 import QualsModal from './components/QualsModal';
 import AssignVendorModal from './components/AssignVendorModal';
+import GoogleSheetModal from './components/GoogleSheetModal';
 import LoginPage from './components/LoginPage';
 import { normalizeSurveys } from './utils/normalize';
 import { CheckCircle2, AlertTriangle, X } from 'lucide-react';
@@ -31,6 +32,7 @@ export default function App() {
   const [syncing, setSyncing] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showGoogleSheetModal, setShowGoogleSheetModal] = useState(false);
   const [toast, setToast] = useState(null);
 
   const handleToggleSidebar = () => {
@@ -170,6 +172,7 @@ export default function App() {
         onLogout={handleLogout}
         globalSearch={globalSearch}
         onGlobalSearch={setGlobalSearch}
+        onOpenGoogleSheet={() => setShowGoogleSheetModal(true)}
         onOpenProfile={() => { setActiveTab('users'); showToast('Super Admin profile — manage team in User Roles (RBAC).', 'info'); }}
         onOpenSettings={() => { setActiveTab('security'); showToast('Security & Fraud policy settings opened.', 'info'); }}
       />
@@ -278,6 +281,14 @@ export default function App() {
           />
         );
       })()}
+
+      {/* Google Sheets Connector Modal */}
+      {showGoogleSheetModal && (
+        <GoogleSheetModal 
+          isOpen={showGoogleSheetModal} 
+          onClose={() => setShowGoogleSheetModal(false)} 
+        />
+      )}
 
       {/* Toast Alert Notification */}
       {toast && (

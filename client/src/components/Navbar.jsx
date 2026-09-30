@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, RefreshCw, Search, Bell, User, Settings, LogOut, CheckCircle2, Zap, ShieldAlert } from 'lucide-react';
+import { Menu, RefreshCw, Search, Bell, User, Settings, LogOut, CheckCircle2, Zap, ShieldAlert, FileSpreadsheet } from 'lucide-react';
 
 export default function Navbar({
   onToggleSidebar,
@@ -11,6 +11,7 @@ export default function Navbar({
   surveyCount,
   onOpenProfile,
   onOpenSettings,
+  onOpenGoogleSheet,
   globalSearch,
   onGlobalSearch,
 }) {
@@ -118,6 +119,38 @@ export default function Navbar({
           >
             <RefreshCw size={13} className={syncing ? 'sync-spin' : ''} />
             <span>{syncing ? 'Syncing...' : 'Sync Zamplia'}</span>
+          </button>
+        )}
+
+        {/* Google Sheet Connector Button */}
+        {onOpenGoogleSheet && (
+          <button
+            type="button"
+            onClick={onOpenGoogleSheet}
+            title="Link Google Sheet via Google Apps Script (Auto Database)"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              background: '#ecfdf5',
+              color: '#065f46',
+              border: '1px solid #a7f3d0',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              marginLeft: '8px'
+            }}
+          >
+            <FileSpreadsheet size={14} color="#059669" />
+            <span>Google Sheet</span>
+            <span style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: '#10b981'
+            }} />
           </button>
         )}
       </div>
