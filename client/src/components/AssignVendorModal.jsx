@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { X, Link2, Copy, Check, Share2, Play, ShieldAlert, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
+import { X, Link2, Copy, Check, Share2, Play, ShieldAlert, CheckCircle2, AlertTriangle, Info, ExternalLink, ShieldCheck } from 'lucide-react';
 import { getVendors, DEFAULT_VENDORS, RouterAPI } from '../services/api';
 import ModalPortal from './ModalPortal';
 
-export default function AssignVendorModal({ survey, surveyId, onClose }) {
+export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPreScreener }) {
   const [vendors, setVendors] = useState(DEFAULT_VENDORS);
   const [selectedVendor, setSelectedVendor] = useState('VND-DYN-01');
   const [loading, setLoading] = useState(false);
@@ -281,7 +281,26 @@ export default function AssignVendorModal({ survey, surveyId, onClose }) {
                   >
                     {copiedTest ? <Check size={16} color="#16A34A" /> : <Copy size={16} />}
                   </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => {
+                      if (onOpenPreScreener) {
+                        onOpenPreScreener({ vendorId: selectedVendor, projectId: currentId, uid: `TEST_${selectedVendor}_VERIFY` });
+                      } else {
+                        window.open(testLink, '_blank');
+                      }
+                    }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', whiteSpace: 'nowrap', padding: '0 12px' }}
+                    title="Launch Pre-Screener & Fraud Gate Test"
+                  >
+                    <ExternalLink size={13} /> Test Pre-Screener
+                  </button>
                 </div>
+                <p style={{ margin: '6px 0 0 0', fontSize: '11.5px', color: '#1E40AF' }}>
+                  <ShieldCheck size={12} style={{ display: 'inline', marginRight: '4px' }} />
+                  Safe sandbox link — launches live Pre-Screener qualification & device fraud screening without consuming quota.
+                </p>
               </div>
 
               {/* 1-Click Interactive Test Simulator */}

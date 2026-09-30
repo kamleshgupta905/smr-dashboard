@@ -15,6 +15,7 @@ import QuotasModal from './components/QuotasModal';
 import QualsModal from './components/QualsModal';
 import AssignVendorModal from './components/AssignVendorModal';
 import GoogleSheetModal from './components/GoogleSheetModal';
+import PreScreenerGate from './components/PreScreenerGate';
 import LoginPage from './components/LoginPage';
 import { normalizeSurveys } from './utils/normalize';
 import { CheckCircle2, AlertTriangle, X } from 'lucide-react';
@@ -136,11 +137,27 @@ export default function App() {
     reference: 'Reference Catalogs & Taxonomies'
   };
 
+  // Test Pre-Screener Modal State for Admin Testing
+  const [testPreScreener, setTestPreScreener] = useState(null);
+
   const handleLogout = () => {
     localStorage.removeItem('smr_auth_token');
     localStorage.removeItem('smr_auth_user');
     setIsAuthenticated(false);
   };
+
+  // 1. Direct Inbound Vendor Router & Pre-Screener Gate (Public, No Login Required)
+  const currentPath = window.location.pathname;
+  if (currentPath.includes('/vendor/auth/')) {
+    const parts = currentPath.split('/');
+    const authIdx = parts.indexOf('auth');
+    const vendorId = authIdx !== -1 && parts[authIdx + 1] ? parts[authIdx + 1] : 'VND-DYN-01';
+    const projIdx = parts.indexOf('project');
+    const projectId = projIdx !== -1 && parts[projIdx + 1] ? parts[projIdx + 1] : '2042481293';
+    const params = new URLSearchParams(window.location.search);
+    const uid = params.get('uid') || params.get('rid') || params.get('transaction_id') || `PANEL_${Date.now().toString().slice(-4)}`;
+    return <PreScreenerGate vendorId={vendorId} projectId={projectId} uid={uid} />;
+  }
 
   if (!isAuthenticated) {
     return <LoginPage onLogin={() => {
@@ -195,7 +212,7 @@ export default function App() {
 
           {activeTab === 'users' && <UserManagementPage />}
           {activeTab === 'clients' && <ClientsPage />}
-          {activeTab === 'security' && <SecurityFraudPage />}
+          {activeTab === 'security' && <SecurityFraudPage onLaunchPreScreener={(data) => setTestPreScreener(data)} />}
           {activeTab === 'developer-center' && <ApiDeveloperCenterPage />}
 
           {activeTab === 'surveys' && (
@@ -278,9 +295,51 @@ export default function App() {
             survey={resolved}
             surveyId={resolvedId} 
             onClose={() => setAssignModalId(null)} 
+            onOpenPreScreener={(data) => setTestPreScreener(data)}
           />
         );
       })()}
+
+      {/* Test Pre-Screener Live Modal */}
+      {testPreScreener && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 99999,
+          background: 'rgba(0, 0, 0, 0.85)',
+          overflowY: 'auto'
+        }}>
+          <button
+            onClick={() => setTestPreScreener(null)}
+            style={{
+              position: 'fixed',
+              top: '16px',
+              right: '24px',
+              background: '#FFFFFF',
+              color: '#0F172A',
+              border: 'none',
+              borderRadius: '50%',
+              width: '38px',
+              height: '38px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.4)',
+              zIndex: 100000
+            }}
+            title="Close Pre-Screener Test"
+          >
+            <X size={20} />
+          </button>
+          <PreScreenerGate
+            vendorId={testPreScreener.vendorId || 'VND-DYN-01'}
+            projectId={testPreScreener.projectId || '2042481293'}
+            uid={testPreScreener.uid || `TEST_${Date.now().toString().slice(-4)}`}
+            onComplete={() => setTestPreScreener(null)}
+          />
+        </div>
+      )}
 
       {/* Google Sheets Connector Modal */}
       {showGoogleSheetModal && (

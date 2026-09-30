@@ -1,8 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Smartphone, Monitor, Tablet, CheckCircle, AlertOctagon, Save, RefreshCw, Eye, Lock, Globe, Cpu } from 'lucide-react';
+import { 
+  Shield, 
+  Smartphone, 
+  Monitor, 
+  Tablet, 
+  CheckCircle, 
+  AlertOctagon, 
+  Save, 
+  RefreshCw, 
+  Eye, 
+  Lock, 
+  Globe, 
+  Cpu, 
+  ShieldCheck, 
+  ArrowRight, 
+  ExternalLink, 
+  AlertTriangle, 
+  Play, 
+  Sparkles 
+} from 'lucide-react';
 import { SecurityAPI } from '../services/api';
 
-export default function SecurityFraudPage() {
+export default function SecurityFraudPage({ onLaunchPreScreener }) {
   const [policy, setPolicy] = useState({
     preScreenEnabled: true,
     dynamicThanksUrl: true,
@@ -31,6 +50,12 @@ export default function SecurityFraudPage() {
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  // Live Fraud Policy Simulation State
+  const [simDevice, setSimDevice] = useState('mobile');
+  const [simUserType, setSimUserType] = useState('human');
+  const [simDurationSeconds, setSimDurationSeconds] = useState(45);
+  const [simTestOutput, setSimTestOutput] = useState(null);
+
   useEffect(() => {
     SecurityAPI.getPolicy()
       .then((data) => {
@@ -56,6 +81,87 @@ export default function SecurityFraudPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const runLivePolicyEvaluation = () => {
+    // 1. Device check
+    if (simDevice === 'mobile' && policy.allowMobile === false) {
+      setSimTestOutput({
+        verdict: 'BLOCKED',
+        statusCode: 2,
+        reason: 'Device Policy Violation: Mobile device access is disabled in active policy.',
+        color: '#EF4444',
+        rule: 'Device Compatibility Filter'
+      });
+      return;
+    }
+    if (simDevice === 'desktop' && policy.allowDesktop === false) {
+      setSimTestOutput({
+        verdict: 'BLOCKED',
+        statusCode: 2,
+        reason: 'Device Policy Violation: Desktop access is disabled in active policy.',
+        color: '#EF4444',
+        rule: 'Device Compatibility Filter'
+      });
+      return;
+    }
+    if (simDevice === 'tablet' && policy.allowTablet === false) {
+      setSimTestOutput({
+        verdict: 'BLOCKED',
+        statusCode: 2,
+        reason: 'Device Policy Violation: Tablet access is disabled in active policy.',
+        color: '#EF4444',
+        rule: 'Device Compatibility Filter'
+      });
+      return;
+    }
+
+    // 2. Bot / Crawler check
+    if (simUserType === 'bot' && policy.botProtection !== false) {
+      setSimTestOutput({
+        verdict: 'BLOCKED',
+        statusCode: 4,
+        reason: 'Security Threat Detected: Headless crawler / automated bot script blocked by Bot Protection Engine.',
+        color: '#DC2626',
+        rule: 'Bot Protection Suite'
+      });
+      return;
+    }
+
+    // 3. Speeder check (e.g. 10 min LOI -> min 180s)
+    const loiMin = 10;
+    const minThreshold = (loiMin * 60) * (policy.speederThresholdPercent || 0.3);
+    if (policy.speederCheck !== false && simDurationSeconds < minThreshold) {
+      setSimTestOutput({
+        verdict: 'FLAGGED_SPEEDER',
+        statusCode: 4,
+        reason: `Speeder Quality Violation: Session duration (${simDurationSeconds}s) is below 30% of stated LOI (${minThreshold}s). Flagged as Security Terminate.`,
+        color: '#F59E0B',
+        rule: 'Speeder Detection Engine'
+      });
+      return;
+    }
+
+    // 4. Pre-Screening match
+    if (policy.preScreenEnabled !== false) {
+      setSimTestOutput({
+        verdict: 'PRE_SCREEN_REQUIRED',
+        statusCode: 1,
+        reason: 'Pre-Click Safeguards Passed! Respondent forwarded to demographic Pre-Screener questionnaire before client survey.',
+        color: '#2563EB',
+        rule: 'Pre-Screen Gate Active'
+      });
+      return;
+    }
+
+    // 5. Complete Pass
+    setSimTestOutput({
+      verdict: 'PASSED_DIRECT',
+      statusCode: 1,
+      reason: 'All active security & fraud safeguards satisfied! Direct survey access granted with SHA3-256 signature.',
+      color: '#10B981',
+      rule: 'Direct Inbound Access'
+    });
   };
 
   const ToggleSwitch = ({ checked, onChange, label, description }) => (
@@ -135,7 +241,16 @@ export default function SecurityFraudPage() {
           </div>
         </div>
 
-        <div className="title-box-actions">
+        <div className="title-box-actions" style={{ display: 'flex', gap: '10px' }}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => onLaunchPreScreener && onLaunchPreScreener({ vendorId: 'VND-DYN-01', projectId: '2042481293', uid: 'TEST_PRESCREEN_GATE' })}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px', borderRadius: '4px' }}
+          >
+            <ExternalLink size={14} /> Launch Pre-Screener Live Gate
+          </button>
+
           <button
             className="btn btn-primary"
             onClick={handleSave}
@@ -285,6 +400,142 @@ export default function SecurityFraudPage() {
               checked={policy.allowTablet}
               onChange={() => handleToggle('allowTablet')}
             />
+          </div>
+        </div>
+
+        {/* Section 5: Interactive Live Fraud Policy Rule Evaluator & Simulator */}
+        <div className="report-card" style={{ gridColumn: '1 / -1', margin: 0, padding: 0, border: '1px solid #CBD5E1' }}>
+          <div className="report-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ShieldCheck size={18} color="#16A34A" />
+              <h4 className="report-card-title" style={{ margin: 0 }}>
+                Live Fraud Screening Engine Tester & Rule Evaluation
+              </h4>
+            </div>
+            <span className="badge-soft-success" style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+              Live Rule Engine Active
+            </span>
+          </div>
+          <div style={{ padding: '20px' }}>
+            <p style={{ fontSize: '12.5px', color: '#64748B', margin: '0 0 16px 0' }}>
+              Test how the SMR Fraud Screening Engine evaluates inbound panel traffic based on your configured switches in real time:
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px' }}>
+                  Simulated Visitor Device:
+                </label>
+                <select
+                  value={simDevice}
+                  onChange={(e) => setSimDevice(e.target.value)}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '12.5px' }}
+                >
+                  <option value="mobile">📱 Mobile Smartphone</option>
+                  <option value="desktop">🖥️ Desktop / Laptop</option>
+                  <option value="tablet">📟 Tablet</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px' }}>
+                  Visitor Client Signature:
+                </label>
+                <select
+                  value={simUserType}
+                  onChange={(e) => setSimUserType(e.target.value)}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '12.5px' }}
+                >
+                  <option value="human">👤 Real Human User (Normal Browser)</option>
+                  <option value="bot">🤖 Automated Headless Bot (Crawler / Script)</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px' }}>
+                  Session Duration (LOI: 10m):
+                </label>
+                <select
+                  value={simDurationSeconds}
+                  onChange={(e) => setSimDurationSeconds(Number(e.target.value))}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '12.5px' }}
+                >
+                  <option value={45}>⚡ 45 Seconds (Speeder Check Alert)</option>
+                  <option value={120}>⏱️ 2 Minutes (Marginal)</option>
+                  <option value={480}>✅ 8 Minutes (Normal Completion)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
+              <button
+                type="button"
+                onClick={runLivePolicyEvaluation}
+                style={{
+                  background: '#0F172A',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  padding: '9px 18px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Play size={14} /> Run Live Policy Evaluation
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onLaunchPreScreener && onLaunchPreScreener({ vendorId: 'VND-DYN-01', projectId: '2042481293', uid: 'TEST_LIVE_GATE' })}
+                style={{
+                  background: '#16A34A',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  padding: '9px 18px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Sparkles size={14} /> Launch Pre-Screener Live Questionnaire
+              </button>
+            </div>
+
+            {/* Test Output Card */}
+            {simTestOutput && (
+              <div style={{
+                background: '#0F172A',
+                borderLeft: `4px solid ${simTestOutput.color}`,
+                borderRadius: '8px',
+                padding: '16px',
+                color: '#FFFFFF'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 800, color: simTestOutput.color }}>
+                      EVALUATION RESULT: {simTestOutput.verdict}
+                    </span>
+                    <span style={{ background: 'rgba(255,255,255,0.15)', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>
+                      Status Code: {simTestOutput.statusCode}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '11px', color: '#94A3B8' }}>
+                    Triggered Rule: {simTestOutput.rule}
+                  </span>
+                </div>
+                <div style={{ fontSize: '12.5px', color: '#E2E8F0', lineHeight: 1.5 }}>
+                  {simTestOutput.reason}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
