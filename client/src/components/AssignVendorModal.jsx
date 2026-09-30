@@ -49,7 +49,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose }) {
     const id = currentId || '2042481293';
     const host = window.location.origin.replace(':3000', ':5000');
     setLiveLink(`${host}/vendor/auth/${v}/project/${id}?uid=[RESPONDENT_ID]`);
-    setTestLink(`${host}/vendor/auth/${v}/project/${id}?uid=TEST_${v}_DEMO`);
+    setTestLink(`${host}/vendor/auth/${v}/project/${id}?uid=TEST_${v}_VERIFY`);
   }, [selectedVendor, currentId]);
 
   const handleGenerate = (e) => {
@@ -60,7 +60,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose }) {
     const host = window.location.origin.replace(':3000', ':5000');
     const v = selectedVendor || 'VND-DYN-01';
     const generatedLive = `${host}/vendor/auth/${v}/project/${currentId}?uid=[RESPONDENT_ID]`;
-    const generatedTest = `${host}/vendor/auth/${v}/project/${currentId}?uid=TEST_${v}_DEMO`;
+    const generatedTest = `${host}/vendor/auth/${v}/project/${currentId}?uid=TEST_${v}_VERIFY`;
 
     setTimeout(() => {
       setLiveLink(generatedLive);
@@ -174,7 +174,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose }) {
           {/* Vendor Selection */}
           <div style={{ marginBottom: '18px' }}>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px', color: '#0F172A' }}>
-              Select Sample Vendor / Panel Partner:
+              Select Panel Partner / Vendor:
             </label>
             <div style={{ display: 'flex', gap: '10px' }}>
               <select
@@ -185,9 +185,8 @@ export default function AssignVendorModal({ survey, surveyId, onClose }) {
               >
                 {vendors.length === 0 ? (
                   <>
-                    <option value="SAMPLE_VENDOR_1">Default Sample Vendor (VND-DEMO-01)</option>
-                    <option value="DYNATA_PANEL">Dynata Global Audience (DYNATA-01)</option>
-                    <option value="CINT_EXCHANGE">Cint Access Panel (CINT-02)</option>
+                    <option value="VND-DYN-01">Dynata Global Panel (VND-DYN-01)</option>
+                    <option value="VND-CNT-02">Cint Audience Exchange (VND-CNT-02)</option>
                   </>
                 ) : (
                   vendors.map((v) => (

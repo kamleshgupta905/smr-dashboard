@@ -1072,7 +1072,7 @@ export const testS2sCallback = (payload) =>
       result: {
         status: 'SUCCESS_200_OK',
         event: 'S2S_RESPONDENT_STATUS_CALLBACK',
-        respondentId: payload?.respondentId || `RESP_DEMO_${Date.now().toString().slice(-4)}`,
+        respondentId: payload?.respondentId || `RESP_PANELIST_${Date.now().toString().slice(-4)}`,
         callbackStatus: 'DELIVERED',
         dispatchedEndpoint: 'https://api.marketxcel.co.in/webservices/callback/updateRespondentStatus',
         latency: '118ms',

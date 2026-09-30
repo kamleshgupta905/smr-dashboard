@@ -423,10 +423,10 @@ export default async function handler(req, res) {
         success: true,
         algorithm: 'SHA3-256',
         status: 'VERIFIED_SECURE',
-        originalUrl: 'https://client-ten-lyart-71.vercel.app/redirects/c/MX_DEMAND/complete?rid=RESP_DEMO_99',
+        originalUrl: 'https://client-ten-lyart-71.vercel.app/redirects/c/MX_DEMAND/complete?rid=RESP_PANELIST_99',
         secretKeyMasked: 'mx_secret_sha3_key_****',
         generatedSignature: 'b4a5d89f4172c1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b89',
-        signedUrl: 'https://client-ten-lyart-71.vercel.app/redirects/c/MX_DEMAND/complete?rid=RESP_DEMO_99&hash=b4a5d89f4172c1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b89',
+        signedUrl: 'https://client-ten-lyart-71.vercel.app/redirects/c/MX_DEMAND/complete?rid=RESP_PANELIST_99&hash=b4a5d89f4172c1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b89',
         antiTamperCheck: 'PASSED (Cryptographic Checksum Matches)'
       });
     }
