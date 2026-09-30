@@ -23,19 +23,47 @@ import {
 } from 'lucide-react';
 import { getSecurityPolicy, DEFAULT_SURVEYS, getVendors, RouterAPI } from '../services/api';
 
-// Curated Master Question Pool for Pre-Screener
-// Symmetrical typography, balanced text lengths (~55 chars for question, ~25 chars for options)
-const QUESTION_BANK = [
+// Fixed Demographics Question 1: Age
+const FIXED_AGE_QUESTION = {
+  id: 'screener_age_bracket',
+  category: 'Demographics & Age Profiling',
+  question: 'Which age bracket accurately represents your current age?',
+  subtitle: 'Select your age range to confirm demographic quota eligibility',
+  options: [
+    { id: 'age_18_24', text: '18 to 24 years of age', code: 'A' },
+    { id: 'age_25_34', text: '25 to 34 years of age', code: 'B' },
+    { id: 'age_35_44', text: '35 to 44 years of age', code: 'C' },
+    { id: 'age_45_54', text: '45 to 54 years of age', code: 'D' },
+    { id: 'age_55_plus', text: '55 years of age or older', code: 'E' }
+  ]
+};
+
+// Fixed Demographics Question 2: Gender
+const FIXED_GENDER_QUESTION = {
+  id: 'screener_gender_identity',
+  category: 'Demographics & Gender Identity',
+  question: 'What is your current gender identity for study quota balance?',
+  subtitle: 'Select the option that best reflects your gender identity',
+  options: [
+    { id: 'gen_female', text: 'Female (Woman)', code: 'A' },
+    { id: 'gen_male', text: 'Male (Man)', code: 'B' },
+    { id: 'gen_nonbinary', text: 'Non-binary or diverse', code: 'C' },
+    { id: 'gen_decline', text: 'Prefer not to disclose', code: 'D' }
+  ]
+};
+
+// Curated Rotating Pool for Question 3 (Switches dynamically every session)
+const ROTATING_BASIC_POOL = [
   {
-    id: 'tech_platform',
-    category: 'Technology Ecosystem',
-    question: 'Which primary operating system do you use most frequently?',
-    subtitle: 'Select the primary platform for your daily computing needs',
+    id: 'employment_status',
+    category: 'Professional Background',
+    question: 'Which category best reflects your current employment state?',
+    subtitle: 'Select the classification matching your primary work commitment',
     options: [
-      { id: 'opt_apple', text: 'Apple iOS & macOS ecosystem', code: 'A' },
-      { id: 'opt_android', text: 'Google Android & ChromeOS', code: 'B' },
-      { id: 'opt_windows', text: 'Microsoft Windows system', code: 'C' },
-      { id: 'opt_linux', text: 'Linux open-source desktop', code: 'D' }
+      { id: 'opt_full_time', text: 'Full-time salaried worker', code: 'A' },
+      { id: 'opt_business_owner', text: 'Self-employed firm owner', code: 'B' },
+      { id: 'opt_part_time', text: 'Part-time contract worker', code: 'C' },
+      { id: 'opt_student', text: 'Current university student', code: 'D' }
     ]
   },
   {
@@ -51,15 +79,15 @@ const QUESTION_BANK = [
     ]
   },
   {
-    id: 'streaming_media',
-    category: 'Media & Entertainment',
-    question: 'Which digital streaming service do you watch most often?',
-    subtitle: 'Choose your main digital entertainment and video provider',
+    id: 'tech_platform',
+    category: 'Technology Ecosystem',
+    question: 'Which primary operating system do you use most frequently?',
+    subtitle: 'Select the primary platform for your daily computing needs',
     options: [
-      { id: 'opt_netflix', text: 'Netflix & Prime Video apps', code: 'A' },
-      { id: 'opt_disney', text: 'Disney+ & Apple TV+ apps', code: 'B' },
-      { id: 'opt_youtube', text: 'YouTube Premium & Music', code: 'C' },
-      { id: 'opt_none_stream', text: 'Do not use streaming apps', code: 'D' }
+      { id: 'opt_apple', text: 'Apple iOS & macOS ecosystem', code: 'A' },
+      { id: 'opt_android', text: 'Google Android & ChromeOS', code: 'B' },
+      { id: 'opt_windows', text: 'Microsoft Windows system', code: 'C' },
+      { id: 'opt_linux', text: 'Linux open-source desktop', code: 'D' }
     ]
   },
   {
@@ -75,15 +103,15 @@ const QUESTION_BANK = [
     ]
   },
   {
-    id: 'employment_status',
-    category: 'Professional Background',
-    question: 'Which category best reflects your current employment state?',
-    subtitle: 'Select the classification matching your primary work commitment',
+    id: 'streaming_media',
+    category: 'Media & Entertainment',
+    question: 'Which digital streaming service do you watch most often?',
+    subtitle: 'Choose your main digital entertainment and video provider',
     options: [
-      { id: 'opt_full_time', text: 'Full-time salaried worker', code: 'A' },
-      { id: 'opt_business_owner', text: 'Self-employed firm owner', code: 'B' },
-      { id: 'opt_part_time', text: 'Part-time contract worker', code: 'C' },
-      { id: 'opt_student', text: 'Current university student', code: 'D' }
+      { id: 'opt_netflix', text: 'Netflix & Prime Video apps', code: 'A' },
+      { id: 'opt_disney', text: 'Disney+ & Apple TV+ apps', code: 'B' },
+      { id: 'opt_youtube', text: 'YouTube Premium & Music', code: 'C' },
+      { id: 'opt_none_stream', text: 'Do not use streaming apps', code: 'D' }
     ]
   },
   {
@@ -135,9 +163,9 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
   const [surveyInfo, setSurveyInfo] = useState(null);
   const [vendorInfo, setVendorInfo] = useState(null);
 
-  // Dynamic 2-Question Pre-Screener
+  // Dynamic 3-Question Pre-Screener (Question 1 = Age [Fixed], Question 2 = Gender [Fixed], Question 3 = Rotating Basic Question)
   const [selectedQuestions, setSelectedQuestions] = useState([]);
-  const [currentStep, setCurrentStep] = useState(0); // 0 = Question 1, 1 = Question 2
+  const [currentStep, setCurrentStep] = useState(0); // 0 = Age, 1 = Gender, 2 = Rotating Basic
   const [answers, setAnswers] = useState({}); // { [questionId]: optionId }
 
   // App Stages: 'prescreener' | 'passed_overview' | 'active_survey' | 'survey_finished'
@@ -150,14 +178,15 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
   const [surveyAnswers, setSurveyAnswers] = useState({});
   const [simOutcome, setSimOutcome] = useState(null);
 
-  // Randomly pick exactly 2 distinct questions from the pool
-  const pickRandomTwoQuestions = () => {
-    const shuffled = [...QUESTION_BANK].sort(() => 0.5 - Math.random());
-    return [shuffled[0], shuffled[1]];
+  // Generates exactly 3 questions: Age (fixed) + Gender (fixed) + 1 dynamic basic question
+  const pickThreeQuestions = () => {
+    const randomIndex = Math.floor(Math.random() * ROTATING_BASIC_POOL.length);
+    const rotatingQ = ROTATING_BASIC_POOL[randomIndex];
+    return [FIXED_AGE_QUESTION, FIXED_GENDER_QUESTION, rotatingQ];
   };
 
   useEffect(() => {
-    setSelectedQuestions(pickRandomTwoQuestions());
+    setSelectedQuestions(pickThreeQuestions());
   }, [projectId, vendorId]);
 
   useEffect(() => {
@@ -263,8 +292,8 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
 
   const handleNextPreScreen = () => {
     if (!currentAnswer) return;
-    if (currentStep === 0) {
-      setCurrentStep(1);
+    if (currentStep < 2) {
+      setCurrentStep(prev => prev + 1);
     } else {
       setIsSubmitting(true);
       setTimeout(() => {
@@ -276,13 +305,13 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
   };
 
   const handlePrevPreScreen = () => {
-    if (currentStep === 1) {
-      setCurrentStep(0);
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
     }
   };
 
   const handleResetForTesting = () => {
-    setSelectedQuestions(pickRandomTwoQuestions());
+    setSelectedQuestions(pickThreeQuestions());
     setAnswers({});
     setCurrentStep(0);
     setStage('prescreener');
@@ -568,18 +597,18 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
           {/* 3. STAGE 1: DYNAMIC 2-QUESTION PRE-SCREENER */}
           {!evaluating && evalStatus === 'passed' && stage === 'prescreener' && selectedQuestions.length > 0 && currentQ && (
             <div>
-              {/* Apple Segmented 2-Step Progress Track */}
+              {/* Apple Segmented 3-Step Progress Track */}
               <div style={{ marginBottom: '22px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#0071e3', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     {currentQ.category}
                   </span>
                   <span style={{ fontSize: '12px', fontWeight: 600, color: '#86868b' }}>
-                    Question {currentStep + 1} of 2
+                    Question {currentStep + 1} of 3
                   </span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                   <div style={{
                     height: '5px',
                     borderRadius: '980px',
@@ -590,6 +619,12 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                     height: '5px',
                     borderRadius: '980px',
                     background: currentStep >= 1 ? '#0071e3' : '#e5e5ea',
+                    transition: 'background 0.35s ease'
+                  }} />
+                  <div style={{
+                    height: '5px',
+                    borderRadius: '980px',
+                    background: currentStep >= 2 ? '#0071e3' : '#e5e5ea',
                     transition: 'background 0.35s ease'
                   }} />
                 </div>
@@ -748,7 +783,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                 >
                   {isSubmitting ? (
                     'Evaluating...'
-                  ) : currentStep === 0 ? (
+                  ) : currentStep < 2 ? (
                     <>Next Question <ArrowRight size={14} /></>
                   ) : (
                     <>Submit & Proceed <Check size={14} /></>

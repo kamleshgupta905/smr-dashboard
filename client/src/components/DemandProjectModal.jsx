@@ -3,7 +3,7 @@ import {
   X, Check, Calculator, Send, AlertCircle, CheckCircle2, 
   DollarSign, Clock, Target, Globe, Layers, Sparkles, RefreshCw 
 } from 'lucide-react';
-import { createDemandProject, getDemandFeasibility } from '../services/api';
+import { createDemandProject, getDemandFeasibility, GoogleSheetAPI } from '../services/api';
 import ModalPortal from './ModalPortal';
 
 export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
@@ -54,6 +54,19 @@ export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
       const res = await createDemandProject(formData);
       const project = res.data || res;
       setCreatedProject(project);
+      try {
+        GoogleSheetAPI.syncToSheet('logActivity', {
+          eventType: 'DEMAND_STUDY_CREATED',
+          projectId: project.ProjectId || project.surveyId,
+          projectName: formData.ProjectName,
+          cpi: formData.CPI,
+          loi: formData.LOI,
+          ir: formData.IR,
+          completes: formData.TotalCompleteRequired
+        });
+      } catch (e) {
+        console.warn('Google Sheet log warning:', e);
+      }
       if (onSuccess) onSuccess(project);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create demand project on Zamplia');
