@@ -8,7 +8,7 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
   const [deviceFilter, setDeviceFilter] = useState('All');
 
   const surveysList = Array.isArray(surveys) && surveys.length > 0 ? surveys : [];
-  const totalStudies = surveysList.length || 560;
+  const totalStudies = surveysList.length;
 
   // Real device compatibility dynamically calculated from the live marketplace surveys
   const mobileCount = surveysList.length > 0
@@ -106,7 +106,7 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
   const newVisitsCurve = generatePath(newVisits);
   const uniqueVisitsCurve = generatePath(uniqueVisits);
 
-  // Real Live Sessions Device Table Data derived from 560 real studies
+  // Real Live Sessions Device Table Data derived from live studies
   const deviceList = [
     { name: 'Mobiles', icon: Smartphone, sessions: mobileCount, share: `${Math.round((mobileCount / totalStudies) * 100)}%`, tier: 'High Supply', color: '#ff9f43' },
     { name: 'Desktops', icon: Monitor, sessions: desktopCount, share: `${Math.round((desktopCount / totalStudies) * 100)}%`, tier: 'Enterprise', color: '#0b51b7' },
