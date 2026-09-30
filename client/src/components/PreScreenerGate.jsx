@@ -1,20 +1,123 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ShieldCheck, 
-  AlertTriangle, 
   CheckCircle2, 
   Lock, 
-  Monitor, 
-  Smartphone, 
-  Tablet, 
   ArrowRight, 
-  Clock, 
+  ArrowLeft,
+  ShieldAlert, 
+  Sparkles,
   ExternalLink,
-  ShieldAlert,
   RotateCcw,
-  Sparkles
+  Check,
+  Smartphone,
+  Monitor,
+  Tablet,
+  Activity,
+  Layers
 } from 'lucide-react';
 import { getSecurityPolicy, DEFAULT_SURVEYS, getVendors, RouterAPI } from '../services/api';
+
+// Curated Master Question Pool for Pre-Screener
+// Balanced typography, symmetrical text lengths (~55 chars for question, ~25 chars for options)
+const QUESTION_BANK = [
+  {
+    id: 'tech_platform',
+    category: 'Technology Ecosystem',
+    question: 'Which primary operating system do you use most frequently?',
+    subtitle: 'Select the primary platform for your daily computing needs',
+    options: [
+      { id: 'opt_apple', text: 'Apple iOS & macOS ecosystem', code: 'A' },
+      { id: 'opt_android', text: 'Google Android & ChromeOS', code: 'B' },
+      { id: 'opt_windows', text: 'Microsoft Windows system', code: 'C' },
+      { id: 'opt_linux', text: 'Linux open-source desktop', code: 'D' }
+    ]
+  },
+  {
+    id: 'decision_maker',
+    category: 'Household Governance',
+    question: 'What role do you hold for primary household purchases?',
+    subtitle: 'Select your level of responsibility in grocery and retail goods',
+    options: [
+      { id: 'opt_sole', text: 'Sole primary decision maker', code: 'A' },
+      { id: 'opt_equal', text: 'Shared equal decision maker', code: 'B' },
+      { id: 'opt_influencer', text: 'Occasional input or helper', code: 'C' },
+      { id: 'opt_none', text: 'No involvement in decisions', code: 'D' }
+    ]
+  },
+  {
+    id: 'streaming_media',
+    category: 'Media & Entertainment',
+    question: 'Which digital streaming service do you watch most often?',
+    subtitle: 'Choose your main digital entertainment and video provider',
+    options: [
+      { id: 'opt_netflix', text: 'Netflix & Prime Video apps', code: 'A' },
+      { id: 'opt_disney', text: 'Disney+ & Apple TV+ apps', code: 'B' },
+      { id: 'opt_youtube', text: 'YouTube Premium & Music', code: 'C' },
+      { id: 'opt_none_stream', text: 'Do not use streaming apps', code: 'D' }
+    ]
+  },
+  {
+    id: 'banking_fintech',
+    category: 'Digital Financial Services',
+    question: 'How do you primarily access and manage your bank account?',
+    subtitle: 'Indicate your most frequent channel for managing personal funds',
+    options: [
+      { id: 'opt_mobile_app', text: 'Mobile smartphone banking', code: 'A' },
+      { id: 'opt_desktop_web', text: 'Desktop personal web app', code: 'B' },
+      { id: 'opt_branch', text: 'Local bank branch teller', code: 'C' },
+      { id: 'opt_atm', text: 'Automated ATM kiosk unit', code: 'D' }
+    ]
+  },
+  {
+    id: 'employment_status',
+    category: 'Professional Background',
+    question: 'Which category best reflects your current employment state?',
+    subtitle: 'Select the classification matching your primary work commitment',
+    options: [
+      { id: 'opt_full_time', text: 'Full-time salaried worker', code: 'A' },
+      { id: 'opt_business_owner', text: 'Self-employed firm owner', code: 'B' },
+      { id: 'opt_part_time', text: 'Part-time contract worker', code: 'C' },
+      { id: 'opt_student', text: 'Current university student', code: 'D' }
+    ]
+  },
+  {
+    id: 'online_shopping',
+    category: 'E-Commerce & Retail',
+    question: 'How often do you make purchases on online marketplaces?',
+    subtitle: 'Select the typical frequency of your digital shopping orders',
+    options: [
+      { id: 'opt_weekly', text: 'Multiple orders each week', code: 'A' },
+      { id: 'opt_monthly', text: 'Several purchases a month', code: 'B' },
+      { id: 'opt_quarterly', text: 'Once every couple months', code: 'C' },
+      { id: 'opt_rarely', text: 'Rarely or once per year', code: 'D' }
+    ]
+  },
+  {
+    id: 'beverage_choices',
+    category: 'Consumer Goods & Beverage',
+    question: 'Which packaged beverage category do you buy most often?',
+    subtitle: 'Choose the drink category you purchase on a regular basis',
+    options: [
+      { id: 'opt_water', text: 'Bottled and sparkling water', code: 'A' },
+      { id: 'opt_coffee', text: 'Specialty coffee and teas', code: 'B' },
+      { id: 'opt_juice', text: 'Cold pressed fruit juices', code: 'C' },
+      { id: 'opt_energy', text: 'Functional energy drinks', code: 'D' }
+    ]
+  },
+  {
+    id: 'automotive_transit',
+    category: 'Automotive & Mobility',
+    question: 'How frequently do you drive a personal motor vehicle?',
+    subtitle: 'Indicate your personal car usage for commute or leisure travel',
+    options: [
+      { id: 'opt_drive_daily', text: 'Daily for commute transit', code: 'A' },
+      { id: 'opt_drive_weekly', text: 'Weekly for family errands', code: 'B' },
+      { id: 'opt_drive_weekend', text: 'Occasional weekend drives', code: 'C' },
+      { id: 'opt_drive_never', text: 'Do not operate a vehicle', code: 'D' }
+    ]
+  }
+];
 
 export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }) {
   const [policy, setPolicy] = useState(null);
@@ -28,20 +131,27 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
   const [surveyInfo, setSurveyInfo] = useState(null);
   const [vendorInfo, setVendorInfo] = useState(null);
 
-  // Pre-screener Form State
-  const [age, setAge] = useState('');
-  const [gender, setGender] = useState('');
-  const [country, setCountry] = useState('United States');
-  const [employment, setEmployment] = useState('');
-  const [attentionCheck, setAttentionCheck] = useState('');
-  const [submittingScreen, setSubmittingScreen] = useState(false);
-  const [screeningPassed, setScreeningPassed] = useState(false);
-  const [screenerError, setScreenerError] = useState('');
+  // Dynamic 2-Question Set
+  const [selectedQuestions, setSelectedQuestions] = useState([]);
+  const [currentStep, setCurrentStep] = useState(0); // 0 = Question 1, 1 = Question 2
+  const [answers, setAnswers] = useState({}); // { [questionId]: optionId }
+  const [slideDirection, setSlideDirection] = useState('next'); // 'next' | 'prev'
 
-  // Live Survey Forward State
-  const [surveyEntered, setSurveyEntered] = useState(false);
+  // Completion & Forward State
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [screeningPassed, setScreeningPassed] = useState(false);
   const [entryTimestamp, setEntryTimestamp] = useState(null);
   const [simOutcome, setSimOutcome] = useState(null);
+
+  // Randomly pick exactly 2 distinct questions from the pool
+  const pickRandomTwoQuestions = () => {
+    const shuffled = [...QUESTION_BANK].sort(() => 0.5 - Math.random());
+    return [shuffled[0], shuffled[1]];
+  };
+
+  useEffect(() => {
+    setSelectedQuestions(pickRandomTwoQuestions());
+  }, [projectId, vendorId]);
 
   useEffect(() => {
     async function init() {
@@ -94,7 +204,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
     // 1. Device Compatibility Filter Check
     if (isMobile && pol.allowMobile === false) {
       setEvalStatus('blocked');
-      setBlockReason('Device Policy Restriction: Mobile devices are not permitted for this study by the client security policy.');
+      setBlockReason('Device Policy Restriction: Mobile devices are not permitted for this study by client security policy.');
       setBlockStatusCode(2); // Terminate
       setEvaluating(false);
       setLoading(false);
@@ -136,45 +246,53 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
     setLoading(false);
   };
 
-  const handlePreScreenSubmit = (e) => {
-    e.preventDefault();
-    setScreenerError('');
+  const currentQ = selectedQuestions[currentStep] || null;
+  const currentAnswer = currentQ ? answers[currentQ.id] : null;
 
-    if (!age || !gender || !employment) {
-      setScreenerError('Please answer all qualification questions to continue.');
-      return;
+  const handleSelectOption = (optionId) => {
+    if (!currentQ) return;
+    setAnswers(prev => ({ ...prev, [currentQ.id]: optionId }));
+  };
+
+  const handleNextStep = () => {
+    if (!currentAnswer) return;
+    if (currentStep === 0) {
+      setSlideDirection('next');
+      setCurrentStep(1);
+    } else {
+      // Step 2 Completed -> Evaluate & Submit
+      handleSubmitPreScreen();
     }
+  };
 
-    const numAge = parseInt(age, 10);
-    if (isNaN(numAge) || numAge < 18 || numAge > 90) {
-      setScreenerError('Age must be between 18 and 90 years.');
-      return;
+  const handlePrevStep = () => {
+    if (currentStep === 1) {
+      setSlideDirection('prev');
+      setCurrentStep(0);
     }
+  };
 
-    // Honeypot / Attention Trap Check (LH Protection)
-    if (policy?.lhProtection !== false) {
-      if (attentionCheck.toLowerCase() !== 'blue') {
-        setEvalStatus('blocked');
-        setBlockReason('Pre-Screening Quality Terminate: Failed attention / verification honeypot check.');
-        setBlockStatusCode(4);
-        return;
-      }
-    }
-
-    setSubmittingScreen(true);
+  const handleSubmitPreScreen = () => {
+    setIsSubmitting(true);
     setTimeout(() => {
-      setSubmittingScreen(false);
+      setIsSubmitting(false);
       setScreeningPassed(true);
-      setSurveyEntered(true);
       setEntryTimestamp(Date.now());
-    }, 450);
+      if (onComplete) onComplete({ success: true, answers });
+    }, 600);
+  };
+
+  const handleResetForTesting = () => {
+    setSelectedQuestions(pickRandomTwoQuestions());
+    setAnswers({});
+    setCurrentStep(0);
+    setScreeningPassed(false);
+    setSimOutcome(null);
   };
 
   const handleOutcomeSimulation = async (statusNumber) => {
     try {
       const elapsedSeconds = entryTimestamp ? Math.round((Date.now() - entryTimestamp) / 1000) : 120;
-      
-      // Speeder check evaluation
       const statedLoi = surveyInfo?.loi || 10;
       const minAcceptable = Math.max(30, (statedLoi * 60) * (policy?.speederThresholdPercent || 0.3));
       let finalStatus = statusNumber;
@@ -206,128 +324,155 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(180deg, #0F172A 0%, #1E293B 100%)',
+      width: '100%',
+      background: 'radial-gradient(120% 120% at 50% 0%, #1c2b45 0%, #0d1525 60%, #070b13 100%)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '24px 16px',
-      fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-      color: '#0F172A'
+      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif',
+      WebkitFontSmoothing: 'antialiased',
+      color: '#1d1d1f'
     }}>
-      <div style={{
-        maxWidth: '560px',
-        width: '100%',
-        background: '#FFFFFF',
-        borderRadius: '16px',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
-        overflow: 'hidden',
-        border: '1px solid rgba(255, 255, 255, 0.1)'
-      }}>
+      {/* Apple Frosted Glass Card Container */}
+      <div 
+        className="apple-spring-card prescreener-apple-card"
+        style={{
+          maxWidth: '580px',
+          width: '100%',
+          background: 'rgba(255, 255, 255, 0.94)',
+          backdropFilter: 'blur(30px) saturate(190%)',
+          WebkitBackdropFilter: 'blur(30px) saturate(190%)',
+          borderRadius: '26px',
+          border: '1px solid rgba(255, 255, 255, 0.8)',
+          boxShadow: '0 30px 70px -15px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+          overflow: 'hidden',
+          transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
 
-        {/* Top Security Banner */}
+        {/* Apple Style Sleek Header */}
         <div style={{
-          background: '#0F172A',
-          padding: '16px 24px',
+          padding: '20px 24px 16px 24px',
+          borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderBottom: '1px solid #334155',
-          color: '#FFFFFF'
+          background: 'rgba(255, 255, 255, 0.65)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
               width: '32px',
               height: '32px',
-              borderRadius: '8px',
-              background: '#1E293B',
+              borderRadius: '980px',
+              background: 'rgba(0, 113, 227, 0.1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#38BDF8'
+              color: '#0071e3'
             }}>
-              <ShieldCheck size={20} />
+              <ShieldCheck size={18} />
             </div>
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                SMR Pre-Screener & Security Gateway
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#1d1d1f', letterSpacing: '-0.01em' }}>
+                Secure Pre-Screener
               </div>
-              <div style={{ fontSize: '11px', color: '#94A3B8' }}>
-                Panel: <strong style={{ color: '#E2E8F0' }}>{vendorInfo?.name || vendorId}</strong> • PID: {projectId}
+              <div style={{ fontSize: '11px', color: '#86868b' }}>
+                Panel: <strong style={{ color: '#1d1d1f' }}>{vendorInfo?.name || vendorId}</strong> • PID {projectId}
               </div>
             </div>
           </div>
-          <span style={{
-            background: 'rgba(56, 189, 248, 0.15)',
-            color: '#38BDF8',
-            padding: '3px 8px',
-            borderRadius: '4px',
-            fontSize: '11px',
-            fontWeight: 700
-          }}>
-            SHA3-256 + S2S
-          </span>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{
+              background: 'rgba(0, 113, 227, 0.08)',
+              color: '#0071e3',
+              padding: '3px 10px',
+              borderRadius: '980px',
+              fontSize: '11px',
+              fontWeight: 700,
+              letterSpacing: '0.02em',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}>
+              <Lock size={11} /> SHA3-256
+            </span>
+          </div>
         </div>
 
         {/* Content Body */}
-        <div style={{ padding: '24px' }}>
+        <div style={{ padding: '24px 28px' }}>
 
-          {/* 1. Loading State */}
+          {/* 1. Evaluating Security Screening */}
           {evaluating && (
-            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-              <div className="sync-spin" style={{ display: 'inline-block', marginBottom: '16px' }}>
-                <ShieldCheck size={36} color="#2563EB" />
+            <div style={{ textAlign: 'center', padding: '48px 16px' }}>
+              <div style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: '980px',
+                background: 'rgba(0, 113, 227, 0.08)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#0071e3',
+                marginBottom: '16px',
+                animation: 'applePulseGlow 1.8s infinite'
+              }}>
+                <ShieldCheck size={32} />
               </div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 6px 0', color: '#0F172A' }}>
-                Running Security & Fraud Screening...
+              <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#1d1d1f', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
+                Verifying Security Safeguards...
               </h3>
-              <p style={{ fontSize: '13px', color: '#64748B', margin: 0 }}>
-                Verifying device fingerprint, browser security & policy integrity.
+              <p style={{ fontSize: '13px', color: '#86868b', margin: 0 }}>
+                Auditing device profile, browser environment, and tamper integrity.
               </p>
             </div>
           )}
 
-          {/* 2. Blocked / Terminated Screen */}
+          {/* 2. Blocked Access View */}
           {!evaluating && evalStatus === 'blocked' && (
-            <div style={{ textAlign: 'center', padding: '20px 10px' }}>
+            <div style={{ textAlign: 'center', padding: '24px 12px' }}>
               <div style={{
-                width: '64px',
-                height: '64px',
-                borderRadius: '50%',
-                background: '#FEF2F2',
-                color: '#DC2626',
+                width: '60px',
+                height: '60px',
+                borderRadius: '980px',
+                background: 'rgba(255, 59, 48, 0.1)',
+                color: '#ff3b30',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: '16px'
+                marginBottom: '14px'
               }}>
-                <ShieldAlert size={32} />
+                <ShieldAlert size={30} />
               </div>
-              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#991B1B', margin: '0 0 8px 0' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#ff3b30', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>
                 Survey Access Restricted
               </h3>
               <div style={{
-                background: '#FEF2F2',
-                border: '1px solid #FECACA',
-                borderRadius: '8px',
-                padding: '12px 16px',
-                color: '#B91C1C',
+                background: 'rgba(255, 59, 48, 0.06)',
+                border: '1px solid rgba(255, 59, 48, 0.2)',
+                borderRadius: '14px',
+                padding: '14px 16px',
+                color: '#d70015',
                 fontSize: '13px',
-                lineHeight: 1.5,
-                marginBottom: '20px'
+                lineHeight: 1.45,
+                marginBottom: '18px'
               }}>
                 {blockReason}
               </div>
-              <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '20px' }}>
+              <p style={{ fontSize: '12px', color: '#86868b', marginBottom: '22px' }}>
                 Respondent UID: <code>{uid || 'N/A'}</code> • StatusCode: <strong>{blockStatusCode}</strong>
               </p>
               <button
                 onClick={() => window.location.href = `/`}
+                className="apple-btn-active"
                 style={{
-                  background: '#0F172A',
-                  color: '#FFFFFF',
+                  background: '#1d1d1f',
+                  color: '#ffffff',
                   border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '6px',
+                  padding: '11px 24px',
+                  borderRadius: '980px',
                   fontSize: '13px',
                   fontWeight: 600,
                   cursor: 'pointer'
@@ -338,318 +483,382 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
             </div>
           )}
 
-          {/* 3. Pre-Screener Questions (If preScreenEnabled) */}
-          {!evaluating && evalStatus === 'passed' && !surveyEntered && policy?.preScreenEnabled !== false && (
+          {/* 3. Apple-Grade 2-Question Screening Questionnaire */}
+          {!evaluating && evalStatus === 'passed' && !screeningPassed && selectedQuestions.length > 0 && currentQ && (
             <div>
-              <div style={{ marginBottom: '18px' }}>
-                <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginBottom: '4px' }}>
-                  Pre-Qualification Questionnaire
+              {/* Apple Segmented 2-Step Progress Indicator */}
+              <div style={{ marginBottom: '22px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#0071e3', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    {currentQ.category}
+                  </span>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#86868b' }}>
+                    Question {currentStep + 1} of 2
+                  </span>
                 </div>
-                <div style={{ fontSize: '12.5px', color: '#64748B' }}>
-                  Please answer these brief qualification questions before proceeding to the survey.
+
+                {/* Apple Dual Pill Progress Track */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div style={{
+                    height: '5px',
+                    borderRadius: '980px',
+                    background: currentStep >= 0 ? '#0071e3' : '#e5e5ea',
+                    transition: 'background 0.35s ease'
+                  }} />
+                  <div style={{
+                    height: '5px',
+                    borderRadius: '980px',
+                    background: currentStep >= 1 ? '#0071e3' : '#e5e5ea',
+                    transition: 'background 0.35s ease'
+                  }} />
                 </div>
               </div>
 
-              {screenerError && (
-                <div style={{
-                  background: '#FEF2F2',
-                  border: '1px solid #FECACA',
-                  borderRadius: '6px',
-                  padding: '10px 14px',
-                  color: '#B91C1C',
-                  fontSize: '12px',
-                  marginBottom: '14px',
+              {/* Question Text Box (Symmetrical typography & balanced size) */}
+              <div 
+                key={currentQ.id}
+                className={slideDirection === 'next' ? 'apple-slide-question' : 'apple-slide-question'}
+                style={{ marginBottom: '20px' }}
+              >
+                <h2 style={{
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  color: '#1d1d1f',
+                  margin: '0 0 6px 0',
+                  lineHeight: 1.35,
+                  letterSpacing: '-0.02em',
+                  minHeight: '48px',
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
+                  alignItems: 'center'
                 }}>
-                  <AlertTriangle size={15} />
-                  <span>{screenerError}</span>
-                </div>
-              )}
+                  {currentQ.question}
+                </h2>
+                <p style={{ fontSize: '12.5px', color: '#86868b', margin: 0 }}>
+                  {currentQ.subtitle}
+                </p>
+              </div>
 
-              <form onSubmit={handlePreScreenSubmit}>
-                {/* Age */}
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px' }}>
-                    1. What is your current age?
-                  </label>
-                  <input
-                    type="number"
-                    min="18"
-                    max="99"
-                    required
-                    placeholder="e.g. 29"
-                    value={age}
-                    onChange={(e) => setAge(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      border: '1px solid #CBD5E1',
-                      fontSize: '13px',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
-
-                {/* Gender */}
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px' }}>
-                    2. What is your gender identity?
-                  </label>
-                  <select
-                    required
-                    value={gender}
-                    onChange={(e) => setGender(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      border: '1px solid #CBD5E1',
-                      fontSize: '13px',
-                      background: '#FFFFFF',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    <option value="">-- Select Gender --</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Non-Binary">Non-Binary / Third Gender</option>
-                    <option value="Prefer not to say">Prefer not to say</option>
-                  </select>
-                </div>
-
-                {/* Country */}
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px' }}>
-                    3. Country of Primary Residence:
-                  </label>
-                  <select
-                    value={country}
-                    onChange={(e) => setCountry(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      border: '1px solid #CBD5E1',
-                      fontSize: '13px',
-                      background: '#FFFFFF',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    <option value="United States">United States</option>
-                    <option value="Germany">Germany</option>
-                    <option value="United Kingdom">United Kingdom</option>
-                    <option value="India">India</option>
-                    <option value="Canada">Canada</option>
-                    <option value="Australia">Australia</option>
-                  </select>
-                </div>
-
-                {/* Employment */}
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px' }}>
-                    4. Current Employment Status:
-                  </label>
-                  <select
-                    required
-                    value={employment}
-                    onChange={(e) => setEmployment(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      border: '1px solid #CBD5E1',
-                      fontSize: '13px',
-                      background: '#FFFFFF',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    <option value="">-- Select Status --</option>
-                    <option value="Employed Full-Time">Employed Full-Time (35+ hours/week)</option>
-                    <option value="Employed Part-Time">Employed Part-Time</option>
-                    <option value="Self-Employed">Self-Employed / Business Owner</option>
-                    <option value="Student">Student</option>
-                    <option value="Homemaker">Homemaker</option>
-                    <option value="Retired">Retired</option>
-                  </select>
-                </div>
-
-                {/* Honeypot Attention Question (LH Protection) */}
-                {policy?.lhProtection !== false && (
-                  <div style={{
-                    background: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '8px',
-                    padding: '12px 14px',
-                    marginBottom: '18px'
-                  }}>
-                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px', color: '#0F172A' }}>
-                      5. Attention Verification (Quality Check):
-                    </label>
-                    <div style={{ fontSize: '11.5px', color: '#64748B', marginBottom: '8px' }}>
-                      To prevent automated submissions, please select the color <strong>Blue</strong> below:
-                    </div>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      {['Red', 'Green', 'Blue', 'Yellow'].map((c) => (
-                        <label key={c} style={{
-                          display: 'flex',
+              {/* 4 Selectable Option Cards (Symmetrical text length & layout) */}
+              <div 
+                className="prescreener-options-grid"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '10px',
+                  marginBottom: '26px'
+                }}
+              >
+                {currentQ.options.map((opt) => {
+                  const isSelected = currentAnswer === opt.id;
+                  return (
+                    <div
+                      key={opt.id}
+                      onClick={() => handleSelectOption(opt.id)}
+                      className="apple-btn-active"
+                      style={{
+                        padding: '14px 14px',
+                        borderRadius: '16px',
+                        background: isSelected ? 'rgba(0, 113, 227, 0.05)' : '#ffffff',
+                        border: isSelected ? '2px solid #0071e3' : '1.5px solid #e5e5ea',
+                        boxShadow: isSelected 
+                          ? '0 6px 20px rgba(0, 113, 227, 0.12)' 
+                          : '0 2px 8px rgba(0, 0, 0, 0.02)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                        minHeight: '58px',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '980px',
+                          background: isSelected ? '#0071e3' : '#f5f5f7',
+                          color: isSelected ? '#ffffff' : '#86868b',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '4px',
-                          fontSize: '12px',
-                          cursor: 'pointer'
+                          justifyContent: 'center',
+                          flexShrink: 0
                         }}>
-                          <input
-                            type="radio"
-                            name="honeypot"
-                            value={c.toLowerCase()}
-                            checked={attentionCheck.toLowerCase() === c.toLowerCase()}
-                            onChange={(e) => setAttentionCheck(e.target.value)}
-                          />
-                          <span>{c}</span>
-                        </label>
-                      ))}
+                          {opt.code}
+                        </span>
+                        <span style={{
+                          fontSize: '13px',
+                          fontWeight: isSelected ? 600 : 500,
+                          color: isSelected ? '#0071e3' : '#1d1d1f',
+                          lineHeight: 1.3
+                        }}>
+                          {opt.text}
+                        </span>
+                      </div>
+
+                      {/* Selected Apple Check Icon */}
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        borderRadius: '980px',
+                        border: isSelected ? 'none' : '1.5px solid #d1d1d6',
+                        background: isSelected ? '#0071e3' : 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#ffffff',
+                        flexShrink: 0,
+                        transition: 'all 0.2s ease'
+                      }}>
+                        {isSelected && <Check size={12} strokeWidth={3} />}
+                      </div>
                     </div>
-                  </div>
+                  );
+                })}
+              </div>
+
+              {/* Bottom Navigation Buttons */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: currentStep > 0 ? 'space-between' : 'flex-end',
+                borderTop: '1px solid rgba(0, 0, 0, 0.06)',
+                paddingTop: '18px'
+              }}>
+                {currentStep > 0 && (
+                  <button
+                    type="button"
+                    onClick={handlePrevStep}
+                    className="apple-btn-active"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: '8px 14px',
+                      color: '#0071e3',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px'
+                    }}
+                  >
+                    <ArrowLeft size={14} /> Back
+                  </button>
                 )}
 
                 <button
-                  type="submit"
-                  disabled={submittingScreen}
+                  type="button"
+                  onClick={handleNextStep}
+                  disabled={!currentAnswer || isSubmitting}
+                  className="apple-btn-active"
                   style={{
-                    width: '100%',
-                    background: '#16A34A',
-                    color: '#FFFFFF',
+                    background: currentAnswer ? '#0071e3' : '#e5e5ea',
+                    color: currentAnswer ? '#ffffff' : '#86868b',
                     border: 'none',
-                    padding: '11px',
-                    borderRadius: '8px',
+                    borderRadius: '980px',
+                    padding: '12px 28px',
                     fontSize: '13.5px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
+                    fontWeight: 600,
+                    letterSpacing: '-0.01em',
+                    cursor: currentAnswer ? 'pointer' : 'not-allowed',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px'
+                    gap: '6px',
+                    boxShadow: currentAnswer ? '0 6px 18px rgba(0, 113, 227, 0.3)' : 'none',
+                    transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
                   }}
                 >
-                  {submittingScreen ? 'Verifying Pre-Screen...' : 'Pass Pre-Screen & Enter Survey'}
-                  <ArrowRight size={16} />
+                  {isSubmitting ? (
+                    'Evaluating...'
+                  ) : currentStep === 0 ? (
+                    <>Next Question <ArrowRight size={14} /></>
+                  ) : (
+                    <>Submit & Proceed <Check size={14} /></>
+                  )}
                 </button>
-              </form>
+              </div>
             </div>
           )}
 
-          {/* 4. Active Survey Session & Simulator */}
-          {!evaluating && evalStatus === 'passed' && (surveyEntered || policy?.preScreenEnabled === false) && (
-            <div>
+          {/* 4. Pre-Screening Passed -> Live Survey Forward & S2S Tester */}
+          {!evaluating && screeningPassed && (
+            <div style={{ textAlign: 'center', padding: '16px 8px' }}>
               <div style={{
-                background: '#ECFDF5',
-                border: '1px solid #A7F3D0',
-                borderRadius: '8px',
-                padding: '14px 16px',
-                marginBottom: '18px',
-                display: 'flex',
+                width: '64px',
+                height: '64px',
+                borderRadius: '980px',
+                background: 'rgba(52, 199, 89, 0.12)',
+                color: '#34c759',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: '12px'
+                justifyContent: 'center',
+                marginBottom: '14px',
+                animation: 'appleSuccessPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)'
               }}>
-                <CheckCircle2 size={24} color="#10B981" />
-                <div>
-                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#065F46' }}>
-                    Pre-Screening & Security Verified!
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#047857' }}>
-                    You have passed demographic criteria and bot screening checks.
-                  </div>
-                </div>
+                <Check size={32} strokeWidth={3} />
               </div>
 
-              {/* Study Details */}
+              <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#1d1d1f', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
+                Pre-Qualification Confirmed!
+              </h3>
+              <p style={{ fontSize: '13px', color: '#86868b', margin: '0 0 20px 0' }}>
+                Cryptographic session signature verified. Ready to enter client study.
+              </p>
+
+              {/* Study Summary Box */}
               <div style={{
-                background: '#F8FAFC',
-                borderRadius: '8px',
-                border: '1px solid #E2E8F0',
-                padding: '14px 16px',
-                marginBottom: '18px'
+                background: '#f5f5f7',
+                borderRadius: '16px',
+                padding: '16px',
+                marginBottom: '20px',
+                textAlign: 'left',
+                border: '1px solid rgba(0, 0, 0, 0.04)'
               }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B', marginBottom: '2px' }}>
-                  Live Client Study
+                <div style={{ fontSize: '11px', color: '#0071e3', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
+                  Forwarding Target Study:
                 </div>
-                <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
-                  {surveyInfo?.name || surveyInfo?.survey_name || `Study #${projectId}`}
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#1d1d1f', marginBottom: '8px' }}>
+                  {surveyInfo?.survey_name || `Study #${projectId}`}
                 </div>
-                <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#475569' }}>
-                  <span>LOI: <strong>{surveyInfo?.loi || 12} min</strong></span>
-                  <span>Payout CPI: <strong style={{ color: '#16A34A' }}>${Number(surveyInfo?.cpi || 2.50).toFixed(2)}</strong></span>
-                  <span>Market: <strong>{surveyInfo?.country || 'Global'}</strong></span>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', fontSize: '12px' }}>
+                  <div>
+                    <span style={{ color: '#86868b' }}>Yield:</span> <strong style={{ color: '#34c759' }}>${Number(surveyInfo?.cpi || 2.75).toFixed(2)}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#86868b' }}>LOI:</span> <strong>{surveyInfo?.loi || 12} Mins</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#86868b' }}>Security:</span> <strong style={{ color: '#0071e3' }}>SHA3-256</strong>
+                  </div>
                 </div>
               </div>
 
-              {/* Interactive Simulator / Complete Verification */}
-              <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px', color: '#0F172A' }}>
-                  Complete / Outcome Testing Simulator:
-                </label>
-                <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 10px 0' }}>
-                  Click an outcome below to test real-time S2S callback and SHA3-256 hash generation for this respondent:
-                </p>
+              {/* Live Study Forward Link */}
+              <div style={{ marginBottom: '22px' }}>
+                <a
+                  href={`https://cluster.marketxcel.co.in/survey/start?pid=${projectId}&vid=${vendorId}&uid=${uid || 'RESP_USER'}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="apple-btn-active"
+                  style={{
+                    background: '#0071e3',
+                    color: '#ffffff',
+                    padding: '13px 26px',
+                    borderRadius: '980px',
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 8px 24px rgba(0, 113, 227, 0.35)'
+                  }}
+                >
+                  Enter Client Survey <ExternalLink size={14} />
+                </a>
+              </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '14px' }}>
+              {/* 1-Click Interactive Outcome Tester */}
+              <div style={{
+                background: '#ffffff',
+                border: '1px solid #e5e5ea',
+                borderRadius: '16px',
+                padding: '14px',
+                textAlign: 'left'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Activity size={13} color="#0071e3" /> 1-Click Callback Outcome Simulator:
+                  </div>
                   <button
-                    onClick={() => handleOutcomeSimulation(1)}
+                    type="button"
+                    onClick={handleResetForTesting}
                     style={{
-                      background: '#10B981',
-                      color: '#FFFFFF',
+                      background: 'none',
                       border: 'none',
-                      padding: '9px 4px',
-                      borderRadius: '6px',
+                      color: '#0071e3',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '3px'
+                    }}
+                  >
+                    <RotateCcw size={11} /> Test Another Question Pair
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleOutcomeSimulation(1)}
+                    className="apple-btn-active"
+                    style={{
+                      background: 'rgba(52, 199, 89, 0.1)',
+                      color: '#28cd41',
+                      border: '1px solid rgba(52, 199, 89, 0.3)',
+                      padding: '8px 4px',
+                      borderRadius: '8px',
+                      fontSize: '11px',
                       fontWeight: 700,
-                      fontSize: '11.5px',
                       cursor: 'pointer'
                     }}
                   >
                     Complete (1)
                   </button>
+
                   <button
+                    type="button"
                     onClick={() => handleOutcomeSimulation(2)}
+                    className="apple-btn-active"
                     style={{
-                      background: '#EF4444',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      padding: '9px 4px',
-                      borderRadius: '6px',
+                      background: 'rgba(255, 59, 48, 0.1)',
+                      color: '#ff3b30',
+                      border: '1px solid rgba(255, 59, 48, 0.3)',
+                      padding: '8px 4px',
+                      borderRadius: '8px',
+                      fontSize: '11px',
                       fontWeight: 700,
-                      fontSize: '11.5px',
                       cursor: 'pointer'
                     }}
                   >
                     Terminate (2)
                   </button>
+
                   <button
+                    type="button"
                     onClick={() => handleOutcomeSimulation(3)}
+                    className="apple-btn-active"
                     style={{
-                      background: '#F59E0B',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      padding: '9px 4px',
-                      borderRadius: '6px',
+                      background: 'rgba(255, 149, 0, 0.1)',
+                      color: '#ff9500',
+                      border: '1px solid rgba(255, 149, 0, 0.3)',
+                      padding: '8px 4px',
+                      borderRadius: '8px',
+                      fontSize: '11px',
                       fontWeight: 700,
-                      fontSize: '11.5px',
                       cursor: 'pointer'
                     }}
                   >
                     OverQuota (3)
                   </button>
+
                   <button
+                    type="button"
                     onClick={() => handleOutcomeSimulation(4)}
+                    className="apple-btn-active"
                     style={{
-                      background: '#8B5CF6',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      padding: '9px 4px',
-                      borderRadius: '6px',
+                      background: 'rgba(88, 86, 214, 0.1)',
+                      color: '#5856d6',
+                      border: '1px solid rgba(88, 86, 214, 0.3)',
+                      padding: '8px 4px',
+                      borderRadius: '8px',
+                      fontSize: '11px',
                       fontWeight: 700,
-                      fontSize: '11.5px',
                       cursor: 'pointer'
                     }}
                   >
@@ -657,33 +866,21 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                   </button>
                 </div>
 
-                {/* Outcome Result Card */}
                 {simOutcome && (
                   <div style={{
-                    background: '#0F172A',
+                    marginTop: '10px',
+                    padding: '8px 10px',
                     borderRadius: '8px',
-                    padding: '14px',
-                    color: '#E2E8F0',
-                    fontSize: '12px'
+                    background: '#1d1d1f',
+                    color: '#f5f5f7',
+                    fontSize: '11px',
+                    fontFamily: 'monospace'
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span style={{ fontWeight: 800, color: simOutcome.status === 'COMPLETE' ? '#34D399' : '#F87171' }}>
-                        {simOutcome.status} (Status Code: {simOutcome.finalStatus})
-                      </span>
-                      <span style={{ fontSize: '10.5px', color: '#94A3B8' }}>
-                        Duration: {simOutcome.elapsedSeconds}s
-                      </span>
+                    <div style={{ color: '#38bdf8', fontWeight: 700 }}>
+                      [Simulation Result] Status: {simOutcome.statusRequested} ({simOutcome.statusLabel})
                     </div>
-                    {simOutcome.speederFlag && (
-                      <div style={{ color: '#F87171', fontSize: '11px', marginBottom: '6px' }}>
-                        ⚠️ Speeder Policy Triggered: Finished faster than 30% LOI! Automatically flagged as Security Terminate.
-                      </div>
-                    )}
-                    <div style={{ fontFamily: 'monospace', fontSize: '11px', wordBreak: 'break-all', color: '#94A3B8', marginBottom: '8px' }}>
-                      <strong>Redirect URL:</strong> {simOutcome.redirectUrl}
-                    </div>
-                    <div style={{ fontSize: '11px', color: '#38BDF8' }}>
-                      ✓ S2S Callback HTTP 200 OK Delivered to {vendorInfo?.name || vendorId}
+                    <div style={{ color: '#a1a1a6', marginTop: '2px', wordBreak: 'break-all' }}>
+                      Redirect: {simOutcome.targetUrl}
                     </div>
                   </div>
                 )}
@@ -692,7 +889,6 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
           )}
 
         </div>
-
       </div>
     </div>
   );

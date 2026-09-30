@@ -1500,3 +1500,189 @@ tbody tr:hover {
   box-shadow: 0 8px 24px rgba(48, 62, 103, 0.08) !important;
 }
 
+/* ==========================================================================
+   APPLE DESIGN SYSTEM ANIMATIONS & UNIVERSAL RESPONSIVE ENHANCEMENTS
+   ========================================================================== */
+
+@keyframes appleSpringUp {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(14px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.008) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes appleSlideNext {
+  0% {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes appleSlidePrev {
+  0% {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes appleSuccessPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  65% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes appleShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.apple-spring-card {
+  animation: appleSpringUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.apple-slide-question {
+  animation: appleSlideNext 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.apple-btn-active {
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease;
+}
+
+.apple-btn-active:active {
+  transform: scale(0.975) !important;
+}
+
+/* ==========================================================================
+   FULL PROJECT MULTI-DEVICE RESPONSIVE BREAKPOINTS (Mobile, Tablet, Desktop)
+   ========================================================================== */
+
+/* Large Tablets & Small Laptops (<= 1199px) */
+@media (max-width: 1199.98px) {
+  .report-card[style*="grid-template-columns: repeat(4, 1fr)"],
+  div[style*="gridTemplateColumns: 'repeat(4, 1fr)'"],
+  div[style*="grid-template-columns: repeat(4, 1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .dastone-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Tablets (<= 991.98px) */
+@media (max-width: 991.98px) {
+  .page-title-box {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 12px;
+  }
+  .title-box-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .page-content-tab {
+    margin-left: 0 !important;
+    padding: 16px 12px !important;
+    width: 100% !important;
+  }
+  .dastone-topbar {
+    left: 0 !important;
+    padding: 0 14px !important;
+  }
+  .table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+    display: block !important;
+  }
+}
+
+/* Mobile Phones (<= 767.98px) */
+@media (max-width: 767.98px) {
+  .dastone-stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .report-card[style*="grid-template-columns: repeat(4, 1fr)"],
+  div[style*="gridTemplateColumns: 'repeat(4, 1fr)'"],
+  div[style*="grid-template-columns: repeat(4, 1fr)"] {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .report-card-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px;
+    padding: 12px 14px !important;
+  }
+  .report-card-header > div {
+    width: 100% !important;
+  }
+  .modal-content {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 8px auto !important;
+    border-radius: 16px !important;
+    max-height: 94vh !important;
+  }
+  .modal-overlay {
+    padding: 6px !important;
+  }
+  .btn-title-date, .btn-title-download {
+    font-size: 11px !important;
+    padding: 6px 10px !important;
+  }
+  .page-title {
+    font-size: 17px !important;
+  }
+}
+
+/* Small SmartPhones (<= 480px) */
+@media (max-width: 480px) {
+  body {
+    font-size: 12px !important;
+  }
+  .custom-table th, .custom-table td {
+    padding: 8px 10px !important;
+    font-size: 11.5px !important;
+  }
+  .prescreener-apple-card {
+    padding: 20px 16px !important;
+    border-radius: 20px !important;
+  }
+  .prescreener-options-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
