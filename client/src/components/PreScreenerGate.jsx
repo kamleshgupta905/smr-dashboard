@@ -354,20 +354,32 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
     }
   };
 
-  const getVendorRedirectUrl = (status) => {
-    const defaultSlug = (vendorInfo?.vendor_code || vendorId || 'supplier').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const getInternalCallbackUrl = (statusNum) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://client-ten-lyart-71.vercel.app';
+    const statusMap = { 1: 10, 2: 20, 3: 30, 4: 40 };
+    const code = statusMap[statusNum] || statusNum || 10;
+    const cleanUid = uid || `TEST_RESP_${Date.now().toString().slice(-4)}`;
+    const cleanVid = vendorInfo?.vendor_code || vendorId || 'VND-DYN-01';
+    const cleanPid = projectId || '2042481293';
+    return `${origin}/survey/callback?status=${code}&uid=${encodeURIComponent(cleanUid)}&vid=${encodeURIComponent(cleanVid)}&pid=${encodeURIComponent(cleanPid)}&hash=b4a5d89f4172c1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b89`;
+  };
+
+  const getExternalVendorUrl = (status) => {
     let template = '';
-    if (status === 1) {
-      template = vendorInfo?.redirect_complete || `https://${defaultSlug}.com/survey/complete?uid=[UID]`;
-    } else if (status === 2) {
-      template = vendorInfo?.redirect_terminate || `https://${defaultSlug}.com/survey/terminate?uid=[UID]`;
-    } else if (status === 3) {
-      template = vendorInfo?.redirect_overquota || `https://${defaultSlug}.com/survey/overquota?uid=[UID]`;
-    } else {
-      template = vendorInfo?.redirect_security || `https://${defaultSlug}.com/survey/security?uid=[UID]`;
+    if (status === 1) template = vendorInfo?.redirect_complete;
+    else if (status === 2) template = vendorInfo?.redirect_terminate;
+    else if (status === 3) template = vendorInfo?.redirect_overquota;
+    else template = vendorInfo?.redirect_security;
+
+    if (!template || template.includes('vnddyn01.com') || template.includes('supplier.com') || template.includes('cluster.marketxcel')) {
+      return null;
     }
     const cleanUid = uid || `TEST_RESP_${Date.now().toString().slice(-4)}`;
     return template.replace(/\[UID\]/gi, cleanUid).replace(/\[RESPONDENT_ID\]/gi, cleanUid);
+  };
+
+  const getVendorRedirectUrl = (status) => {
+    return getInternalCallbackUrl(status);
   };
 
   return (
@@ -513,22 +525,43 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
               <p style={{ fontSize: '12px', color: '#86868b', marginBottom: '22px' }}>
                 Respondent UID: <code>{uid || 'N/A'}</code> • StatusCode: <strong>{blockStatusCode}</strong>
               </p>
-              <button
-                onClick={() => window.location.href = `/`}
-                className="apple-btn-active"
-                style={{
-                  background: '#1d1d1f',
-                  color: '#ffffff',
-                  border: 'none',
-                  padding: '11px 24px',
-                  borderRadius: '980px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Return to Dashboard
-              </button>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <a
+                  href={getInternalCallbackUrl(blockStatusCode || 4)}
+                  className="apple-btn-active"
+                  style={{
+                    background: '#ff3b30',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '11px 22px',
+                    borderRadius: '980px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}
+                >
+                  View Callback Receipt <ExternalLink size={13} />
+                </a>
+                <button
+                  onClick={() => window.location.href = `/`}
+                  className="apple-btn-active"
+                  style={{
+                    background: '#1d1d1f',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '11px 22px',
+                    borderRadius: '980px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Return to Dashboard
+                </button>
+              </div>
             </div>
           )}
 
@@ -1082,54 +1115,72 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                 textAlign: 'left',
                 border: '1px solid rgba(0, 0, 0, 0.04)'
               }}>
-                <div style={{ fontSize: '11px', color: '#34c759', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
-                  Verified Complete (Status: 10 / Success)
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '11px', color: '#34c759', fontWeight: 800, textTransform: 'uppercase' }}>
+                    ✓ Verified Complete (Status: 10 / Success)
+                  </span>
+                  <span style={{ fontSize: '10px', color: '#0071e3', fontWeight: 700 }}>
+                    Official SMR Settlement
+                  </span>
                 </div>
                 <div style={{ fontSize: '12px', color: '#1d1d1f', wordBreak: 'break-all', fontFamily: 'monospace', background: '#ffffff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e5ea', marginTop: '6px' }}>
-                  {getVendorRedirectUrl(1)}
+                  {getInternalCallbackUrl(1)}
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-                <a
-                  href={getVendorRedirectUrl(1)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="apple-btn-active"
-                  style={{
-                    background: '#0071e3',
-                    color: '#ffffff',
-                    padding: '12px 28px',
-                    borderRadius: '980px',
-                    textDecoration: 'none',
-                    fontSize: '13.5px',
-                    fontWeight: 600,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    boxShadow: '0 6px 20px rgba(0, 113, 227, 0.35)'
-                  }}
-                >
-                  Return to Panel Partner <ExternalLink size={13} />
-                </a>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <a
+                    href={getInternalCallbackUrl(1)}
+                    className="apple-btn-active"
+                    style={{
+                      background: '#0071e3',
+                      color: '#ffffff',
+                      padding: '12px 28px',
+                      borderRadius: '980px',
+                      textDecoration: 'none',
+                      fontSize: '13.5px',
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 6px 20px rgba(0, 113, 227, 0.35)'
+                    }}
+                  >
+                    View Settlement Receipt <ExternalLink size={13} />
+                  </a>
 
-                <button
-                  type="button"
-                  onClick={handleResetForTesting}
-                  className="apple-btn-active"
-                  style={{
-                    background: '#ffffff',
-                    color: '#1d1d1f',
-                    border: '1.5px solid #e5e5ea',
-                    padding: '12px 20px',
-                    borderRadius: '980px',
-                    fontSize: '13.5px',
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Test Again
-                </button>
+                  <button
+                    type="button"
+                    onClick={handleResetForTesting}
+                    className="apple-btn-active"
+                    style={{
+                      background: '#ffffff',
+                      color: '#1d1d1f',
+                      border: '1.5px solid #e5e5ea',
+                      padding: '12px 20px',
+                      borderRadius: '980px',
+                      fontSize: '13.5px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Test Again
+                  </button>
+                </div>
+
+                {getExternalVendorUrl(1) && (
+                  <div style={{ marginTop: '4px' }}>
+                    <a
+                      href={getExternalVendorUrl(1)}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ fontSize: '11.5px', color: '#86868b', textDecoration: 'underline' }}
+                    >
+                      Test External Panel Callback ({vendorInfo?.name || vendorId})
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           )}

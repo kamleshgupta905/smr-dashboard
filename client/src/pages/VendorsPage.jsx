@@ -84,15 +84,16 @@ export default function VendorsPage() {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      const slug = (formData.vendor_code || 'supplier').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://client-ten-lyart-71.vercel.app';
+      const vidCode = formData.vendor_code || 'VND';
       const payload = {
         ...formData,
-        redirect_complete: formData.redirect_complete || `https://${slug}.com/survey/complete?uid=[UID]`,
-        redirect_terminate: formData.redirect_terminate || `https://${slug}.com/survey/terminate?uid=[UID]`,
-        redirect_overquota: formData.redirect_overquota || `https://${slug}.com/survey/overquota?uid=[UID]`,
-        redirect_security: formData.redirect_security || `https://${slug}.com/survey/security?uid=[UID]`,
+        redirect_complete: formData.redirect_complete || `${origin}/survey/callback?status=10&uid=[UID]&vid=${vidCode}&hash=[HASH]`,
+        redirect_terminate: formData.redirect_terminate || `${origin}/survey/callback?status=20&uid=[UID]&vid=${vidCode}&hash=[HASH]`,
+        redirect_overquota: formData.redirect_overquota || `${origin}/survey/callback?status=30&uid=[UID]&vid=${vidCode}&hash=[HASH]`,
+        redirect_security: formData.redirect_security || `${origin}/survey/callback?status=40&uid=[UID]&vid=${vidCode}&hash=[HASH]`,
         hash_algorithm: formData.hash_algorithm || 'SHA3-256',
-        secret_key: formData.secret_key || `${slug}_sec_2026`
+        secret_key: formData.secret_key || `${vidCode.toLowerCase()}_sec_2026`
       };
       const res = await createVendor(payload);
       setShowModal(false);
@@ -119,14 +120,16 @@ export default function VendorsPage() {
 
   const handleOpenRedirects = (vendor) => {
     setEditingVendor(vendor);
-    const domain = (vendor.vendor_code || vendor.name || 'supplier').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://client-ten-lyart-71.vercel.app';
+    const vidCode = vendor.vendor_code || vendor.vendorUid || 'VND';
+    const isDummy = (url) => !url || url.includes('vnddyn01.com') || url.includes('supplier.com');
     setRedirectForm({
-      redirect_complete: vendor.redirect_complete || `https://router.${domain}.com/survey/complete?uid=[UID]`,
-      redirect_terminate: vendor.redirect_terminate || `https://router.${domain}.com/survey/terminate?uid=[UID]`,
-      redirect_overquota: vendor.redirect_overquota || `https://router.${domain}.com/survey/overquota?uid=[UID]`,
-      redirect_security: vendor.redirect_security || `https://router.${domain}.com/survey/security?uid=[UID]`,
+      redirect_complete: !isDummy(vendor.redirect_complete) ? vendor.redirect_complete : `${origin}/survey/callback?status=10&uid=[UID]&vid=${vidCode}&hash=[HASH]`,
+      redirect_terminate: !isDummy(vendor.redirect_terminate) ? vendor.redirect_terminate : `${origin}/survey/callback?status=20&uid=[UID]&vid=${vidCode}&hash=[HASH]`,
+      redirect_overquota: !isDummy(vendor.redirect_overquota) ? vendor.redirect_overquota : `${origin}/survey/callback?status=30&uid=[UID]&vid=${vidCode}&hash=[HASH]`,
+      redirect_security: !isDummy(vendor.redirect_security) ? vendor.redirect_security : `${origin}/survey/callback?status=40&uid=[UID]&vid=${vidCode}&hash=[HASH]`,
       hash_algorithm: vendor.hash_algorithm || 'SHA3-256',
-      secret_key: vendor.secret_key || `${domain}_sec_key_2026`
+      secret_key: vendor.secret_key || `${vidCode.toLowerCase()}_sec_key_2026`
     });
     setSaveSuccess(false);
   };

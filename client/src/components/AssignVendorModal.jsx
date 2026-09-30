@@ -306,11 +306,13 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
               {/* Configured Return Callbacks for this Supply Vendor */}
               {(() => {
                 const vendorObj = vendors.find(v => (v.vendor_code === selectedVendor || v.vendorUid === selectedVendor || v._id === selectedVendor));
-                const slug = (vendorObj?.vendor_code || selectedVendor || 'supplier').toLowerCase().replace(/[^a-z0-9]/g, '');
-                const rc = vendorObj?.redirect_complete || `https://${slug}.com/survey/complete?uid=[UID]`;
-                const rt = vendorObj?.redirect_terminate || `https://${slug}.com/survey/terminate?uid=[UID]`;
-                const ro = vendorObj?.redirect_overquota || `https://${slug}.com/survey/overquota?uid=[UID]`;
-                const rs = vendorObj?.redirect_security || `https://${slug}.com/survey/security?uid=[UID]`;
+                const origin = typeof window !== 'undefined' ? window.location.origin : 'https://client-ten-lyart-71.vercel.app';
+                const vidCode = vendorObj?.vendor_code || selectedVendor || 'VND-DYN-01';
+                const isDummy = (url) => !url || url.includes('vnddyn01.com') || url.includes('supplier.com');
+                const rc = !isDummy(vendorObj?.redirect_complete) ? vendorObj.redirect_complete : `${origin}/survey/callback?status=10&uid=[UID]&vid=${vidCode}&hash=[HASH]`;
+                const rt = !isDummy(vendorObj?.redirect_terminate) ? vendorObj.redirect_terminate : `${origin}/survey/callback?status=20&uid=[UID]&vid=${vidCode}&hash=[HASH]`;
+                const ro = !isDummy(vendorObj?.redirect_overquota) ? vendorObj.redirect_overquota : `${origin}/survey/callback?status=30&uid=[UID]&vid=${vidCode}&hash=[HASH]`;
+                const rs = !isDummy(vendorObj?.redirect_security) ? vendorObj.redirect_security : `${origin}/survey/callback?status=40&uid=[UID]&vid=${vidCode}&hash=[HASH]`;
                 const hashAlg = vendorObj?.hash_algorithm || 'SHA3-256';
 
                 return (

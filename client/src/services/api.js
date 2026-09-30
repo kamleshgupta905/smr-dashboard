@@ -979,9 +979,23 @@ export const deleteProject = async (id) => {
 };
 
 export const getVendors = async () => {
+  const isDummyUrl = (url) => !url || url.includes('vnddyn01.com') || url.includes('supplier.com');
   const local = getLocalData('smr_custom_vendors', null);
   if (local && Array.isArray(local) && local.length > 0) {
-    return { success: true, data: local };
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://client-ten-lyart-71.vercel.app';
+    const sanitized = local.map(v => {
+      const vidCode = v.vendor_code || v.vendorUid || 'VND-DYN-01';
+      const def = DEFAULT_VENDORS.find(dv => dv.vendor_code === vidCode) || {};
+      return {
+        ...v,
+        redirect_complete: isDummyUrl(v.redirect_complete) ? (def.redirect_complete || `${origin}/survey/callback?status=10&uid=[UID]&vid=${vidCode}&hash=[HASH]`) : v.redirect_complete,
+        redirect_terminate: isDummyUrl(v.redirect_terminate) ? (def.redirect_terminate || `${origin}/survey/callback?status=20&uid=[UID]&vid=${vidCode}&hash=[HASH]`) : v.redirect_terminate,
+        redirect_overquota: isDummyUrl(v.redirect_overquota) ? (def.redirect_overquota || `${origin}/survey/callback?status=30&uid=[UID]&vid=${vidCode}&hash=[HASH]`) : v.redirect_overquota,
+        redirect_security: isDummyUrl(v.redirect_security) ? (def.redirect_security || `${origin}/survey/callback?status=40&uid=[UID]&vid=${vidCode}&hash=[HASH]`) : v.redirect_security,
+      };
+    });
+    setLocalData('smr_custom_vendors', sanitized);
+    return { success: true, data: sanitized };
   }
   try {
     const res = await api.get('/manage/vendors');
@@ -1200,8 +1214,9 @@ export const simulateTestRouting = async (payload) => {
     3: 'OverQuota / Full',
     4: 'Security Exclusion (VPN/Fraud)'
   };
-  const statusLabel = labels[statusNumber] || 'Complete';
-  const targetUrl = `https://cluster.marketxcel.co.in/survey/thankyou?status=${statusNumber}&auth=1&uid=${payload?.testUid || 'TEST_USER_99'}&hash=b4a5d89f4172c1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b89`;
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://client-ten-lyart-71.vercel.app';
+  const statusCode = statusNumber === 1 ? 10 : statusNumber === 2 ? 20 : statusNumber === 3 ? 30 : 40;
+  const targetUrl = `${origin}/survey/callback?status=${statusCode}&auth=1&uid=${encodeURIComponent(payload?.testUid || 'TEST_USER_99')}&vid=${encodeURIComponent(payload?.vendorId || 'VND-DYN-01')}&pid=${encodeURIComponent(payload?.projectId || '2042481293')}&hash=b4a5d89f4172c1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b89`;
   
   // Asynchronously record routing test activity in Google Sheet if connected
   GoogleSheetAPI.syncToSheet('logActivity', {

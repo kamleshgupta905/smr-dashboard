@@ -15,6 +15,7 @@ import QualsModal from './components/QualsModal';
 import AssignVendorModal from './components/AssignVendorModal';
 import GoogleSheetModal from './components/GoogleSheetModal';
 import PreScreenerGate from './components/PreScreenerGate';
+import SurveyCallbackPage from './components/SurveyCallbackPage';
 import LoginPage from './components/LoginPage';
 import { normalizeSurveys } from './utils/normalize';
 import { CheckCircle2, AlertTriangle, X } from 'lucide-react';
@@ -155,6 +156,18 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const uid = params.get('uid') || params.get('rid') || params.get('transaction_id') || `PANEL_${Date.now().toString().slice(-4)}`;
     return <PreScreenerGate vendorId={vendorId} projectId={projectId} uid={uid} />;
+  }
+
+  // 2. Direct SMR Router Settlement Hub & Callback Receipt (Public, No Login Required)
+  if (
+    currentPath.includes('/survey/callback') || 
+    currentPath.includes('/survey/complete') || 
+    currentPath.includes('/survey/terminate') || 
+    currentPath.includes('/survey/overquota') || 
+    currentPath.includes('/survey/security') || 
+    currentPath.includes('/survey/thankyou')
+  ) {
+    return <SurveyCallbackPage />;
   }
 
   if (!isAuthenticated) {
