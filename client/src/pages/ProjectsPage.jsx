@@ -6,116 +6,18 @@ import {
   DollarSign, 
   CheckCircle2, 
   PauseCircle, 
-  Target,
-  Globe,
-  TrendingUp,
-  Clock,
-  ExternalLink
+  Target, 
+  Globe, 
+  TrendingUp, 
+  Clock, 
+  ExternalLink,
+  Trash2
 } from 'lucide-react';
-import { getProjects, createProject } from '../services/api';
+import { getProjects, createProject, deleteProject, DEFAULT_PROJECTS } from '../services/api';
 import ModalPortal from '../components/ModalPortal';
 
-const FALLBACK_PROJECTS = [
-  {
-    _id: 'prj_nielsen_01',
-    project_id: 'PRJ-2026-01',
-    project_name: 'US Consumer Beverage & FMCG Brand Tracker',
-    client_name: 'NielsenIQ',
-    cpi: 4.50,
-    target_completes: 650,
-    completeCount: 412,
-    status: 'active',
-    country: 'United States',
-    audience_type: 'B2C',
-    device_type: 'Desktop,Mobile',
-    loi: 12,
-    ir: 85,
-    live_url: 'https://surveys.nielseniq.com/s/bev902?rid=[RESPONDENT_ID]'
-  },
-  {
-    _id: 'prj_ipsos_02',
-    project_id: 'PRJ-2026-02',
-    project_name: 'Automotive EV & Mobility Sentiment Study',
-    client_name: 'Ipsos Reid',
-    cpi: 5.25,
-    target_completes: 400,
-    completeCount: 275,
-    status: 'active',
-    country: 'Germany',
-    audience_type: 'B2C',
-    device_type: 'Desktop,Tablet',
-    loi: 18,
-    ir: 60,
-    live_url: 'https://research.ipsos.com/ev2026/run?id=[RESPONDENT_ID]'
-  },
-  {
-    _id: 'prj_mx_03',
-    project_id: 'PRJ-2026-03',
-    project_name: 'India Digital Banking & Fintech Benchmark 2026',
-    client_name: 'Market Xcel Data Matrix',
-    cpi: 3.80,
-    target_completes: 800,
-    completeCount: 540,
-    status: 'active',
-    country: 'India',
-    audience_type: 'B2C',
-    device_type: 'Desktop,Mobile,Tablet',
-    loi: 15,
-    ir: 75,
-    live_url: 'https://cluster.marketxcel.co.in/survey/live?uid=[RESPONDENT_ID]'
-  },
-  {
-    _id: 'prj_kantar_04',
-    project_id: 'PRJ-2026-04',
-    project_name: 'UK Enterprise Cloud Infrastructure Decision Study',
-    client_name: 'Kantar Group',
-    cpi: 8.50,
-    target_completes: 250,
-    completeCount: 140,
-    status: 'active',
-    country: 'United Kingdom',
-    audience_type: 'B2B',
-    device_type: 'Desktop',
-    loi: 20,
-    ir: 45,
-    live_url: 'https://kantar.surveys-online.org/uk_brand?res=[RESPONDENT_ID]'
-  },
-  {
-    _id: 'prj_zamp_05',
-    project_id: 'PRJ-2026-05',
-    project_name: 'Global Healthcare Physician Treatment Index',
-    client_name: 'Zamplia Healthcare',
-    cpi: 14.00,
-    target_completes: 150,
-    completeCount: 88,
-    status: 'active',
-    country: 'United States',
-    audience_type: 'HCP',
-    device_type: 'Desktop,Mobile',
-    loi: 22,
-    ir: 30,
-    live_url: 'https://healthcare.zamplia.com/study/pharma?rid=[RESPONDENT_ID]'
-  },
-  {
-    _id: 'prj_de_06',
-    project_id: 'PRJ-2026-06',
-    project_name: 'Smart Home & IoT Consumer Adoption Wave 4',
-    client_name: 'German Automotive Insights',
-    cpi: 4.00,
-    target_completes: 500,
-    completeCount: 310,
-    status: 'paused',
-    country: 'Canada',
-    audience_type: 'B2C',
-    device_type: 'Desktop,Mobile,Tablet',
-    loi: 14,
-    ir: 80,
-    live_url: 'https://survey.smarthome.de/iot_wave4?uid=[RESPONDENT_ID]'
-  }
-];
-
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState(FALLBACK_PROJECTS);
+  const [projects, setProjects] = useState(DEFAULT_PROJECTS);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState('');
@@ -140,9 +42,11 @@ export default function ProjectsPage() {
     setLoading(true);
     try {
       const res = await getProjects();
-      const list = res?.data?.data || res?.data || res || [];
+      const list = res?.data || res || [];
       if (Array.isArray(list) && list.length > 0) {
         setProjects(list);
+      } else {
+        setProjects(DEFAULT_PROJECTS);
       }
     } catch (err) {
       console.error('Failed to load projects from API, keeping fallbacks:', err);
@@ -174,10 +78,20 @@ export default function ProjectsPage() {
         device_type: 'Desktop,Mobile',
         loi: 12,
         ir: 80,
-        live_url: ''
+        live_url: 'https://survey.example.com?uid=[RESPONDENT_ID]'
       });
     } catch (err) {
       alert(err.response?.data?.message || 'Error creating project');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to remove this project?')) return;
+    try {
+      await deleteProject(id);
+      setProjects(prev => prev.filter(p => (p._id !== id && p.project_id !== id)));
+    } catch (err) {
+      console.error('Failed to delete project:', err);
     }
   };
 
@@ -336,6 +250,7 @@ export default function ProjectsPage() {
                   <th>Revenue CPI</th>
                   <th>Status</th>
                   <th>Live Target URL</th>
+                  <th style={{ width: '80px', textAlign: 'center' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -415,6 +330,16 @@ export default function ProjectsPage() {
                         }}>
                           {p.live_url || p.liveUrl || 'https://...'}
                         </span>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button
+                          className="btn btn-soft-danger btn-sm"
+                          onClick={() => handleDelete(p._id || p.project_id || p.projectId)}
+                          title="Remove Project"
+                          style={{ padding: '4px 8px', borderRadius: '4px' }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
                       </td>
                     </tr>
                   );

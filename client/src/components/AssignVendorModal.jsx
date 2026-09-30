@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { X, Link2, Copy, Check, Share2, Play, ShieldAlert, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
-import { ManagementAPI, RouterAPI } from '../services/api';
+import { getVendors, DEFAULT_VENDORS, RouterAPI } from '../services/api';
 import ModalPortal from './ModalPortal';
 
 export default function AssignVendorModal({ survey, surveyId, onClose }) {
-  const [vendors, setVendors] = useState([]);
-  const [selectedVendor, setSelectedVendor] = useState('SAMPLE_VENDOR_1');
+  const [vendors, setVendors] = useState(DEFAULT_VENDORS);
+  const [selectedVendor, setSelectedVendor] = useState('VND-DYN-01');
   const [loading, setLoading] = useState(false);
   const [liveLink, setLiveLink] = useState('');
   const [testLink, setTestLink] = useState('');
@@ -16,23 +16,41 @@ export default function AssignVendorModal({ survey, surveyId, onClose }) {
   const [simulating, setSimulating] = useState(false);
   const [simResult, setSimResult] = useState(null);
 
-  const currentId = survey?.survey_id || survey?.SurveyId || survey?.surveyId || survey?.id || survey?._id || survey?.project_id || surveyId || '2042481293';
-  const currentName = survey?.survey_name || survey?.Name || survey?.name || `Survey #${currentId}`;
-  const currentCpi = survey?.cpi || survey?.CPI || survey?.cost_per_interview || 2.70;
-  const currentLoi = survey?.loi || survey?.LOI || survey?.length_of_interview || 10;
-  const currentClient = survey?.client || (String(currentId).startsWith('MX') ? 'Market Xcel' : 'Zamplia');
+  const resolvedSurvey = (survey && typeof survey === 'object') ? survey : (surveyId && typeof surveyId === 'object' ? surveyId : null);
+  const currentId = resolvedSurvey?.survey_id || resolvedSurvey?.SurveyId || resolvedSurvey?.surveyId || resolvedSurvey?.id || resolvedSurvey?._id || resolvedSurvey?.project_id || (typeof surveyId !== 'object' ? surveyId : '2042481293') || '2042481293';
+  const currentName = resolvedSurvey?.survey_name || resolvedSurvey?.Name || resolvedSurvey?.name || `Survey #${currentId}`;
+  const currentCpi = resolvedSurvey?.cpi || resolvedSurvey?.CPI || resolvedSurvey?.cost_per_interview || 2.70;
+  const currentLoi = resolvedSurvey?.loi || resolvedSurvey?.LOI || resolvedSurvey?.length_of_interview || 10;
+  const currentClient = resolvedSurvey?.client || resolvedSurvey?.client_name || (String(currentId).startsWith('MX') ? 'Market Xcel' : 'Zamplia Global');
 
+  // Load vendors list from persistent storage
   useEffect(() => {
-    ManagementAPI.getVendors()
+    getVendors()
       .then((res) => {
-        const list = res.data?.data || res.data || [];
-        setVendors(Array.isArray(list) ? list : []);
-        if (list.length > 0) {
-          setSelectedVendor(list[0].vendor_code || list[0].vendorUid || list[0]._id);
+        const list = res?.data || res || [];
+        if (Array.isArray(list) && list.length > 0) {
+          setVendors(list);
+          const firstCode = list[0].vendor_code || list[0].vendorUid || list[0]._id;
+          if (firstCode) setSelectedVendor(firstCode);
+        } else {
+          setVendors(DEFAULT_VENDORS);
+          setSelectedVendor(DEFAULT_VENDORS[0].vendor_code);
         }
       })
-      .catch((err) => console.error(err));
+      .catch(() => {
+        setVendors(DEFAULT_VENDORS);
+        setSelectedVendor(DEFAULT_VENDORS[0].vendor_code);
+      });
   }, []);
+
+  // Auto-generate live and test links immediately on mount and vendor change
+  useEffect(() => {
+    const v = selectedVendor || 'VND-DYN-01';
+    const id = currentId || '2042481293';
+    const host = window.location.origin.replace(':3000', ':5000');
+    setLiveLink(`${host}/vendor/auth/${v}/project/${id}?uid=[RESPONDENT_ID]`);
+    setTestLink(`${host}/vendor/auth/${v}/project/${id}?uid=TEST_${v}_DEMO`);
+  }, [selectedVendor, currentId]);
 
   const handleGenerate = (e) => {
     if (e) e.preventDefault();
@@ -40,14 +58,15 @@ export default function AssignVendorModal({ survey, surveyId, onClose }) {
     setSimResult(null);
 
     const host = window.location.origin.replace(':3000', ':5000');
-    const generatedLive = `${host}/vendor/auth/${selectedVendor}/project/${currentId}?uid=[RESPONDENT_ID]`;
-    const generatedTest = `${host}/vendor/auth/${selectedVendor}/project/${currentId}?uid=TEST_${selectedVendor}_DEMO`;
+    const v = selectedVendor || 'VND-DYN-01';
+    const generatedLive = `${host}/vendor/auth/${v}/project/${currentId}?uid=[RESPONDENT_ID]`;
+    const generatedTest = `${host}/vendor/auth/${v}/project/${currentId}?uid=TEST_${v}_DEMO`;
 
     setTimeout(() => {
       setLiveLink(generatedLive);
       setTestLink(generatedTest);
       setLoading(false);
-    }, 200);
+    }, 150);
   };
 
   const runTestSimulation = async (statusNumber) => {

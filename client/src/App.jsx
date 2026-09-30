@@ -237,29 +237,47 @@ export default function App() {
       </div>
 
       {/* Interactive Modals */}
-      {quotasModalId && (
-        <QuotasModal 
-          surveyId={quotasModalId} 
-          onClose={() => setQuotasModalId(null)} 
-        />
-      )}
+      {quotasModalId && (() => {
+        const resolved = typeof quotasModalId === 'object' && quotasModalId !== null
+          ? quotasModalId
+          : surveys.find(s => String(s.survey_id ?? s.SurveyId ?? s.id ?? s._id) === String(quotasModalId));
+        const resolvedId = resolved?.survey_id ?? resolved?.SurveyId ?? resolved?.surveyId ?? (typeof quotasModalId !== 'object' ? quotasModalId : '2042481293');
+        return (
+          <QuotasModal 
+            survey={resolved}
+            surveyId={resolvedId} 
+            onClose={() => setQuotasModalId(null)} 
+          />
+        );
+      })()}
 
-      {qualsModalId && (
-        <QualsModal 
-          surveyId={qualsModalId} 
-          onClose={() => setQualsModalId(null)} 
-        />
-      )}
+      {qualsModalId && (() => {
+        const resolved = typeof qualsModalId === 'object' && qualsModalId !== null
+          ? qualsModalId
+          : surveys.find(s => String(s.survey_id ?? s.SurveyId ?? s.id ?? s._id) === String(qualsModalId));
+        const resolvedId = resolved?.survey_id ?? resolved?.SurveyId ?? resolved?.surveyId ?? (typeof qualsModalId !== 'object' ? qualsModalId : '2042481293');
+        return (
+          <QualsModal 
+            survey={resolved}
+            surveyId={resolvedId} 
+            onClose={() => setQualsModalId(null)} 
+          />
+        );
+      })()}
 
-      {assignModalId && (
-        <AssignVendorModal 
-          survey={surveys.find(s =>
-            String(s.survey_id ?? s.SurveyId ?? s.id ?? s._id) === String(assignModalId)
-          )}
-          surveyId={assignModalId} 
-          onClose={() => setAssignModalId(null)} 
-        />
-      )}
+      {assignModalId && (() => {
+        const resolved = typeof assignModalId === 'object' && assignModalId !== null
+          ? assignModalId
+          : surveys.find(s => String(s.survey_id ?? s.SurveyId ?? s.id ?? s._id) === String(assignModalId));
+        const resolvedId = resolved?.survey_id ?? resolved?.SurveyId ?? resolved?.surveyId ?? (typeof assignModalId !== 'object' ? assignModalId : '2042481293');
+        return (
+          <AssignVendorModal 
+            survey={resolved}
+            surveyId={resolvedId} 
+            onClose={() => setAssignModalId(null)} 
+          />
+        );
+      })()}
 
       {/* Toast Alert Notification */}
       {toast && (

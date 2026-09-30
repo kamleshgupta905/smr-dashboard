@@ -10,70 +10,14 @@ import {
   ShieldCheck,
   DollarSign,
   Activity,
-  ArrowUpRight
+  ArrowUpRight,
+  Trash2
 } from 'lucide-react';
-import { getVendors, createVendor } from '../services/api';
+import { getVendors, createVendor, deleteVendor, DEFAULT_VENDORS } from '../services/api';
 import ModalPortal from '../components/ModalPortal';
 
-const FALLBACK_VENDORS = [
-  {
-    _id: 'vnd_dynata_01',
-    vendor_code: 'VND-DYN-01',
-    vendorUid: 'VND-DYN-01',
-    name: 'Dynata Global Panel',
-    email: 'partners@dynata.com',
-    cpi: 1.75,
-    status: 'active'
-  },
-  {
-    _id: 'vnd_cint_02',
-    vendor_code: 'VND-CNT-02',
-    vendorUid: 'VND-CNT-02',
-    name: 'Cint Audience Exchange',
-    email: 'integrations@cint.com',
-    cpi: 1.40,
-    status: 'active'
-  },
-  {
-    _id: 'vnd_ps_03',
-    vendor_code: 'VND-PS-03',
-    vendorUid: 'VND-PS-03',
-    name: 'PureSpectrum Marketplace',
-    email: 'api-support@purespectrum.com',
-    cpi: 1.85,
-    status: 'active'
-  },
-  {
-    _id: 'vnd_lucid_04',
-    vendor_code: 'VND-LCD-04',
-    vendorUid: 'VND-LCD-04',
-    name: 'Lucid / Cint Marketplace',
-    email: 'publishers@lucidhq.com',
-    cpi: 1.25,
-    status: 'active'
-  },
-  {
-    _id: 'vnd_toluna_05',
-    vendor_code: 'VND-TLN-05',
-    vendorUid: 'VND-TLN-05',
-    name: 'Toluna Influencers Panel',
-    email: 'partnerships@tolunagroup.com',
-    cpi: 1.50,
-    status: 'active'
-  },
-  {
-    _id: 'vnd_innovate_06',
-    vendor_code: 'VND-IMR-06',
-    vendorUid: 'VND-IMR-06',
-    name: 'InnovateMR B2B Panel',
-    email: 'sample@innovatemr.com',
-    cpi: 2.25,
-    status: 'active'
-  }
-];
-
 export default function VendorsPage() {
-  const [vendors, setVendors] = useState(FALLBACK_VENDORS);
+  const [vendors, setVendors] = useState(DEFAULT_VENDORS);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
@@ -92,9 +36,11 @@ export default function VendorsPage() {
     setLoading(true);
     try {
       const res = await getVendors();
-      const list = res?.data?.data || res?.data || res || [];
+      const list = res?.data || res || [];
       if (Array.isArray(list) && list.length > 0) {
         setVendors(list);
+      } else {
+        setVendors(DEFAULT_VENDORS);
       }
     } catch (err) {
       console.error('Failed to load vendors from API, keeping fallbacks:', err);
@@ -117,6 +63,16 @@ export default function VendorsPage() {
       setFormData({ name: '', email: '', vendor_code: '', cpi: 1.50, status: 'active' });
     } catch (err) {
       alert(err.response?.data?.message || 'Error creating vendor');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to remove this vendor integration?')) return;
+    try {
+      await deleteVendor(id);
+      setVendors(prev => prev.filter(v => (v._id !== id && v.vendor_code !== id)));
+    } catch (err) {
+      console.error('Failed to delete vendor:', err);
     }
   };
 
@@ -278,6 +234,7 @@ export default function VendorsPage() {
                   <th>HMAC Security</th>
                   <th>Status</th>
                   <th>Sample Router Entry URL</th>
+                  <th style={{ width: '80px', textAlign: 'center' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -338,6 +295,16 @@ export default function VendorsPage() {
                             {copiedId === v._id ? <Check size={12} color="#03d87f" /> : <Copy size={12} />}
                           </button>
                         </div>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button
+                          className="btn btn-soft-danger btn-sm"
+                          onClick={() => handleDelete(v._id || v.vendor_code)}
+                          title="Remove Vendor"
+                          style={{ padding: '4px 8px', borderRadius: '4px' }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
                       </td>
                     </tr>
                   );
