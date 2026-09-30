@@ -403,6 +403,12 @@ export const DEFAULT_VENDORS = [
     status: 'active',
     completes_count: 1420,
     quality_score: 98,
+    redirect_complete: 'https://router.dynata.com/survey/complete?uid=[UID]',
+    redirect_terminate: 'https://router.dynata.com/survey/terminate?uid=[UID]',
+    redirect_overquota: 'https://router.dynata.com/survey/overquota?uid=[UID]',
+    redirect_security: 'https://router.dynata.com/survey/security?uid=[UID]',
+    hash_algorithm: 'SHA3-256',
+    secret_key: 'dynata_sec_key_2026',
     createdAt: new Date().toISOString()
   },
   {
@@ -415,6 +421,12 @@ export const DEFAULT_VENDORS = [
     status: 'active',
     completes_count: 2150,
     quality_score: 96,
+    redirect_complete: 'https://exchange.cint.com/survey/complete?uid=[UID]',
+    redirect_terminate: 'https://exchange.cint.com/survey/terminate?uid=[UID]',
+    redirect_overquota: 'https://exchange.cint.com/survey/overquota?uid=[UID]',
+    redirect_security: 'https://exchange.cint.com/survey/security?uid=[UID]',
+    hash_algorithm: 'SHA3-256',
+    secret_key: 'cint_sec_key_2026',
     createdAt: new Date().toISOString()
   },
   {
@@ -427,6 +439,12 @@ export const DEFAULT_VENDORS = [
     status: 'active',
     completes_count: 980,
     quality_score: 95,
+    redirect_complete: 'https://spectrum.purespectrum.com/survey/complete?uid=[UID]',
+    redirect_terminate: 'https://spectrum.purespectrum.com/survey/terminate?uid=[UID]',
+    redirect_overquota: 'https://spectrum.purespectrum.com/survey/overquota?uid=[UID]',
+    redirect_security: 'https://spectrum.purespectrum.com/survey/security?uid=[UID]',
+    hash_algorithm: 'SHA3-256',
+    secret_key: 'ps_sec_key_2026',
     createdAt: new Date().toISOString()
   },
   {
@@ -439,6 +457,12 @@ export const DEFAULT_VENDORS = [
     status: 'active',
     completes_count: 3100,
     quality_score: 94,
+    redirect_complete: 'https://samplicio.us/s/complete?uid=[UID]',
+    redirect_terminate: 'https://samplicio.us/s/terminate?uid=[UID]',
+    redirect_overquota: 'https://samplicio.us/s/overquota?uid=[UID]',
+    redirect_security: 'https://samplicio.us/s/security?uid=[UID]',
+    hash_algorithm: 'SHA3-256',
+    secret_key: 'lucid_sec_key_2026',
     createdAt: new Date().toISOString()
   },
   {
@@ -451,6 +475,12 @@ export const DEFAULT_VENDORS = [
     status: 'active',
     completes_count: 870,
     quality_score: 97,
+    redirect_complete: 'https://survey.toluna.com/survey/complete?uid=[UID]',
+    redirect_terminate: 'https://survey.toluna.com/survey/terminate?uid=[UID]',
+    redirect_overquota: 'https://survey.toluna.com/survey/overquota?uid=[UID]',
+    redirect_security: 'https://survey.toluna.com/survey/security?uid=[UID]',
+    hash_algorithm: 'SHA3-256',
+    secret_key: 'toluna_sec_key_2026',
     createdAt: new Date().toISOString()
   },
   {
@@ -463,6 +493,12 @@ export const DEFAULT_VENDORS = [
     status: 'active',
     completes_count: 640,
     quality_score: 99,
+    redirect_complete: 'https://surveys.innovatemr.net/survey/complete?uid=[UID]',
+    redirect_terminate: 'https://surveys.innovatemr.net/survey/terminate?uid=[UID]',
+    redirect_overquota: 'https://surveys.innovatemr.net/survey/overquota?uid=[UID]',
+    redirect_security: 'https://surveys.innovatemr.net/survey/security?uid=[UID]',
+    hash_algorithm: 'SHA3-256',
+    secret_key: 'imr_sec_key_2026',
     createdAt: new Date().toISOString()
   }
 ];
@@ -979,6 +1015,20 @@ export const createVendor = async (data) => {
   return { success: true, data: created };
 };
 
+export const updateVendor = async (id, data) => {
+  const res = await getVendors();
+  const list = res.data || [];
+  const updated = list.map(v => {
+    if (v._id === id || v.vendor_code === id || v.vendorUid === id) {
+      return { ...v, ...data, updatedAt: new Date().toISOString() };
+    }
+    return v;
+  });
+  setLocalData('smr_custom_vendors', updated);
+  GoogleSheetAPI.syncToSheet('addVendor', { ...data, vendor_code: id });
+  return { success: true, data: updated };
+};
+
 export const deleteVendor = async (id) => {
   const res = await getVendors();
   const list = res.data || [];
@@ -1370,6 +1420,7 @@ export const ManagementAPI = {
   deleteProject,
   getVendors,
   createVendor,
+  updateVendor,
   deleteVendor,
   getClients,
   createClient,

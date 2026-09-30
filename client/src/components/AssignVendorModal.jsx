@@ -303,6 +303,57 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                 </p>
               </div>
 
+              {/* Configured Return Callbacks for this Supply Vendor */}
+              {(() => {
+                const vendorObj = vendors.find(v => (v.vendor_code === selectedVendor || v.vendorUid === selectedVendor || v._id === selectedVendor));
+                const slug = (vendorObj?.vendor_code || selectedVendor || 'supplier').toLowerCase().replace(/[^a-z0-9]/g, '');
+                const rc = vendorObj?.redirect_complete || `https://${slug}.com/survey/complete?uid=[UID]`;
+                const rt = vendorObj?.redirect_terminate || `https://${slug}.com/survey/terminate?uid=[UID]`;
+                const ro = vendorObj?.redirect_overquota || `https://${slug}.com/survey/overquota?uid=[UID]`;
+                const rs = vendorObj?.redirect_security || `https://${slug}.com/survey/security?uid=[UID]`;
+                const hashAlg = vendorObj?.hash_algorithm || 'SHA3-256';
+
+                return (
+                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '12px 14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#1E293B', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Link2 size={13} color="#2563EB" /> 3. Supply Vendor Return Callbacks ({vendorObj?.name || selectedVendor}):
+                      </span>
+                      <span className="badge-soft-success" style={{ fontSize: '10.5px', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                        {hashAlg} Secured
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '11px', fontFamily: 'monospace' }}>
+                      <div style={{ background: '#FFFFFF', padding: '6px 8px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                        <span style={{ color: '#16A34A', fontWeight: 700, display: 'block', fontSize: '10px' }}>✓ COMPLETE (Status 10):</span>
+                        <div style={{ color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={rc}>
+                          {rc}
+                        </div>
+                      </div>
+                      <div style={{ background: '#FFFFFF', padding: '6px 8px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                        <span style={{ color: '#DC2626', fontWeight: 700, display: 'block', fontSize: '10px' }}>✕ TERMINATE (Status 20):</span>
+                        <div style={{ color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={rt}>
+                          {rt}
+                        </div>
+                      </div>
+                      <div style={{ background: '#FFFFFF', padding: '6px 8px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                        <span style={{ color: '#D97706', fontWeight: 700, display: 'block', fontSize: '10px' }}>⊘ OVERQUOTA (Status 30):</span>
+                        <div style={{ color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={ro}>
+                          {ro}
+                        </div>
+                      </div>
+                      <div style={{ background: '#FFFFFF', padding: '6px 8px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                        <span style={{ color: '#4F46E5', fontWeight: 700, display: 'block', fontSize: '10px' }}>🛡️ SECURITY (Status 40):</span>
+                        <div style={{ color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={rs}>
+                          {rs}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* 1-Click Interactive Test Simulator */}
               <div style={{
                 background: '#FFFFFF',
