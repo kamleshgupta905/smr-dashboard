@@ -22,7 +22,7 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
   useEffect(() => {
     if (['dashboard', 'surveys'].includes(activeTab)) {
       setDashboardOpen(true);
-    } else if (['clients', 'vendors', 'projects'].includes(activeTab)) {
+    } else if (['clients', 'vendors'].includes(activeTab)) {
       setAppsOpen(true);
     } else if (['security', 'reconciliation', 'reference'].includes(activeTab)) {
       setSecurityOpen(true);
@@ -121,10 +121,10 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
             </div>
           </div>
 
-          {/* Dropdown 2: Apps (Demand Clients, Supply Vendors, Campaign Projects) */}
+          {/* Dropdown 2: Apps (Demand Clients, Supply Vendors) */}
           <div className="sidebar-nav-group">
             <button 
-              className={`sidebar-nav-heading ${['clients', 'vendors', 'projects'].includes(activeTab) ? 'active' : ''}`}
+              className={`sidebar-nav-heading ${['clients', 'vendors'].includes(activeTab) ? 'active' : ''}`}
               onClick={() => setAppsOpen(prev => !prev)}
             >
               <div className="nav-heading-left">
@@ -151,13 +151,6 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
                 >
                   <span className="bullet-circle" />
                   <span>Supply Vendors</span>
-                </button>
-                <button
-                  className={`submenu-item ${activeTab === 'projects' ? 'active' : ''}`}
-                  onClick={() => handleNav('projects')}
-                >
-                  <span className="bullet-circle" />
-                  <span>Campaign Projects</span>
                 </button>
               </div>
             </div>

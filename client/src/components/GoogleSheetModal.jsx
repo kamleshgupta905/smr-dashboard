@@ -470,7 +470,7 @@ export default function GoogleSheetModal({ isOpen, onClose }) {
                   Sync All Current Platform Inventory to Sheet
                 </strong>
                 <small style={{ color: '#64748B' }}>
-                  Pushes all Demand Clients, Supply Vendors, and Campaign Projects into dedicated tabs.
+                  Pushes all Demand Clients, Supply Vendors, and Users into dedicated tabs.
                 </small>
               </div>
               <button

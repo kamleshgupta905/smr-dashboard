@@ -1158,6 +1158,11 @@ export const updateSecurityPolicy = async (data) => {
   try {
     await api.put('/security/policy', data);
   } catch {}
+  GoogleSheetAPI.syncToSheet('logActivity', {
+    eventType: 'UPDATE_SECURITY_POLICY',
+    policy: data,
+    timestamp: new Date().toISOString()
+  });
   return { success: true, message: 'Security policy updated successfully' };
 };
 
@@ -1324,6 +1329,18 @@ export const createUser = async (data) => {
   return { success: true, data: created };
 };
 
+export const updateUser = async (id, data) => {
+  const res = await getUsers();
+  const list = res.data || [];
+  const updated = list.map(u => (u.id === id ? { ...u, ...data, updatedAt: new Date().toISOString() } : u));
+  setLocalData('smr_custom_users', updated);
+  try {
+    await api.post(`/manage/users/update/${id}`, data);
+  } catch {}
+  GoogleSheetAPI.syncToSheet('addUser', { ...data, id });
+  return { success: true, data: updated };
+};
+
 export const deleteUser = async (id) => {
   const res = await getUsers();
   const list = res.data || [];
@@ -1427,6 +1444,7 @@ export const ManagementAPI = {
   deleteClient,
   getUsers,
   createUser,
+  updateUser,
   deleteUser,
   getDashboardAnalytics,
 };

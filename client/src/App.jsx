@@ -3,7 +3,6 @@ import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import DashboardPage from './pages/DashboardPage';
 import SurveysPage from './pages/SurveysPage';
-import ProjectsPage from './pages/ProjectsPage';
 import VendorsPage from './pages/VendorsPage';
 import ReconciliationPage from './pages/ReconciliationPage';
 import ReferenceDataPage from './pages/ReferenceDataPage';
@@ -132,7 +131,6 @@ export default function App() {
     surveys: 'Allocated Survey Marketplace',
     'developer-center': 'API Developer Center & Interactive Sandbox',
     security: 'Security & Fraud Screening Engine',
-    projects: 'Custom Client Projects',
     reconciliation: 'Zamplia Reconciliation & Audit',
     reference: 'Reference Catalogs & Taxonomies'
   };
@@ -230,7 +228,6 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'projects' && <ProjectsPage />}
           {activeTab === 'vendors' && <VendorsPage />}
           {activeTab === 'reconciliation' && <ReconciliationPage />}
           {activeTab === 'reference' && <ReferenceDataPage />}
