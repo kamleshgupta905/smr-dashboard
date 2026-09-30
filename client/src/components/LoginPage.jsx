@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, User, Eye, EyeOff, AlertCircle, Zap, ShieldCheck, KeyRound } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, AlertCircle, Zap, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage({ onLogin }) {
   // Empty by default — no credentials should ever be prefilled on a production login screen.
@@ -313,24 +313,6 @@ export default function LoginPage({ onLogin }) {
                 </a>
               </div>
 
-              <div style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '8px',
-                background: '#eff6ff',
-                border: '1px solid #bfdbfe',
-                borderRadius: '4px',
-                padding: '10px 12px',
-                marginBottom: '16px',
-                fontSize: '11.5px',
-                color: '#1e40af',
-                lineHeight: 1.5
-              }}>
-                <KeyRound size={14} style={{ flexShrink: 0, marginTop: '1px' }} />
-                <span>
-                  <strong>Demo access:</strong> username <code style={{ background: '#dbeafe', padding: '1px 5px', borderRadius: '3px', fontFamily: 'monospace' }}>Vmhgroup</code> &bull; password <code style={{ background: '#dbeafe', padding: '1px 5px', borderRadius: '3px', fontFamily: 'monospace' }}>Jelly</code>
-                </span>
-              </div>
 
               <button
                 type="submit"
