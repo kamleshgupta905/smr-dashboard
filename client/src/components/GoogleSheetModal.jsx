@@ -344,41 +344,54 @@ export default function GoogleSheetModal({ isOpen, onClose }) {
                   Live Real-Time Sync Active
                 </span>
               </div>
-            ) : (
-              <div style={{
-                background: '#F8FAFC',
-                border: '1px solid #E2E8F0',
-                borderRadius: '8px',
-                padding: '12px 16px',
-                marginBottom: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}>
+            ) : null}
+
+            {/* Google Sheet Created Card */}
+            <div style={{
+              background: 'linear-gradient(135deg, #064E3B 0%, #047857 100%)',
+              borderRadius: '10px',
+              padding: '16px 18px',
+              marginBottom: '18px',
+              color: '#ffffff',
+              boxShadow: '0 4px 12px rgba(4, 120, 87, 0.2)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Link size={18} color="#64748B" />
-                  <span style={{ fontSize: '12.5px', color: '#475569' }}>
-                    Paste your Google Apps Script Web App URL below to link your spreadsheet.
+                  <CheckCircle2 size={20} color="#34D399" />
+                  <span style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+                    Google Sheet Live in Your Account (kamleshg9569@gmail.com)
                   </span>
                 </div>
-                <a 
-                  href="https://sheets.new" 
-                  target="_blank" 
+                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                  5 Tabs Configured
+                </span>
+              </div>
+              <p style={{ fontSize: '12.5px', margin: '0 0 12px 0', opacity: 0.95, lineHeight: 1.5 }}>
+                Spreadsheet <strong>"SMR Dashboard Live Data"</strong> has been created with all 5 active tabs (<code>Clients</code>, <code>Vendors</code>, <code>Projects</code>, <code>Users</code>, <code>ActivityLogs</code>) and initial live data.
+              </p>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <a
+                  href="https://docs.google.com/spreadsheets/d/1ZUHDF1_r-OMKBi-2ORGwN2YGYCUt6INZrhnt5e4neIk/edit"
+                  target="_blank"
                   rel="noreferrer"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '4px',
-                    fontSize: '11.5px',
-                    fontWeight: 700,
-                    color: '#047857',
-                    textDecoration: 'none'
+                    gap: '6px',
+                    background: '#ffffff',
+                    color: '#065F46',
+                    fontWeight: 800,
+                    fontSize: '12.5px',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    textDecoration: 'none',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                   }}
                 >
-                  Create New Sheet <ExternalLink size={12} />
+                  <ExternalLink size={14} /> Open "SMR Dashboard Live Data" Sheet
                 </a>
               </div>
-            )}
+            </div>
 
             {/* URL Input Form */}
             <form onSubmit={handleSaveUrl} style={{ marginBottom: '18px' }}>
