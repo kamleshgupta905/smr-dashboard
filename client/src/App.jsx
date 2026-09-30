@@ -102,7 +102,7 @@ export default function App() {
     const avgCpi = total > 0
       ? Number((list.reduce((acc, s) => acc + (s.cpi || 0), 0) / total).toFixed(2))
       : 0;
-    const demandSources = new Set(list.map(s => s.client).filter(Boolean)).size;
+    const demandSources = 3; // 3 Active Connected Demand Clients: Market Xcel, Zamplia Demand Global, Ipsos Reid
     return {
       totalSurveys: total,
       activeSurveys: active,

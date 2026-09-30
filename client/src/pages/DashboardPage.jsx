@@ -109,7 +109,7 @@ export default function DashboardPage({
       <StatsCards stats={stats} totalSurveys={normalized.length} onNavigate={onNavigate} />
 
       {/* Main Charts Row: Audience Overview (8 col) + Sessions Device (4 col) */}
-      <ApitoolAnalytics data={analyticsData} />
+      <ApitoolAnalytics data={analyticsData} surveys={surveys} />
 
       {/* Secondary Row: Live Concurrency ("80 Right Now") + Sessions By Channel */}
       <div style={{
