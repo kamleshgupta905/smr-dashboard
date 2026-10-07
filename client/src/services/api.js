@@ -982,7 +982,7 @@ export const getVendors = async () => {
   const isDummyUrl = (url) => !url || url.includes('vnddyn01.com') || url.includes('supplier.com');
   const local = getLocalData('smr_custom_vendors', null);
   if (local && Array.isArray(local) && local.length > 0) {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://client-ten-lyart-71.vercel.app';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
     const sanitized = local.map(v => {
       const vidCode = v.vendor_code || v.vendorUid || 'VND-DYN-01';
       const def = DEFAULT_VENDORS.find(dv => dv.vendor_code === vidCode) || {};
@@ -1200,11 +1200,14 @@ export const simulateTrafficCheck = (data) =>
 export const generateStandardVendorLink = (projectId, vendorId) =>
   api.post('/router/generate-vendor-link', { projectId, vendorId })
     .then(res => res.data)
-    .catch(() => ({
-      success: true,
-      liveUrl: `https://cluster.marketxcel.co.in/survey/start?pid=${projectId}&vid=${vendorId}&uid=[%RESPONDENT_ID%]`,
-      testUrl: `https://cluster.marketxcel.co.in/survey/test?pid=${projectId}&vid=${vendorId}&uid=TEST_USER_99`
-    }));
+    .catch(() => {
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
+      return {
+        success: true,
+        liveUrl: `${origin}/vendor/auth/${vendorId}/project/${projectId}?uid=[RESPONDENT_ID]`,
+        testUrl: `${origin}/vendor/auth/${vendorId}/project/${projectId}?uid=TEST_${vendorId}_VERIFY`
+      };
+    });
 
 export const simulateTestRouting = async (payload) => {
   const statusNumber = payload?.status || 1;
@@ -1214,7 +1217,8 @@ export const simulateTestRouting = async (payload) => {
     3: 'OverQuota / Full',
     4: 'Security Exclusion (VPN/Fraud)'
   };
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://client-ten-lyart-71.vercel.app';
+  const statusLabel = labels[statusNumber] || 'Complete';
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
   const statusCode = statusNumber === 1 ? 10 : statusNumber === 2 ? 20 : statusNumber === 3 ? 30 : 40;
   const targetUrl = `${origin}/survey/callback?status=${statusCode}&auth=1&uid=${encodeURIComponent(payload?.testUid || 'TEST_USER_99')}&vid=${encodeURIComponent(payload?.vendorId || 'VND-DYN-01')}&pid=${encodeURIComponent(payload?.projectId || '2042481293')}&hash=b4a5d89f4172c1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b89`;
   
@@ -1429,6 +1433,21 @@ export const GoogleSheetAPI = {
       })
     });
     return await res.json();
+  },
+  getSurveysFromSheet: async () => {
+    const url = GoogleSheetAPI.getScriptUrl();
+    if (!url) return null;
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'getSurveys' })
+      });
+      return await res.json();
+    } catch (e) {
+      console.warn('Google Sheet survey proxy notice:', e);
+      return null;
+    }
   }
 };
 

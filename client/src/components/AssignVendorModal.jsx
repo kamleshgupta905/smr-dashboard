@@ -306,7 +306,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
               {/* Configured Return Callbacks for this Supply Vendor */}
               {(() => {
                 const vendorObj = vendors.find(v => (v.vendor_code === selectedVendor || v.vendorUid === selectedVendor || v._id === selectedVendor));
-                const origin = typeof window !== 'undefined' ? window.location.origin : 'https://client-ten-lyart-71.vercel.app';
+                const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
                 const vidCode = vendorObj?.vendor_code || selectedVendor || 'VND-DYN-01';
                 const isDummy = (url) => !url || url.includes('vnddyn01.com') || url.includes('supplier.com');
                 const rc = !isDummy(vendorObj?.redirect_complete) ? vendorObj.redirect_complete : `${origin}/survey/callback?status=10&uid=[UID]&vid=${vidCode}&hash=[HASH]`;

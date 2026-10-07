@@ -84,7 +84,7 @@ export default function VendorsPage() {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://client-ten-lyart-71.vercel.app';
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
       const vidCode = formData.vendor_code || 'VND';
       const payload = {
         ...formData,
@@ -120,7 +120,7 @@ export default function VendorsPage() {
 
   const handleOpenRedirects = (vendor) => {
     setEditingVendor(vendor);
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://client-ten-lyart-71.vercel.app';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
     const vidCode = vendor.vendor_code || vendor.vendorUid || 'VND';
     const isDummy = (url) => !url || url.includes('vnddyn01.com') || url.includes('supplier.com');
     setRedirectForm({

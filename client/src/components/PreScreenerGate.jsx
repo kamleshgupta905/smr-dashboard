@@ -384,7 +384,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
   };
 
   const getInternalCallbackUrl = (statusNum) => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://client-ten-lyart-71.vercel.app';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
     const statusMap = { 1: 10, 2: 20, 3: 30, 4: 40 };
     const code = statusMap[statusNum] || statusNum || 10;
     const cleanUid = uid || `TEST_RESP_${Date.now().toString().slice(-4)}`;

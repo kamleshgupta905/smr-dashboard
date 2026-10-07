@@ -6,9 +6,9 @@
     RewriteRule ^api/(.*)$ api/index.php?route=$1 [QSA,L]
     RewriteRule ^api$ api/index.php?route=api [QSA,L]
 
-    # 2. Route Traffic Router redirects
+    # 2. Direct server-level traffic redirects (when calling backend router directly)
     RewriteRule ^redirects(.*)$ api/index.php?route=redirects$1 [QSA,L]
-    RewriteRule ^vendor(.*)$ api/index.php?route=vendor$1 [QSA,L]
+    RewriteRule ^router/(.*)$ api/index.php?route=router/$1 [QSA,L]
     RewriteRule ^health$ api/index.php?route=health [QSA,L]
 
     # 3. Serve existing static files & directories directly
@@ -16,7 +16,7 @@
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # 4. React Single Page App fallback
+    # 4. React Single Page App fallback (handles /vendor/auth/*, /survey/*, /dashboard, etc.)
     RewriteRule ^ index.html [L]
 </IfModule>
 
