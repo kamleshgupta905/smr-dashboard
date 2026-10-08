@@ -44,96 +44,9 @@ if (!is_dir($DATA_DIR)) {
 // Database Connection (Hostinger MySQL on localhost)
 // -------------------------------------------------------------
 function getDbConnection(): ?PDO {
-    static $pdo = null;
-    if ($pdo !== null) return $pdo;
-
-    try {
-        $dsn = "mysql:host=localhost;dbname=u839355029_api;charset=utf8mb4";
-        $pdo = new PDO($dsn, 'u839355029_apitool', 'Z^3k!2dVKs8', [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_TIMEOUT => 3
-        ]);
-
-        // Auto-migrate tables if not exist
-        $pdo->exec("
-            CREATE TABLE IF NOT EXISTS leads (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                lead_id VARCHAR(100) NOT NULL,
-                project_id VARCHAR(100) NOT NULL,
-                vendor_id VARCHAR(100) NOT NULL,
-                status VARCHAR(50) DEFAULT 'Pending',
-                ip_address VARCHAR(45) NULL,
-                country VARCHAR(50) NULL,
-                device VARCHAR(50) NULL,
-                browser VARCHAR(50) NULL,
-                os VARCHAR(50) NULL,
-                time_spent INT DEFAULT 0,
-                fraud_reason VARCHAR(255) NULL,
-                start_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-                end_time DATETIME NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                INDEX (lead_id),
-                INDEX (project_id),
-                INDEX (vendor_id)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-            CREATE TABLE IF NOT EXISTS vendor (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                vendor_id VARCHAR(50) NOT NULL UNIQUE,
-                name VARCHAR(100) NOT NULL,
-                email VARCHAR(100) NULL,
-                cpi DECIMAL(10,2) DEFAULT 1.50,
-                is_active VARCHAR(5) DEFAULT 'Y',
-                clicks_count INT DEFAULT 0,
-                complete_count INT DEFAULT 0,
-                terminates_count INT DEFAULT 0,
-                redirect_complete TEXT NULL,
-                redirect_terminate TEXT NULL,
-                redirect_overquota TEXT NULL,
-                redirect_security TEXT NULL,
-                hash_algorithm VARCHAR(30) DEFAULT 'SHA3-256',
-                secret_key VARCHAR(100) DEFAULT 'mx_secret_sha3_key_2026',
-                s2s_enabled TINYINT(1) DEFAULT 0,
-                s2s_endpoint VARCHAR(255) NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-            CREATE TABLE IF NOT EXISTS projects (
-                id VARCHAR(100) PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
-                status VARCHAR(50) DEFAULT 'Live',
-                cpi DECIMAL(10,2) DEFAULT 2.50,
-                loi INT DEFAULT 12,
-                ir INT DEFAULT 70,
-                country VARCHAR(50) DEFAULT 'United States',
-                client_name VARCHAR(100) DEFAULT 'Zamplia Global',
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-            CREATE TABLE IF NOT EXISTS fraud_logs (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                uid VARCHAR(100) NOT NULL,
-                project_id VARCHAR(100) NULL,
-                vendor_id VARCHAR(100) NULL,
-                reason VARCHAR(255) NOT NULL,
-                risk_score INT DEFAULT 100,
-                ip_address VARCHAR(45) NULL,
-                device VARCHAR(50) NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-            CREATE TABLE IF NOT EXISTS security_settings (
-                id INT PRIMARY KEY,
-                policy_json JSON NOT NULL,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-        ");
-
-        return $pdo;
-    } catch (Throwable $e) {
-        return null;
-    }
+    // SMR is 100% isolated and uses fast, self-contained file persistence.
+    // Completely decoupled from MySQL to guarantee zero conflicts with other subdomains.
+    return null;
 }
 
 // -------------------------------------------------------------
