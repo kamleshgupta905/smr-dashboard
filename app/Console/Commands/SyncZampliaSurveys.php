@@ -12,7 +12,7 @@ class SyncZampliaSurveys extends Command
      *
      * @var string
      */
-    protected $signature = 'zamplia:sync-surveys {--top-picks : Also display top pick surveys}';
+    protected $signature = 'zamplia:sync-surveys';
 
     /**
      * The console command description.
@@ -32,18 +32,6 @@ class SyncZampliaSurveys extends Command
 
         if ($result['success']) {
             $this->info("✓ " . $result['message']);
-
-            if ($this->option('top-picks')) {
-                $this->info('Fetching Top Pick Surveys...');
-                $topPicks = $zampliaService->getTopPickSurveys();
-                if ($topPicks['success']) {
-                    $count = count($topPicks['data'] ?? []);
-                    $this->info("✓ Found {$count} Top Pick surveys.");
-                } else {
-                    $this->warn("! Could not fetch top picks: " . ($topPicks['message'] ?? 'Unknown error'));
-                }
-            }
-
             return Command::SUCCESS;
         }
 

@@ -93,15 +93,6 @@ class ZampliaSupplyService
         return $this->makeRequest('/Surveys/GetAllocatedSurveys', $filters);
     }
 
-    /**
-     * 2. Get Top Pick Surveys
-     * Returns highest-yield / top-priority surveys allocated to the supplier.
-     */
-    public function getTopPickSurveys(array $filters = []): array
-    {
-        return $this->makeRequest('/Surveys/GetTopPickSurveys', $filters);
-    }
-
     // =========================================================================
     // 2. SURVEY INSPECTION & TARGETING APIS
     // =========================================================================

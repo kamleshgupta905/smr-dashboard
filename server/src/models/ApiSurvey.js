@@ -20,7 +20,6 @@ const apiSurveySchema = new mongoose.Schema({
   FieldDays: { type: Number },
   SurveyCreatedAt: { type: Date },
   status: { type: String, default: 'Live', index: true },
-  isTopPick: { type: Boolean, default: false },
 }, { timestamps: true });
 
 module.exports = mongoose.model('ApiSurvey', apiSurveySchema);

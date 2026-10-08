@@ -116,42 +116,6 @@ class ZampliaService {
           }
         ];
 
-      case '/Surveys/GetTopPickSurveys':
-        return [
-          {
-            SurveyId: 90145,
-            Name: 'Cloud SaaS Infrastructure Purchasing Habits',
-            CPI: 9.20,
-            LOI: 20,
-            IR: 30,
-            TotalCompleteRequired: 250,
-            CompletesNeeded: 180,
-            Rank: 1,
-            PriorityScore: 98.4,
-          },
-          {
-            SurveyId: 90143,
-            Name: 'Healthcare Providers Digital Records Adoption',
-            CPI: 7.50,
-            LOI: 18,
-            IR: 40,
-            TotalCompleteRequired: 300,
-            CompletesNeeded: 210,
-            Rank: 2,
-            PriorityScore: 94.1,
-          },
-          {
-            SurveyId: 90142,
-            Name: 'Global Electric Vehicle & Mobility Outlook 2026',
-            CPI: 4.80,
-            LOI: 14,
-            IR: 75,
-            TotalCompleteRequired: 600,
-            CompletesNeeded: 340,
-            Rank: 3,
-            PriorityScore: 89.7,
-          }
-        ];
 
       case '/Surveys/GetSurveyById':
         return {
@@ -383,10 +347,6 @@ class ZampliaService {
   // 1. Discovery APIs
   async getAllocatedSurveys() {
     return this.request('/Surveys/GetAllocatedSurveys');
-  }
-
-  async getTopPickSurveys() {
-    return this.request('/Surveys/GetTopPickSurveys');
   }
 
   // 2. Inspection & Targeting APIs
