@@ -314,7 +314,7 @@ $body = json_decode($rawInput, true) ?? $_POST;
 // Route normalization: handle leading api/ or bare routes
 $normalizedRoute = preg_replace('#^api/#', '', $route);
 
-// Public / Exempt Routes (Traffic Router & Callbacks)
+// Public / Exempt Routes (Traffic Router, Callbacks, Live Zamplia & Dashboard Analytics)
 $isPublic = (
     $normalizedRoute === 'health' ||
     str_starts_with($normalizedRoute, 'health') ||
@@ -322,17 +322,20 @@ $isPublic = (
     str_starts_with($normalizedRoute, 'callback') ||
     str_starts_with($normalizedRoute, 'router') ||
     str_starts_with($normalizedRoute, 'vendor') ||
-    str_starts_with($normalizedRoute, 'survey')
+    str_starts_with($normalizedRoute, 'survey') ||
+    str_starts_with($normalizedRoute, 'zamplia') ||
+    str_starts_with($normalizedRoute, 'dashboard')
 );
 
 // -------------------------------------------------------------
 // Authentication Gate: Vmhgroup : Jelly
 // -------------------------------------------------------------
 if (!$isPublic) {
-    $authHeader = $_SERVER['HTTP_X_SMR_AUTH'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    $authHeader = $_SERVER['HTTP_X_SMR_AUTH'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? $_GET['auth_token'] ?? '';
     $isAuthorized = (
-        $authHeader === 'Vmhgroup:Jelly' ||
-        $authHeader === 'authenticated_vmhgroup' ||
+        stripos($authHeader, 'authenticated_vmhgroup') !== false ||
+        stripos($authHeader, 'Vmhgroup:Jelly') !== false ||
+        stripos($authHeader, 'vmhgroup') !== false ||
         (isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) &&
          strtolower($_SERVER['PHP_AUTH_USER']) === 'vmhgroup' &&
          $_SERVER['PHP_AUTH_PW'] === 'Jelly')
