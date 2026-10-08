@@ -126,14 +126,9 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
 
   return (
     <div style={{ marginBottom: '16px' }}>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(12, 1fr)',
-        gap: '16px',
-        alignItems: 'stretch'
-      }}>
-        {/* Left 8 Columns: Dastone Audience Overview */}
-        <div className="card report-card" style={{ gridColumn: 'span 8', display: 'flex', flexDirection: 'column' }}>
+      <div className="dastone-analytics-grid">
+        {/* Left 8 Columns on Desktop, Full Width on Laptops/Tablets: Dastone Audience Overview */}
+        <div className="card report-card analytics-main-card">
           <div className="card-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '16px' }}>
             <div style={{ 
               display: 'flex', 
@@ -306,8 +301,8 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
           </div>
         </div>
 
-        {/* Right 4 Columns: Dastone Sessions Device (Donut & 4-Col Table) */}
-        <div className="card report-card" style={{ gridColumn: 'span 4', display: 'flex', flexDirection: 'column' }}>
+        {/* Right 4 Columns on Desktop, Full Width on Laptops/Tablets: Dastone Sessions Device (Donut & 4-Col Table) */}
+        <div className="card report-card analytics-side-card">
           <div className="card-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <h4 className="card-title">Sessions Device</h4>
@@ -380,8 +375,8 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
             </div>
 
             {/* 4-Column Table: Device | Studies | Share | Tier */}
-            <div style={{ marginTop: '10px' }}>
-              <table style={{ width: '100%', fontSize: '11.5px', borderCollapse: 'collapse' }}>
+            <div className="table-responsive" style={{ marginTop: '10px', width: '100%', overflowX: 'auto' }}>
+              <table style={{ width: '100%', minWidth: '260px', fontSize: '11.5px', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #e3ebf6', color: '#8997bd' }}>
                     <th style={{ textAlign: 'left', padding: '6px 4px', fontWeight: 600, fontSize: '10.5px' }}>Device</th>

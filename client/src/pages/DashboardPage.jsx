@@ -112,14 +112,9 @@ export default function DashboardPage({
       <ApitoolAnalytics data={analyticsData} surveys={surveys} />
 
       {/* Secondary Row: Live Concurrency ("80 Right Now") + Sessions By Channel */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(12, 1fr)',
-        gap: '16px',
-        marginBottom: '16px'
-      }}>
-        {/* Widget 1: Concurrency Meter ("80 Right Now") - 6 cols */}
-        <div className="card report-card" style={{ gridColumn: 'span 6' }}>
+      <div className="dastone-secondary-grid">
+        {/* Widget 1: Concurrency Meter ("80 Right Now") */}
+        <div className="card report-card secondary-grid-card">
           <div className="card-body" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
               <span className="pulse-dot" />
@@ -152,8 +147,8 @@ export default function DashboardPage({
           </div>
         </div>
 
-        {/* Widget 2: Sessions By Channel - 6 cols */}
-        <div className="card report-card" style={{ gridColumn: 'span 6' }}>
+        {/* Widget 2: Sessions By Channel */}
+        <div className="card report-card secondary-grid-card">
           <div className="card-body" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <h4 className="card-title">Sessions By Channel</h4>

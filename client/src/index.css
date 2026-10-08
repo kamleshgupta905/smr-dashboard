@@ -82,8 +82,18 @@ html, body {
   font-family: var(--font-family);
   font-size: 13px;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  min-height: 100vh;
 }
 
 a {
@@ -626,26 +636,101 @@ select:disabled {
 }
 
 /* ==========================================================================
-   DASTONE PAGE WRAPPER & LAYOUT
+   DASTONE PAGE WRAPPER & LAYOUT (Universal Multi-Device Layout)
    ========================================================================== */
 .page-wrapper {
   display: flex;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
   background-color: var(--bs-canvas);
+  box-sizing: border-box;
 }
 
 .page-content-tab {
   margin-left: var(--sidebar-width);
   margin-top: var(--topbar-height);
   width: calc(100% - var(--sidebar-width));
+  max-width: calc(100% - var(--sidebar-width));
+  min-width: 0;
+  flex: 1 1 auto;
   padding: 20px 24px 60px 24px;
   min-height: calc(100vh - var(--topbar-height));
+  box-sizing: border-box;
+  overflow-x: hidden;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .page-content-tab.sidebar-collapsed {
   margin-left: 0 !important;
   width: 100% !important;
+  max-width: 100% !important;
+}
+
+.page-body,
+.page-content {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Universal Analytics & Secondary Layout Grids */
+.dastone-analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-bottom: 16px;
+}
+
+.analytics-main-card {
+  grid-column: span 8;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.analytics-side-card {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.dastone-secondary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-bottom: 16px;
+}
+
+.secondary-grid-card {
+  min-width: 0;
+  width: 100%;
+}
+
+.responsive-four-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-bottom: 20px;
 }
 
 /* ==========================================================================
@@ -1585,19 +1670,30 @@ tbody tr:hover {
    FULL PROJECT MULTI-DEVICE RESPONSIVE BREAKPOINTS (Mobile, Tablet, Desktop)
    ========================================================================== */
 
-/* Large Tablets & Small Laptops (<= 1199px) */
-@media (max-width: 1199.98px) {
-  .report-card[style*="grid-template-columns: repeat(4, 1fr)"],
-  div[style*="gridTemplateColumns: 'repeat(4, 1fr)'"],
-  div[style*="grid-template-columns: repeat(4, 1fr)"] {
+/* Large Tablets & Small Laptops (<= 1200px) */
+@media (max-width: 1200px) {
+  .dastone-analytics-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .analytics-main-card,
+  .analytics-side-card {
+    grid-column: span 1 !important;
+    width: 100% !important;
+  }
+  .responsive-four-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
   .dastone-stats-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
+  .report-card[style*="grid-template-columns: repeat(4, 1fr)"],
+  div[style*="gridTemplateColumns: 'repeat(4, 1fr)'"],
+  div[style*="grid-template-columns: repeat(4, 1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
 
-/* Tablets (<= 991.98px) */
+/* Tablets & Small Laptops (<= 991.98px) */
 @media (max-width: 991.98px) {
   .page-title-box {
     flex-direction: column;
@@ -1612,12 +1708,24 @@ tbody tr:hover {
   }
   .page-content-tab {
     margin-left: 0 !important;
-    padding: 16px 12px !important;
+    padding: 16px 14px !important;
     width: 100% !important;
+    max-width: 100% !important;
   }
   .dastone-topbar {
     left: 0 !important;
     padding: 0 14px !important;
+    width: 100% !important;
+  }
+  .dastone-sidebar {
+    transform: translateX(-100%);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  }
+  .dastone-sidebar.mobile-open {
+    transform: translateX(0) !important;
+  }
+  .dastone-secondary-grid {
+    grid-template-columns: 1fr !important;
   }
   .table-wrapper {
     overflow-x: auto !important;
@@ -1630,6 +1738,14 @@ tbody tr:hover {
 /* Mobile Phones (<= 767.98px) */
 @media (max-width: 767.98px) {
   .dastone-stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .responsive-four-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .dastone-secondary-grid {
     grid-template-columns: 1fr !important;
     gap: 10px !important;
   }
@@ -1647,6 +1763,18 @@ tbody tr:hover {
   }
   .report-card-header > div {
     width: 100% !important;
+  }
+  .topbar-left-side {
+    gap: 8px !important;
+  }
+  .topbar-right-side {
+    gap: 8px !important;
+  }
+  .user-profile-name {
+    display: none !important;
+  }
+  .btn-new-task span {
+    display: none !important;
   }
   .modal-content {
     width: 95vw !important;
@@ -1679,6 +1807,7 @@ tbody tr:hover {
   .prescreener-apple-card {
     padding: 20px 16px !important;
     border-radius: 20px !important;
+    width: 96vw !important;
   }
   .prescreener-options-grid {
     grid-template-columns: 1fr !important;
