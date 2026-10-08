@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ShieldCheck, 
   CheckCircle2, 
@@ -179,6 +179,17 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
   const [surveyAnswers, setSurveyAnswers] = useState({});
   const [simOutcome, setSimOutcome] = useState(null);
 
+  // Auto-advance timer refs for instant seamless question progression
+  const autoAdvanceTimerRef = useRef(null);
+  const surveyAutoTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+      if (surveyAutoTimerRef.current) clearTimeout(surveyAutoTimerRef.current);
+    };
+  }, []);
+
   // Generates exactly 3 questions: Age (fixed) + Gender (fixed) + 1 dynamic basic question
   const pickThreeQuestions = () => {
     const randomIndex = Math.floor(Math.random() * ROTATING_BASIC_POOL.length);
@@ -287,12 +298,36 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
   const currentAnswer = currentQ ? answers[currentQ.id] : null;
 
   const handleSelectOption = (optionId) => {
-    if (!currentQ) return;
+    if (!currentQ || isSubmitting) return;
+
+    // Clear any active auto-advance timer to prevent race conditions
+    if (autoAdvanceTimerRef.current) {
+      clearTimeout(autoAdvanceTimerRef.current);
+    }
+
+    // Immediately save selected answer for instant visual feedback (card highlight + tick)
     setAnswers(prev => ({ ...prev, [currentQ.id]: optionId }));
+
+    // Seamless auto-advance so the user never has to click Next Question
+    autoAdvanceTimerRef.current = setTimeout(() => {
+      if (currentStep < 2) {
+        setCurrentStep(prev => prev + 1);
+      } else {
+        setIsSubmitting(true);
+        setTimeout(() => {
+          setIsSubmitting(false);
+          setStage('passed_overview');
+          setEntryTimestamp(Date.now());
+        }, 400);
+      }
+    }, 280);
   };
 
   const handleNextPreScreen = () => {
-    if (!currentAnswer) return;
+    if (!currentAnswer || isSubmitting) return;
+    if (autoAdvanceTimerRef.current) {
+      clearTimeout(autoAdvanceTimerRef.current);
+    }
     if (currentStep < 2) {
       setCurrentStep(prev => prev + 1);
     } else {
@@ -301,17 +336,23 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
         setIsSubmitting(false);
         setStage('passed_overview');
         setEntryTimestamp(Date.now());
-      }, 500);
+      }, 400);
     }
   };
 
   const handlePrevPreScreen = () => {
+    if (autoAdvanceTimerRef.current) {
+      clearTimeout(autoAdvanceTimerRef.current);
+    }
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1);
     }
   };
 
   const handleResetForTesting = () => {
+    if (autoAdvanceTimerRef.current) {
+      clearTimeout(autoAdvanceTimerRef.current);
+    }
     setSelectedQuestions(pickThreeQuestions());
     setAnswers({});
     setCurrentStep(0);
@@ -356,16 +397,31 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
   ];
 
   const handleSurveyAnswer = (index, ans) => {
+    if (surveyAutoTimerRef.current) {
+      clearTimeout(surveyAutoTimerRef.current);
+    }
     setSurveyAnswers(prev => ({ ...prev, [index]: ans }));
+
+    // Seamless auto-advance so respondents do not need to click Next Question
+    surveyAutoTimerRef.current = setTimeout(() => {
+      if (index < clientStudyQuestions.length - 1) {
+        setSurveyQIndex(index + 1);
+      } else {
+        setStage('survey_finished');
+        handleOutcomeSimulation(1); // Record verified complete
+      }
+    }, 280);
   };
 
   const handleNextSurveyQ = () => {
+    if (surveyAutoTimerRef.current) {
+      clearTimeout(surveyAutoTimerRef.current);
+    }
     if (surveyQIndex < clientStudyQuestions.length - 1) {
       setSurveyQIndex(prev => prev + 1);
     } else {
-      // Completed Client Survey!
       setStage('survey_finished');
-      handleOutcomeSimulation(1); // Record verified complete
+      handleOutcomeSimulation(1);
     }
   };
 
@@ -661,9 +717,10 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                 </p>
               </div>
 
-              {/* 4 Selectable Option Cards (Symmetrical text length & layout) */}
+              {/* Selectable Option Cards (Symmetrical text length & layout) */}
               <div 
-                className="prescreener-options-grid"
+                key={currentQ.id}
+                className="prescreener-options-grid apple-slide-question"
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(2, 1fr)',
@@ -749,7 +806,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                 borderTop: '1px solid rgba(0, 0, 0, 0.06)',
                 paddingTop: '18px'
               }}>
-                {currentStep > 0 && (
+                {currentStep > 0 ? (
                   <button
                     type="button"
                     onClick={handlePrevPreScreen}
@@ -769,37 +826,56 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                   >
                     <ArrowLeft size={14} /> Back
                   </button>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: '#86868b' }}>
+                    <Sparkles size={13} color="#0071e3" />
+                    <span>Select an answer to advance automatically</span>
+                  </div>
                 )}
 
-                <button
-                  type="button"
-                  onClick={handleNextPreScreen}
-                  disabled={!currentAnswer || isSubmitting}
-                  className="apple-btn-active"
-                  style={{
-                    background: currentAnswer ? '#0071e3' : '#e5e5ea',
-                    color: currentAnswer ? '#ffffff' : '#86868b',
-                    border: 'none',
-                    borderRadius: '980px',
-                    padding: '12px 28px',
-                    fontSize: '13.5px',
-                    fontWeight: 600,
-                    letterSpacing: '-0.01em',
-                    cursor: currentAnswer ? 'pointer' : 'not-allowed',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    boxShadow: currentAnswer ? '0 6px 18px rgba(0, 113, 227, 0.3)' : 'none'
-                  }}
-                >
-                  {isSubmitting ? (
-                    'Evaluating...'
-                  ) : currentStep < 2 ? (
-                    <>Next Question <ArrowRight size={14} /></>
-                  ) : (
-                    <>Submit & Proceed <Check size={14} /></>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {currentStep > 0 && (
+                    <span style={{ fontSize: '11.5px', color: '#86868b', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <Sparkles size={12} color="#0071e3" /> Auto-advances
+                    </span>
                   )}
-                </button>
+                  <button
+                    type="button"
+                    onClick={handleNextPreScreen}
+                    disabled={!currentAnswer || isSubmitting}
+                    className="apple-btn-active"
+                    style={{
+                      background: currentAnswer ? '#0071e3' : '#e5e5ea',
+                      color: currentAnswer ? '#ffffff' : '#86868b',
+                      border: 'none',
+                      borderRadius: '980px',
+                      padding: '12px 28px',
+                      fontSize: '13.5px',
+                      fontWeight: 600,
+                      letterSpacing: '-0.01em',
+                      cursor: currentAnswer ? 'pointer' : 'not-allowed',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: currentAnswer ? '0 6px 18px rgba(0, 113, 227, 0.3)' : 'none',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    {isSubmitting ? (
+                      'Evaluating...'
+                    ) : currentAnswer ? (
+                      currentStep < 2 ? (
+                        <>Advancing automatically... <ArrowRight size={14} /></>
+                      ) : (
+                        <>Submitting... <Check size={14} /></>
+                      )
+                    ) : currentStep < 2 ? (
+                      <>Next Question <ArrowRight size={14} /></>
+                    ) : (
+                      <>Submit & Proceed <Check size={14} /></>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -1096,7 +1172,18 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                 })}
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '16px' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderTop: '1px solid rgba(0,0,0,0.06)',
+                paddingTop: '16px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: '#86868b' }}>
+                  <Sparkles size={13} color="#0071e3" />
+                  <span>Select an option to advance automatically</span>
+                </div>
+
                 <button
                   type="button"
                   onClick={handleNextSurveyQ}
@@ -1114,10 +1201,17 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    boxShadow: surveyAnswers[surveyQIndex] !== undefined ? '0 6px 18px rgba(0, 113, 227, 0.3)' : 'none'
+                    boxShadow: surveyAnswers[surveyQIndex] !== undefined ? '0 6px 18px rgba(0, 113, 227, 0.3)' : 'none',
+                    transition: 'all 0.2s ease'
                   }}
                 >
-                  {surveyQIndex < clientStudyQuestions.length - 1 ? (
+                  {surveyAnswers[surveyQIndex] !== undefined ? (
+                    surveyQIndex < clientStudyQuestions.length - 1 ? (
+                      <>Advancing automatically... <ArrowRight size={14} /></>
+                    ) : (
+                      <>Submitting... <Check size={14} /></>
+                    )
+                  ) : surveyQIndex < clientStudyQuestions.length - 1 ? (
                     <>Next Question <ArrowRight size={14} /></>
                   ) : (
                     <>Submit & Finish Study <Check size={14} /></>

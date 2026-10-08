@@ -345,6 +345,10 @@ function dispatchS2S(string $endpoint, array $payload): void {
 // Route Parsing & Body Extraction
 // -------------------------------------------------------------
 $route = $_GET['route'] ?? '';
+if (empty($route)) {
+    $uriPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+    $route = preg_replace('#^/+(smr_live/|smr/)?(api/)?#', '', (string)$uriPath);
+}
 $route = trim($route, '/');
 $method = $_SERVER['REQUEST_METHOD'];
 $rawInput = file_get_contents('php://input');
