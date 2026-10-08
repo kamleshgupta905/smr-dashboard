@@ -492,9 +492,6 @@ export const DEFAULT_VENDORS = [
     vendorUid: 'VND-IMR-06',
     name: 'InnovateMR B2B Panel',
     email: 'sample@innovatemr.com',
-    cpi: 2.25,
-    status: 'active',
-    completes_count: 640,
     quality_score: 99,
     redirect_complete: 'https://surveys.innovatemr.net/survey/complete?uid=[UID]',
     redirect_terminate: 'https://surveys.innovatemr.net/survey/terminate?uid=[UID]',
@@ -502,6 +499,25 @@ export const DEFAULT_VENDORS = [
     redirect_security: 'https://surveys.innovatemr.net/survey/security?uid=[UID]',
     hash_algorithm: 'SHA3-256',
     secret_key: 'imr_sec_key_2026',
+    cpi: 1.45,
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: 'vnd_test_07',
+    vendor_code: 'brundsh420-fade',
+    vendorUid: 'brundsh420-fade',
+    name: 'Test',
+    email: 'elkiss@gmail.com',
+    cpi: 0.80,
+    status: 'active',
+    completes_count: 512,
+    quality_score: 95,
+    redirect_complete: 'https://router.supplier.com/survey/complete?uid=[UID]',
+    redirect_terminate: 'https://router.supplier.com/survey/terminate?uid=[UID]',
+    redirect_overquota: 'https://router.supplier.com/survey/overquota?uid=[UID]',
+    redirect_security: 'https://router.supplier.com/survey/security?uid=[UID]',
+    hash_algorithm: 'SHA3-256',
+    secret_key: 'brundsh420_sec_key_2026',
     createdAt: new Date().toISOString()
   }
 ];

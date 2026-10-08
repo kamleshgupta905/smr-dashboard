@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getClients, createClient, deleteClient, syncClientInventory, testS2sCallback, testHashing } from '../services/api';
-import { Building2, Plus, Search, CheckCircle2, XCircle, Trash2, Globe, ShieldCheck, X, Copy, Check, RefreshCw, Send, Key, Code } from 'lucide-react';
+import { Building2, Plus, Search, CheckCircle2, XCircle, Trash2, Globe, ShieldCheck, X, Copy, Check, RefreshCw, Send, Key, Code, ExternalLink, Lock } from 'lucide-react';
 import ModalPortal from '../components/ModalPortal';
+import { sha3_256 } from 'js-sha3';
 
 export default function ClientsPage() {
   const [clients, setClients] = useState([]);
@@ -11,6 +12,19 @@ export default function ClientsPage() {
   const [copiedKey, setCopiedKey] = useState(null);
   const [syncingId, setSyncingId] = useState(null);
   const [testResult, setTestResult] = useState(null);
+
+  // Dedicated Frame 006: Cryptographic Anti-Tamper Security & Signing Modal State
+  const [securityModalClient, setSecurityModalClient] = useState(null);
+  const [securityForm, setSecurityForm] = useState({
+    completeUrl: 'https://router.dynata.com/survey/complete?uid=[uid]',
+    terminateUrl: 'https://router.dynata.com/survey/terminate?uid=[uid]',
+    overquotaUrl: 'https://router.dynata.com/survey/overquota?uid=[uid]',
+    securityUrl: 'https://router.dynata.com/survey/security?uid=[uid]',
+    hashAlgorithm: 'SHA3-256 (Market Xcel / SMR Enterprise)',
+    secretKey: 'vmd-dyn-rt3_sec_key_2026',
+    testUid: 'test_resp_7721'
+  });
+  const [saveSecuritySuccess, setSaveSecuritySuccess] = useState(false);
 
   const [formData, setFormData] = useState({
     client_name: '',
@@ -117,21 +131,29 @@ export default function ClientsPage() {
     }
   };
 
-  const handleTestHash = async (client) => {
-    try {
-      const res = await testHashing({
-        baseUrl: `https://cluster.marketxcel.co.in/survey/thankyou?auth=1&uid=DEMO_USER_99`,
-        secretKey: client.secretKey || 'mx_secret_sha3_key_2026',
-        algorithm: client.hashAlgorithm || 'sha3-256',
-      });
-      setTestResult({
-        client: client.client_name,
-        type: `Security Hashing Verification (${res.algorithm || client.hashAlgorithm || 'SHA3-256'})`,
-        details: res.result || res,
-      });
-    } catch (err) {
-      alert(`Hashing test error: ${err.message}`);
-    }
+  const handleOpenSecurityModal = (client) => {
+    setSecurityModalClient(client);
+    setSecurityForm({
+      completeUrl: 'https://router.dynata.com/survey/complete?uid=[uid]',
+      terminateUrl: 'https://router.dynata.com/survey/terminate?uid=[uid]',
+      overquotaUrl: 'https://router.dynata.com/survey/overquota?uid=[uid]',
+      securityUrl: 'https://router.dynata.com/survey/security?uid=[uid]',
+      hashAlgorithm: client.hashAlgorithm?.includes('hmac') 
+        ? 'HMAC-SHA256 (Dynata / CINT Standard)' 
+        : 'SHA3-256 (Market Xcel / SMR Enterprise)',
+      secretKey: client.secretKey || 'vmd-dyn-rt3_sec_key_2026',
+      testUid: 'test_resp_7721'
+    });
+    setSaveSecuritySuccess(false);
+  };
+
+  const handleSaveSecurity = (e) => {
+    e.preventDefault();
+    setSaveSecuritySuccess(true);
+    setTimeout(() => {
+      setSecurityModalClient(null);
+      setSaveSecuritySuccess(false);
+    }, 1200);
   };
 
   const filtered = clients.filter(c => 
@@ -139,6 +161,11 @@ export default function ClientsPage() {
     (c.country || '').toLowerCase().includes(search.toLowerCase()) ||
     (c.client_code || '').toLowerCase().includes(search.toLowerCase())
   );
+
+  // Compute live test signed URLs inside security modal
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
+  const computedHash = sha3_256(`https://router.dynata.com/survey/complete?uid=${securityForm.testUid}${securityForm.secretKey}`);
+  const signedPreviewUrl = `https://router.dynata.com/survey/complete?uid=${securityForm.testUid}&hash=${computedHash}`;
 
   return (
     <div>
@@ -181,6 +208,213 @@ export default function ClientsPage() {
           </button>
         </div>
       </div>
+
+      {/* Frame 006: Dedicated Cryptographic Anti-Tamper Security & Signing Modal */}
+      {securityModalClient && (
+        <ModalPortal isOpen={!!securityModalClient} onClose={() => setSecurityModalClient(null)}>
+          <div className="modal-overlay" onClick={() => setSecurityModalClient(null)}>
+            <div 
+              className="modal-content" 
+              onClick={e => e.stopPropagation()} 
+              style={{ maxWidth: '640px', width: '92%', maxHeight: '90vh', overflowY: 'auto' }}
+            >
+              <div className="modal-header" style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '30px', height: '30px', borderRadius: '6px', background: 'rgba(23, 97, 253, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1761fd' }}>
+                    <ShieldCheck size={18} />
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '15.5px', fontWeight: 700, color: '#1d2c48' }}>
+                      Cryptographic Anti-Tamper Security & Signing
+                    </h3>
+                    <p style={{ margin: '2px 0 0 0', fontSize: '11.5px', color: '#64748b' }}>
+                      Client: <strong>{securityModalClient.client_name}</strong> ({securityModalClient.client_code})
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setSecurityModalClient(null)} 
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8997bd' }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveSecurity}>
+                <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  
+                  {/* 1. Complete Callback URL */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: 700, color: '#1d2c48' }}>
+                        1. Complete / Success Callback URL
+                      </label>
+                      <span className="badge-soft-success" style={{ fontSize: '10.5px', padding: '2px 6px', borderRadius: '4px' }}>
+                        Status 10 (Complete)
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      className="input-control"
+                      value={securityForm.completeUrl}
+                      onChange={e => setSecurityForm({ ...securityForm, completeUrl: e.target.value })}
+                      style={{ fontFamily: 'monospace', fontSize: '12px' }}
+                    />
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                      Survey successfully finish hone par respondent is URL par wapas jayega.
+                    </div>
+                  </div>
+
+                  {/* 2. Terminate Callback URL */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: 700, color: '#1d2c48' }}>
+                        2. Terminate / Screenout Callback URL
+                      </label>
+                      <span className="badge-soft-danger" style={{ fontSize: '10.5px', padding: '2px 6px', borderRadius: '4px' }}>
+                        Status 20 (Screenout)
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      className="input-control"
+                      value={securityForm.terminateUrl}
+                      onChange={e => setSecurityForm({ ...securityForm, terminateUrl: e.target.value })}
+                      style={{ fontFamily: 'monospace', fontSize: '12px' }}
+                    />
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                      Demographics ya screener fail hone par respondent is URL par bhej diya jayega.
+                    </div>
+                  </div>
+
+                  {/* 3. OverQuota Callback URL */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: 700, color: '#1d2c48' }}>
+                        3. OverQuota Callback URL
+                      </label>
+                      <span className="badge-soft-warning" style={{ fontSize: '10.5px', padding: '2px 6px', borderRadius: '4px' }}>
+                        Status 30 (OverQuota)
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      className="input-control"
+                      value={securityForm.overquotaUrl}
+                      onChange={e => setSecurityForm({ ...securityForm, overquotaUrl: e.target.value })}
+                      style={{ fontFamily: 'monospace', fontSize: '12px' }}
+                    />
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                      Target quota full hone par respondent is URL par redirect hoga.
+                    </div>
+                  </div>
+
+                  {/* 4. Security Terminate Callback URL */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: 700, color: '#1d2c48' }}>
+                        4. Security / Fraud Screenout Callback URL
+                      </label>
+                      <span className="badge-soft-primary" style={{ fontSize: '10.5px', padding: '2px 6px', borderRadius: '4px' }}>
+                        Status 40 (Security Screenout)
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      className="input-control"
+                      value={securityForm.securityUrl}
+                      onChange={e => setSecurityForm({ ...securityForm, securityUrl: e.target.value })}
+                      style={{ fontFamily: 'monospace', fontSize: '12px' }}
+                    />
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                      VPN/Proxy/Bot, Speeding ya Fraud check trigger hone par respondent security URL par drop hoga.
+                    </div>
+                  </div>
+
+                  {/* Cryptographic Signing Settings (Frame 006) */}
+                  <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
+                    <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Lock size={14} color="#1761fd" /> Cryptographic Anti-Tamper Security & Signing
+                    </h4>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                          Hash Algorithm
+                        </label>
+                        <select
+                          className="input-control"
+                          value={securityForm.hashAlgorithm}
+                          onChange={e => setSecurityForm({ ...securityForm, hashAlgorithm: e.target.value })}
+                          style={{ fontSize: '12px' }}
+                        >
+                          <option value="SHA3-256 (Market Xcel / SMR Enterprise)">SHA3-256 (Market Xcel / SMR Enterprise)</option>
+                          <option value="HMAC-SHA256 (Dynata / CINT Standard)">HMAC-SHA256 (Dynata / CINT Standard)</option>
+                          <option value="MD5 (Legacy Panels)">MD5 (Legacy Panels)</option>
+                          <option value="None (Unsigned Redirects)">None (Unsigned Redirects)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                          Secret Key / Signing Salt
+                        </label>
+                        <input
+                          type="text"
+                          className="input-control"
+                          value={securityForm.secretKey}
+                          onChange={e => setSecurityForm({ ...securityForm, secretKey: e.target.value })}
+                          style={{ fontFamily: 'monospace', fontSize: '12px' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>
+                          Test Live Signed Complete URL:
+                        </span>
+                        <a
+                          href={signedPreviewUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ fontSize: '11px', fontWeight: 700, color: '#1761fd', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '3px' }}
+                        >
+                          <ExternalLink size={11} /> Test Open
+                        </a>
+                      </div>
+                      <div style={{ fontFamily: 'monospace', fontSize: '11px', color: '#0f172a', wordBreak: 'break-all', background: '#ffffff', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}>
+                        {signedPreviewUrl}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Submit buttons */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setSecurityModalClient(null)}
+                      className="btn btn-light"
+                      style={{ fontSize: '12px' }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      {saveSecuritySuccess ? <Check size={14} /> : <ShieldCheck size={14} />}
+                      {saveSecuritySuccess ? 'Saved Successfully!' : 'Save Webhooks & Security'}
+                    </button>
+                  </div>
+
+                </div>
+              </form>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
 
       {/* Test Log Modal Overlay */}
       {testResult && (
@@ -252,11 +486,10 @@ export default function ClientsPage() {
           </div>
         ) : filtered.map((client) => {
           const clientCode = client.client_code || client.client_name.replace(/\s+/g, '_').toUpperCase();
-          const host = window.location.origin.replace(':3000', ':5000');
-          const completeRedirect = `${host}/redirects/c/${clientCode}/complete?rid=[identifier]&hash=[hash]`;
-          const terminateRedirect = `${host}/redirects/c/${clientCode}/terminate?rid=[identifier]&hash=[hash]`;
-          const overquotaRedirect = `${host}/redirects/c/${clientCode}/quotafull?rid=[identifier]&hash=[hash]`;
-          const qualityRedirect = `${host}/redirects/c/${clientCode}/quality_terminate?rid=[identifier]&hash=[hash]`;
+          const completeRedirect = `${origin}/redirects/c/${clientCode}/complete?rid=[identifier]&hash=[hash]`;
+          const terminateRedirect = `${origin}/redirects/c/${clientCode}/terminate?rid=[identifier]&hash=[hash]`;
+          const overquotaRedirect = `${origin}/redirects/c/${clientCode}/quotafull?rid=[identifier]&hash=[hash]`;
+          const qualityRedirect = `${origin}/redirects/c/${clientCode}/quality_terminate?rid=[identifier]&hash=[hash]`;
 
           return (
             <div key={client._id || client.id} className="report-card" style={{ padding: '20px 24px', margin: 0 }}>
@@ -292,8 +525,8 @@ export default function ClientsPage() {
                   </div>
                 </div>
 
-                {/* Top Action Buttons */}
-                <div style={{ display: 'flex', gap: '8px' }}>
+                {/* Top Action Buttons (Frame 004 & Frame 006) */}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   <button
                     className="btn btn-soft-secondary btn-sm"
                     onClick={() => handleSync(clientCode)}
@@ -306,10 +539,11 @@ export default function ClientsPage() {
 
                   <button
                     className="btn btn-soft-primary btn-sm"
-                    onClick={() => handleTestHash(client)}
+                    onClick={() => handleOpenSecurityModal(client)}
                     style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', borderRadius: '4px' }}
+                    title="Open Cryptographic Anti-Tamper Security & Signing (Frame 006)"
                   >
-                    <Key size={12} /> Verify SHA3
+                    <ShieldCheck size={12} /> Verify Hash
                   </button>
 
                   <button
@@ -330,7 +564,7 @@ export default function ClientsPage() {
                 </div>
               </div>
 
-              {/* Platform Redirect URLs Handover Block */}
+              {/* Platform Redirect URLs Handover Block (Frame 004) */}
               <div style={{
                 marginTop: '16px',
                 padding: '14px 16px',
@@ -346,7 +580,7 @@ export default function ClientsPage() {
                   {/* Complete */}
                   <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#16A34A' }}>
-                      <span>1. Complete Redirect URL:</span>
+                      <span>1. Complete / Success URL:</span>
                       <span 
                         onClick={() => handleCopy(completeRedirect, `${clientCode}-comp`)} 
                         style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}

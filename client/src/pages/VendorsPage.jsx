@@ -18,7 +18,9 @@ import {
   Shield,
   Key,
   Info,
-  CheckCheck
+  CheckCheck,
+  Share2,
+  X
 } from 'lucide-react';
 import { getVendors, createVendor, updateVendor, deleteVendor, DEFAULT_VENDORS } from '../services/api';
 import ModalPortal from '../components/ModalPortal';
@@ -44,6 +46,13 @@ export default function VendorsPage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [savingRedirects, setSavingRedirects] = useState(false);
 
+  // Frame 001: Entry Link Generator Modal State
+  const [entryLinkVendor, setEntryLinkVendor] = useState(null);
+  const [selectedProjectId, setSelectedProjectId] = useState('VMHP1026542026');
+  const [customProjectId, setCustomProjectId] = useState('');
+  const [testUidParam, setTestUidParam] = useState('wslnkdxldd');
+  const [copiedEntryLink, setCopiedEntryLink] = useState(false);
+
   // Form State for Add Vendor
   const [formData, setFormData] = useState({
     name: '',
@@ -65,13 +74,23 @@ export default function VendorsPage() {
     try {
       const res = await getVendors();
       const list = res?.data || res || [];
-      if (Array.isArray(list) && list.length > 0) {
+      if (Array.isArray(list) && list.length >= 7) {
         setVendors(list);
+      } else if (Array.isArray(list) && list.length > 0) {
+        // Merge with DEFAULT_VENDORS so all 7 panels remain present
+        const merged = [...list];
+        DEFAULT_VENDORS.forEach(dv => {
+          if (!merged.some(m => (m.vendor_code || m.vendorUid || m._id) === (dv.vendor_code || dv.vendorUid || dv._id))) {
+            merged.push(dv);
+          }
+        });
+        setVendors(merged);
       } else {
         setVendors(DEFAULT_VENDORS);
       }
     } catch (err) {
       console.error('Failed to load vendors from API, keeping fallbacks:', err);
+      setVendors(DEFAULT_VENDORS);
     } finally {
       setLoading(false);
     }
@@ -245,7 +264,7 @@ export default function VendorsPage() {
       </div>
 
       {/* 4 Dastone KPI Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px' }}>
+      <div className="responsive-four-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px' }}>
         <div className="card report-card" style={{ padding: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '12px', fontWeight: 600, color: '#8997bd' }}>Connected Panels</span>
@@ -401,14 +420,47 @@ export default function VendorsPage() {
                         )}
                       </td>
                       <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <button
+                              type="button"
+                              className="btn btn-soft-primary btn-sm"
+                              onClick={() => {
+                                setEntryLinkVendor(v);
+                                setSelectedProjectId('VMHP1026542026');
+                                setTestUidParam('wslnkdxldd');
+                                setCopiedEntryLink(false);
+                              }}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                fontSize: '11.5px',
+                                fontWeight: 700,
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                              }}
+                              title="Open Inbound Router Entry Link Generator (Frame 001)"
+                            >
+                              <Share2 size={12} /> Entry Link (Frame 001)
+                            </button>
+                            <button 
+                              className="btn btn-soft-secondary btn-sm"
+                              onClick={() => copyToClipboard(sampleUrl, v._id || v.vendor_code)}
+                              title="Copy Raw Entry Format"
+                              style={{ padding: '4px 7px', borderRadius: '4px' }}
+                            >
+                              {copiedId === (v._id || v.vendor_code) ? <Check size={12} color="#03d87f" /> : <Copy size={12} />}
+                            </button>
+                          </div>
                           <code style={{ 
-                            fontSize: '11px', 
+                            fontSize: '10.5px', 
                             background: '#f8fafc', 
                             border: '1px solid #e3ebf6',
-                            padding: '4px 8px', 
+                            padding: '3px 6px', 
                             borderRadius: '4px',
-                            color: '#1d2c48',
+                            color: '#475569',
                             maxWidth: '220px',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
@@ -416,22 +468,27 @@ export default function VendorsPage() {
                           }}>
                             {sampleUrl}
                           </code>
-                          <button 
-                            className="btn btn-soft-secondary btn-sm"
-                            onClick={() => copyToClipboard(sampleUrl, v._id)}
-                            title="Copy Entry Format"
-                            style={{ padding: '4px 7px', borderRadius: '4px' }}
-                          >
-                            {copiedId === v._id ? <Check size={12} color="#03d87f" /> : <Copy size={12} />}
-                          </button>
                         </div>
                       </td>
                       <td style={{ textAlign: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+                          <button
+                            className="btn btn-soft-success btn-sm"
+                            onClick={() => {
+                              setEntryLinkVendor(v);
+                              setSelectedProjectId('VMHP1026542026');
+                              setTestUidParam('wslnkdxldd');
+                              setCopiedEntryLink(false);
+                            }}
+                            title="Generate Inbound Entry Link (Frame 001)"
+                            style={{ padding: '4px 7px', borderRadius: '4px' }}
+                          >
+                            <Share2 size={13} />
+                          </button>
                           <button
                             className="btn btn-soft-primary btn-sm"
                             onClick={() => handleOpenRedirects(v)}
-                            title="Configure Redirects & Security"
+                            title="Configure Redirects & Anti-Tamper Security (Frame 006)"
                             style={{ padding: '4px 7px', borderRadius: '4px' }}
                           >
                             <Settings size={13} />
@@ -1042,6 +1099,251 @@ export default function VendorsPage() {
                   </div>
                 </div>
               </form>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+
+      {/* FRAME 001: DEDICATED ENTRY LINK MODAL */}
+      {entryLinkVendor && (
+        <ModalPortal isOpen={!!entryLinkVendor} onClose={() => setEntryLinkVendor(null)}>
+          <div className="modal-overlay" onClick={() => setEntryLinkVendor(null)}>
+            <div 
+              className="modal-content" 
+              onClick={e => e.stopPropagation()} 
+              style={{ maxWidth: '680px', width: '92%', maxHeight: '90vh', overflowY: 'auto' }}
+            >
+              <div className="modal-header" style={{ borderBottom: '1px solid #e2e8f0', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(23, 97, 253, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1761fd' }}>
+                      <Share2 size={18} />
+                    </div>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
+                        Entry Link for {entryLinkVendor.vendor_code || entryLinkVendor.vendorUid || entryLinkVendor._id || 'Vendor'}
+                      </h3>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '11.5px', color: '#64748b' }}>
+                        Panel: <strong style={{ color: '#1d2c48' }}>{entryLinkVendor.name}</strong> • Base CPI: <strong style={{ color: '#03d87f' }}>${Number(entryLinkVendor.cpi || 0).toFixed(2)}</strong>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setEntryLinkVendor(null)}
+                  style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div style={{ padding: '20px' }}>
+                {/* Step 1: Project Selector */}
+                <div style={{ marginBottom: '18px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#1d2c48', marginBottom: '6px' }}>
+                    1. Select Study / Research Project
+                  </label>
+                  <select
+                    className="input-field"
+                    value={selectedProjectId}
+                    onChange={e => setSelectedProjectId(e.target.value)}
+                    style={{ width: '100%', fontSize: '12.5px', padding: '9px 12px' }}
+                  >
+                    <option value="VMHP1026542026">VMHP1026542026 — US Consumer Healthcare & Demographics Study (Video Sample)</option>
+                    <option value="VMHMXUS2659">VMHMXUS2659 — Market Xcel US Consumer Electronics & Smart Home</option>
+                    <option value="PRJ-2026-01">PRJ-2026-01 — US Consumer Beverage & FMCG Brand Tracker ($4.50 CPI)</option>
+                    <option value="90142">90142 — Electric Vehicles & Sustainable Transportation ($4.25 CPI)</option>
+                    <option value="90143">90143 — Cloud Infrastructure & Enterprise SaaS ($6.50 CPI)</option>
+                    <option value="90153">90153 — Pharmaceutical OTC Brand Awareness & Perception ($5.10 CPI)</option>
+                    <option value="CUSTOM">-- Custom Project ID --</option>
+                  </select>
+
+                  {selectedProjectId === 'CUSTOM' && (
+                    <div style={{ marginTop: '8px' }}>
+                      <input
+                        type="text"
+                        className="input-field"
+                        placeholder="Enter custom project ID (e.g. PRJ_TEST_99)"
+                        value={customProjectId}
+                        onChange={e => setCustomProjectId(e.target.value)}
+                        style={{ width: '100%', fontSize: '12px', fontFamily: 'monospace' }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Step 2: Generated Vendor Entry URL */}
+                {(() => {
+                  const activePid = selectedProjectId === 'CUSTOM' ? (customProjectId || 'CUSTOM_PRJ') : selectedProjectId;
+                  const vCode = entryLinkVendor.vendor_code || entryLinkVendor.vendorUid || entryLinkVendor._id;
+                  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
+                  const liveEntryUrl = `${origin}/vendor/auth/${vCode}/project/${activePid}?uid=[uid]`;
+                  const testEntryUrl = `${origin}/vendor/auth/${vCode}/project/${activePid}?uid=${testUidParam}`;
+                  const directCallbackUrl = `${origin}/survey/callback?status=20&uid=${testUidParam}&pid=${activePid}&vid=${vCode}`;
+
+                  return (
+                    <div>
+                      <div style={{ marginBottom: '18px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <label style={{ fontSize: '12px', fontWeight: 700, color: '#1d2c48', margin: 0 }}>
+                            2. Generated Inbound Vendor Entry URL
+                          </label>
+                          <span className="badge-soft-success" style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '4px' }}>
+                            Live Router Format
+                          </span>
+                        </div>
+                        <div style={{ 
+                          background: '#0f172a', 
+                          border: '1px solid #1e293b', 
+                          borderRadius: '6px', 
+                          padding: '12px 14px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '10px'
+                        }}>
+                          <code style={{ 
+                            fontSize: '12px', 
+                            color: '#38bdf8', 
+                            fontFamily: 'monospace', 
+                            wordBreak: 'break-all',
+                            lineHeight: '1.4'
+                          }}>
+                            {liveEntryUrl}
+                          </code>
+                          <button
+                            type="button"
+                            className="btn btn-primary btn-sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(liveEntryUrl);
+                              setCopiedEntryLink(true);
+                              setTimeout(() => setCopiedEntryLink(false), 2000);
+                            }}
+                            style={{ 
+                              whiteSpace: 'nowrap', 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              gap: '6px',
+                              padding: '7px 12px',
+                              fontSize: '12px',
+                              fontWeight: 700
+                            }}
+                          >
+                            {copiedEntryLink ? <Check size={14} color="#fff" /> : <Copy size={14} />}
+                            {copiedEntryLink ? 'Copied Link!' : 'Copy Link'}
+                          </button>
+                        </div>
+                        <p style={{ margin: '6px 0 0 0', fontSize: '11.5px', color: '#64748b' }}>
+                          Instruct <strong>{entryLinkVendor.name}</strong> to dynamically replace <code style={{ color: '#1761fd', fontWeight: 700 }}>[uid]</code> with their panelist's unique respondent ID for each survey attempt.
+                        </p>
+                      </div>
+
+                      {/* Step 3: Test in Incognito / New Tab */}
+                      <div style={{ 
+                        background: '#f8fafc', 
+                        border: '1px solid #e2e8f0', 
+                        borderRadius: '6px', 
+                        padding: '14px',
+                        marginBottom: '18px' 
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#1d2c48' }}>
+                            3. Live Simulation & Pre-Launch Testing
+                          </span>
+                          <span style={{ fontSize: '11px', color: '#64748b' }}>
+                            Exact flow demonstrated in Admin Video 1
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                          <div style={{ flex: 1 }}>
+                            <label style={{ display: 'block', fontSize: '11px', color: '#64748b', marginBottom: '3px' }}>
+                              Test Respondent UID
+                            </label>
+                            <input
+                              type="text"
+                              className="input-field"
+                              value={testUidParam}
+                              onChange={e => setTestUidParam(e.target.value)}
+                              style={{ width: '100%', fontSize: '12px', fontFamily: 'monospace', padding: '6px 10px' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                          <a
+                            href={testEntryUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-primary btn-sm"
+                            style={{ 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              gap: '6px', 
+                              fontSize: '12px', 
+                              fontWeight: 700,
+                              textDecoration: 'none',
+                              padding: '7px 12px'
+                            }}
+                          >
+                            <ExternalLink size={13} />
+                            <span>Test Open Router (Incognito/New Tab)</span>
+                          </a>
+
+                          <a
+                            href={directCallbackUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-soft-warning btn-sm"
+                            style={{ 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              gap: '6px', 
+                              fontSize: '12px', 
+                              fontWeight: 700,
+                              textDecoration: 'none',
+                              padding: '7px 12px'
+                            }}
+                          >
+                            <AlertTriangle size={13} />
+                            <span>Direct Test Branded Termination Page (Frame 003)</span>
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Video Reference Architecture Notes */}
+                      <div style={{ 
+                        background: '#eff6ff', 
+                        border: '1px solid #bfdbfe', 
+                        borderRadius: '6px', 
+                        padding: '12px 14px' 
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', color: '#1e40af', fontSize: '12px', fontWeight: 700 }}>
+                          <ShieldCheck size={14} />
+                          <span>How Inbound Traffic is Protected (Admin Video Guide)</span>
+                        </div>
+                        <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '11.5px', color: '#1e3a8a', lineHeight: '1.6' }}>
+                          <li><strong>Zero Client Exposure:</strong> The supplier never sees the raw buyer URL. All traffic passes through the VMH Router.</li>
+                          <li><strong>Real-Time Screening:</strong> IP geolocation, repeat clicks, and fraud behavior are checked before forwarding to the client.</li>
+                          <li><strong>Branded Termination:</strong> Screened-out or overquota respondents land on the official VMH Termination screen (Frame 003).</li>
+                          <li><strong>Cryptographic S2S:</strong> Status 10/20/30/40 callbacks are signed with {entryLinkVendor.hash_algorithm || 'SHA3-256'} anti-tamper salt.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '18px' }}>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    onClick={() => setEntryLinkVendor(null)}
+                    style={{ fontSize: '12px', padding: '6px 14px' }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </ModalPortal>
