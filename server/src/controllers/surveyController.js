@@ -13,10 +13,6 @@ exports.getSurveys = async (req, res) => {
     const tab = req.query.tab || 'allocated';
     const sourceFilter = req.query.source || 'all';
 
-    if (tab === 'top_picks') {
-      const topPicksRes = await zampliaService.getTopPickSurveys();
-      return res.json({ success: true, data: topPicksRes.data || [] });
-    }
 
     // Fetch Market Xcel Projects
     let mxSurveys = [];
@@ -82,15 +78,6 @@ exports.syncSurveys = async (req, res) => {
   }
 };
 
-// Get Top Pick Surveys
-exports.getTopPicks = async (req, res) => {
-  try {
-    const result = await zampliaService.getTopPickSurveys();
-    return res.json(result);
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
 
 // Get Single Survey Details
 exports.getSurveyDetails = async (req, res) => {

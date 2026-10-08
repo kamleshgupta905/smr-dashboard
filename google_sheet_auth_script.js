@@ -76,9 +76,6 @@ function doGet(e) {
   if (action === 'getsurveys') {
     return proxyZampliaRequest('/Surveys/GetAllocatedSurveys', {});
   }
-  if (action === 'gettoppicks') {
-    return proxyZampliaRequest('/Surveys/GetTopPickSurveys', {});
-  }
 
   // Sheet data readout
   var sheetName = (e && e.parameter && e.parameter.sheet) || 'Clients';
@@ -137,9 +134,6 @@ function doPost(e) {
     // --- B. SECURE SERVER-SIDE ZAMPLIA API PROXY (ZERO KEY EXPOSURE) ---
     if (action === 'getsurveys') {
       return proxyZampliaRequest('/Surveys/GetAllocatedSurveys', postData.params || {});
-    }
-    if (action === 'gettoppicks') {
-      return proxyZampliaRequest('/Surveys/GetTopPickSurveys', postData.params || {});
     }
     if (action === 'getsurveydetails') {
       return proxyZampliaRequest('/Surveys/GetSurveyById', { SurveyId: postData.surveyId || postData.SurveyId });

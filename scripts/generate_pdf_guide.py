@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 from playwright.sync_api import sync_playwright
 
@@ -381,12 +381,12 @@ html_content = """<!DOCTYPE html>
 <div class="step-row">
   <div class="step-num">3</div>
   <div class="step-content">
-    <div class="step-title">Step 3: Top Picks Se High-Yield Links Nikalein</div>
-    <div>Sidebar me <strong>Top Picks</strong> tab kholein. Rank 1 se 5 wale surveys ka CPI sabse high ($4.50 - $11.50) hota hai. Inke links copy karke apne top vendors ko share karein.</div>
+    <div class="step-title">Step 3: High-Yield Links Filter Karke Nikalein</div>
+    <div>Live Surveys me CPI Filter ($3.00 - $5.00+) select karein. Inke links copy karke apne top vendors ko assign karein.</div>
   </div>
 </div>
 
-<!-- PAGE 3: SURVEYS & TOP PICKS -->
+<!-- PAGE 3: ALLOCATED SURVEYS & METRICS -->
 <div class="page-break"></div>
 
 <h2 class="section-title">4. Allocated Surveys & Metrics Samajhna</h2>
@@ -444,13 +444,6 @@ html_content = """<!DOCTYPE html>
   </ul>
 </div>
 
-<h2 class="section-title">5. Top Picks (Algorithm-Ranked Surveys)</h2>
-<p>Sidebar me <strong>"Top Picks"</strong> tab VMH ke custom yield algorithm dwara rank kiya jata hai:</p>
-<ul>
-  <li><strong>Rank 1 to 5:</strong> Sabse high priority — Maximum CPI + High IR + Short LOI.</li>
-  <li><strong>Priority Score (e.g. 98.4%):</strong> Higher score = Highest probability of quick money & maximum conversion.</li>
-  <li><strong>Strategy:</strong> Jab bhi kisi vendor ka naya sample batch aaye, hamesha Top Picks se shuru karein.</li>
-</ul>
 
 <!-- PAGE 4: VENDORS & CLIENTS -->
 <div class="page-break"></div>

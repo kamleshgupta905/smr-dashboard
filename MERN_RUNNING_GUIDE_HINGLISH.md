@@ -14,7 +14,6 @@ Yeh complete guide aapke liye banayi gayi hai taaki aap **PHP aur Laravel ke bin
 5. [Dashboard Features & Kaise Use Karein](#5-dashboard-features--kaise-use-karein)
    - [Overview & Health Status](#overview--health-status)
    - [Live Inventory & Zamplia Sync](#live-inventory--zamplia-sync)
-   - [Top Picks (High CPI Surveys)](#top-picks-high-cpi-surveys)
    - [Quotas & Capacity Inspector](#quotas--capacity-inspector)
    - [Targeting & Qualifications Inspector](#targeting--qualifications-inspector)
    - [Assign Vendor & Live Entry Link Generator](#assign-vendor--live-entry-link-generator)
@@ -56,7 +55,7 @@ smr1/
 ├── client/                          <-- React 18 + Vite Frontend Dashboard
 │   ├── src/
 │   │   ├── components/              <-- Sidebar, Navbar, StatsCards, QuotasModal, QualsModal, AssignVendorModal
-│   │   ├── pages/                   <-- DashboardPage, SurveysPage, TopPicksPage, ProjectsPage, VendorsPage, ReconciliationPage, ReferenceDataPage
+│   │   ├── pages/                   <-- DashboardPage, SurveysPage, ProjectsPage, VendorsPage, ReconciliationPage, ReferenceDataPage
 │   │   ├── services/                <-- api.js (Axios API client)
 │   │   ├── index.css                <-- High-End Glassmorphic Vanilla CSS
 │   │   ├── App.jsx                  <-- State management & dynamic routing
@@ -128,8 +127,7 @@ Browser me open karein: **http://localhost:3000**
 | 3 | **Quotas** | `GET /api/v1/surveys/quotas/{id}` | Quota buckets, targets aur open slots check karna |
 | 4 | **Qualifications** | `GET /api/v1/surveys/qualifications/{id}` | Age, Gender, Zip, Demographic conditions |
 | 5 | **Links** | `POST /api/v1/surveys/generate-link` | Live signed Zamplia survey entry URL lena |
-| 6 | **Top Picks** | `GET /api/v1/surveys/top-picks` | Sabse zyada payout (CPI) dene wale surveys |
-| 7 | **Stats** | `GET /api/v1/surveys/global-stats/{id}` | Global completion aur drop-off rates |
+| 6 | **Stats** | `GET /api/v1/surveys/global-stats/{id}` | Global completion aur drop-off rates |
 | 8 | **Reconciliation** | `GET /api/v1/reconciliation/completes` | Validated aur billable completes date-wise |
 | 9 | **Reversals** | `GET /api/v1/reconciliation/reversals` | Rejected / Reversed leads ka audit report |
 | 10 | **Exceptions** | `GET /api/v1/reconciliation/exceptions` | Reconciliation discrepancy logs |
@@ -155,12 +153,7 @@ Jab aap **http://localhost:3000** open karenge, to aapko ek sleek glassmorphic d
 - Is par click karte hi backend Zamplia API se live surveys fetch karke screen par load kar deta hai.
 - Aap Country dropdown se filter kar sakte hain (US, CA, UK, AU, etc.) aur Search bar me Survey ID ya Title likhkar search kar sakte hain.
 
-### 3. Top Picks (High CPI Filter)
-- Left menu me **Top Picks** tab par click karein.
-- Ek slider milega jisse aap **Min CPI ($)** set kar sakte hain (e.g. $1.50, $2.00, $5.00+).
-- Sirf wahi surveys filter honge jo high revenue generate karte hain.
-
-### 4. Quotas & Capacity Inspector
+### 3. Quotas & Capacity Inspector
 - Kisi bhi survey row me **"Quotas"** button par click karein.
 - Live modal khulega jo batayega:
   - Kon-kon se sub-quotas hain (e.g. Females 25-34, California residents).

@@ -6,7 +6,6 @@ const surveyController = require('../controllers/surveyController');
 router.get('/', surveyController.getSurveys);
 router.get('/surveys', surveyController.getSurveys);
 router.get('/sync', surveyController.syncSurveys);
-router.get('/top-picks', surveyController.getTopPicks);
 router.get('/details/:surveyId', surveyController.getSurveyDetails);
 router.get('/qualifications/:surveyId', surveyController.getQualifications);
 router.get('/quotas/:surveyId', surveyController.getQuotas);

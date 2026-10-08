@@ -105,8 +105,6 @@ exports.runApiTest = async (req, res) => {
     else if (provider === 'zamplia_supply') {
       if (endpoint === 'GetAllocatedSurveys') {
         result = await zampliaService.getAllocatedSurveys();
-      } else if (endpoint === 'GetTopPickSurveys') {
-        result = await zampliaService.getTopPickSurveys();
       } else if (endpoint === 'GetSurveyById') {
         result = await zampliaService.getSurveyById(params.SurveyId || '90142');
       } else if (endpoint === 'GetSurveyTypes') {
