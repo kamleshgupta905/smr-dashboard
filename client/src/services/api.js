@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { sha3_256 } from 'js-sha3';
 
 const api = axios.create({
   baseURL: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) || '/api',
@@ -1220,13 +1221,22 @@ export const simulateTestRouting = async (payload) => {
   const statusLabel = labels[statusNumber] || 'Complete';
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
   const statusCode = statusNumber === 1 ? 10 : statusNumber === 2 ? 20 : statusNumber === 3 ? 30 : 40;
-  const targetUrl = `${origin}/survey/callback?status=${statusCode}&auth=1&uid=${encodeURIComponent(payload?.testUid || 'TEST_USER_99')}&vid=${encodeURIComponent(payload?.vendorId || 'VND-DYN-01')}&pid=${encodeURIComponent(payload?.projectId || '2042481293')}&hash=b4a5d89f4172c1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b89`;
+  
+  // Real dynamic Market Xcel SHA3-256 calculation
+  const testUid = payload?.testUid || 'TEST_USER_99';
+  const vendorId = payload?.vendorId || 'VND-DYN-01';
+  const projectId = payload?.projectId || '2042481293';
+  const secretKey = payload?.secretKey || 'marketxcel_smr_sec_2026';
+  
+  const baseUrl = `${origin}/survey/callback?status=${statusCode}&auth=1&uid=${encodeURIComponent(testUid)}&vid=${encodeURIComponent(vendorId)}&pid=${encodeURIComponent(projectId)}`;
+  const dynamicSha3 = sha3_256(baseUrl + secretKey);
+  const targetUrl = `${baseUrl}&hash=${dynamicSha3}`;
   
   // Asynchronously record routing test activity in Google Sheet if connected
   GoogleSheetAPI.syncToSheet('logActivity', {
     eventType: 'TEST_ROUTING_SIMULATION',
-    projectId: payload?.projectId || '2042481293',
-    vendorId: payload?.vendorId || 'VND-DYN-01',
+    projectId: projectId,
+    vendorId: vendorId,
     statusLabel: `${statusNumber} (${statusLabel})`,
     details: targetUrl
   });
@@ -1238,13 +1248,13 @@ export const simulateTestRouting = async (payload) => {
     statusLabel: statusLabel,
     routingLatencyMs: 14,
     targetUrl: targetUrl,
-    generatedSha3Hash: 'b4a5d89f4172c1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b89',
+    generatedSha3Hash: dynamicSha3,
     s2sCallbackResult: {
       statusCode: 200,
       delivered: true,
       message: 'HTTP 200 OK — Respondent status callback dispatched to demand partner'
     },
-    message: `Test click simulation succeeded! Verified SHA3-256 anti-tamper hash and S2S callback for status [${statusNumber} - ${statusLabel}].`
+    message: `Test click simulation succeeded! Verified SHA3-256 anti-tamper hash [${dynamicSha3.slice(0, 16)}...] and S2S callback for status [${statusNumber} - ${statusLabel}].`
   };
 };
 

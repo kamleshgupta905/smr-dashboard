@@ -22,6 +22,7 @@ import {
   ThumbsUp
 } from 'lucide-react';
 import { getSecurityPolicy, DEFAULT_SURVEYS, getVendors, RouterAPI } from '../services/api';
+import { sha3_256 } from 'js-sha3';
 
 // Fixed Demographics Question 1: Age
 const FIXED_AGE_QUESTION = {
@@ -390,7 +391,10 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
     const cleanUid = uid || `TEST_RESP_${Date.now().toString().slice(-4)}`;
     const cleanVid = vendorInfo?.vendor_code || vendorId || 'VND-DYN-01';
     const cleanPid = projectId || '2042481293';
-    return `${origin}/survey/callback?status=${code}&uid=${encodeURIComponent(cleanUid)}&vid=${encodeURIComponent(cleanVid)}&pid=${encodeURIComponent(cleanPid)}&hash=b4a5d89f4172c1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b89`;
+    const secretKey = vendorInfo?.secret_key || 'marketxcel_smr_sec_2026';
+    const baseTarget = `${origin}/survey/callback?status=${code}&uid=${encodeURIComponent(cleanUid)}&vid=${encodeURIComponent(cleanVid)}&pid=${encodeURIComponent(cleanPid)}`;
+    const dynamicHash = sha3_256(baseTarget + secretKey);
+    return `${baseTarget}&hash=${dynamicHash}`;
   };
 
   const getExternalVendorUrl = (status) => {
@@ -404,7 +408,14 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
       return null;
     }
     const cleanUid = uid || `TEST_RESP_${Date.now().toString().slice(-4)}`;
-    return template.replace(/\[UID\]/gi, cleanUid).replace(/\[RESPONDENT_ID\]/gi, cleanUid);
+    let urlWithUid = template.replace(/\[UID\]/gi, cleanUid).replace(/\[RESPONDENT_ID\]/gi, cleanUid);
+    const secretKey = vendorInfo?.secret_key || 'marketxcel_smr_sec_2026';
+    if (secretKey) {
+      const dynamicHash = sha3_256(urlWithUid + secretKey);
+      const delim = urlWithUid.includes('?') ? '&' : '?';
+      urlWithUid = `${urlWithUid}${delim}hash=${dynamicHash}`;
+    }
+    return urlWithUid;
   };
 
   const getVendorRedirectUrl = (status) => {

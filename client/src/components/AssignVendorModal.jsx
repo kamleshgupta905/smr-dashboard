@@ -72,11 +72,13 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
   const runTestSimulation = async (statusNumber) => {
     setSimulating(true);
     try {
+      const vendorObj = vendors.find(v => (v.vendor_code === selectedVendor || v.vendorUid === selectedVendor || v._id === selectedVendor));
       const res = await RouterAPI.simulateTest({
         projectId: currentId,
         vendorId: selectedVendor,
         testUid: `TEST_${selectedVendor}_${Date.now().toString().slice(-4)}`,
         status: statusNumber,
+        secretKey: vendorObj?.secret_key || 'marketxcel_smr_sec_2026'
       });
       setSimResult(res || null);
     } catch (err) {
