@@ -29,16 +29,6 @@ export default function ApiDeveloperCenterPage() {
       headers: { 'ZAMP-KEY': 'ZAMP-SECURE-KEY', 'Accept': 'application/json' },
       description: 'Returns real-time list of all surveys currently allocated to your supplier account with IR, LOI, and CPI.'
     },
-    zamp_top_picks: {
-      provider: 'zamplia_supply',
-      category: 'Zamplia Supply API V2',
-      endpoint: 'GetTopPickSurveys',
-      name: 'Get Top Pick Surveys',
-      method: 'GET',
-      url: 'https://surveysupply.zamplia.com/api/v1/Surveys/GetTopPickSurveys',
-      headers: { 'ZAMP-KEY': 'ZAMP-SECURE-KEY' },
-      description: 'Returns top-earning high-CPI surveys prioritized for maximum vendor conversion and throughput.'
-    },
     zamp_by_id: {
       provider: 'zamplia_supply',
       category: 'Zamplia Supply API V2',

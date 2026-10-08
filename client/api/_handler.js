@@ -90,37 +90,14 @@ export default async function handler(req, res) {
   const searchParams = url.searchParams;
 
   try {
-    // 1. Zamplia Allocated Surveys & Top Picks
+    // 1. Zamplia Allocated Surveys
     if (pathname === '/api/zamplia' || pathname === '/api/zamplia/') {
-      const tab = searchParams.get('tab') || 'allocated';
       const surveys = await getLiveAllocatedSurveys();
-
-      if (tab === 'top_picks' || tab === 'top-picks') {
-        const sorted = [...surveys].sort((a, b) => (Number(b.CPI) || 0) - (Number(a.CPI) || 0));
-        return res.status(200).json({
-          success: true,
-          total: 10,
-          data: sorted.slice(0, 10),
-          source: 'zamplia_live'
-        });
-      }
 
       return res.status(200).json({
         success: true,
         total: surveys.length,
         data: surveys,
-        source: 'zamplia_live'
-      });
-    }
-
-    // 2. Zamplia Top Picks direct route
-    if (pathname === '/api/zamplia/top-picks') {
-      const surveys = await getLiveAllocatedSurveys();
-      const sorted = [...surveys].sort((a, b) => (Number(b.CPI) || 0) - (Number(a.CPI) || 0));
-      return res.status(200).json({
-        success: true,
-        total: 10,
-        data: sorted.slice(0, 10),
         source: 'zamplia_live'
       });
     }

@@ -67,7 +67,6 @@ function doGet(e) {
   }
 
   if (action === 'getsurveys') return proxyZampliaRequest('/Surveys/GetAllocatedSurveys', {});
-  if (action === 'gettoppicks') return proxyZampliaRequest('/Surveys/GetTopPickSurveys', {});
 
   var sheetName = (e && e.parameter && e.parameter.sheet) || 'Clients';
   var sheet = ss.getSheetByName(sheetName);
@@ -107,7 +106,6 @@ function doPost(e) {
 
     // Secure Backend Zamplia Proxy (ZERO Key Exposure to browser)
     if (action === 'getsurveys') return proxyZampliaRequest('/Surveys/GetAllocatedSurveys', postData.params || {});
-    if (action === 'gettoppicks') return proxyZampliaRequest('/Surveys/GetTopPickSurveys', postData.params || {});
     if (action === 'getsurveydetails') return proxyZampliaRequest('/Surveys/GetSurveyById', { SurveyId: postData.surveyId || postData.SurveyId });
     if (action === 'getsurveyqualifications') return proxyZampliaRequest('/Surveys/GetSurveyQualifications', { SurveyId: postData.surveyId || postData.SurveyId });
     if (action === 'getsurveyquotas') return proxyZampliaRequest('/Surveys/GetSurveyQuotas', { SurveyId: postData.surveyId || postData.SurveyId });

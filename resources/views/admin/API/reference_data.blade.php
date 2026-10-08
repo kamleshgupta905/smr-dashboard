@@ -58,9 +58,6 @@ body {
         <a href="{{ url('admin/api_survey') }}" class="pill-link">
             <i class="fas fa-th-list me-1"></i> Allocated Surveys
         </a>
-        <a href="{{ url('admin/api_survey?tab=top_picks') }}" class="pill-link">
-            <i class="fas fa-fire me-1"></i> Top Pick Surveys
-        </a>
         <a href="{{ url('admin/api_survey/reconciliation') }}" class="pill-link">
             <i class="fas fa-file-invoice-dollar me-1"></i> Reconciliation
         </a>

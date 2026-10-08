@@ -236,19 +236,6 @@ export const syncSurveys = () =>
     .then(res => res.data)
     .catch(() => ({ success: true, message: `Synced ${DEFAULT_SURVEYS.length} live surveys successfully` }));
 
-export const getTopPicks = () => 
-  api.get('/zamplia/top-picks')
-    .then(res => {
-      const data = res.data?.data || res.data;
-      if (Array.isArray(data) && data.length > 0) return res.data;
-      const sorted = [...DEFAULT_SURVEYS].sort((a, b) => (Number(b.CPI || b.cpi) || 0) - (Number(a.CPI || a.cpi) || 0));
-      return { success: true, data: sorted.slice(0, 10) };
-    })
-    .catch(() => {
-      const sorted = [...DEFAULT_SURVEYS].sort((a, b) => (Number(b.CPI || b.cpi) || 0) - (Number(a.CPI || a.cpi) || 0));
-      return { success: true, data: sorted.slice(0, 10) };
-    });
-
 export const getSurveyDetails = (surveyId) => 
   api.get(`/zamplia/details/${surveyId}`)
     .then(res => res.data)
@@ -1465,7 +1452,6 @@ export const GoogleSheetAPI = {
 export const ZampliaAPI = {
   getSurveys,
   syncSurveys,
-  getTopPicks,
   getSurveyDetails,
   getQualifications: getSurveyQualifications,
   getQuotas: getSurveyQuotas,

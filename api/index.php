@@ -665,13 +665,6 @@ if (
 // 4. Zamplia Live Inventory & Sync Proxy
 // -------------------------------------------------------------
 if ($normalizedRoute === 'zamplia' || $normalizedRoute === 'zamplia/surveys') {
-    $tab = $_GET['tab'] ?? 'allocated';
-    if ($tab === 'top_picks') {
-        $res = zampliaRequest('/Surveys/GetTopPickSurveys');
-        echo json_encode(['success' => true, 'data' => $res['data'] ?? []]);
-        exit;
-    }
-
     global $CACHE_FILE;
     if (file_exists($CACHE_FILE) && (time() - filemtime($CACHE_FILE) < 120)) {
         $cached = json_decode((string)file_get_contents($CACHE_FILE), true);
@@ -706,12 +699,6 @@ if ($normalizedRoute === 'zamplia/sync') {
     } else {
         echo json_encode(['success' => false, 'message' => $res['message']]);
     }
-    exit;
-}
-
-if ($normalizedRoute === 'zamplia/top-picks') {
-    $res = zampliaRequest('/Surveys/GetTopPickSurveys');
-    echo json_encode(['success' => true, 'data' => $res['data'] ?? []]);
     exit;
 }
 
