@@ -255,6 +255,50 @@ function dispatchS2S(string $endpoint, array $payload): void {
 }
 
 // -------------------------------------------------------------
+// Real Native JSON Persistence Engine (Leads & Fraud Tracking)
+// -------------------------------------------------------------
+function recordLead(array $data): void {
+    global $DATA_DIR;
+    $file = $DATA_DIR . '/leads.json';
+    $leads = file_exists($file) ? json_decode((string)file_get_contents($file), true) : [];
+    if (!is_array($leads)) $leads = [];
+    $leads[] = $data;
+    if (count($leads) > 500) $leads = array_slice($leads, -500);
+    @file_put_contents($file, json_encode($leads, JSON_PRETTY_PRINT));
+}
+
+function updateLeadStatus(string $uid, string $status, int $timeSpent = 0, ?string $reason = null): void {
+    global $DATA_DIR;
+    $file = $DATA_DIR . '/leads.json';
+    if (!file_exists($file)) return;
+    $leads = json_decode((string)file_get_contents($file), true);
+    if (!is_array($leads)) return;
+    foreach ($leads as &$l) {
+        if (($l['lead_id'] ?? '') === $uid) {
+            $l['status'] = $status;
+            $l['end_time'] = date('Y-m-d H:i:s');
+            $l['time_spent'] = $timeSpent;
+            if ($reason) $l['fraud_reason'] = $reason;
+            break;
+        }
+    }
+    unset($l);
+    @file_put_contents($file, json_encode($leads, JSON_PRETTY_PRINT));
+}
+
+function recordFraud(array $data): void {
+    global $DATA_DIR;
+    $file = $DATA_DIR . '/fraud_logs.json';
+    $logs = file_exists($file) ? json_decode((string)file_get_contents($file), true) : [];
+    if (!is_array($logs)) $logs = [];
+    $data['id'] = count($logs) + 1;
+    $data['created_at'] = date('Y-m-d H:i:s');
+    $logs[] = $data;
+    if (count($logs) > 200) $logs = array_slice($logs, -200);
+    @file_put_contents($file, json_encode($logs, JSON_PRETTY_PRINT));
+}
+
+// -------------------------------------------------------------
 // Route Parsing & Body Extraction
 // -------------------------------------------------------------
 $route = $_GET['route'] ?? '';
@@ -363,6 +407,15 @@ if (
     if ($clientInfo['device'] === 'Desktop' && empty($policy['allowDesktop'])) $deviceAllowed = false;
 
     if (!$deviceAllowed) {
+        recordFraud([
+            'uid' => $uid,
+            'project_id' => $surveyId,
+            'vendor_id' => $vendorId,
+            'reason' => "Restricted Device: {$clientInfo['device']}",
+            'risk_score' => 90,
+            'ip_address' => $clientInfo['ip'],
+            'device' => $clientInfo['device']
+        ]);
         if ($db) {
             try {
                 $db->prepare("INSERT INTO fraud_logs (uid, project_id, vendor_id, reason, risk_score, ip_address, device) VALUES (?, ?, ?, ?, 90, ?, ?)")
@@ -375,21 +428,62 @@ if (
     }
 
     // 2. Duplicate IP Check (if enabled)
-    if (!empty($policy['excludeDuplicates']) && $db) {
-        try {
-            $stmt = $db->prepare("SELECT COUNT(*) FROM leads WHERE ip_address = ? AND project_id = ? AND start_time > NOW() - INTERVAL 24 HOUR");
-            $stmt->execute([$clientInfo['ip'], $surveyId]);
-            if ((int)$stmt->fetchColumn() >= (int)($policy['uniqueIpLimit'] ?? 1)) {
-                $db->prepare("INSERT INTO fraud_logs (uid, project_id, vendor_id, reason, risk_score, ip_address, device) VALUES (?, ?, ?, 'Duplicate IP Violation', 85, ?, ?)")
-                   ->execute([$uid, $surveyId, $vendorId, $clientInfo['ip'], $clientInfo['device']]);
-                $rejectUrl = "https://smr.vmhgroupsmr.com/survey/callback?status=40&uid={$uid}&vid={$vendorId}&reason=duplicate_ip";
-                header("Location: {$rejectUrl}", true, 302);
-                exit;
+    if (!empty($policy['excludeDuplicates'])) {
+        $isDuplicate = false;
+        if ($db) {
+            try {
+                $stmt = $db->prepare("SELECT COUNT(*) FROM leads WHERE ip_address = ? AND project_id = ? AND start_time > NOW() - INTERVAL 24 HOUR");
+                $stmt->execute([$clientInfo['ip'], $surveyId]);
+                if ((int)$stmt->fetchColumn() >= (int)($policy['uniqueIpLimit'] ?? 1)) {
+                    $isDuplicate = true;
+                }
+            } catch (Throwable $e) {}
+        } else {
+            $leadsFile = $DATA_DIR . '/leads.json';
+            if (file_exists($leadsFile)) {
+                $localLeads = json_decode((string)file_get_contents($leadsFile), true) ?: [];
+                $recentMatches = count(array_filter($localLeads, fn($l) => 
+                    ($l['ip_address'] ?? '') === $clientInfo['ip'] && 
+                    ($l['project_id'] ?? '') === $surveyId &&
+                    (time() - ($l['timestamp'] ?? 0) < 86400)
+                ));
+                if ($recentMatches >= (int)($policy['uniqueIpLimit'] ?? 1)) {
+                    $isDuplicate = true;
+                }
             }
-        } catch (Throwable $e) {}
+        }
+
+        if ($isDuplicate) {
+            recordFraud([
+                'uid' => $uid,
+                'project_id' => $surveyId,
+                'vendor_id' => $vendorId,
+                'reason' => 'Duplicate IP Violation',
+                'risk_score' => 85,
+                'ip_address' => $clientInfo['ip'],
+                'device' => $clientInfo['device']
+            ]);
+            $rejectUrl = "https://smr.vmhgroupsmr.com/survey/callback?status=40&uid={$uid}&vid={$vendorId}&reason=duplicate_ip";
+            header("Location: {$rejectUrl}", true, 302);
+            exit;
+        }
     }
 
-    // 3. Record Inbound Respondent Lead in DB
+    // 3. Record Inbound Respondent Lead in Native JSON Store & DB
+    recordLead([
+        'lead_id' => $uid,
+        'project_id' => $surveyId,
+        'vendor_id' => $vendorId,
+        'status' => 'Pending',
+        'ip_address' => $clientInfo['ip'],
+        'country' => $clientInfo['country'],
+        'device' => $clientInfo['device'],
+        'browser' => $clientInfo['browser'],
+        'os' => $clientInfo['os'],
+        'start_time' => date('Y-m-d H:i:s'),
+        'timestamp' => time()
+    ]);
+
     if ($db) {
         try {
             $stmt = $db->prepare("
@@ -483,6 +577,15 @@ if (
         if ($timeSpent < $thresholdSeconds) {
             $isSpeeder = true;
             $statusParam = 'security';
+            recordFraud([
+                'uid' => $uid,
+                'project_id' => $surveyId,
+                'vendor_id' => $vendorId,
+                'reason' => "Speeder Violation: Completed in {$timeSpent}s (Under 45s threshold)",
+                'risk_score' => 95,
+                'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
+                'device' => 'Respondent'
+            ]);
             if ($db) {
                 try {
                     $db->prepare("INSERT INTO fraud_logs (uid, project_id, vendor_id, reason, risk_score) VALUES (?, ?, ?, ?, 95)")
@@ -501,10 +604,14 @@ if (
     ];
     $dbStatus = $statusDbMap[$statusParam] ?? 'Complete';
 
-    // Update DB Lead Record
+    // Update Lead Record in Native JSON Store & DB
+    $fraudReason = $isSpeeder ? "Speeder Violation ({$timeSpent}s)" : null;
+    if (!empty($uid)) {
+        updateLeadStatus($uid, $dbStatus, $timeSpent, $fraudReason);
+    }
+
     if ($db && !empty($uid)) {
         try {
-            $fraudReason = $isSpeeder ? "Speeder Violation ({$timeSpent}s)" : null;
             $db->prepare("
                 UPDATE leads 
                 SET status = ?, end_time = NOW(), time_spent = ?, fraud_reason = ?
@@ -527,6 +634,18 @@ if (
             $stmt->execute([$vendorId]);
             $vendorObj = $stmt->fetch();
         } catch (Throwable $e) {}
+    }
+    if (!$vendorObj) {
+        $vendorsFile = $DATA_DIR . '/vendors.json';
+        if (file_exists($vendorsFile)) {
+            $allVendors = json_decode((string)file_get_contents($vendorsFile), true) ?: [];
+            foreach ($allVendors as $v) {
+                if (($v['vendor_id'] ?? $v['vendor_code'] ?? '') === $vendorId) {
+                    $vendorObj = $v;
+                    break;
+                }
+            }
+        }
     }
 
     $secretKey = $vendorObj['secret_key'] ?? 'mx_secret_sha3_key_2026';
@@ -724,6 +843,7 @@ if ($normalizedRoute === 'security/settings' || $normalizedRoute === 'security/p
 }
 
 if ($normalizedRoute === 'security/fraud-logs') {
+    global $DATA_DIR;
     $db = getDbConnection();
     $logs = [];
     if ($db) {
@@ -731,27 +851,46 @@ if ($normalizedRoute === 'security/fraud-logs') {
             $logs = $db->query("SELECT * FROM fraud_logs ORDER BY id DESC LIMIT 50")->fetchAll();
         } catch (Throwable $e) {}
     }
+    if (empty($logs)) {
+        $fraudFile = $DATA_DIR . '/fraud_logs.json';
+        if (file_exists($fraudFile)) {
+            $localLogs = json_decode((string)file_get_contents($fraudFile), true) ?: [];
+            $logs = array_reverse($localLogs);
+        }
+    }
     echo json_encode(['success' => true, 'data' => $logs]);
     exit;
 }
 
 // -------------------------------------------------------------
-// 6. Dashboard Analytics
+// 6. Dashboard Analytics (Real Metrics Computed From Live Inventory & Leads)
 // -------------------------------------------------------------
 if ($normalizedRoute === 'dashboard/analytics') {
+    global $DATA_DIR, $CACHE_FILE;
     $db = getDbConnection();
-    $totalVendors = 60;
-    $pendingLeads = 10166;
-    $totalClick = 22284;
-    $activeProjects = 1342;
-    $chartData = [
-        'Electric Vehicle Outlook' => 4280,
-        'Healthcare Providers EHR' => 3420,
-        'German Consumer Preferences' => 5120,
-        'Cloud Infrastructure Survey' => 3820,
-        'Retail Omnichannel Study' => 2890,
-        'Financial Literacy Matrix' => 2754
-    ];
+
+    // Real Vendors Count
+    $vendorsFile = $DATA_DIR . '/vendors.json';
+    $vendorList = file_exists($vendorsFile) ? json_decode((string)file_get_contents($vendorsFile), true) : [];
+    $totalVendors = !empty($vendorList) ? count($vendorList) : 4;
+
+    // Real Leads & Clicks
+    $leadsFile = $DATA_DIR . '/leads.json';
+    $leads = file_exists($leadsFile) ? json_decode((string)file_get_contents($leadsFile), true) : [];
+    if (!is_array($leads)) $leads = [];
+    $totalClick = count($leads);
+    $pendingLeads = count(array_filter($leads, fn($l) => ($l['status'] ?? '') === 'Pending'));
+    $completeLeads = count(array_filter($leads, fn($l) => ($l['status'] ?? '') === 'Complete'));
+
+    // Real Allocated Surveys
+    $surveysCount = 12;
+    if (file_exists($CACHE_FILE)) {
+        $cachedSurveys = json_decode((string)file_get_contents($CACHE_FILE), true);
+        if (is_array($cachedSurveys) && count($cachedSurveys) > 0) {
+            $surveysCount = count($cachedSurveys);
+        }
+    }
+    $activeProjects = $surveysCount;
 
     if ($db) {
         try {
@@ -767,13 +906,64 @@ if ($normalizedRoute === 'dashboard/analytics') {
         'totalVendors' => $totalVendors,
         'pendingLeads' => $pendingLeads,
         'totalClick' => $totalClick,
+        'completeLeads' => $completeLeads,
         'activeProjects' => $activeProjects,
-        'chartData' => $chartData,
         'donutChartData' => [
             ['category' => 'Vendors', 'value' => $totalVendors],
-            ['category' => 'Projects', 'value' => $activeProjects],
-            ['category' => 'Leads', 'value' => $totalClick]
+            ['category' => 'Active Studies', 'value' => $activeProjects],
+            ['category' => 'Routed Leads', 'value' => $totalClick]
         ]
+    ]);
+    exit;
+}
+
+// -------------------------------------------------------------
+// 6b. Live Reconciliation & Audit Journal
+// -------------------------------------------------------------
+if ($normalizedRoute === 'zamplia/reconciliation') {
+    global $DATA_DIR;
+    $leadsFile = $DATA_DIR . '/leads.json';
+    $leads = file_exists($leadsFile) ? json_decode((string)file_get_contents($leadsFile), true) : [];
+    if (!is_array($leads)) $leads = [];
+
+    $statusFilter = strtolower($_GET['status'] ?? 'complete');
+    $records = [];
+    foreach ($leads as $l) {
+        $st = strtolower($l['status'] ?? 'pending');
+        if ($statusFilter === 'complete' && $st === 'complete') {
+            $records[] = [
+                'participantId' => $l['lead_id'] ?? '',
+                'surveyId' => $l['project_id'] ?? '',
+                'surveyName' => "Study #{$l['project_id']}",
+                'status' => 'complete',
+                'completionDate' => $l['end_time'] ?? $l['start_time'] ?? date('c'),
+                'vendorId' => $l['vendor_id'] ?? '',
+                'durationMinutes' => round(($l['time_spent'] ?? 60) / 60, 1),
+                'device' => $l['device'] ?? 'Desktop',
+                'country' => $l['country'] ?? 'US'
+            ];
+        } elseif ($statusFilter === 'reversed' && ($st === 'security terminate' || strpos($st, 'terminate') !== false || $st === 'reversed')) {
+            $records[] = [
+                'participantId' => $l['lead_id'] ?? '',
+                'surveyId' => $l['project_id'] ?? '',
+                'surveyName' => "Study #{$l['project_id']}",
+                'status' => 'reversed',
+                'completionDate' => $l['end_time'] ?? $l['start_time'] ?? date('c'),
+                'vendorId' => $l['vendor_id'] ?? '',
+                'durationMinutes' => round(($l['time_spent'] ?? 10) / 60, 1),
+                'verificationCode' => 'SECURITY_DISQUALIFIED',
+                'reversalReason' => $l['fraud_reason'] ?? 'Security Policy Disqualification',
+                'device' => $l['device'] ?? 'Desktop',
+                'country' => $l['country'] ?? 'US'
+            ];
+        }
+    }
+
+    echo json_encode([
+        'success' => true,
+        'data' => $records,
+        'source' => 'SMR Live Lead Journal',
+        'count' => count($records)
     ]);
     exit;
 }
