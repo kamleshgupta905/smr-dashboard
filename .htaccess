@@ -2,17 +2,32 @@
     RewriteEngine On
     RewriteBase /
 
-    # Direct API and callbacks to PHP router with route query parameter
+    # 1. Route API requests to PHP API engine
     RewriteRule ^api/(.*)$ api/index.php?route=$1 [QSA,L]
-    RewriteRule ^api$ api/index.php?route= [QSA,L]
-    RewriteRule ^callback/(.*)$ api/index.php?route=callback/$1 [QSA,L]
-    RewriteRule ^redirects/(.*)$ api/index.php?route=redirects/$1 [QSA,L]
+    RewriteRule ^api$ api/index.php?route=api [QSA,L]
 
-    # Do not rewrite real files or directories
+    # 2. Direct server-level traffic redirects (when calling backend router directly)
+    RewriteRule ^redirects(.*)$ api/index.php?route=redirects$1 [QSA,L]
+    RewriteRule ^router/(.*)$ api/index.php?route=router/$1 [QSA,L]
+    RewriteRule ^health$ api/index.php?route=health [QSA,L]
+
+    # 3. Serve existing static files & directories directly
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # Fallback to index.html for React SPA Router
+    # 4. React Single Page App fallback (handles /vendor/auth/*, /survey/*, /dashboard, etc.)
     RewriteRule ^ index.html [L]
+</IfModule>
+
+# Security & CORS Headers
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+</IfModule>
+
+# Enable Gzip / Brotli Compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
 </IfModule>
