@@ -1,0 +1,18 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Direct API and callbacks to PHP router with route query parameter
+    RewriteRule ^api/(.*)$ api/index.php?route=$1 [QSA,L]
+    RewriteRule ^api$ api/index.php?route= [QSA,L]
+    RewriteRule ^callback/(.*)$ api/index.php?route=callback/$1 [QSA,L]
+    RewriteRule ^redirects/(.*)$ api/index.php?route=redirects/$1 [QSA,L]
+
+    # Do not rewrite real files or directories
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Fallback to index.html for React SPA Router
+    RewriteRule ^ index.html [L]
+</IfModule>
