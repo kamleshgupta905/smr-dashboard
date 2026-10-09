@@ -731,9 +731,11 @@ export const generateVendorLink = (surveyId, vendorId) =>
     .then(res => res.data)
     .catch(() => ({
       success: true,
+      liveLink: `https://res.zamplia.com/?vid=2138&isMap=1&sid=${surveyId}&username=${vendorId}&cid=42`,
+      signedLiveLink: `https://res.zamplia.com/?vid=2138&isMap=1&sid=${surveyId}&username=${vendorId}&cid=42`,
       data: {
-        liveUrl: `https://cluster.marketxcel.co.in/survey/start?pid=${surveyId}&vid=${vendorId}&uid=[%RESPONDENT_ID%]&auth=1`,
-        testUrl: `https://cluster.marketxcel.co.in/survey/test?pid=${surveyId}&vid=${vendorId}&uid=TEST_USER_01&mode=test`
+        liveUrl: `https://res.zamplia.com/?vid=2138&isMap=1&sid=${surveyId}&username=${vendorId}&cid=42`,
+        testUrl: `https://res.zamplia.com/?vid=2138&isMap=1&sid=${surveyId}&username=${vendorId}&cid=42`
       }
     }));
 

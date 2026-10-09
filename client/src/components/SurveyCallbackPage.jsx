@@ -32,6 +32,7 @@ export default function SurveyCallbackPage() {
   const pid = params.get('pid') || params.get('project') || params.get('projectId') || params.get('project_id') || 'VMHP1026542026';
   const projectName = params.get('projectName') || params.get('project_name') || params.get('pname') || (pid.startsWith('VMH') ? pid : `VMHMXUS2659`);
   const hash = params.get('hash') || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+  const reason = params.get('reason') || '';
 
   // Normalize status:
   // 1 or 10 or 'complete' -> Complete
@@ -43,6 +44,18 @@ export default function SurveyCallbackPage() {
   const isOverQuota = statusCode === '3' || statusCode === '30' || statusCode === 'overquota' || statusCode === 'quotafull';
   const isSecurity = statusCode === '4' || statusCode === '40' || statusCode === 'security' || statusCode === 'fraud';
   const isTerminate = !isComplete && !isOverQuota && !isSecurity; // Default fallback to Terminated
+
+  // Save session status in localStorage to prevent duplicate re-entry
+  useEffect(() => {
+    if (pid && uid) {
+      const code = isComplete ? '10' : isOverQuota ? '30' : isSecurity ? '40' : '20';
+      try {
+        localStorage.setItem(`smr_status_${pid}_${uid}`, code);
+      } catch (e) {
+        console.warn('LocalStorage save error:', e);
+      }
+    }
+  }, [pid, uid, isComplete, isOverQuota, isSecurity]);
 
   // Try to detect user's real public IP address dynamically
   useEffect(() => {
@@ -224,16 +237,44 @@ export default function SurveyCallbackPage() {
           lineHeight: '1.6',
           color: '#64748b',
           maxWidth: '640px',
-          margin: '0 auto 36px auto'
+          margin: '0 auto 24px auto'
         }}>
           {statusConfig.subtitle}
         </p>
 
-        {/* Exact Table From Frame 003 */}
+        {/* Dynamic Reason Notice Banner */}
+        {reason && (
+          <div style={{
+            maxWidth: '720px',
+            margin: '0 auto 20px auto',
+            backgroundColor: isComplete ? '#ecfdf5' : '#fff7ed',
+            border: `1px solid ${isComplete ? '#a7f3d0' : '#fed7aa'}`,
+            borderRadius: '8px',
+            padding: '12px 18px',
+            fontSize: '13px',
+            fontWeight: 500,
+            color: isComplete ? '#065f46' : '#9a3412',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}>
+            <AlertTriangle size={16} />
+            <span>
+              {reason === 'already_completed' && 'Session Notice: You have already completed this survey previously. Duplicate submissions are not allowed.'}
+              {reason === 'already_terminated' && 'Session Notice: This participant session was already terminated and cannot be restarted.'}
+              {reason === 'screener_disqualified' && 'Pre-Screener Notice: You did not meet the demographic quota criteria for this survey.'}
+              {reason === 'screener_age_under18' && 'Pre-Screener Notice: Minimum age requirement not met (18+ only).'}
+              {!['already_completed', 'already_terminated', 'screener_disqualified', 'screener_age_under18'].includes(reason) && `Session Notice: ${reason}`}
+            </span>
+          </div>
+        )}
+
+        {/* Detailed Table From Frame 003 */}
         <div style={{
           overflowX: 'auto',
           margin: '0 auto 28px auto',
-          maxWidth: '720px',
+          maxWidth: '740px',
           border: '1px solid #e2e8f0',
           borderRadius: '8px'
         }}>
@@ -245,33 +286,53 @@ export default function SurveyCallbackPage() {
           }}>
             <thead>
               <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569', fontSize: '12px', textTransform: 'capitalize' }}>
+                <th style={{ padding: '12px 14px', fontWeight: 600, color: '#475569', fontSize: '12px', textTransform: 'capitalize' }}>
                   Project Name
                 </th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569', fontSize: '12px', textTransform: 'capitalize' }}>
-                  Uid
+                <th style={{ padding: '12px 14px', fontWeight: 600, color: '#475569', fontSize: '12px', textTransform: 'capitalize' }}>
+                  Project ID
                 </th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569', fontSize: '12px', textTransform: 'capitalize' }}>
-                  Ip
+                <th style={{ padding: '12px 14px', fontWeight: 600, color: '#475569', fontSize: '12px', textTransform: 'capitalize' }}>
+                  UID
                 </th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569', fontSize: '12px', textTransform: 'capitalize' }}>
+                <th style={{ padding: '12px 14px', fontWeight: 600, color: '#475569', fontSize: '12px', textTransform: 'capitalize' }}>
+                  Panel
+                </th>
+                <th style={{ padding: '12px 14px', fontWeight: 600, color: '#475569', fontSize: '12px', textTransform: 'capitalize' }}>
+                  IP Address
+                </th>
+                <th style={{ padding: '12px 14px', fontWeight: 600, color: '#475569', fontSize: '12px', textTransform: 'capitalize' }}>
                   Status
                 </th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td style={{ padding: '14px 16px', fontWeight: 500, color: '#1e293b', borderRight: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '14px 14px', fontWeight: 500, color: '#1e293b', borderRight: '1px solid #f1f5f9' }}>
                   {projectName}
                 </td>
-                <td style={{ padding: '14px 16px', fontFamily: 'monospace', color: '#334155', borderRight: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '14px 14px', fontFamily: 'monospace', color: '#64748b', fontSize: '12px', borderRight: '1px solid #f1f5f9' }}>
+                  {pid}
+                </td>
+                <td style={{ padding: '14px 14px', fontFamily: 'monospace', color: '#334155', borderRight: '1px solid #f1f5f9' }}>
                   {uid}
                 </td>
-                <td style={{ padding: '14px 16px', fontFamily: 'monospace', color: '#64748b', fontSize: '12px', borderRight: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '14px 14px', fontFamily: 'monospace', color: '#64748b', fontSize: '12px', borderRight: '1px solid #f1f5f9' }}>
+                  {vid}
+                </td>
+                <td style={{ padding: '14px 14px', fontFamily: 'monospace', color: '#64748b', fontSize: '12px', borderRight: '1px solid #f1f5f9' }}>
                   {detectedIp}
                 </td>
-                <td style={{ padding: '14px 16px', fontWeight: 600, color: statusConfig.statusBadgeColor }}>
-                  {statusConfig.tableStatus}
+                <td style={{ padding: '14px 14px', fontWeight: 600, color: statusConfig.statusBadgeColor }}>
+                  <span style={{
+                    backgroundColor: `${statusConfig.statusBadgeColor}15`,
+                    border: `1px solid ${statusConfig.statusBadgeColor}40`,
+                    padding: '4px 10px',
+                    borderRadius: '999px',
+                    fontSize: '12px'
+                  }}>
+                    {statusConfig.tableStatus}
+                  </span>
                 </td>
               </tr>
             </tbody>
