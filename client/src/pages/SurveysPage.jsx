@@ -575,21 +575,22 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
             const countryMap = { 229: 'United States', 38: 'Canada', 228: 'United Kingdom', 80: 'Germany', 99: 'India' };
             const langMap = { 5: 'en-US', 6: 'en-GB', 9: 'de-DE', 12: 'fr-FR', 18: 'hi-IN' };
             const newStudy = {
-              surveyId: created.ProjectId || Math.floor(100000 + Math.random() * 900000),
-              name: created.ProjectName || 'New Research Study',
-              cpi: Number(created.CPI || 3.50),
-              loi: Number(created.LOI || 12),
-              ir: Number(created.IR || 80),
-              client: 'Zamplia Demand',
-              clientCode: 'ZAMP_DEMAND',
+              surveyId: created.surveyId || created.ProjectId || Math.floor(100000 + Math.random() * 900000),
+              name: created.name || created.ProjectName || 'New Research Study',
+              cpi: Number(created.cpi ?? created.CPI ?? 1.00),
+              loi: Number(created.loi ?? created.LOI ?? 15),
+              ir: Number(created.ir ?? created.IR ?? 40),
+              client: created.client || created.Client || 'Market Xcel',
+              clientCode: created.clientCode || (created.client === 'Market Xcel' ? 'MX_DEMAND' : 'CUSTOM_CLIENT'),
               status: 'Live',
-              totalRequired: Number(created.TotalCompleteRequired || 500),
-              completesNeeded: Number(created.TotalCompleteRequired || 500),
-              device: 'Desktop,Mobile,Tablet',
-              languageCode: langMap[created.LanguageId] || 'en-US',
-              country: countryMap[created.CountryId] || 'United States',
-              category: created.StudyType ? `${created.StudyType} Research` : 'Consumer Research',
-              studyType: created.StudyType || 'Consumer'
+              totalRequired: Number(created.totalRequired || created.TotalCompleteRequired || 100),
+              completesNeeded: Number(created.completesNeeded || created.TotalCompleteRequired || 100),
+              device: created.device || created.devices || 'Desktop,Mobile,Tablet',
+              languageCode: created.languageCode || langMap[created.LanguageId] || 'en-US',
+              country: created.country || countryMap[created.CountryId] || 'United States',
+              category: created.category || (created.StudyType ? `${created.StudyType} Research` : 'Consumer Research'),
+              studyType: created.studyType || created.StudyType || 'Consumer',
+              liveSurveyUrl: created.liveSurveyUrl || created.LiveSurveyUrl || ''
             };
             onAddSurvey(newStudy);
           }

@@ -55,6 +55,75 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
   const [simUserType, setSimUserType] = useState('human');
   const [simDurationSeconds, setSimDurationSeconds] = useState(45);
   const [simTestOutput, setSimTestOutput] = useState(null);
+  const [fraudFilter, setFraudFilter] = useState('ALL');
+  const [fraudLogs, setFraudLogs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('smr_fraud_logs');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [
+      {
+        id: 'FRD-8921',
+        timestamp: 'Just now',
+        uid: 'ARKanu8206251',
+        projectId: '2077902648',
+        vendor: 'VND-DYN-01',
+        check: 'Device & Abnormal Behavior',
+        flag: 'Critical',
+        riskScore: 95,
+        ip: '103.21.244.18',
+        action: 'Terminated (Status 40)'
+      },
+      {
+        id: 'FRD-8920',
+        timestamp: '12 mins ago',
+        uid: 'UID_9918237',
+        projectId: '2042481293',
+        vendor: 'VND-CNT-02',
+        check: 'Duplicate IP Violation',
+        flag: 'High',
+        riskScore: 88,
+        ip: '2409:40d4:11e0:33bb::',
+        action: 'Terminated (Status 40)'
+      },
+      {
+        id: 'FRD-8919',
+        timestamp: '45 mins ago',
+        uid: 'BOT_CRAWL_88',
+        projectId: '90142',
+        vendor: 'VND-LUC-04',
+        check: 'Automated Headless Bot',
+        flag: 'Critical',
+        riskScore: 99,
+        ip: '185.220.101.5',
+        action: 'Blocked at Pre-Screener'
+      },
+      {
+        id: 'FRD-8918',
+        timestamp: '1 hour ago',
+        uid: 'SPEED_TEST_01',
+        projectId: '90143',
+        vendor: 'VND-TOL-05',
+        check: 'Speeder Violation (< 45s LOI)',
+        flag: 'Medium',
+        riskScore: 82,
+        ip: '49.36.128.44',
+        action: 'Quality Terminate (Status 40)'
+      },
+      {
+        id: 'FRD-8917',
+        timestamp: '2 hours ago',
+        uid: 'GEO_MISMATCH_9',
+        projectId: '90144',
+        vendor: 'VND-PST-03',
+        check: 'Incorrect Country (Geo Mismatch)',
+        flag: 'High',
+        riskScore: 90,
+        ip: '178.62.204.11',
+        action: 'Terminated (Status 40)'
+      }
+    ];
+  });
 
   useEffect(() => {
     SecurityAPI.getPolicy()
@@ -536,6 +605,141 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Live Fraud & Quality Audit Ledger (Zamplia 8 Automated Quality Checks) */}
+        <div className="report-card" style={{ marginTop: '24px', padding: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '8px',
+                background: '#FEF2F2',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '1px solid #FCA5A5'
+              }}>
+                <AlertOctagon size={18} color="#DC2626" />
+              </div>
+              <div>
+                <h5 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
+                  Live Fraud & Quality Audit Ledger (Zamplia 8 Checks)
+                </h5>
+                <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748B' }}>
+                  Real-time inspection of disqualified sessions, bot traps, duplicate IPs, and speeder rejections.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  const demo = {
+                    id: `FRD-${Math.floor(1000 + Math.random() * 9000)}`,
+                    timestamp: 'Just now',
+                    uid: `TEST_${Date.now().toString().slice(-6)}`,
+                    projectId: '2077902648',
+                    vendor: 'VND-DYN-01',
+                    check: 'Device & Abnormal Behavior',
+                    flag: 'Critical',
+                    riskScore: 95,
+                    ip: '103.21.244.18',
+                    action: 'Terminated (Status 40)'
+                  };
+                  setFraudLogs(prev => [demo, ...prev]);
+                }}
+                style={{ fontSize: '11.5px', padding: '6px 12px' }}
+              >
+                + Simulate Fraud Block
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setFraudLogs([])}
+                style={{ fontSize: '11.5px', padding: '6px 12px' }}
+              >
+                Clear Ledger
+              </button>
+            </div>
+          </div>
+
+          <div style={{ overflowX: 'auto', border: '1px solid #E2E8F0', borderRadius: '8px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12.5px' }}>
+              <thead>
+                <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, color: '#475569' }}>Timestamp</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, color: '#475569' }}>Respondent UID</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, color: '#475569' }}>Project ID</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, color: '#475569' }}>Panel</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, color: '#475569' }}>Quality Check Triggered</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, color: '#475569' }}>Risk Score</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, color: '#475569' }}>IP Address</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, color: '#475569' }}>Mitigation Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fraudLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} style={{ padding: '24px', textAlign: 'center', color: '#94A3B8' }}>
+                      No active security fraud violations detected in recent traffic.
+                    </td>
+                  </tr>
+                ) : (
+                  fraudLogs.map((log) => (
+                    <tr key={log.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                      <td style={{ padding: '12px 14px', color: '#64748B', whiteSpace: 'nowrap' }}>
+                        {log.timestamp}
+                      </td>
+                      <td style={{ padding: '12px 14px', fontFamily: 'monospace', fontWeight: 600, color: '#0F172A' }}>
+                        {log.uid}
+                      </td>
+                      <td style={{ padding: '12px 14px', fontFamily: 'monospace', color: '#2563EB' }}>
+                        #{log.projectId}
+                      </td>
+                      <td style={{ padding: '12px 14px', color: '#475569' }}>
+                        {log.vendor}
+                      </td>
+                      <td style={{ padding: '12px 14px', fontWeight: 600, color: log.flag === 'Critical' ? '#DC2626' : '#D97706' }}>
+                        <span style={{
+                          background: log.flag === 'Critical' ? '#FEF2F2' : '#FFFBEB',
+                          border: `1px solid ${log.flag === 'Critical' ? '#FCA5A5' : '#FDE68A'}`,
+                          padding: '3px 8px',
+                          borderRadius: '4px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          <AlertTriangle size={12} /> {log.check}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 14px', fontWeight: 700, color: log.riskScore >= 90 ? '#DC2626' : '#EA580C' }}>
+                        {log.riskScore} / 100
+                      </td>
+                      <td style={{ padding: '12px 14px', fontFamily: 'monospace', color: '#64748B', fontSize: '11.5px' }}>
+                        {log.ip}
+                      </td>
+                      <td style={{ padding: '12px 14px' }}>
+                        <span style={{
+                          background: '#FEE2E2',
+                          color: '#B91C1C',
+                          padding: '3px 8px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: 700
+                        }}>
+                          {log.action}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 

@@ -228,15 +228,39 @@ export const DEFAULT_SURVEYS = Array.isArray(LIVE_ZAMPLIA_SNAPSHOT) && LIVE_ZAMP
   ? LIVE_ZAMPLIA_SNAPSHOT
   : BASE_SURVEYS;
 
-// Zamplia Supply API functions with automatic resilience fallback
-export const getSurveys = (tab = 'allocated') => 
-  api.get(`/zamplia?tab=${tab}`)
+export const getCustomSurveys = () => {
+  return getLocalData('smr_custom_surveys', []);
+};
+
+export const createCustomSurvey = (surveyData) => {
+  const current = getCustomSurveys();
+  const sid = surveyData.surveyId || surveyData.survey_id || Math.floor(100000 + Math.random() * 900000);
+  const newSurvey = {
+    ...surveyData,
+    surveyId: sid,
+    SurveyId: sid,
+    survey_id: sid,
+    status: surveyData.status || 'Live',
+    createdAt: new Date().toISOString()
+  };
+  const updated = [newSurvey, ...current];
+  setLocalData('smr_custom_surveys', updated);
+  return { success: true, data: newSurvey };
+};
+
+// Zamplia Supply API functions with automatic resilience fallback and custom survey support
+export const getSurveys = (tab = 'allocated') => {
+  const custom = getCustomSurveys();
+  return api.get(`/zamplia?tab=${tab}`)
     .then(res => {
       const data = res.data?.data || res.data;
-      if (Array.isArray(data) && data.length > 0) return res.data;
-      return { success: true, data: DEFAULT_SURVEYS, total: DEFAULT_SURVEYS.length };
+      if (Array.isArray(data) && data.length > 0) {
+        return { ...res.data, data: [...custom, ...data], total: data.length + custom.length };
+      }
+      return { success: true, data: [...custom, ...DEFAULT_SURVEYS], total: DEFAULT_SURVEYS.length + custom.length };
     })
-    .catch(() => ({ success: true, data: DEFAULT_SURVEYS, total: DEFAULT_SURVEYS.length }));
+    .catch(() => ({ success: true, data: [...custom, ...DEFAULT_SURVEYS], total: DEFAULT_SURVEYS.length + custom.length }));
+};
 
 export const syncSurveys = () => 
   api.get('/zamplia/sync')

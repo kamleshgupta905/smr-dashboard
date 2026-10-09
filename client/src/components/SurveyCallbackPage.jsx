@@ -15,14 +15,22 @@ import {
   FileCheck,
   AlertTriangle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  RefreshCw,
+  ArrowUpRight,
+  Pause,
+  Play
 } from 'lucide-react';
-import { GoogleSheetAPI } from '../services/api.js';
+import { GoogleSheetAPI, getVendors, DEFAULT_VENDORS } from '../services/api.js';
 
 export default function SurveyCallbackPage() {
   const [copied, setCopied] = useState(false);
   const [showDeveloperAudit, setShowDeveloperAudit] = useState(false);
   const [detectedIp, setDetectedIp] = useState('2409:40d4:11e0:33bb:585a:1a12:5815:b7');
+  const [vendorList, setVendorList] = useState(DEFAULT_VENDORS);
+  const [countdown, setCountdown] = useState(5);
+  const [isPaused, setIsPaused] = useState(false);
+  const [targetVendorUrl, setTargetVendorUrl] = useState('');
 
   // Extract URL parameters
   const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
@@ -136,6 +144,51 @@ export default function SurveyCallbackPage() {
     iconType: 'terminated',
     accentColor: '#ff9800'
   };
+
+  useEffect(() => {
+    getVendors().then(res => {
+      const list = res?.data || res || [];
+      if (Array.isArray(list) && list.length > 0) setVendorList(list);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const vMatch = vendorList.find(v => (v.vendor_code === vid || v.vendorUid === vid || v._id === vid)) || vendorList[0];
+    if (vMatch) {
+      let rawUrl = '';
+      if (isComplete) rawUrl = vMatch.redirect_complete || vMatch.redirectSuccess;
+      else if (isOverQuota) rawUrl = vMatch.redirect_overquota || vMatch.redirectQuotafull;
+      else if (isSecurity) rawUrl = vMatch.redirect_security;
+      else rawUrl = vMatch.redirect_terminate || vMatch.redirectScreenout;
+
+      if (rawUrl && !rawUrl.includes('/survey/callback') && !rawUrl.includes('vnddyn01.com')) {
+        let finalUrl = rawUrl
+          .replace(/\[#UID#\]/g, uid)
+          .replace(/\[identifier\]/g, uid)
+          .replace(/\[RESPONDENT_ID\]/g, uid)
+          .replace(/\[UID\]/g, uid)
+          .replace(/vmhgroupss/g, uid)
+          .replace(/vmhgroups/g, uid);
+        if (!finalUrl.includes(uid)) {
+          finalUrl += (finalUrl.includes('?') ? '&' : '?') + `uid=${encodeURIComponent(uid)}`;
+        }
+        setTargetVendorUrl(finalUrl);
+      }
+    }
+  }, [vendorList, vid, uid, isComplete, isOverQuota, isSecurity]);
+
+  // Auto-redirect countdown
+  useEffect(() => {
+    if (!targetVendorUrl || isPaused) return;
+    if (countdown <= 0) {
+      window.location.href = targetVendorUrl;
+      return;
+    }
+    const timer = setTimeout(() => {
+      setCountdown(prev => prev - 1);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [countdown, targetVendorUrl, isPaused]);
 
   const auditRecord = {
     eventType: 'VMH_SMR_ROUTER_SETTLEMENT_CALLBACK',
@@ -294,6 +347,72 @@ export default function SurveyCallbackPage() {
               {reason === 'screener_age_under18' && 'Pre-Screener Notice: Minimum age requirement not met (18+ only).'}
               {!['already_completed', 'already_terminated', 'screener_disqualified', 'screener_age_under18'].includes(reason) && `Session Notice: ${reason}`}
             </span>
+          </div>
+        )}
+
+        {/* Auto-Redirect to Vendor Panel Card */}
+        {targetVendorUrl && (
+          <div style={{
+            maxWidth: '740px',
+            margin: '0 auto 24px auto',
+            backgroundColor: '#EFF6FF',
+            border: '1px solid #BFDBFE',
+            borderRadius: '8px',
+            padding: '12px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#1E40AF', fontWeight: 600 }}>
+              <RefreshCw size={16} style={{ animation: !isPaused ? 'prescreenerSpin 2s linear infinite' : 'none' }} />
+              <span>
+                {isPaused 
+                  ? 'Auto-redirect to panel is paused.' 
+                  : `Redirecting to your panel provider in ${countdown}s...`}
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setIsPaused(!isPaused)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid #CBD5E1',
+                  background: '#FFFFFF',
+                  color: '#334155',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                {isPaused ? <Play size={12} /> : <Pause size={12} />}
+                <span>{isPaused ? 'Resume' : 'Pause'}</span>
+              </button>
+              <a
+                href={targetVendorUrl}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  backgroundColor: '#2563EB',
+                  color: '#FFFFFF',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                <span>Return to Panel Now</span>
+                <ArrowUpRight size={13} />
+              </a>
+            </div>
           </div>
         )}
 
@@ -482,7 +601,28 @@ export default function SurveyCallbackPage() {
         </div>
 
         {/* Action Controls */}
-        <div style={{ marginTop: '28px', display: 'flex', justifyContent: 'center', gap: '12px' }}>
+        <div style={{ marginTop: '28px', display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          {targetVendorUrl && (
+            <a
+              href={targetVendorUrl}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '9px 20px',
+                borderRadius: '6px',
+                backgroundColor: '#16a34a',
+                color: '#ffffff',
+                fontSize: '13px',
+                fontWeight: 600,
+                textDecoration: 'none',
+                boxShadow: '0 1px 3px rgba(22, 163, 74, 0.25)'
+              }}
+            >
+              <ArrowUpRight size={14} /> Return to Panel Provider
+            </a>
+          )}
+
           <a
             href="/"
             style={{

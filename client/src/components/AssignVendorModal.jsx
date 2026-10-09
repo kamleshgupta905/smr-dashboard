@@ -15,6 +15,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
   // Simulator State
   const [simulating, setSimulating] = useState(false);
   const [simResult, setSimResult] = useState(null);
+  const [copiedCallbackKey, setCopiedCallbackKey] = useState(null);
 
   const resolvedSurvey = (survey && typeof survey === 'object') ? survey : (surveyId && typeof surveyId === 'object' ? surveyId : null);
   const currentId = resolvedSurvey?.survey_id || resolvedSurvey?.SurveyId || resolvedSurvey?.surveyId || resolvedSurvey?.id || resolvedSurvey?._id || resolvedSurvey?.project_id || (typeof surveyId !== 'object' ? surveyId : '2042481293') || '2042481293';
@@ -317,6 +318,12 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                 const rs = !isDummy(vendorObj?.redirect_security) ? vendorObj.redirect_security : `${origin}/survey/callback?status=40&uid=[UID]&vid=${vidCode}&hash=[HASH]`;
                 const hashAlg = vendorObj?.hash_algorithm || 'SHA3-256';
 
+                const copyCallback = (url, key) => {
+                  navigator.clipboard.writeText(url);
+                  setCopiedCallbackKey(key);
+                  setTimeout(() => setCopiedCallbackKey(null), 2000);
+                };
+
                 return (
                   <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '12px 14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -329,27 +336,78 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '11px', fontFamily: 'monospace' }}>
-                      <div style={{ background: '#FFFFFF', padding: '6px 8px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
-                        <span style={{ color: '#16A34A', fontWeight: 700, display: 'block', fontSize: '10px' }}>✓ COMPLETE (Status 10):</span>
-                        <div style={{ color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={rc}>
+                      {/* Complete */}
+                      <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <span style={{ color: '#16A34A', fontWeight: 700, fontSize: '10.5px' }}>✓ COMPLETE (Status 10):</span>
+                          <button
+                            type="button"
+                            onClick={() => copyCallback(rc, 'rc')}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: copiedCallbackKey === 'rc' ? '#16A34A' : '#64748B', display: 'flex', alignItems: 'center', gap: '3px', fontSize: '10px' }}
+                            title="Copy Complete Return URL"
+                          >
+                            {copiedCallbackKey === 'rc' ? <Check size={12} color="#16A34A" /> : <Copy size={12} />}
+                            <span>{copiedCallbackKey === 'rc' ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        </div>
+                        <div style={{ color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '10.5px' }} title={rc}>
                           {rc}
                         </div>
                       </div>
-                      <div style={{ background: '#FFFFFF', padding: '6px 8px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
-                        <span style={{ color: '#DC2626', fontWeight: 700, display: 'block', fontSize: '10px' }}>✕ TERMINATE (Status 20):</span>
-                        <div style={{ color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={rt}>
+
+                      {/* Terminate */}
+                      <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <span style={{ color: '#DC2626', fontWeight: 700, fontSize: '10.5px' }}>✕ TERMINATE (Status 20):</span>
+                          <button
+                            type="button"
+                            onClick={() => copyCallback(rt, 'rt')}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: copiedCallbackKey === 'rt' ? '#16A34A' : '#64748B', display: 'flex', alignItems: 'center', gap: '3px', fontSize: '10px' }}
+                            title="Copy Terminate Return URL"
+                          >
+                            {copiedCallbackKey === 'rt' ? <Check size={12} color="#16A34A" /> : <Copy size={12} />}
+                            <span>{copiedCallbackKey === 'rt' ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        </div>
+                        <div style={{ color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '10.5px' }} title={rt}>
                           {rt}
                         </div>
                       </div>
-                      <div style={{ background: '#FFFFFF', padding: '6px 8px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
-                        <span style={{ color: '#D97706', fontWeight: 700, display: 'block', fontSize: '10px' }}>⊘ OVERQUOTA (Status 30):</span>
-                        <div style={{ color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={ro}>
+
+                      {/* OverQuota */}
+                      <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <span style={{ color: '#D97706', fontWeight: 700, fontSize: '10.5px' }}>⊘ OVERQUOTA (Status 30):</span>
+                          <button
+                            type="button"
+                            onClick={() => copyCallback(ro, 'ro')}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: copiedCallbackKey === 'ro' ? '#16A34A' : '#64748B', display: 'flex', alignItems: 'center', gap: '3px', fontSize: '10px' }}
+                            title="Copy OverQuota Return URL"
+                          >
+                            {copiedCallbackKey === 'ro' ? <Check size={12} color="#16A34A" /> : <Copy size={12} />}
+                            <span>{copiedCallbackKey === 'ro' ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        </div>
+                        <div style={{ color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '10.5px' }} title={ro}>
                           {ro}
                         </div>
                       </div>
-                      <div style={{ background: '#FFFFFF', padding: '6px 8px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
-                        <span style={{ color: '#4F46E5', fontWeight: 700, display: 'block', fontSize: '10px' }}>🛡️ SECURITY (Status 40):</span>
-                        <div style={{ color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={rs}>
+
+                      {/* Security */}
+                      <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <span style={{ color: '#4F46E5', fontWeight: 700, fontSize: '10.5px' }}>🛡️ SECURITY (Status 40):</span>
+                          <button
+                            type="button"
+                            onClick={() => copyCallback(rs, 'rs')}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: copiedCallbackKey === 'rs' ? '#16A34A' : '#64748B', display: 'flex', alignItems: 'center', gap: '3px', fontSize: '10px' }}
+                            title="Copy Security Return URL"
+                          >
+                            {copiedCallbackKey === 'rs' ? <Check size={12} color="#16A34A" /> : <Copy size={12} />}
+                            <span>{copiedCallbackKey === 'rs' ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        </div>
+                        <div style={{ color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '10.5px' }} title={rs}>
                           {rs}
                         </div>
                       </div>
