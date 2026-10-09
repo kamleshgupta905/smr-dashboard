@@ -172,11 +172,11 @@ export default function DashboardPage({
       {/* Page Title Box */}
       <div className="dastone-page-title-box">
         <div>
-          <h4 className="page-title">Analytics</h4>
+          <h4 className="page-title">Overview</h4>
           <ol className="breadcrumb">
             <li><span className="breadcrumb-item-link">VMH</span></li>
             <li className="separator">/</li>
-            <li className="active">Analytics</li>
+            <li className="active">Overview</li>
           </ol>
         </div>
 
@@ -204,7 +204,7 @@ export default function DashboardPage({
           <div className="card-body" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
               <span className="pulse-dot" />
-              <span style={{ fontSize: '12px', color: '#8997bd', fontWeight: 500 }}>Open Quota Slots</span>
+              <span style={{ fontSize: '12px', color: '#8997bd', fontWeight: 500 }}>Needed Completes</span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
@@ -215,7 +215,7 @@ export default function DashboardPage({
             </div>
 
             <p style={{ margin: '8px 0 6px 0', fontSize: '11.5px', color: '#8997bd', lineHeight: 1.5 }}>
-              Open quota across <strong style={{ color: '#1761fd' }}>{normalized.length}</strong> live studies
+              Open quota across <strong style={{ color: '#1761fd' }}>{normalized.length}</strong> live surveys
               · <strong style={{ color: '#16a34a' }}>{quotaFillPct}%</strong> filled
               of {totalRequired.toLocaleString()} total target
             </p>
@@ -228,7 +228,7 @@ export default function DashboardPage({
             {/* CPI Distribution Histogram — Real from live surveys */}
             <div style={{ marginBottom: '4px' }}>
               <span style={{ fontSize: '10px', color: '#8997bd', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                CPI Distribution
+                Survey Rates (CPI Distribution)
               </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '42px' }}>
@@ -269,11 +269,11 @@ export default function DashboardPage({
               <h4 className="card-title">
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Globe size={14} color="#1761fd" />
-                  Demand Sources
+                  Surveys by Client
                 </span>
               </h4>
               <span style={{ fontSize: '11px', color: '#8997bd' }}>
-                {normalized.length} Studies
+                {normalized.length} Surveys
               </span>
             </div>
 
@@ -296,7 +296,7 @@ export default function DashboardPage({
                     {c.name}
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '11px', color: '#8997bd' }}>{c.count} studies</span>
+                    <span style={{ fontSize: '11px', color: '#8997bd' }}>{c.count} surveys</span>
                     <span style={{ fontWeight: 700, color: '#1d2c48', minWidth: '38px', textAlign: 'right' }}>{c.pct}%</span>
                   </span>
                 </div>
@@ -331,11 +331,11 @@ export default function DashboardPage({
         <div className="card-body" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h4 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Activity size={16} color="#1761fd" /> Live Marketplace Insights
+              <Activity size={16} color="#1761fd" /> Recent Activity
             </h4>
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#16a34a', fontWeight: 600 }}>
               <span className="pulse-dot" style={{ width: '6px', height: '6px', marginRight: '2px' }} />
-              Live Data
+              Live
             </span>
           </div>
 

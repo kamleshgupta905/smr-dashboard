@@ -224,11 +224,11 @@ export default function UserManagementPage() {
             <span className="separator">/</span>
             <span className="link">Administration</span>
             <span className="separator">/</span>
-            <span className="current">Access Privileges</span>
+            <span className="current">Team & Users</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h4 className="page-title">
-              User Management & Access Privileges
+              Team & Users
             </h4>
             <span className="badge-soft-success" style={{
               padding: '2px 8px',
@@ -240,7 +240,7 @@ export default function UserManagementPage() {
               gap: '5px'
             }}>
               <span className="pulse-dot" />
-              {activeStaff} Active Staff Accounts
+              {activeStaff} Active Accounts
             </span>
           </div>
         </div>

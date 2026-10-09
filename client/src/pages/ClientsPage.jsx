@@ -177,11 +177,11 @@ export default function ClientsPage() {
             <span className="separator">/</span>
             <span className="link">Integrations</span>
             <span className="separator">/</span>
-            <span className="current">Demand Clients</span>
+            <span className="current">Clients</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h4 className="page-title">
-              Demand Clients & Buyer Integrations
+              Clients
             </h4>
             <span className="badge-soft-primary" style={{
               padding: '2px 8px',
@@ -193,7 +193,7 @@ export default function ClientsPage() {
               gap: '5px'
             }}>
               <ShieldCheck size={12} />
-              S2S & SHA3-256 Hashing Active
+              Secure S2S Active
             </span>
           </div>
         </div>
@@ -204,7 +204,7 @@ export default function ClientsPage() {
             onClick={() => setShowAddModal(true)}
             style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px', borderRadius: '4px' }}
           >
-            <Plus size={14} /> Onboard New Client
+            <Plus size={14} /> Add New Client
           </button>
         </div>
       </div>
@@ -225,7 +225,7 @@ export default function ClientsPage() {
                   </div>
                   <div>
                     <h3 style={{ margin: 0, fontSize: '15.5px', fontWeight: 700, color: '#1d2c48' }}>
-                      Cryptographic Anti-Tamper Security & Signing
+                      Security & Callback Settings
                     </h3>
                     <p style={{ margin: '2px 0 0 0', fontSize: '11.5px', color: '#64748b' }}>
                       Client: <strong>{securityModalClient.client_name}</strong> ({securityModalClient.client_code})

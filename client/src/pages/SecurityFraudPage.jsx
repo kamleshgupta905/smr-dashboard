@@ -218,13 +218,13 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
           <div className="breadcrumb-trail">
             <span className="link">VMH</span>
             <span className="separator">/</span>
-            <span className="link">Security</span>
+            <span className="link">Platform</span>
             <span className="separator">/</span>
-            <span className="current">Fraud Engine</span>
+            <span className="current">Security</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h4 className="page-title">
-              Security & Fraud Screening Engine
+              Security Settings
             </h4>
             <span className="badge-soft-success" style={{
               padding: '2px 8px',
@@ -236,7 +236,7 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
               gap: '5px'
             }}>
               <span className="pulse-dot" />
-              Active Safeguards
+              Active Protection
             </span>
           </div>
         </div>
@@ -248,7 +248,7 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
             onClick={() => onLaunchPreScreener && onLaunchPreScreener({ vendorId: 'VND-DYN-01', projectId: '2042481293', uid: 'TEST_PRESCREEN_GATE' })}
             style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px', borderRadius: '4px' }}
           >
-            <ExternalLink size={14} /> Launch Pre-Screener Live Gate
+            <ExternalLink size={14} /> Test Pre-Screener
           </button>
 
           <button
@@ -258,123 +258,123 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
             style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 600, padding: '7px 16px', borderRadius: '4px' }}
           >
             {saveSuccess ? <CheckCircle size={15} color="#ffffff" /> : <Save size={14} />}
-            {saving ? 'Saving...' : saveSuccess ? 'Policies Applied!' : 'Save Fraud Policies'}
+            {saving ? 'Saving...' : saveSuccess ? 'Settings Saved!' : 'Save Settings'}
           </button>
         </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px' }}>
         
-        {/* Section 1: Pre Screen & Thanks URL */}
+        {/* Section 1: Pre-Screener & Callbacks */}
         <div className="report-card" style={{ margin: 0, padding: 0 }}>
           <div className="report-card-header">
             <h4 className="report-card-title">
-              <Lock size={14} color="#1761fd" /> Pre Screen & Thanks URL
+              <Lock size={14} color="#1761fd" /> Pre-Screener & Callbacks
             </h4>
           </div>
           <div style={{ padding: '16px 20px' }}>
             <ToggleSwitch
-              label="Pre Screen"
-              description="Verify demographic match before sending respondent to client survey"
+              label="Demographic Pre-Screener"
+              description="Ask age, gender and employment questions before redirecting to survey"
               checked={policy.preScreenEnabled}
               onChange={() => handleToggle('preScreenEnabled')}
             />
             <ToggleSwitch
-              label="Dynamic Thanks URL"
-              description="Allow dynamic vendor callback query string propagation"
+              label="Dynamic Vendor Callbacks"
+              description="Pass custom parameters back to vendor on complete and terminate"
               checked={policy.dynamicThanksUrl}
               onChange={() => handleToggle('dynamicThanksUrl')}
             />
           </div>
         </div>
 
-        {/* Section 2: Set-up Fraud Screening */}
+        {/* Section 2: Fraud & Quality Checks */}
         <div className="report-card" style={{ margin: 0, padding: 0 }}>
           <div className="report-card-header">
             <h4 className="report-card-title">
-              <AlertOctagon size={14} color="#f5325c" /> Set-up Fraud Screening
+              <AlertOctagon size={14} color="#f5325c" /> Fraud & Quality Checks
             </h4>
           </div>
           <div style={{ padding: '16px 20px' }}>
             <ToggleSwitch
-              label="Exclude Duplicate Leads"
+              label="Block Duplicate Respondents"
               description="Prevent identical respondent IDs from entering multiple times"
               checked={policy.excludeDuplicates}
               onChange={() => handleToggle('excludeDuplicates')}
             />
             <ToggleSwitch
-              label="Geo Location Validation"
+              label="Verify Country Location"
               description="Ensure respondent IP country matches target survey market"
               checked={policy.geoLocationValidation}
               onChange={() => handleToggle('geoLocationValidation')}
             />
             <ToggleSwitch
-              label="Unique IP Enforcement (1 Max)"
+              label="Limit 1 Complete Per IP Address"
               description="Block multiple completes originating from the same IP address"
               checked={policy.uniqueIpLimit === 1}
               onChange={() => setPolicy(p => ({ ...p, uniqueIpLimit: p.uniqueIpLimit === 1 ? 0 : 1 }))}
             />
             <ToggleSwitch
-              label="Speeder Check (LOI Threshold)"
+              label="Block Speeders (Too Fast Answers)"
               description="Auto-flag and reject finishes under 30% of average duration"
               checked={policy.speederCheck}
               onChange={() => handleToggle('speederCheck')}
             />
             <ToggleSwitch
-              label="LH Protection (Honeypot Trap)"
-              description="Automated link manipulation detection"
+              label="Link Tamper Protection"
+              description="Block unauthorized URL manipulation and altered return statuses"
               checked={policy.lhProtection}
               onChange={() => handleToggle('lhProtection')}
             />
           </div>
         </div>
 
-        {/* Section 3: Security & Fraud Cops */}
+        {/* Section 3: Bot & Proxy Protection */}
         <div className="report-card" style={{ margin: 0, padding: 0 }}>
           <div className="report-card-header">
             <h4 className="report-card-title">
-              <Cpu size={14} color="#1761fd" /> Security & Fraud Cops Suite
+              <Cpu size={14} color="#1761fd" /> Bot & Proxy Protection
             </h4>
           </div>
           <div style={{ padding: '16px 20px' }}>
           <ToggleSwitch
-            label="Fraud Cops / Research Defender"
-            description="AI behavioral evaluation of panelist session authenticity"
+            label="Session Quality Check"
+            description="Evaluate panelist behavior and timing authenticity"
             checked={policy.fraudCops}
             onChange={() => handleToggle('fraudCops')}
           />
           <ToggleSwitch
-            label="Browser Security & Fingerprinting"
-            description="Block headless browsers, automated scripts, and emulator spoofing"
+            label="Browser Integrity Check"
+            description="Block headless browsers, automated scripts, and emulators"
             checked={policy.browserSecurity}
             onChange={() => handleToggle('browserSecurity')}
           />
           <ToggleSwitch
-            label="VPN & Datacenter Proxy Detection"
-            description="Blacklist Tor exit nodes, AWS, DigitalOcean and known proxy IP ranges"
+            label="Block VPN & Datacenter Proxies"
+            description="Filter out Tor exit nodes, datacenter hosting IPs, and proxy servers"
             checked={policy.vpnDetection}
             onChange={() => handleToggle('vpnDetection')}
           />
           <ToggleSwitch
-            label="Bot Protection"
-            description="Challenge abnormal keystroke and click telemetry"
+            label="Block Automated Bots"
+            description="Detect automated scrapers and bot user agents"
             checked={policy.botProtection}
             onChange={() => handleToggle('botProtection')}
           />
             <ToggleSwitch
-              label="Text Quality Analyzer"
-              description="Check open-ended survey responses for gibberish and AI generation"
+              label="Response Quality Analyzer"
+              description="Check text answers for gibberish and AI-generated repetition"
               checked={policy.textAnalyzer}
               onChange={() => handleToggle('textAnalyzer')}
             />
           </div>
         </div>
 
-        {/* Section 4: Device Filtering */}
+        {/* Section 4: Allowed Devices */}
         <div className="report-card" style={{ margin: 0, padding: 0 }}>
           <div className="report-card-header">
             <h4 className="report-card-title">
-              <Monitor size={14} color="#03d87f" /> Device Compatibility Filter
+              <Monitor size={14} color="#03d87f" /> Allowed Devices
             </h4>
           </div>
           <div style={{ padding: '16px 20px' }}>

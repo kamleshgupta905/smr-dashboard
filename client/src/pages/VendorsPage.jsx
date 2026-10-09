@@ -230,11 +230,11 @@ export default function VendorsPage() {
             <span className="separator">/</span>
             <span className="link">Partners</span>
             <span className="separator">/</span>
-            <span className="current">Supply Vendors</span>
+            <span className="current">Vendors</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h4 className="page-title">
-              Vendor & Panel Management
+              Vendors
             </h4>
             <span className="badge-soft-success" style={{
               padding: '2px 8px',
@@ -246,7 +246,7 @@ export default function VendorsPage() {
               gap: '5px'
             }}>
               <span className="pulse-dot" />
-              {filtered.length} Connected Panels
+              {filtered.length} Connected Vendors
             </span>
           </div>
         </div>
@@ -267,20 +267,20 @@ export default function VendorsPage() {
       <div className="responsive-four-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px' }}>
         <div className="card report-card" style={{ padding: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#8997bd' }}>Connected Panels</span>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#8997bd' }}>Connected Vendors</span>
             <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(23, 97, 253, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1761fd' }}>
               <Users size={16} />
             </div>
           </div>
           <div style={{ fontSize: '24px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins' }}>{vendors.length}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', fontSize: '11.5px', color: '#16a34a' }}>
-            <span className="pulse-dot" /> {activeCount} Panels Active & Routing
+            <span className="pulse-dot" /> {activeCount} Active Vendors
           </div>
         </div>
 
         <div className="card report-card" style={{ padding: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#8997bd' }}>Average Panel CPI</span>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#8997bd' }}>Average Rate (CPI)</span>
             <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(3, 216, 127, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#03d87f' }}>
               <DollarSign size={16} />
             </div>

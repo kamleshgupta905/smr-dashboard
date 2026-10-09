@@ -546,11 +546,11 @@ export default function ApiDeveloperCenterPage() {
             <span className="separator">/</span>
             <span className="link">Developer</span>
             <span className="separator">/</span>
-            <span className="current">API Sandbox</span>
+            <span className="current">API & Integrations</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h4 className="page-title">
-              Universal API Explorer & Developer Center
+              API & Integrations Center
             </h4>
             <span className="badge-soft-primary" style={{
               padding: '2px 8px',

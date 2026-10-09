@@ -200,13 +200,13 @@ export default function ReconciliationPage() {
             <span className="current">Reconciliation</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h4 className="page-title">Zamplia Reconciliation & Auditing</h4>
+            <h4 className="page-title">Reports & Reconciliation</h4>
             <span className="badge-soft-success" style={{
               padding: '2px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: 700,
               display: 'inline-flex', alignItems: 'center', gap: '5px'
             }}>
               <span className="pulse-dot" />
-              Accounting Ledger Ready
+              Live Data Ready
             </span>
           </div>
         </div>

@@ -86,7 +86,7 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
           {/* Section: MAIN */}
           <div className="sidebar-section-title">MAIN</div>
 
-          {/* Dropdown 1: Dashboard (Analytics, Live Surveys) */}
+          {/* Dropdown 1: Dashboard */}
           <div className="sidebar-nav-group">
             <button 
               className={`sidebar-nav-heading ${['dashboard', 'surveys'].includes(activeTab) ? 'active' : ''}`}
@@ -108,20 +108,20 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
                   onClick={() => handleNav('dashboard')}
                 >
                   <span className="bullet-circle" />
-                  <span>Analytics</span>
+                  <span>Overview</span>
                 </button>
                 <button
                   className={`submenu-item ${activeTab === 'surveys' ? 'active' : ''}`}
                   onClick={() => handleNav('surveys')}
                 >
                   <span className="bullet-circle" />
-                  <span>Live Surveys</span>
+                  <span>Surveys</span>
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Dropdown 2: Apps (Demand Clients, Supply Vendors) */}
+          {/* Dropdown 2: Partners (Clients, Vendors) */}
           <div className="sidebar-nav-group">
             <button 
               className={`sidebar-nav-heading ${['clients', 'vendors'].includes(activeTab) ? 'active' : ''}`}
@@ -129,7 +129,7 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
             >
               <div className="nav-heading-left">
                 <LayoutGrid size={16} className="nav-icon" />
-                <span>Apps</span>
+                <span>Partners</span>
               </div>
               <span className={`dropdown-chevron ${appsOpen ? 'rotated' : ''}`}>
                 <ChevronRight size={14} />
@@ -143,14 +143,14 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
                   onClick={() => handleNav('clients')}
                 >
                   <span className="bullet-circle" />
-                  <span>Demand Clients</span>
+                  <span>Clients</span>
                 </button>
                 <button
                   className={`submenu-item ${activeTab === 'vendors' ? 'active' : ''}`}
                   onClick={() => handleNav('vendors')}
                 >
                   <span className="bullet-circle" />
-                  <span>Supply Vendors</span>
+                  <span>Vendors</span>
                 </button>
               </div>
             </div>
@@ -159,10 +159,10 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
           {/* Dotted Divider */}
           <div className="sidebar-dotted-divider" />
 
-          {/* Section: SECURITY & AUDIT */}
-          <div className="sidebar-section-title">COMPONENTS & EXTRA</div>
+          {/* Section: MANAGEMENT */}
+          <div className="sidebar-section-title">MANAGEMENT</div>
 
-          {/* Dropdown 3: Security & Compliance */}
+          {/* Dropdown 3: Security & Reports */}
           <div className="sidebar-nav-group">
             <button 
               className={`sidebar-nav-heading ${['security', 'reconciliation', 'reference'].includes(activeTab) ? 'active' : ''}`}
@@ -170,10 +170,10 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
             >
               <div className="nav-heading-left">
                 <ShieldCheck size={16} className="nav-icon" />
-                <span>Security & Audit</span>
+                <span>Security & Reports</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span className="badge-dastone-new">Live</span>
+                <span className="badge-dastone-new">Active</span>
                 <span className={`dropdown-chevron ${securityOpen ? 'rotated' : ''}`}>
                   <ChevronRight size={14} />
                 </span>
@@ -187,27 +187,27 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
                   onClick={() => handleNav('security')}
                 >
                   <span className="bullet-circle" />
-                  <span>Fraud Security</span>
+                  <span>Security Settings</span>
                 </button>
                 <button
                   className={`submenu-item ${activeTab === 'reconciliation' ? 'active' : ''}`}
                   onClick={() => handleNav('reconciliation')}
                 >
                   <span className="bullet-circle" />
-                  <span>Reconciliation</span>
+                  <span>Reports & Reconciliation</span>
                 </button>
                 <button
                   className={`submenu-item ${activeTab === 'reference' ? 'active' : ''}`}
                   onClick={() => handleNav('reference')}
                 >
                   <span className="bullet-circle" />
-                  <span>Reference Catalogs</span>
+                  <span>Categories & Data</span>
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Dropdown 4: Developer & Admin */}
+          {/* Dropdown 4: System & Team */}
           <div className="sidebar-nav-group">
             <button 
               className={`sidebar-nav-heading ${['developer-center', 'users'].includes(activeTab) ? 'active' : ''}`}
@@ -215,7 +215,7 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
             >
               <div className="nav-heading-left">
                 <Terminal size={16} className="nav-icon" />
-                <span>Developer Tools</span>
+                <span>System & Team</span>
               </div>
               <span className={`dropdown-chevron ${developerOpen ? 'rotated' : ''}`}>
                 <ChevronRight size={14} />
@@ -229,14 +229,14 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
                   onClick={() => handleNav('developer-center')}
                 >
                   <span className="bullet-circle" />
-                  <span>API Sandbox</span>
+                  <span>API & Integrations</span>
                 </button>
                 <button
                   className={`submenu-item ${activeTab === 'users' ? 'active' : ''}`}
                   onClick={() => handleNav('users')}
                 >
                   <span className="bullet-circle" />
-                  <span>User Roles (RBAC)</span>
+                  <span>Team Members</span>
                 </button>
               </div>
             </div>

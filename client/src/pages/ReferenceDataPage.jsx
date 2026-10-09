@@ -90,11 +90,11 @@ export default function ReferenceDataPage() {
             <span className="separator">/</span>
             <span className="link">Catalogs</span>
             <span className="separator">/</span>
-            <span className="current">Reference Data</span>
+            <span className="current">Categories & Data</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h4 className="page-title">
-              Master Reference Catalogs & Taxonomies
+              Categories & Reference Data
             </h4>
             <span className="badge-soft-primary" style={{
               padding: '2px 8px',
@@ -105,7 +105,7 @@ export default function ReferenceDataPage() {
               alignItems: 'center',
               gap: '5px'
             }}>
-              <Database size={12} /> Zamplia & Market Xcel Master Specs
+              <Database size={12} /> Standard Master Lists
             </span>
           </div>
         </div>

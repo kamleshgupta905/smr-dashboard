@@ -78,7 +78,7 @@ export default function SurveyCallbackPage() {
   const statusConfig = isComplete ? {
     code: '10',
     title: 'The Survey Has Been Completed',
-    subtitle: 'Thank you for participating! Your feedback has been successfully recorded, cryptographically signed, and credited.',
+    subtitle: 'Thank you for participating! Your feedback has been successfully recorded and credited.',
     tableStatus: 'Complete',
     statusBadgeColor: '#03d87f',
     iconType: 'complete',
@@ -94,7 +94,7 @@ export default function SurveyCallbackPage() {
   } : isSecurity ? {
     code: '40',
     title: 'The Event Has Been Terminated',
-    subtitle: 'We regret to inform you that this session could not proceed due to automated fraud/security compliance filters (Proxy, VPN, or Device verification).',
+    subtitle: 'We regret to inform you that this session could not proceed due to security compliance checks (Proxy, VPN, or Device verification).',
     tableStatus: 'Security Terminated',
     statusBadgeColor: '#9333ea',
     iconType: 'security',
@@ -358,7 +358,7 @@ export default function SurveyCallbackPage() {
             }}
           >
             <Lock size={13} color="#2563eb" />
-            <span>Developer Settlement & SHA3-256 Hash Details</span>
+            <span>Technical Session Details</span>
             {showDeveloperAudit ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
 

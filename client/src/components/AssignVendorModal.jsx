@@ -124,10 +124,10 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
             </div>
             <div>
               <h3 style={{ fontSize: '17px', fontWeight: 800, margin: 0, color: '#0F172A' }}>
-                Assign Vendor & Generate Inbound Link
+                Assign Survey to Vendor
               </h3>
               <small style={{ color: '#64748B' }}>
-                Generate vendor panel routing links with dynamic respondent placeholders
+                Generate and test survey links for your vendor partners
               </small>
             </div>
           </div>
@@ -218,9 +218,9 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
               <div style={{ background: '#F1F5F9', padding: '12px 14px', borderRadius: '8px', border: '1px solid #CBD5E1' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                   <label style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>
-                    1. Live Entry URL (For Vendor Panel Setup):
+                    1. Live Survey Link (Send to Vendor):
                   </label>
-                  <span style={{ fontSize: '11px', color: '#16A34A', fontWeight: 700 }}>Active Inbound Route</span>
+                  <span style={{ fontSize: '11px', color: '#16A34A', fontWeight: 700 }}>Live Link</span>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <input
@@ -248,7 +248,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                 </div>
                 <p style={{ margin: '6px 0 0 0', fontSize: '11.5px', color: '#64748B' }}>
                   <Info size={12} style={{ display: 'inline', marginRight: '4px' }} />
-                  Vendor panel software will dynamically replace <code>[RESPONDENT_ID]</code> with their panelist ID.
+                  Vendor will dynamically replace <code>[RESPONDENT_ID]</code> with their panelist ID.
                 </p>
               </div>
 
@@ -256,9 +256,9 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
               <div style={{ background: '#EFF6FF', padding: '12px 14px', borderRadius: '8px', border: '1px solid #BFDBFE' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                   <label style={{ fontSize: '12px', fontWeight: 800, color: '#1E40AF' }}>
-                    2. Sandbox Test Link (Safe Click Testing):
+                    2. Test Survey Link:
                   </label>
-                  <span style={{ fontSize: '11px', color: '#2563EB', fontWeight: 700 }}>Zero Quota Impact</span>
+                  <span style={{ fontSize: '11px', color: '#2563EB', fontWeight: 700 }}>Safe Test (No Quota Consumed)</span>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <input
@@ -369,11 +369,11 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
                   <Play size={16} color="#2563EB" />
                   <strong style={{ fontSize: '13px', color: '#0F172A' }}>
-                    1-Click Routing & S2S Callback Test Engine
+                    Test Callback Return URLs
                   </strong>
                 </div>
                 <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748B' }}>
-                  Verify live redirect outcomes, SHA3-256 anti-tamper signature, and Server-to-Server callback:
+                  Test what happens when a user completes, terminates, or gets quota full:
                 </p>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>

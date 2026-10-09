@@ -110,13 +110,13 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
           <div className="breadcrumb-trail">
             <span className="link">VMH</span>
             <span className="separator">/</span>
-            <span className="link">Marketplace</span>
+            <span className="link">Platform</span>
             <span className="separator">/</span>
-            <span className="current">Allocated Surveys</span>
+            <span className="current">Surveys</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h4 className="page-title">
-              Allocated Survey Marketplace
+              Surveys
             </h4>
             <span className="badge-soft-success" style={{
               padding: '2px 8px',
@@ -128,7 +128,7 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
               gap: '5px'
             }}>
               <span className="pulse-dot" />
-              Live Allocation
+              Live Surveys
             </span>
           </div>
         </div>
@@ -139,7 +139,7 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
             onClick={() => setDemandModalOpen(true)}
             style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px' }}
           >
-            <Layers size={14} /> + New Demand Study
+            <Layers size={14} /> + Add Survey
           </button>
           {onRefresh && (
             <button
@@ -147,7 +147,7 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
               onClick={onRefresh}
               style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px' }}
             >
-              <RefreshCw size={13} /> Sync Live Inventory
+              <RefreshCw size={13} /> Sync Surveys
             </button>
           )}
         </div>
@@ -171,7 +171,7 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
                 className={`timeframe-btn ${selectedChannel === c ? 'active' : ''}`}
                 style={{ padding: '5px 14px', fontSize: '12px' }}
               >
-                {c === 'ALL' ? 'All Channels' : c}
+                {c === 'ALL' ? 'All Clients' : c}
               </button>
             ))}
           </div>
@@ -187,7 +187,7 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
                 type="text"
                 className="input-control"
                 style={{ paddingLeft: '32px', width: '220px', height: '34px', fontSize: '12px' }}
-                placeholder="Search PID, Study, Category..."
+                placeholder="Search by name, ID, category..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
               />
@@ -210,12 +210,12 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
               onChange={(e) => { setSelectedCpiRange(e.target.value); setPage(1); }}
               style={{ width: 'auto', height: '34px', fontSize: '12px', fontWeight: 600, color: '#15803D' }}
             >
-              <option value="ALL">💵 All CPI Payouts</option>
+              <option value="ALL">💵 All Rates (CPI)</option>
               <option value="under-1">Below $1.00 ($0 - $0.99)</option>
               <option value="1-to-2">$1.00 - $2.00</option>
               <option value="2-to-3">$2.00 - $3.00</option>
               <option value="3-to-5">$3.00 - $5.00</option>
-              <option value="5-plus">$5.00+ High Payout</option>
+              <option value="5-plus">$5.00+ High Rate</option>
             </select>
 
             <select
@@ -224,10 +224,10 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
               onChange={(e) => setSortBy(e.target.value)}
               style={{ width: 'auto', height: '34px', fontSize: '12px' }}
             >
-              <option value="cpi-desc">💰 Highest CPI ($)</option>
-              <option value="cpi-asc">Lowest CPI ($)</option>
-              <option value="loi-asc">⚡ Shortest Duration (LOI)</option>
-              <option value="ir-desc">🎯 Highest Incidence (IR)</option>
+              <option value="cpi-desc">💰 Highest Rate ($)</option>
+              <option value="cpi-asc">Lowest Rate ($)</option>
+              <option value="loi-asc">⚡ Shortest Time (LOI)</option>
+              <option value="ir-desc">🎯 Highest Match (IR)</option>
             </select>
           </div>
         </div>
@@ -237,7 +237,7 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
       <div className="report-card card" style={{ padding: 0, overflow: 'hidden', marginBottom: '24px' }}>
         <div className="report-card-header">
           <h4 className="report-card-title">
-            <Layers size={15} color="#1761fd" /> Active Inventory Pipeline ({filtered.length} Studies)
+            <Layers size={15} color="#1761fd" /> Active Surveys ({filtered.length})
           </h4>
           <span className="badge-soft-primary" style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
             Page {page} of {totalPages}
@@ -248,13 +248,13 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
             <thead className="thead-light">
               <tr>
                 <th style={{ width: '38px', textAlign: 'center' }}>#</th>
-                <th style={{ minWidth: '220px' }}>Study Name & Identifier</th>
-                <th>Client Source</th>
+                <th style={{ minWidth: '220px' }}>Survey Name & ID</th>
+                <th>Client</th>
                 <th>Country</th>
                 <th>Devices</th>
-                <th>CPI Payout</th>
-                <th>Feasibility</th>
-                <th style={{ minWidth: '140px' }}>Capacity / Quota</th>
+                <th>Rate (CPI)</th>
+                <th>Length (LOI)</th>
+                <th style={{ minWidth: '140px' }}>Quota / Completes</th>
                 <th>Status</th>
                 <th style={{ textAlign: 'center', minWidth: '180px', paddingRight: '16px' }}>Actions</th>
               </tr>
@@ -377,16 +377,16 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
                               className="btn btn-soft-primary btn-sm"
                               style={{ padding: '4px 10px', fontSize: '11.5px', display: 'flex', alignItems: 'center', gap: '4px', borderRadius: '4px' }}
                               onClick={() => onOpenAssign(s)}
-                              title="Assign Vendor & Generate Live Link"
+                              title="Assign survey to vendor"
                             >
-                              <Share2 size={12} /> Assign Link
+                              <Share2 size={12} /> Assign to Vendor
                             </button>
 
                             <button
                               className="btn btn-soft-secondary btn-sm"
                               style={{ padding: '4px 8px', fontSize: '11.5px', borderRadius: '4px' }}
                               onClick={() => onOpenQuotas(s.survey_id)}
-                              title="Inspect Quotas"
+                              title="View Quotas"
                             >
                               <PieChart size={12} />
                             </button>
@@ -395,7 +395,7 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
                               className="btn btn-soft-secondary btn-sm"
                               style={{ padding: '4px 8px', fontSize: '11.5px', borderRadius: '4px' }}
                               onClick={() => onOpenQuals(s.survey_id)}
-                              title="Inspect Qualifications"
+                              title="View Criteria & Qualifications"
                             >
                               <UserCheck size={12} />
                             </button>
@@ -404,7 +404,7 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
                               className="btn btn-soft-secondary btn-sm"
                               style={{ padding: '4px 6px', borderRadius: '4px', color: '#7081b9' }}
                               onClick={() => toggleExpand(s.survey_id)}
-                              title="Toggle Specification Drawer"
+                              title="Toggle Survey Details"
                             >
                               {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                             </button>

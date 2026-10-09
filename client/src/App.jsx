@@ -125,15 +125,15 @@ export default function App() {
   }, [surveys, globalSearch]);
 
   const pageTitles = {
-    dashboard: 'Marketplace Dashboard',
-    users: 'User Management (RBAC)',
-    clients: 'Demand Clients & S2S Integration',
-    vendors: 'Vendors & Sample Panels',
-    surveys: 'Allocated Survey Marketplace',
-    'developer-center': 'API Developer Center & Interactive Sandbox',
-    security: 'Security & Fraud Screening Engine',
-    reconciliation: 'Zamplia Reconciliation & Audit',
-    reference: 'Reference Catalogs & Taxonomies'
+    dashboard: 'Dashboard',
+    users: 'Team & Users',
+    clients: 'Clients',
+    vendors: 'Vendors',
+    surveys: 'Surveys',
+    'developer-center': 'API & Integrations',
+    security: 'Security Settings',
+    reconciliation: 'Reports & Reconciliation',
+    reference: 'Categories & Reference Data'
   };
 
   // Test Pre-Screener Modal State for Admin Testing
