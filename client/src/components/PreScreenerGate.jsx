@@ -60,7 +60,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
 
   // 1. Prevent duplicate entries if respondent has already completed or been terminated
   useEffect(() => {
-    if (projectId && uid) {
+    if (projectId && uid && uid !== '[RESPONDENT_ID]' && uid !== '%5BRESPONDENT_ID%5D') {
       try {
         const savedStatus = localStorage.getItem(`smr_status_${projectId}_${uid}`);
         if (savedStatus) {

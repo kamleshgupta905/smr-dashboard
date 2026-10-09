@@ -137,7 +137,7 @@ exports.handleComplete = async (req, res) => {
     }
 
     // 4. Determine Vendor Destination URL
-    let destinationUrl = 'https://surveyroutervmhgroupsmr.site/survey-complete?uid=' + uid;
+    let destinationUrl = `https://smr.vmhgroupsmr.com/survey/callback?status=10&uid=${uid}`;
     const vendor = lead ? await Vendor.findOne({ vendorUid: lead.vendorId }) : null;
 
     if (vendor) {
@@ -187,7 +187,7 @@ exports.handleTerminate = async (req, res) => {
 
     Lead.findOneAndUpdate({ uid }, { status: 'Terminate', completionTime: new Date() }).catch(console.error);
 
-    let redirectUrl = `https://surveyroutervmhgroupsmr.site/survey-terminate?uid=${uid}`;
+    let redirectUrl = `https://smr.vmhgroupsmr.com/survey/callback?status=20&uid=${uid}`;
     const lead = await Lead.findOne({ uid });
     if (lead) {
       const vendor = await Vendor.findOne({ vendorUid: lead.vendorId });
@@ -216,7 +216,7 @@ exports.handleQuotaFull = async (req, res) => {
 
     Lead.findOneAndUpdate({ uid }, { status: 'OverQuota', completionTime: new Date() }).catch(console.error);
 
-    let redirectUrl = `https://surveyroutervmhgroupsmr.site/survey-overquota?uid=${uid}`;
+    let redirectUrl = `https://smr.vmhgroupsmr.com/survey/callback?status=30&uid=${uid}`;
     const lead = await Lead.findOne({ uid });
     if (lead) {
       const vendor = await Vendor.findOne({ vendorUid: lead.vendorId });

@@ -26,10 +26,18 @@ export default function SurveyCallbackPage() {
 
   // Extract URL parameters
   const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-  const rawStatus = params.get('status') || params.get('st') || '20';
-  const uid = params.get('uid') || params.get('rid') || params.get('transaction_id') || 'wslnkdxldd';
-  const vid = params.get('vid') || params.get('vendor') || params.get('vendor_id') || '713';
-  const pid = params.get('pid') || params.get('project') || params.get('projectId') || params.get('project_id') || 'VMHP1026542026';
+  const pathname = typeof window !== 'undefined' ? window.location.pathname.toLowerCase() : '';
+
+  let defaultStatus = '20';
+  if (pathname.includes('complete') || pathname.includes('thankyou')) defaultStatus = '10';
+  else if (pathname.includes('overquota') || pathname.includes('quotafull')) defaultStatus = '30';
+  else if (pathname.includes('security') || pathname.includes('fraud')) defaultStatus = '40';
+  else if (pathname.includes('terminate') || pathname.includes('screenout')) defaultStatus = '20';
+
+  const rawStatus = params.get('status') || params.get('st') || params.get('res') || params.get('code') || defaultStatus;
+  const uid = params.get('uid') || params.get('rid') || params.get('transaction_id') || params.get('resp_id') || params.get('tid') || 'wslnkdxldd';
+  const vid = params.get('vid') || params.get('vendor') || params.get('vendor_id') || params.get('username') || '713';
+  const pid = params.get('pid') || params.get('sid') || params.get('project') || params.get('projectId') || params.get('project_id') || '2077902648';
   const projectName = params.get('projectName') || params.get('project_name') || params.get('pname') || (pid.startsWith('VMH') ? pid : `VMHMXUS2659`);
   const hash = params.get('hash') || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
   const reason = params.get('reason') || '';
@@ -45,9 +53,12 @@ export default function SurveyCallbackPage() {
   const isSecurity = statusCode === '4' || statusCode === '40' || statusCode === 'security' || statusCode === 'fraud';
   const isTerminate = !isComplete && !isOverQuota && !isSecurity; // Default fallback to Terminated
 
-  // Save session status in localStorage to prevent duplicate re-entry
+  const isAlreadyCompleted = reason === 'already_completed';
+  const isAlreadyTerminated = reason === 'already_terminated';
+
+  // Save session status in localStorage to prevent duplicate re-entry (for real respondents)
   useEffect(() => {
-    if (pid && uid) {
+    if (pid && uid && uid !== '[RESPONDENT_ID]' && uid !== '%5BRESPONDENT_ID%5D') {
       const code = isComplete ? '10' : isOverQuota ? '30' : isSecurity ? '40' : '20';
       try {
         localStorage.setItem(`smr_status_${pid}_${uid}`, code);
@@ -75,7 +86,23 @@ export default function SurveyCallbackPage() {
     }
   }, []);
 
-  const statusConfig = isComplete ? {
+  const statusConfig = isAlreadyCompleted ? {
+    code: '10',
+    title: 'The Event Has Been Terminated',
+    subtitle: 'This survey was already completed by you. Duplicate participation is not allowed, and this session has been terminated.',
+    tableStatus: 'Already Completed',
+    statusBadgeColor: '#ff9800',
+    iconType: 'terminated',
+    accentColor: '#ff9800'
+  } : isAlreadyTerminated ? {
+    code: '20',
+    title: 'The Event Has Been Terminated',
+    subtitle: 'We regret to inform you that this participant session was already terminated and cannot be re-opened.',
+    tableStatus: 'Terminated',
+    statusBadgeColor: '#ff9800',
+    iconType: 'terminated',
+    accentColor: '#ff9800'
+  } : isComplete ? {
     code: '10',
     title: 'The Survey Has Been Completed',
     subtitle: 'Thank you for participating! Your feedback has been successfully recorded and credited.',

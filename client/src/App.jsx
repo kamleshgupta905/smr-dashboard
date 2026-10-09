@@ -165,7 +165,13 @@ export default function App() {
     currentPath.includes('/survey/terminate') || 
     currentPath.includes('/survey/overquota') || 
     currentPath.includes('/survey/security') || 
-    currentPath.includes('/survey/thankyou')
+    currentPath.includes('/survey/thankyou') ||
+    currentPath.startsWith('/callback') ||
+    currentPath.includes('/callback') ||
+    currentPath.startsWith('/return') ||
+    currentPath.includes('/return') ||
+    currentPath.startsWith('/redirects') ||
+    currentPath.includes('/redirects')
   ) {
     return <SurveyCallbackPage />;
   }
