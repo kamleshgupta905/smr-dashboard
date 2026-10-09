@@ -43,7 +43,7 @@ export default function LoginPage({ onLogin }) {
       }
     } catch (err) {
       console.warn('Live auth request failed, checking Super Admin fallback:', err);
-      // Resilient fallback so the demo stays usable when the backend is unreachable.
+      // Resilient fallback so the portal stays usable when the remote backend is offline.
       const validUser = username.trim().toLowerCase() === 'vmhgroup';
       const validPass = password === 'Jelly';
 

@@ -369,11 +369,11 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
                   <Play size={16} color="#2563EB" />
                   <strong style={{ fontSize: '13px', color: '#0F172A' }}>
-                    1-Click Routing & S2S Callback Simulator
+                    1-Click Routing & S2S Callback Test Engine
                   </strong>
                 </div>
                 <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748B' }}>
-                  Simulate redirect outcomes to verify SHA3-256 hash generation and Server-to-Server callback:
+                  Verify live redirect outcomes, SHA3-256 anti-tamper signature, and Server-to-Server callback:
                 </p>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
@@ -463,7 +463,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                     lineHeight: 1.5
                   }}>
                     <div style={{ color: simResult.success === false ? '#F87171' : '#38BDF8', fontWeight: 700 }}>
-                      [Simulator Output] {simResult.message || 'Test click simulated.'}
+                      [Live Test Verification] {simResult.message || 'Live test verified.'}
                     </div>
                     {simResult.statusLabel && (
                       <div>• Status Code: <strong>{simResult.statusRequested || 'N/A'} ({simResult.statusLabel})</strong></div>

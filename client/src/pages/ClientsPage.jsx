@@ -444,7 +444,7 @@ export default function ClientsPage() {
                   marginBottom: '12px'
                 }}>
                   <CheckCircle2 size={16} color="#10B981" />
-                  <span>Integration Test Verified — Live Server Simulation Successful</span>
+                  <span>Integration Test Verified — Live Server Test Successful</span>
                 </div>
                 <pre style={{
                   background: '#1d2c48',

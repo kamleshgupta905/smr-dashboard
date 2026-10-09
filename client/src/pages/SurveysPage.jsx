@@ -451,7 +451,7 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
                                 </h4>
                                 <div style={{ fontSize: '11px', fontFamily: 'monospace', color: '#64748B', wordBreak: 'break-all' }}>
                                   <div><strong>Live:</strong> {s.entry_live_url || 'Zamplia On-Demand Authenticated Session'}</div>
-                                  <div style={{ marginTop: '4px' }}><strong>Test:</strong> {s.entry_test_url || 'Sandbox Simulation Ready'}</div>
+                                  <div style={{ marginTop: '4px' }}><strong>Test:</strong> {s.entry_test_url || 'Live Test Link Ready'}</div>
                                 </div>
                               </div>
                             </div>

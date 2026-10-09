@@ -197,7 +197,7 @@ export default function VendorsPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const getSimulatedUrl = (template, uid) => {
+  const getResolvedUrl = (template, uid) => {
     if (!template) return '';
     return template
       .replace(/\[UID\]/gi, uid)
@@ -791,7 +791,7 @@ export default function VendorsPage() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#16a34a', fontWeight: 700, marginBottom: '2px' }}>
                           <span>Complete Return:</span>
                           <a 
-                            href={getSimulatedUrl(redirectForm.redirect_complete, testUid)} 
+                            href={getResolvedUrl(redirectForm.redirect_complete, testUid)} 
                             target="_blank" 
                             rel="noreferrer"
                             style={{ color: '#1761fd', display: 'flex', alignItems: 'center', gap: '3px', textDecoration: 'none' }}
@@ -800,7 +800,7 @@ export default function VendorsPage() {
                           </a>
                         </div>
                         <code style={{ fontSize: '11px', color: '#334155', wordBreak: 'break-all' }}>
-                          {getSimulatedUrl(redirectForm.redirect_complete, testUid) || 'No complete URL configured'}
+                          {getResolvedUrl(redirectForm.redirect_complete, testUid) || 'No complete URL configured'}
                         </code>
                       </div>
 
@@ -808,7 +808,7 @@ export default function VendorsPage() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#ef4444', fontWeight: 700, marginBottom: '2px' }}>
                           <span>Terminate Return:</span>
                           <a 
-                            href={getSimulatedUrl(redirectForm.redirect_terminate, testUid)} 
+                            href={getResolvedUrl(redirectForm.redirect_terminate, testUid)} 
                             target="_blank" 
                             rel="noreferrer"
                             style={{ color: '#1761fd', display: 'flex', alignItems: 'center', gap: '3px', textDecoration: 'none' }}
@@ -817,7 +817,7 @@ export default function VendorsPage() {
                           </a>
                         </div>
                         <code style={{ fontSize: '11px', color: '#334155', wordBreak: 'break-all' }}>
-                          {getSimulatedUrl(redirectForm.redirect_terminate, testUid) || 'No terminate URL configured'}
+                          {getResolvedUrl(redirectForm.redirect_terminate, testUid) || 'No terminate URL configured'}
                         </code>
                       </div>
                     </div>
@@ -1248,7 +1248,7 @@ export default function VendorsPage() {
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                           <span style={{ fontSize: '12px', fontWeight: 700, color: '#1d2c48' }}>
-                            3. Live Simulation & Pre-Launch Testing
+                            3. Live Link Verification & Pre-Launch Testing
                           </span>
                           <span style={{ fontSize: '11px', color: '#64748b' }}>
                             Exact flow demonstrated in Admin Video 1

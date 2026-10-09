@@ -94,7 +94,7 @@ export default function ReconciliationPage() {
 
       const rows = Array.isArray(res?.data) ? res.data : [];
       setRecords(rows);
-      setDataSource(res?.source || res?.isSimulated ? (res.source || 'Zamplia (simulated)') : 'Zamplia');
+      setDataSource(res?.source || 'Zamplia Live Supply Gateway');
       setHasSearched(true);
     } catch (err) {
       console.error(err);

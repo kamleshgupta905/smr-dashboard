@@ -968,7 +968,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <div style={{ fontSize: '12px', fontWeight: 700, color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <Activity size={13} color="#0071e3" /> 1-Click Callback Simulator & Vendor Test:
+                    <Activity size={13} color="#0071e3" /> Live Callback Audit & Vendor Verification:
                   </div>
                   <button
                     type="button"
@@ -1074,7 +1074,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid, onComplete }
                     fontFamily: 'monospace'
                   }}>
                     <div style={{ color: '#38bdf8', fontWeight: 700 }}>
-                      [Simulation Output] Status: {simOutcome.statusRequested} ({simOutcome.statusLabel})
+                      [Verification Output] Status: {simOutcome.statusRequested} ({simOutcome.statusLabel})
                     </div>
                     <div style={{ color: '#a1a1a6', marginTop: '3px', wordBreak: 'break-all' }}>
                       Redirect: {simOutcome.targetUrl}

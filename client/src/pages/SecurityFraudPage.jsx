@@ -424,7 +424,7 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '6px' }}>
-                  Simulated Visitor Device:
+                  Test Visitor Device Profile:
                 </label>
                 <select
                   value={simDevice}
