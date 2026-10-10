@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Check, ShieldAlert, ExternalLink } from 'lucide-react';
-import { getSecurityPolicy, DEFAULT_SURVEYS, getVendors, RouterAPI, generateVendorLink } from '../services/api';
+import { getSecurityPolicy, DEFAULT_SURVEYS, getVendors, RouterAPI, generateVendorLink, getCustomSurveys } from '../services/api';
 
 // Concise, direct 3-question demographic pre-screener
 const PRESCREENER_QUESTIONS = [
@@ -85,9 +85,10 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
         const pol = await getSecurityPolicy().catch(() => ({}));
 
         // Survey details lookup
-        const surveysList = DEFAULT_SURVEYS || [];
+        const customSurveys = typeof getCustomSurveys === 'function' ? getCustomSurveys() : [];
+        const surveysList = [...customSurveys, ...(DEFAULT_SURVEYS || [])];
         const matchedSurvey = surveysList.find(s => 
-          String(s.survey_id || s.SurveyId || s.surveyId || s.id) === String(projectId)
+          String(s.survey_id || s.SurveyId || s.surveyId || s.id || s.ProjectId) === String(projectId)
         ) || {
           survey_id: projectId || '2077902648',
           survey_name: `Survey Study #${projectId || '2077902648'}`
@@ -127,31 +128,35 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
     init();
   }, [vendorId, projectId]);
 
-  // 3. Connect and redirect directly to Zamplia live survey upon passing pre-screener
+  // 3. Connect and redirect directly to survey upon passing pre-screener
   const redirectToZampliaLiveSurvey = async () => {
     setIsConnecting(true);
 
     try {
       let finalTargetUrl = '';
 
-      // Call backend Zamplia live link generator
-      try {
-        const linkRes = await generateVendorLink(projectId, vendorId);
-        const live = linkRes?.liveLink || linkRes?.signedLiveLink || linkRes?.data?.liveUrl;
-        if (live && live.includes('http')) {
-          finalTargetUrl = live;
-        }
-      } catch (e) {
-        console.warn('Backend link generation notice:', e);
+      // 1. Check if survey has custom target link (e.g. Market Xcel, custom client)
+      const customUrl = surveyInfo?.liveSurveyUrl || surveyInfo?.entry_live_url || surveyInfo?.live_url;
+      if (customUrl && customUrl.startsWith('http')) {
+        finalTargetUrl = customUrl;
       }
 
-      // Live Zamplia study URL fallback if backend generation was unavailable
+      // 2. Otherwise call backend link generator
       if (!finalTargetUrl) {
-        if (surveyInfo?.live_url && !surveyInfo.live_url.includes('cluster.marketxcel')) {
-          finalTargetUrl = surveyInfo.live_url;
-        } else {
-          finalTargetUrl = `https://res.zamplia.com/?vid=2138&isMap=1&sid=${projectId}&username=${vendorId}&cid=42`;
+        try {
+          const linkRes = await generateVendorLink(projectId, vendorId);
+          const live = linkRes?.liveLink || linkRes?.signedLiveLink || linkRes?.data?.liveUrl;
+          if (live && live.includes('http')) {
+            finalTargetUrl = live;
+          }
+        } catch (e) {
+          console.warn('Backend link generation notice:', e);
         }
+      }
+
+      // 3. Fallback to Zamplia live gateway
+      if (!finalTargetUrl) {
+        finalTargetUrl = `https://res.zamplia.com/?vid=2138&isMap=1&sid=${projectId}&username=${vendorId}&cid=42`;
       }
 
       // Attach respondent UID / transaction_id
@@ -161,11 +166,12 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
         .replace(/\[identifier\]/g, cleanUid)
         .replace(/\[RESPONDENT_ID\]/g, cleanUid)
         .replace(/\[UID\]/g, cleanUid)
+        .replace(/\[uid\]/g, cleanUid)
         .replace(/vmhgroupss/g, cleanUid)
         .replace(/vmhgroups/g, cleanUid);
 
       const delim = finalTargetUrl.includes('?') ? '&' : '?';
-      if (!finalTargetUrl.includes('transaction_id') && !finalTargetUrl.includes('rid')) {
+      if (!finalTargetUrl.includes('transaction_id') && !finalTargetUrl.includes('rid') && !finalTargetUrl.includes('uid=')) {
         finalTargetUrl = `${finalTargetUrl}${delim}transaction_id=${encodeURIComponent(cleanUid)}&rid=${encodeURIComponent(cleanUid)}`;
       }
 
