@@ -4,17 +4,19 @@ import {
   LayoutGrid,
   ShieldCheck,
   Terminal,
+  BarChart3,
   ChevronDown,
   ChevronRight,
   X
 } from 'lucide-react';
 
-export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, onClose, collapsed }) {
+export default function Sidebar({ activeTab, currentReportSubTab, onTabChange, setActiveTab, isOpen, onClose, collapsed }) {
   const changeTab = onTabChange || setActiveTab || (() => {});
 
   // Dropdown states for each section
   const [dashboardOpen, setDashboardOpen] = useState(true);
   const [appsOpen, setAppsOpen] = useState(true);
+  const [reportsOpen, setReportsOpen] = useState(true);
   const [securityOpen, setSecurityOpen] = useState(true);
   const [developerOpen, setDeveloperOpen] = useState(true);
 
@@ -24,15 +26,17 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
       setDashboardOpen(true);
     } else if (['clients', 'vendors'].includes(activeTab)) {
       setAppsOpen(true);
-    } else if (['security', 'reconciliation', 'reference'].includes(activeTab)) {
+    } else if (activeTab === 'reconciliation') {
+      setReportsOpen(true);
+    } else if (['security', 'reference'].includes(activeTab)) {
       setSecurityOpen(true);
     } else if (['developer-center', 'users'].includes(activeTab)) {
       setDeveloperOpen(true);
     }
   }, [activeTab]);
 
-  const handleNav = (tabKey) => {
-    changeTab(tabKey);
+  const handleNav = (tabKey, subKey) => {
+    changeTab(tabKey, subKey);
     if (onClose) onClose();
   };
 
@@ -159,18 +163,86 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
           {/* Dotted Divider */}
           <div className="sidebar-dotted-divider" />
 
+          {/* Section: REPORTS & ANALYTICS */}
+          <div className="sidebar-section-title">REPORTS & ANALYTICS</div>
+
+          {/* Dropdown 3: Reports & Performance Hub */}
+          <div className="sidebar-nav-group">
+            <button 
+              className={`sidebar-nav-heading ${activeTab === 'reconciliation' ? 'active' : ''}`}
+              onClick={() => setReportsOpen(prev => !prev)}
+            >
+              <div className="nav-heading-left">
+                <BarChart3 size={16} className="nav-icon" />
+                <span>Reports Hub</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="badge-dastone-new" style={{ background: '#10B981', color: '#FFFFFF' }}>Live</span>
+                <span className={`dropdown-chevron ${reportsOpen ? 'rotated' : ''}`}>
+                  <ChevronRight size={14} />
+                </span>
+              </div>
+            </button>
+
+            <div className={`sidebar-submenu-collapsible ${reportsOpen ? 'open' : 'closed'}`}>
+              <div className="sidebar-submenu-inner">
+                <button
+                  className={`submenu-item ${activeTab === 'reconciliation' && (!currentReportSubTab || currentReportSubTab === 'clients') ? 'active' : ''}`}
+                  onClick={() => handleNav('reconciliation', 'clients')}
+                >
+                  <span className="bullet-circle" />
+                  <span>Client Performance Reports</span>
+                </button>
+                <button
+                  className={`submenu-item ${activeTab === 'reconciliation' && currentReportSubTab === 'vendors' ? 'active' : ''}`}
+                  onClick={() => handleNav('reconciliation', 'vendors')}
+                >
+                  <span className="bullet-circle" />
+                  <span>Vendor Performance Reports</span>
+                </button>
+                <button
+                  className={`submenu-item ${activeTab === 'reconciliation' && currentReportSubTab === 'projects' ? 'active' : ''}`}
+                  onClick={() => handleNav('reconciliation', 'projects')}
+                >
+                  <span className="bullet-circle" />
+                  <span>Project / PID Reports</span>
+                </button>
+                <button
+                  className={`submenu-item ${activeTab === 'reconciliation' && currentReportSubTab === 'journal' ? 'active' : ''}`}
+                  onClick={() => handleNav('reconciliation', 'journal')}
+                >
+                  <span className="bullet-circle" />
+                  <span>Respondent Audit Journal</span>
+                </button>
+                <button
+                  className={`submenu-item ${activeTab === 'reconciliation' && currentReportSubTab === 'archive' ? 'active' : ''}`}
+                  onClick={() => handleNav('reconciliation', 'archive')}
+                >
+                  <span className="bullet-circle" />
+                  <span>Legacy Database Archive</span>
+                  <span style={{ marginLeft: 'auto', fontSize: '9px', fontWeight: 800, padding: '1px 6px', borderRadius: '4px', background: 'rgba(23, 97, 253, 0.15)', color: '#1761fd' }}>
+                    1,554
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Dotted Divider */}
+          <div className="sidebar-dotted-divider" />
+
           {/* Section: MANAGEMENT */}
           <div className="sidebar-section-title">MANAGEMENT</div>
 
-          {/* Dropdown 3: Security & Reports */}
+          {/* Dropdown 4: Security & Quality Controls */}
           <div className="sidebar-nav-group">
             <button 
-              className={`sidebar-nav-heading ${['security', 'reconciliation', 'reference'].includes(activeTab) ? 'active' : ''}`}
+              className={`sidebar-nav-heading ${['security', 'reference'].includes(activeTab) ? 'active' : ''}`}
               onClick={() => setSecurityOpen(prev => !prev)}
             >
               <div className="nav-heading-left">
                 <ShieldCheck size={16} className="nav-icon" />
-                <span>Security & Reports</span>
+                <span>Security & Reference</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span className="badge-dastone-new">Active</span>
@@ -187,21 +259,14 @@ export default function Sidebar({ activeTab, onTabChange, setActiveTab, isOpen, 
                   onClick={() => handleNav('security')}
                 >
                   <span className="bullet-circle" />
-                  <span>Security Settings</span>
-                </button>
-                <button
-                  className={`submenu-item ${activeTab === 'reconciliation' ? 'active' : ''}`}
-                  onClick={() => handleNav('reconciliation')}
-                >
-                  <span className="bullet-circle" />
-                  <span>Reports & Reconciliation</span>
+                  <span>Security & Fraud Gate</span>
                 </button>
                 <button
                   className={`submenu-item ${activeTab === 'reference' ? 'active' : ''}`}
                   onClick={() => handleNav('reference')}
                 >
                   <span className="bullet-circle" />
-                  <span>Categories & Data</span>
+                  <span>Categories & Reference Data</span>
                 </button>
               </div>
             </div>

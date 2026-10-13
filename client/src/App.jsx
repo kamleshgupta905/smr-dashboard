@@ -13,28 +13,34 @@ import UserManagementPage from './pages/UserManagementPage';
 import QuotasModal from './components/QuotasModal';
 import QualsModal from './components/QualsModal';
 import AssignVendorModal from './components/AssignVendorModal';
-import GoogleSheetModal from './components/GoogleSheetModal';
 import PreScreenerGate from './components/PreScreenerGate';
 import SurveyCallbackPage from './components/SurveyCallbackPage';
 import LoginPage from './components/LoginPage';
 import { normalizeSurveys } from './utils/normalize';
 import { CheckCircle2, AlertTriangle, X } from 'lucide-react';
 
-import { getSurveys, syncSurveys, DEFAULT_SURVEYS } from './services/api';
+import { getSurveys, syncSurveys, DEFAULT_SURVEYS, GoogleSheetAPI } from './services/api';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('smr_auth_token') === 'authenticated_vmhgroup';
   });
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [reconciliationTab, setReconciliationTab] = useState('clients');
   const [surveys, setSurveys] = useState([]);
   const [globalSearch, setGlobalSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [showGoogleSheetModal, setShowGoogleSheetModal] = useState(false);
   const [toast, setToast] = useState(null);
+
+  const handleTabChange = (tab, subTab) => {
+    setActiveTab(tab);
+    if (tab === 'reconciliation' && subTab) {
+      setReconciliationTab(subTab);
+    }
+  };
 
   const handleToggleSidebar = () => {
     if (window.innerWidth < 992) {
@@ -76,6 +82,10 @@ export default function App() {
   useEffect(() => {
     if (isAuthenticated) {
       loadData();
+      // Silent background sync with Google Sheet — completely invisible in UI
+      try {
+        GoogleSheetAPI.syncAllData().catch(() => {});
+      } catch (e) {}
     }
   }, [isAuthenticated]);
 
@@ -188,7 +198,8 @@ export default function App() {
       {/* VMH Sidebar Navigation */}
       <Sidebar 
         activeTab={activeTab} 
-        onTabChange={setActiveTab}
+        currentReportSubTab={reconciliationTab}
+        onTabChange={handleTabChange}
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
         collapsed={sidebarCollapsed}
@@ -206,7 +217,6 @@ export default function App() {
         onLogout={handleLogout}
         globalSearch={globalSearch}
         onGlobalSearch={setGlobalSearch}
-        onOpenGoogleSheet={() => setShowGoogleSheetModal(true)}
         onOpenProfile={() => { setActiveTab('users'); showToast('Super Admin profile — manage team in User Roles (RBAC).', 'info'); }}
         onOpenSettings={() => { setActiveTab('security'); showToast('Security & Fraud policy settings opened.', 'info'); }}
       />
@@ -220,7 +230,7 @@ export default function App() {
               surveys={filteredSurveys}
               loading={loading}
               onSync={handleSync}
-              onNavigate={setActiveTab}
+              onNavigate={handleTabChange}
               onOpenQuotas={setQuotasModalId}
               onOpenQuals={setQualsModalId}
               onOpenAssign={setAssignModalId}
@@ -228,7 +238,7 @@ export default function App() {
           )}
 
           {activeTab === 'users' && <UserManagementPage />}
-          {activeTab === 'clients' && <ClientsPage />}
+          {activeTab === 'clients' && <ClientsPage onNavigate={handleTabChange} globalSearch={globalSearch} />}
           {activeTab === 'security' && <SecurityFraudPage onLaunchPreScreener={(data) => setTestPreScreener(data)} />}
           {activeTab === 'developer-center' && <ApiDeveloperCenterPage />}
 
@@ -247,8 +257,8 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'vendors' && <VendorsPage />}
-          {activeTab === 'reconciliation' && <ReconciliationPage />}
+          {activeTab === 'vendors' && <VendorsPage onNavigate={handleTabChange} globalSearch={globalSearch} />}
+          {activeTab === 'reconciliation' && <ReconciliationPage initialTab={reconciliationTab} />}
           {activeTab === 'reference' && <ReferenceDataPage />}
 
           {/* VMH Enterprise Footer */}
@@ -355,14 +365,6 @@ export default function App() {
             onComplete={() => setTestPreScreener(null)}
           />
         </div>
-      )}
-
-      {/* Google Sheets Connector Modal */}
-      {showGoogleSheetModal && (
-        <GoogleSheetModal 
-          isOpen={showGoogleSheetModal} 
-          onClose={() => setShowGoogleSheetModal(false)} 
-        />
       )}
 
       {/* Toast Alert Notification */}

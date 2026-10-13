@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { getClients, createClient, deleteClient, syncClientInventory, testS2sCallback, testHashing } from '../services/api';
-import { Building2, Plus, Search, CheckCircle2, XCircle, Trash2, Globe, ShieldCheck, X, Copy, Check, RefreshCw, Send, Key, Code, ExternalLink, Lock } from 'lucide-react';
+import { Building2, Plus, Search, CheckCircle2, XCircle, Trash2, Globe, ShieldCheck, X, Copy, Check, RefreshCw, Send, Key, Code, ExternalLink, Lock, BarChart3 } from 'lucide-react';
 import ModalPortal from '../components/ModalPortal';
 import { sha3_256 } from 'js-sha3';
 
-export default function ClientsPage() {
+export default function ClientsPage({ onNavigate, globalSearch = '' }) {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -156,10 +156,12 @@ export default function ClientsPage() {
     }, 1200);
   };
 
+  const effectiveSearch = (search || globalSearch || '').toLowerCase().trim();
   const filtered = clients.filter(c => 
-    (c.client_name || '').toLowerCase().includes(search.toLowerCase()) ||
-    (c.country || '').toLowerCase().includes(search.toLowerCase()) ||
-    (c.client_code || '').toLowerCase().includes(search.toLowerCase())
+    !effectiveSearch ||
+    (c.client_name || '').toLowerCase().includes(effectiveSearch) ||
+    (c.country || '').toLowerCase().includes(effectiveSearch) ||
+    (c.client_code || '').toLowerCase().includes(effectiveSearch)
   );
 
   // Compute live test signed URLs inside security modal
@@ -198,7 +200,16 @@ export default function ClientsPage() {
           </div>
         </div>
 
-        <div className="title-box-actions">
+        <div className="title-box-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button 
+            type="button"
+            className="btn btn-soft-secondary"
+            onClick={() => onNavigate && onNavigate('reconciliation', 'clients')}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px', borderRadius: '4px' }}
+            title="Open Client Performance & Reconciliation Reports"
+          >
+            <BarChart3 size={14} /> View Client Reports
+          </button>
           <button 
             className="btn btn-primary"
             onClick={() => setShowAddModal(true)}

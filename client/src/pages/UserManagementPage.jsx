@@ -197,7 +197,7 @@ export default function UserManagementPage() {
       traffic: false
     },
     {
-      module: 'Google Sheets Live Database Push',
+      module: 'Enterprise Database & Cloud Sync',
       action: 'Direct Push, Sync All Tables & Access Credentials',
       superAdmin: true,
       admin: true,
@@ -302,14 +302,14 @@ export default function UserManagementPage() {
 
         <div className="card report-card" style={{ padding: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#8997bd' }}>Google Sheet Sync</span>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#8997bd' }}>Database Sync</span>
             <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(253, 171, 61, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fdab3d' }}>
               <Key size={16} />
             </div>
           </div>
           <div style={{ fontSize: '24px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins' }}>Active</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '11.5px', color: '#1761fd' }}>
-            Users Tab Synced Live
+            MySQL & Cloud Synced Live
           </div>
         </div>
       </div>

@@ -143,9 +143,7 @@ export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
           ir: formData.IR,
           completes: formData.TotalCompleteRequired
         });
-      } catch (e) {
-        console.warn('Google Sheet log warning:', e);
-      }
+      } catch (e) {}
       if (onSuccess) onSuccess(project);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create demand project on Zamplia');

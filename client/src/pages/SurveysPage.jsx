@@ -2,10 +2,12 @@ import React, { useState, useMemo } from 'react';
 import { 
   Search, PieChart, UserCheck, Share2, AlertCircle, ChevronLeft, ChevronRight, 
   DollarSign, Clock, ArrowUpDown, Filter, Monitor, Smartphone, Tablet, 
-  ShieldCheck, RefreshCw, ExternalLink, ChevronDown, ChevronUp, Layers, CheckCircle2
+  ShieldCheck, RefreshCw, ExternalLink, ChevronDown, ChevronUp, Layers, CheckCircle2,
+  Download
 } from 'lucide-react';
 import { normalizeSurveys } from '../utils/normalize';
 import DemandProjectModal from '../components/DemandProjectModal';
+import { exportSurveysInventoryToExcel } from '../utils/excelExport';
 
 export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSurvey, onOpenQuotas, onOpenQuals, onOpenAssign }) {
   const [demandModalOpen, setDemandModalOpen] = useState(false);
@@ -140,6 +142,14 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
             style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px' }}
           >
             <Layers size={14} /> + Add Survey
+          </button>
+          <button
+            className="btn btn-soft-success"
+            onClick={() => exportSurveysInventoryToExcel(filtered)}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px' }}
+            title="Export filtered surveys inventory to Excel (.xlsx)"
+          >
+            <Download size={13} /> Export Excel (.xlsx)
           </button>
           {onRefresh && (
             <button

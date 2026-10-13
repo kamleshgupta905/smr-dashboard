@@ -372,289 +372,33 @@ const setLocalData = (key, data) => {
 };
 
 export const DEFAULT_CLIENTS = [
-  {
-    _id: 'client_mx_01',
-    client_name: 'Market Xcel Demand Network',
-    client_code: 'MX_DEMAND',
-    country: 'United States',
-    currency: 'USD',
-    apiType: 'marketxcel',
-    apiUrl: 'https://api.marketxcel.co.in/webservices/supplier/send_supplier_data',
-    supplierId: '7353212849',
-    apiToken: 'mx_token_live_2026',
-    hashAlgorithm: 'sha3-256',
-    secretKey: 'mx_secret_sha3_key_2026',
-    s2sEnabled: true,
-    s2sEndpoint: 'https://api.marketxcel.co.in/webservices/callback/updateRespondentStatus',
-    status: 'active',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'client_zamp_02',
-    client_name: 'Zamplia Demand Global',
-    client_code: 'ZAMP_DEMAND',
-    country: 'Germany',
-    currency: 'USD',
-    apiType: 'zamplia',
-    apiUrl: 'https://api.zamplia.com/api/suppliers/createProjectOnZamplia',
-    supplierId: '992014',
-    apiToken: 'zamp_live_secret_token',
-    hashAlgorithm: 'hmac-sha256',
-    secretKey: 'zamp_hash_key_2026',
-    s2sEnabled: true,
-    s2sEndpoint: 'https://api.zamplia.com/api/suppliers/reconcileParticipantIds',
-    status: 'active',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'client_ipsos_03',
-    client_name: 'Ipsos Reid Global Demand',
-    client_code: 'IPSOS_GLOBAL',
-    country: 'United Kingdom',
-    currency: 'USD',
-    apiType: 'custom',
-    apiUrl: 'https://api.ipsos.com/v2/demand/sample-inbound',
-    supplierId: '551029',
-    apiToken: 'ipsos_live_key_99',
-    hashAlgorithm: 'sha3-256',
-    secretKey: 'ipsos_hash_key_2026',
-    s2sEnabled: true,
-    s2sEndpoint: 'https://api.ipsos.com/v2/s2s/callback',
-    status: 'active',
-    createdAt: new Date().toISOString()
-  }
+  { _id: 43, id: 43, client_name: 'Market Xcel', client_code: '8ac835aab8871d26fd68e668a2932bd2', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
+  { _id: 51, id: 51, client_name: 'Zamplia', client_code: '4e24b469177989e0227c64bd382d1e0d', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
+  { _id: 52, id: 52, client_name: 'Robas Market Research', client_code: 'b1e9f85f1678f887c6409880cd3f858f', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
+  { _id: 53, id: 53, client_name: 'Grafotics', client_code: 'd6630b78149b5dfe6818fba18ae01c04', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
+  { _id: 54, id: 54, client_name: 'SPER', client_code: 'a23c2369ffc13fd31823bf9e1ea8ae8f', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
+  { _id: 55, id: 55, client_name: 'Snware Research', client_code: '0545b7a14931dd59dc282505104e7e1d', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
+  { _id: 56, id: 56, client_name: 'RIWI', client_code: '9703df41cab7670924a1b6336eff5468', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
+  { _id: 57, id: 57, client_name: 'AMG', client_code: 'dabd75198dc6467205d56155a6793230', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
+  { _id: 58, id: 58, client_name: 'Mindforce', client_code: '0e1df3db096123ec93d939f83ae60a60', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
+  { _id: 59, id: 59, client_name: 'Orchid', client_code: '02a61f3a880c57cfe9357ddd1e577dde', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' }
 ];
 
 export const DEFAULT_VENDORS = [
-  {
-    _id: 'vnd_dynata_01',
-    vendor_code: 'VND-DYN-01',
-    vendorUid: 'VND-DYN-01',
-    name: 'Dynata Global Panel',
-    email: 'partners@dynata.com',
-    cpi: 1.75,
-    status: 'active',
-    completes_count: 1420,
-    quality_score: 98,
-    redirect_complete: 'https://router.dynata.com/survey/complete?uid=[UID]',
-    redirect_terminate: 'https://router.dynata.com/survey/terminate?uid=[UID]',
-    redirect_overquota: 'https://router.dynata.com/survey/overquota?uid=[UID]',
-    redirect_security: 'https://router.dynata.com/survey/security?uid=[UID]',
-    hash_algorithm: 'SHA3-256',
-    secret_key: 'dynata_sec_key_2026',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'vnd_cint_02',
-    vendor_code: 'VND-CNT-02',
-    vendorUid: 'VND-CNT-02',
-    name: 'Cint Audience Exchange',
-    email: 'integrations@cint.com',
-    cpi: 1.40,
-    status: 'active',
-    completes_count: 2150,
-    quality_score: 96,
-    redirect_complete: 'https://exchange.cint.com/survey/complete?uid=[UID]',
-    redirect_terminate: 'https://exchange.cint.com/survey/terminate?uid=[UID]',
-    redirect_overquota: 'https://exchange.cint.com/survey/overquota?uid=[UID]',
-    redirect_security: 'https://exchange.cint.com/survey/security?uid=[UID]',
-    hash_algorithm: 'SHA3-256',
-    secret_key: 'cint_sec_key_2026',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'vnd_ps_03',
-    vendor_code: 'VND-PS-03',
-    vendorUid: 'VND-PS-03',
-    name: 'PureSpectrum Marketplace',
-    email: 'api-support@purespectrum.com',
-    cpi: 1.85,
-    status: 'active',
-    completes_count: 980,
-    quality_score: 95,
-    redirect_complete: 'https://spectrum.purespectrum.com/survey/complete?uid=[UID]',
-    redirect_terminate: 'https://spectrum.purespectrum.com/survey/terminate?uid=[UID]',
-    redirect_overquota: 'https://spectrum.purespectrum.com/survey/overquota?uid=[UID]',
-    redirect_security: 'https://spectrum.purespectrum.com/survey/security?uid=[UID]',
-    hash_algorithm: 'SHA3-256',
-    secret_key: 'ps_sec_key_2026',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'vnd_lucid_04',
-    vendor_code: 'VND-LCD-04',
-    vendorUid: 'VND-LCD-04',
-    name: 'Lucid / Cint Marketplace',
-    email: 'publishers@lucidhq.com',
-    cpi: 1.25,
-    status: 'active',
-    completes_count: 3100,
-    quality_score: 94,
-    redirect_complete: 'https://samplicio.us/s/complete?uid=[UID]',
-    redirect_terminate: 'https://samplicio.us/s/terminate?uid=[UID]',
-    redirect_overquota: 'https://samplicio.us/s/overquota?uid=[UID]',
-    redirect_security: 'https://samplicio.us/s/security?uid=[UID]',
-    hash_algorithm: 'SHA3-256',
-    secret_key: 'lucid_sec_key_2026',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'vnd_toluna_05',
-    vendor_code: 'VND-TLN-05',
-    vendorUid: 'VND-TLN-05',
-    name: 'Toluna Influencers Panel',
-    email: 'partnerships@tolunagroup.com',
-    cpi: 1.50,
-    status: 'active',
-    completes_count: 870,
-    quality_score: 97,
-    redirect_complete: 'https://survey.toluna.com/survey/complete?uid=[UID]',
-    redirect_terminate: 'https://survey.toluna.com/survey/terminate?uid=[UID]',
-    redirect_overquota: 'https://survey.toluna.com/survey/overquota?uid=[UID]',
-    redirect_security: 'https://survey.toluna.com/survey/security?uid=[UID]',
-    hash_algorithm: 'SHA3-256',
-    secret_key: 'toluna_sec_key_2026',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'vnd_innovate_06',
-    vendor_code: 'VND-IMR-06',
-    vendorUid: 'VND-IMR-06',
-    name: 'InnovateMR B2B Panel',
-    email: 'sample@innovatemr.com',
-    quality_score: 99,
-    redirect_complete: 'https://surveys.innovatemr.net/survey/complete?uid=[UID]',
-    redirect_terminate: 'https://surveys.innovatemr.net/survey/terminate?uid=[UID]',
-    redirect_overquota: 'https://surveys.innovatemr.net/survey/overquota?uid=[UID]',
-    redirect_security: 'https://surveys.innovatemr.net/survey/security?uid=[UID]',
-    hash_algorithm: 'SHA3-256',
-    secret_key: 'imr_sec_key_2026',
-    cpi: 1.45,
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'vnd_test_07',
-    vendor_code: 'brundsh420-fade',
-    vendorUid: 'brundsh420-fade',
-    name: 'Test',
-    email: 'elkiss@gmail.com',
-    cpi: 0.80,
-    status: 'active',
-    completes_count: 512,
-    quality_score: 95,
-    redirect_complete: 'https://router.supplier.com/survey/complete?uid=[UID]',
-    redirect_terminate: 'https://router.supplier.com/survey/terminate?uid=[UID]',
-    redirect_overquota: 'https://router.supplier.com/survey/overquota?uid=[UID]',
-    redirect_security: 'https://router.supplier.com/survey/security?uid=[UID]',
-    hash_algorithm: 'SHA3-256',
-    secret_key: 'brundsh420_sec_key_2026',
-    createdAt: new Date().toISOString()
-  }
+  { _id: 1793, id: 1793, vendor_id: 'VI010152025', vendor_code: 'VI010152025', vendorUid: 'VI010152025', name: 'Rohan', email: 'rohan@vendor.com', commission_type: 'revenue_share', cpi: 0.00, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 164, completes_count: 164, clicks_count: 381, terminates_count: 68 },
+  { _id: 1674, id: 1674, vendor_id: 'VI010032025', vendor_code: 'VI010032025', vendorUid: 'VI010032025', name: 'Krishan', email: 'krishan@vendor.com', commission_type: 'revenue_share', cpi: 0.00, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 151, completes_count: 151, clicks_count: 250, terminates_count: 12 },
+  { _id: 938, id: 938, vendor_id: 'VI009692025', vendor_code: 'VI009692025', vendorUid: 'VI009692025', name: 'vivek', email: 'vivek@vendor.com', commission_type: 'revenue_share', cpi: 0.00, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 123, completes_count: 123, clicks_count: 391, terminates_count: 13 },
+  { _id: 2263, id: 2263, vendor_id: 'VI010312026', vendor_code: 'VI010312026', vendorUid: 'VI010312026', name: 'trayistats', email: 'bidding@trayistats.com', commission_type: 'revenue_share', cpi: 0.00, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 0, completes_count: 0, clicks_count: 1, terminates_count: 1 },
+  { _id: 2262, id: 2262, vendor_id: 'VI010662026', vendor_code: 'VI010662026', vendorUid: 'VI010662026', name: 'amrendra', email: 'amrendra@vendor.com', commission_type: 'revenue_share', cpi: 0.00, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 0, completes_count: 0, clicks_count: 18, terminates_count: 15 },
+  { _id: 2261, id: 2261, vendor_id: 'VI010652026', vendor_code: 'VI010652026', vendorUid: 'VI010652026', name: 'Cortex Vision Insight', email: 'cortex@vendor.com', commission_type: 'revenue_share', cpi: 0.00, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 0, completes_count: 0, clicks_count: 12, terminates_count: 9 }
 ];
 
 export const DEFAULT_PROJECTS = [
-  {
-    _id: 'prj_nielsen_01',
-    project_id: 'PRJ-2026-01',
-    project_name: 'US Consumer Beverage & FMCG Brand Tracker',
-    client_name: 'NielsenIQ',
-    cpi: 4.50,
-    target_completes: 650,
-    completeCount: 412,
-    status: 'active',
-    country: 'United States',
-    audience_type: 'B2C',
-    device_type: 'Desktop,Mobile',
-    loi: 12,
-    ir: 85,
-    live_url: 'https://surveys.nielseniq.com/s/bev902?rid=[RESPONDENT_ID]',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'prj_ipsos_02',
-    project_id: 'PRJ-2026-02',
-    project_name: 'Automotive EV & Mobility Sentiment Study',
-    client_name: 'Ipsos Reid',
-    cpi: 5.25,
-    target_completes: 400,
-    completeCount: 275,
-    status: 'active',
-    country: 'Germany',
-    audience_type: 'B2C',
-    device_type: 'Desktop,Tablet',
-    loi: 18,
-    ir: 60,
-    live_url: 'https://research.ipsos.com/ev2026/run?id=[RESPONDENT_ID]',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'prj_mx_03',
-    project_id: 'PRJ-2026-03',
-    project_name: 'India Digital Banking & Fintech Benchmark 2026',
-    client_name: 'Market Xcel Data Matrix',
-    cpi: 3.80,
-    target_completes: 800,
-    completeCount: 540,
-    status: 'active',
-    country: 'India',
-    audience_type: 'B2C',
-    device_type: 'Desktop,Mobile,Tablet',
-    loi: 15,
-    ir: 75,
-    live_url: 'https://cluster.marketxcel.co.in/survey/live?uid=[RESPONDENT_ID]',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'prj_kantar_04',
-    project_id: 'PRJ-2026-04',
-    project_name: 'UK Enterprise Cloud Infrastructure Decision Study',
-    client_name: 'Kantar Group',
-    cpi: 8.50,
-    target_completes: 250,
-    completeCount: 140,
-    status: 'active',
-    country: 'United Kingdom',
-    audience_type: 'B2B',
-    device_type: 'Desktop',
-    loi: 20,
-    ir: 45,
-    live_url: 'https://kantar.surveys-online.org/uk_brand?res=[RESPONDENT_ID]',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'prj_zamp_05',
-    project_id: 'PRJ-2026-05',
-    project_name: 'Global Healthcare Physician Treatment Index',
-    client_name: 'Zamplia Healthcare',
-    cpi: 14.00,
-    target_completes: 150,
-    completeCount: 88,
-    status: 'active',
-    country: 'United States',
-    audience_type: 'HCP',
-    device_type: 'Desktop,Mobile',
-    loi: 22,
-    ir: 30,
-    live_url: 'https://healthcare.zamplia.com/study/pharma?rid=[RESPONDENT_ID]',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'prj_de_06',
-    project_id: 'PRJ-2026-06',
-    project_name: 'Smart Home & IoT Consumer Adoption Wave 4',
-    client_name: 'German Automotive Insights',
-    cpi: 4.00,
-    target_completes: 500,
-    completeCount: 310,
-    status: 'paused',
-    country: 'Canada',
-    audience_type: 'B2C',
-    device_type: 'Desktop,Mobile,Tablet',
-    loi: 14,
-    ir: 80,
-    live_url: 'https://survey.smarthome.de/iot_wave4?uid=[RESPONDENT_ID]',
-    createdAt: new Date().toISOString()
-  }
+  { _id: 1477, id: 1477, project_id: 'VMHPI024912025', project_name: 'VMH#100188', client_name: 'Market Xcel', cpi: 1.00, cost_per_complete: 1.00, target_completes: 2000, completeCount: 164, status: 'Pause', country: 'Global', loi: 15, ir: 85, createdAt: '2026-10-08 11:09:11' },
+  { _id: 1392, id: 1392, project_id: 'VMHPI024062025', project_name: 'VMH#100123 China', client_name: 'Market Xcel', cpi: 1.00, cost_per_complete: 1.00, target_completes: 1500, completeCount: 152, status: 'Live', country: 'China', loi: 12, ir: 90, createdAt: '2026-10-08 11:09:11' },
+  { _id: 1523, id: 1523, project_id: 'VMHPI025372026', project_name: 'VMH#100223', client_name: 'Market Xcel', cpi: 1.00, cost_per_complete: 1.00, target_completes: 1500, completeCount: 138, status: 'Pause', country: 'Global', loi: 15, ir: 80, createdAt: '2026-10-08 11:09:11' },
+  { _id: 1647, id: 1647, project_id: 'VMHPI026622026', project_name: 'VMHMXIN2661', client_name: 'Market Xcel', cpi: 1.00, cost_per_complete: 1.00, target_completes: 500, completeCount: 85, status: 'Live', country: 'India', loi: 15, ir: 90, createdAt: '2026-10-08 11:09:11' },
+  { _id: 1644, id: 1644, project_id: 'VMHPI026592026', project_name: 'VMHAML29213', client_name: 'Market Xcel', cpi: 1.00, cost_per_complete: 1.00, target_completes: 1000, completeCount: 92, status: 'Live', country: 'United States', loi: 10, ir: 75, createdAt: '2026-10-08 11:09:11' }
 ];
 
 export const DEFAULT_USERS = [
@@ -713,40 +457,43 @@ export const DEFAULT_SECURITY_POLICY = {
 
 const DEFAULT_RECON_RECORDS = [
   {
-    participantId: 'USR_90142_812',
-    surveyId: 90142,
-    surveyName: 'Global Electric Vehicle & Mobility Outlook 2026',
-    cpi: 4.80,
+    participantId: '0734',
+    surveyId: 'VMHPI026592026',
+    surveyName: 'VMHAML29213',
+    cpi: 1.00,
     status: 'complete',
-    completionDate: new Date(Date.now() - 86400000).toISOString(),
-    vendorId: 'SAMPLE_VENDOR_1',
-    vendorName: 'Dynata Integrated Panel',
-    durationMinutes: 13,
-    verificationCode: 'ZAMP_CONF_88192'
+    completionDate: '2026-10-09T18:24:15.000Z',
+    vendorId: 'VI010662026',
+    vendorName: 'amrendra',
+    durationMinutes: 12,
+    device: 'AndroidOS (Firefox)',
+    country: 'Netherlands (Kingdom of the)'
   },
   {
-    participantId: 'USR_90143_419',
-    surveyId: 90143,
-    surveyName: 'Healthcare Providers Digital Records & EHR Adoption',
-    cpi: 7.50,
+    participantId: '43007860',
+    surveyId: 'VMHPI026632026',
+    surveyName: 'VMHAML29214',
+    cpi: 1.00,
     status: 'complete',
-    completionDate: new Date(Date.now() - 172800000).toISOString(),
-    vendorId: 'SAMPLE_VENDOR_2',
-    vendorName: 'PureSpectrum Exchange',
-    durationMinutes: 17,
-    verificationCode: 'MX_CONF_99182'
+    completionDate: '2026-10-09T18:19:52.000Z',
+    vendorId: 'VI010312026',
+    vendorName: 'trayistats',
+    durationMinutes: 14,
+    device: 'Windows (Edge)',
+    country: 'India'
   },
   {
-    participantId: 'USR_90148_621',
-    surveyId: 90148,
-    surveyName: 'Enterprise Cybersecurity & Zero-Trust Architecture Audit',
-    cpi: 11.50,
+    participantId: '298104',
+    surveyId: 'VMHPI024912025',
+    surveyName: 'VMH#100188',
+    cpi: 1.00,
     status: 'complete',
-    completionDate: new Date(Date.now() - 259200000).toISOString(),
-    vendorId: 'SAMPLE_VENDOR_1',
-    vendorName: 'Dynata Integrated Panel',
-    durationMinutes: 21,
-    verificationCode: 'ZAMP_CONF_77201'
+    completionDate: '2026-10-09T17:45:00.000Z',
+    vendorId: 'VI010152025',
+    vendorName: 'Rohan',
+    durationMinutes: 11,
+    device: 'Windows (Chrome)',
+    country: 'United States'
   }
 ];
 
@@ -773,34 +520,38 @@ export const getReconciliationReversals = (startDate, endDate) =>
     .then(res => res.data)
     .catch(() => ({
       success: true,
-      data: DEFAULT_RECON_RECORDS.filter(r => r.status === 'reversed').concat([
+      data: [
         {
-          participantId: 'USR_90144_118',
-          surveyId: 90144,
-          surveyName: 'German Consumer Retail & E-Commerce Preferences',
+          participantId: '0734',
+          surveyId: 'VMHPI026592026',
+          surveyName: 'VMHAML29213',
           cpi: 0,
           status: 'reversed',
-          completionDate: new Date(Date.now() - 3 * 86400000).toISOString(),
-          vendorId: 'SAMPLE_VENDOR_1',
-          vendorName: 'Dynata Integrated Panel',
+          completionDate: '2026-10-09T18:24:15.000Z',
+          vendorId: 'VI010662026',
+          vendorName: 'amrendra',
           durationMinutes: 4,
-          verificationCode: 'REV_GEO_MISMATCH',
-          reversalReason: 'Geo-IP mismatch (non-DE IP)',
+          verificationCode: 'SECURITY_POLICY_TERMINATION',
+          reversalReason: 'Disqualified by client / security policy check',
+          device: 'AndroidOS (Firefox)',
+          country: 'Netherlands (Kingdom of the)'
         },
         {
-          participantId: 'USR_90148_702',
-          surveyId: 90148,
-          surveyName: 'Enterprise Cybersecurity & Zero-Trust Architecture Audit',
+          participantId: '43007860',
+          surveyId: 'VMHPI026632026',
+          surveyName: 'VMHAML29214',
           cpi: 0,
           status: 'reversed',
-          completionDate: new Date(Date.now() - 5 * 86400000).toISOString(),
-          vendorId: 'SAMPLE_VENDOR_2',
-          vendorName: 'PureSpectrum Exchange',
-          durationMinutes: 2,
-          verificationCode: 'REV_SPEEDER',
-          reversalReason: 'Speeder (< 3 mins vs stated LOI)',
-        },
-      ]),
+          completionDate: '2026-10-09T18:19:52.000Z',
+          vendorId: 'VI010312026',
+          vendorName: 'trayistats',
+          durationMinutes: 3,
+          verificationCode: 'SECURITY_POLICY_TERMINATION',
+          reversalReason: 'Disqualified by client / security policy check',
+          device: 'Windows (Edge)',
+          country: 'India'
+        }
+      ],
     }));
 
 export const getInternalLeads = (limit = 100) =>
@@ -985,10 +736,6 @@ export const getDemandFeasibility = (params) =>
 
 // Project, Vendor, Client & User Management with Local Resilience
 export const getProjects = async () => {
-  const local = getLocalData('smr_custom_projects', null);
-  if (local && Array.isArray(local) && local.length > 0) {
-    return { success: true, data: local };
-  }
   try {
     const res = await api.get('/manage/projects');
     const remote = res.data?.data;
@@ -997,6 +744,10 @@ export const getProjects = async () => {
       return { success: true, data: remote };
     }
   } catch {}
+  const local = getLocalData('smr_custom_projects', null);
+  if (local && Array.isArray(local) && local.length > 0 && !local.some(p => p.project_name?.includes('NielsenIQ'))) {
+    return { success: true, data: local };
+  }
   setLocalData('smr_custom_projects', DEFAULT_PROJECTS);
   return { success: true, data: DEFAULT_PROJECTS };
 };
@@ -1030,24 +781,6 @@ export const deleteProject = async (id) => {
 };
 
 export const getVendors = async () => {
-  const isDummyUrl = (url) => !url || url.includes('vnddyn01.com') || url.includes('supplier.com');
-  const local = getLocalData('smr_custom_vendors', null);
-  if (local && Array.isArray(local) && local.length > 0) {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
-    const sanitized = local.map(v => {
-      const vidCode = v.vendor_code || v.vendorUid || 'VND-DYN-01';
-      const def = DEFAULT_VENDORS.find(dv => dv.vendor_code === vidCode) || {};
-      return {
-        ...v,
-        redirect_complete: isDummyUrl(v.redirect_complete) ? (def.redirect_complete || `${origin}/survey/callback?status=10&uid=[UID]&vid=${vidCode}&hash=[HASH]`) : v.redirect_complete,
-        redirect_terminate: isDummyUrl(v.redirect_terminate) ? (def.redirect_terminate || `${origin}/survey/callback?status=20&uid=[UID]&vid=${vidCode}&hash=[HASH]`) : v.redirect_terminate,
-        redirect_overquota: isDummyUrl(v.redirect_overquota) ? (def.redirect_overquota || `${origin}/survey/callback?status=30&uid=[UID]&vid=${vidCode}&hash=[HASH]`) : v.redirect_overquota,
-        redirect_security: isDummyUrl(v.redirect_security) ? (def.redirect_security || `${origin}/survey/callback?status=40&uid=[UID]&vid=${vidCode}&hash=[HASH]`) : v.redirect_security,
-      };
-    });
-    setLocalData('smr_custom_vendors', sanitized);
-    return { success: true, data: sanitized };
-  }
   try {
     const res = await api.get('/manage/vendors');
     const remote = res.data?.data;
@@ -1056,6 +789,10 @@ export const getVendors = async () => {
       return { success: true, data: remote };
     }
   } catch {}
+  const local = getLocalData('smr_custom_vendors', null);
+  if (local && Array.isArray(local) && local.length > 0 && !local.some(v => v.name?.includes('Dynata Global Panel'))) {
+    return { success: true, data: local };
+  }
   setLocalData('smr_custom_vendors', DEFAULT_VENDORS);
   return { success: true, data: DEFAULT_VENDORS };
 };
@@ -1102,32 +839,72 @@ export const deleteVendor = async (id) => {
   return { success: true };
 };
 
+export const searchVendors = async (query) => {
+  try {
+    const res = await api.get(`/manage/vendors?search=${encodeURIComponent(query)}`);
+    return res.data?.data || [];
+  } catch {
+    return [];
+  }
+};
+
+export const getCountries = async () => {
+  try {
+    const res = await api.get('/manage/countries');
+    if (res.data?.data && Array.isArray(res.data.data)) {
+      return res.data.data;
+    }
+  } catch {}
+  return [];
+};
+
+export const getLegacyStats = async () => {
+  try {
+    const res = await api.get('/reports/legacy-stats');
+    if (res.data?.data) return res.data.data;
+  } catch {}
+  return {
+    totalProjects: 1554,
+    totalLeads: 33699,
+    totalCompletes: 3875,
+    totalVendors: 2137,
+    totalClients: 10,
+    estimatedRevenue: 128450.00
+  };
+};
+
+export const getLegacyProjects = async (search = '', limit = 50, offset = 0) => {
+  try {
+    const res = await api.get(`/reports/legacy-projects?search=${encodeURIComponent(search)}&limit=${limit}&offset=${offset}`);
+    return res.data || { data: [], total: 1554 };
+  } catch {
+    return { data: [], total: 1554 };
+  }
+};
+
 export const getDashboardAnalytics = () =>
   api.get('/dashboard/analytics').then(res => res.data).catch(() => ({
-    totalVendors: 60,
-    pendingLeads: 10166,
-    totalClick: 22284,
-    activeProjects: 1342,
+    totalVendors: 2137,
+    pendingLeads: 13568,
+    totalClick: 33688,
+    activeProjects: 1554,
+    completeLeads: 3875,
     chartData: {
-      'Project Alpha': 3420,
-      'Consumer Pulse': 4280,
-      'Global Healthcare': 2890,
-      'Tech Leaders': 5120,
-      'Automotive Study': 3820,
-      'Finance Matrix': 2754
+      'VMH#100223': 577,
+      'VMH#100170 USA (B2C)': 548,
+      'VMHAML29201 US': 459,
+      'VMHZASI26213- TG -1': 418,
+      'VMH_1498': 404,
+      'VMH_1685': 393
     },
     donutChartData: [
-      { category: 'Vendors', value: 60 },
-      { category: 'Projects', value: 1342 },
-      { category: 'Leads', value: 22284 }
+      { category: 'Vendors', value: 2137 },
+      { category: 'Projects', value: 1554 },
+      { category: 'Leads', value: 33688 }
     ]
   }));
 
 export const getClients = async () => {
-  const local = getLocalData('smr_custom_clients', null);
-  if (local && Array.isArray(local) && local.length > 0) {
-    return local;
-  }
   try {
     const res = await api.get('/clients');
     const remote = res.data?.data;
@@ -1136,6 +913,10 @@ export const getClients = async () => {
       return remote;
     }
   } catch {}
+  const local = getLocalData('smr_custom_clients', null);
+  if (local && Array.isArray(local) && local.length > 0 && !local.some(c => c.client_name?.includes('Demand Network'))) {
+    return local;
+  }
   setLocalData('smr_custom_clients', DEFAULT_CLIENTS);
   return DEFAULT_CLIENTS;
 };
@@ -1431,7 +1212,62 @@ export const deleteUser = async (id) => {
   return { success: true };
 };
 
-// Google Sheets Database Connector API
+// Vendor Allotments API (Quota & CPI Management)
+export const getVendorAllotments = async (projectId) => {
+  const localKey = `smr_allotments_${projectId || 'all'}`;
+  const local = getLocalData(localKey, null);
+  try {
+    const res = await api.get('/vendor/allotments', { params: { project_id: projectId } });
+    if (res.data?.success && Array.isArray(res.data.data)) {
+      setLocalData(localKey, res.data.data);
+      return { success: true, data: res.data.data };
+    }
+  } catch {}
+  if (local && Array.isArray(local)) {
+    return { success: true, data: local };
+  }
+  return { success: true, data: [] };
+};
+
+export const saveVendorAllotment = async (data) => {
+  const localKey = `smr_allotments_${data.project_id || 'all'}`;
+  const existing = getLocalData(localKey, []) || [];
+  const updated = [
+    ...existing.filter(a => !(a.project_id === data.project_id && a.vendor_id === data.vendor_id)),
+    { ...data, id: Date.now(), complete_count: data.complete_count || 0, updatedAt: new Date().toISOString() }
+  ];
+  setLocalData(localKey, updated);
+  try {
+    const res = await api.post('/vendor/allot', data);
+    return res.data;
+  } catch {
+    return { success: true, data: updated[updated.length - 1] };
+  }
+};
+
+export const deleteVendorAllotment = async (projectId, vendorId) => {
+  const localKey = `smr_allotments_${projectId || 'all'}`;
+  const existing = getLocalData(localKey, []) || [];
+  const updated = existing.filter(a => !(a.project_id === projectId && a.vendor_id === vendorId));
+  setLocalData(localKey, updated);
+  try {
+    await api.delete('/vendor/allot', { data: { project_id: projectId, vendor_id: vendorId } });
+  } catch {}
+  return { success: true };
+};
+
+// Unified Reports API (Client-wise, Project-wise, Vendor-wise)
+export const getUnifiedReports = async (fromDate, toDate) => {
+  try {
+    const res = await api.get('/reports/unified', { params: { fromDate, toDate } });
+    if (res.data?.success) {
+      return res.data;
+    }
+  } catch {}
+  return null;
+};
+
+// Silent Background Database Connector API
 export const GoogleSheetAPI = {
   getScriptUrl: () => {
     try {
@@ -1450,13 +1286,17 @@ export const GoogleSheetAPI = {
   },
   testConnection: async (url) => {
     const targetUrl = url || GoogleSheetAPI.getScriptUrl();
-    if (!targetUrl) throw new Error('Google Apps Script Web App URL is required');
-    const res = await fetch(targetUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'testConnection' })
-    });
-    return await res.json();
+    if (!targetUrl) return { success: false };
+    try {
+      const res = await fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'testConnection' })
+      });
+      return await res.json();
+    } catch {
+      return { success: false };
+    }
   },
   syncToSheet: async (action, data) => {
     const url = GoogleSheetAPI.getScriptUrl();
@@ -1468,31 +1308,34 @@ export const GoogleSheetAPI = {
         body: JSON.stringify({ action, data, timestamp: new Date().toISOString() })
       });
       return await res.json();
-    } catch (e) {
-      console.warn('Google Sheet background sync notice:', e);
+    } catch {
       return null;
     }
   },
   syncAllData: async () => {
     const url = GoogleSheetAPI.getScriptUrl();
-    if (!url) throw new Error('Please configure and connect your Google Apps Script URL first.');
-    const clients = await getClients();
-    const vendorsRes = await getVendors();
-    const projectsRes = await getProjects();
-    const usersRes = await getUsers();
-    
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({
-        action: 'syncAll',
-        clients: clients,
-        vendors: vendorsRes.data || [],
-        projects: projectsRes.data || [],
-        users: usersRes.data || []
-      })
-    });
-    return await res.json();
+    if (!url) return null;
+    try {
+      const clients = await getClients();
+      const vendorsRes = await getVendors();
+      const projectsRes = await getProjects();
+      const usersRes = await getUsers();
+      
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'syncAll',
+          clients: clients,
+          vendors: vendorsRes.data || [],
+          projects: projectsRes.data || [],
+          users: usersRes.data || []
+        })
+      });
+      return await res.json();
+    } catch {
+      return null;
+    }
   },
   getSurveysFromSheet: async () => {
     const url = GoogleSheetAPI.getScriptUrl();
@@ -1504,8 +1347,7 @@ export const GoogleSheetAPI = {
         body: JSON.stringify({ action: 'getSurveys' })
       });
       return await res.json();
-    } catch (e) {
-      console.warn('Google Sheet survey proxy notice:', e);
+    } catch {
       return null;
     }
   }

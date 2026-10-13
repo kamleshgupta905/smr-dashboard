@@ -1033,7 +1033,7 @@ select:disabled {
 
 table, .custom-table {
   width: 100%;
-  min-width: 1250px !important;
+  min-width: 100%;
   border-collapse: collapse;
   text-align: left;
   font-size: 13px;

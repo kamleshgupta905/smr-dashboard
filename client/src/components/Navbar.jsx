@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, RefreshCw, Search, Bell, User, Settings, LogOut, CheckCircle2, Zap, ShieldAlert, FileSpreadsheet } from 'lucide-react';
+import { Menu, RefreshCw, Search, Bell, User, Settings, LogOut, CheckCircle2, Zap, ShieldAlert } from 'lucide-react';
 
 export default function Navbar({
   onToggleSidebar,
@@ -11,7 +11,6 @@ export default function Navbar({
   surveyCount,
   onOpenProfile,
   onOpenSettings,
-  onOpenGoogleSheet,
   globalSearch,
   onGlobalSearch,
 }) {
@@ -70,43 +69,92 @@ export default function Navbar({
           <Menu size={20} color="#475569" />
         </button>
 
-        {/* Global Marketplace Search (expanding input) */}
+        {/* Global Marketplace Search (clean icon button when collapsed, input when expanded) */}
         <div className="topbar-search-wrap" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <input
-            ref={searchInputRef}
-            type="text"
-            value={globalSearch || ''}
-            onChange={(e) => onGlobalSearch && onGlobalSearch(e.target.value)}
-            placeholder="Search surveys, IDs, countries..."
-            aria-label="Search marketplace"
-            style={{
-              width: searchOpen ? '260px' : '44px',
-              height: '36px',
-              paddingLeft: searchOpen ? '38px' : '14px',
-              paddingRight: '12px',
-              border: '1px solid #e3ebf6',
-              borderRadius: '8px',
-              background: '#ffffff',
-              fontSize: '12.5px',
-              color: '#303e67',
-              outline: 'none',
-              cursor: searchOpen ? 'text' : 'pointer',
-              transition: 'width 0.25s cubic-bezier(0.16, 1, 0.3, 1), padding 0.25s',
-              boxSizing: 'border-box',
-            }}
-            onFocus={() => setSearchOpen(true)}
-            onBlur={() => { if (!globalSearch) setSearchOpen(false); }}
-          />
-          <Search
-            size={16}
-            color="#68728c"
-            style={{
-              position: 'absolute',
-              left: searchOpen ? '13px' : '14px',
-              pointerEvents: 'none',
-              transition: 'left 0.25s',
-            }}
-          />
+          {!searchOpen && !globalSearch ? (
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              aria-label="Open search"
+              title="Search surveys, vendors, clients, IDs..."
+              style={{
+                width: '36px',
+                height: '36px',
+                border: '1px solid #e3ebf6',
+                borderRadius: '8px',
+                background: '#ffffff',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                padding: 0,
+                outline: 'none',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <Search size={16} color="#68728c" />
+            </button>
+          ) : (
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <Search
+                size={15}
+                color="#68728c"
+                style={{
+                  position: 'absolute',
+                  left: '12px',
+                  pointerEvents: 'none',
+                }}
+              />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={globalSearch || ''}
+                onChange={(e) => onGlobalSearch && onGlobalSearch(e.target.value)}
+                placeholder="Search surveys, vendors, clients, IDs..."
+                aria-label="Search marketplace"
+                style={{
+                  width: '260px',
+                  height: '36px',
+                  paddingLeft: '36px',
+                  paddingRight: globalSearch ? '28px' : '12px',
+                  border: '1px solid #1761fd',
+                  borderRadius: '8px',
+                  background: '#ffffff',
+                  fontSize: '12.5px',
+                  color: '#303e67',
+                  outline: 'none',
+                  boxShadow: '0 0 0 3px rgba(23, 97, 253, 0.1)',
+                  boxSizing: 'border-box',
+                }}
+                onBlur={() => {
+                  if (!globalSearch) setSearchOpen(false);
+                }}
+              />
+              {globalSearch && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onGlobalSearch) onGlobalSearch('');
+                    setSearchOpen(false);
+                  }}
+                  title="Clear search"
+                  style={{
+                    position: 'absolute',
+                    right: '8px',
+                    background: 'none',
+                    border: 'none',
+                    color: '#8997bd',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    lineHeight: 1,
+                    padding: '2px',
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Sync Zamplia Button (Dastone soft pill style with animated refresh) */}
@@ -119,38 +167,6 @@ export default function Navbar({
           >
             <RefreshCw size={13} className={syncing ? 'sync-spin' : ''} />
             <span>{syncing ? 'Syncing...' : 'Sync Zamplia'}</span>
-          </button>
-        )}
-
-        {/* Google Sheet Connector Button */}
-        {onOpenGoogleSheet && (
-          <button
-            type="button"
-            onClick={onOpenGoogleSheet}
-            title="Link Google Sheet via Google Apps Script (Auto Database)"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              background: '#ecfdf5',
-              color: '#065f46',
-              border: '1px solid #a7f3d0',
-              fontSize: '12px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              marginLeft: '8px'
-            }}
-          >
-            <FileSpreadsheet size={14} color="#059669" />
-            <span>Google Sheet</span>
-            <span style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              background: '#10b981'
-            }} />
           </button>
         )}
       </div>

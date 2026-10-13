@@ -225,7 +225,15 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
       if (currentStep < PRESCREENER_QUESTIONS.length - 1) {
         setCurrentStep(prev => prev + 1);
       } else {
-        redirectToZampliaLiveSurvey();
+        if (uid && String(uid).startsWith('TEST_')) {
+          // Safe test mode: Redirect directly to SMR branded Complete End Page
+          const origin = typeof window !== 'undefined' ? window.location.origin : '';
+          window.location.replace(
+            `${origin}/survey/callback?status=10&uid=${encodeURIComponent(uid)}&vid=${encodeURIComponent(vendorId)}&pid=${encodeURIComponent(projectId)}&test=1`
+          );
+        } else {
+          redirectToZampliaLiveSurvey();
+        }
       }
     }, 260);
   };
