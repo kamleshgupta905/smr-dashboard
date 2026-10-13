@@ -1688,161 +1688,262 @@ if ($normalizedRoute === 'zamplia/reconciliation') {
 }
 
 // -------------------------------------------------------------
-// 7. Vendors Management Store
+// 7. Vendors Management Store (Real MySQL Integration)
 // -------------------------------------------------------------
 $vendorsFile = $DATA_DIR . '/vendors.json';
 if ($normalizedRoute === 'manage/vendors' || str_starts_with($normalizedRoute, 'manage/vendors')) {
     $db = getDbConnection();
+
+    // POST / PUT: Create or Update Vendor in MySQL
     if ($method === 'POST' || $method === 'PUT') {
-        $code = $body['vendor_code'] ?? $body['vendor_id'] ?? ('VND-' . time());
-        $name = $body['name'] ?? 'Vendor ' . $code;
-        $email = $body['email'] ?? '';
-        $commType = $body['commission_type'] ?? 'flat_rate';
+        $code = trim($body['vendor_code'] ?? $body['vendor_id'] ?? $body['id'] ?? '');
+        $name = trim($body['name'] ?? '');
+        $email = trim($body['email'] ?? '');
+        $commType = trim($body['commission_type'] ?? 'revenue_share');
         $cpi = isset($body['cpi']) && $body['cpi'] !== '' ? (float)$body['cpi'] : 0.00;
-        $cpiPercentage = isset($body['cpi_percentage']) && $body['cpi_percentage'] !== '' ? (float)$body['cpi_percentage'] : 0;
-        $rc = $body['redirect_complete'] ?? '';
-        $rt = $body['redirect_terminate'] ?? '';
-        $ro = $body['redirect_overquota'] ?? '';
-        $rs = $body['redirect_security'] ?? '';
-        $hashAlg = $body['hash_algorithm'] ?? 'SHA3-256';
-        $secKey = $body['secret_key'] ?? ($code . '_sec_2026');
+        $cpiPercentage = isset($body['cpi_percentage']) && $body['cpi_percentage'] !== '' ? (float)$body['cpi_percentage'] : 70.00;
+
+        $rc = trim($body['redirect_complete'] ?? '');
+        $rt = trim($body['redirect_terminate'] ?? '');
+        $ro = trim($body['redirect_overquota'] ?? '');
+        $rs = trim($body['redirect_security'] ?? '');
+
+        $hashAlg = trim($body['hash_algorithm'] ?? 'SHA3-256');
+        $secKey = trim($body['secret_key'] ?? '');
+        $countries = $body['countries'] ?? [];
+        $blockedClients = $body['blocked_clients'] ?? [];
+        $contacts = $body['contacts'] ?? [];
 
         if ($db) {
             try {
-                $stmt = $db->prepare("
-                    REPLACE INTO vendor (vendor_id, name, email, cpi, redirect_complete, redirect_terminate, redirect_overquota, redirect_security, hash_algorithm, secret_key, is_active)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Y')
-                ");
-                $stmt->execute([$code, $name, $email, $cpi, $rc, $rt, $ro, $rs, $hashAlg, $secKey]);
-            } catch (Throwable $e) {}
-        }
+                // Check if vendor already exists in vendor table
+                $isNew = false;
+                if (empty($code)) {
+                    $isNew = true;
+                } else {
+                    $chk = $db->prepare("SELECT id FROM vendor WHERE vendor_id = ? LIMIT 1");
+                    $chk->execute([$code]);
+                    if (!$chk->fetchColumn()) {
+                        $isNew = true;
+                    }
+                }
 
-        $list = file_exists($vendorsFile) ? json_decode((string)file_get_contents($vendorsFile), true) : [];
-        $found = false;
-        foreach ($list as &$vend) {
-            if (($vend['vendor_id'] ?? $vend['vendor_code'] ?? '') === $code) {
-                $vend = array_merge($vend, $body, [
-                    'commission_type' => $commType,
-                    'cpi' => $cpi,
-                    'cpi_percentage' => $cpiPercentage
+                if ($isNew) {
+                    if (empty($code)) {
+                        // Generate official serial using serialmaster table
+                        try {
+                            $db->query("UPDATE serialmaster SET lastnumber = lastnumber + 1 WHERE module = 'VENDOR'");
+                            $lastNum = (int)$db->query("SELECT lastnumber FROM serialmaster WHERE module = 'VENDOR'")->fetchColumn();
+                            $code = 'VI' . str_pad($lastNum, 5, '0', STR_PAD_LEFT) . date('Y');
+                        } catch (Throwable $se) {
+                            $code = 'VI' . time();
+                        }
+                    }
+                    if (empty($name)) {
+                        $name = 'Vendor ' . $code;
+                    }
+
+                    $ins = $db->prepare("
+                        INSERT INTO vendor (
+                            vendor_id, name, email, cpi, commission_type, cpi_percentage,
+                            clicks_count, complete_count, terminates_count, is_active, date
+                        ) VALUES (
+                            ?, ?, ?, ?, ?, ?,
+                            0, 0, 0, 'Y', NOW()
+                        )
+                    ");
+                    $ins->execute([$code, $name, $email, $cpi, $commType, $cpiPercentage]);
+                } else {
+                    // Update all existing project assignments for this vendor
+                    $upd = $db->prepare("
+                        UPDATE vendor 
+                        SET 
+                            name = COALESCE(NULLIF(?, ''), name),
+                            email = COALESCE(NULLIF(?, ''), email),
+                            cpi = ?,
+                            commission_type = ?,
+                            cpi_percentage = ?,
+                            is_active = 'Y'
+                        WHERE vendor_id = ?
+                    ");
+                    $upd->execute([$name, $email, $cpi, $commType, $cpiPercentage, $code]);
+                }
+
+                // Sync to vendorlists table (callbacks)
+                $vlChk = $db->prepare("SELECT id FROM vendorlists WHERE vendor_id = ? LIMIT 1");
+                $vlChk->execute([$code]);
+                $vlId = $vlChk->fetchColumn();
+                if ($vlId) {
+                    $db->prepare("
+                        UPDATE vendorlists 
+                        SET 
+                            name = COALESCE(NULLIF(?, ''), name),
+                            email = COALESCE(NULLIF(?, ''), email),
+                            success = ?,
+                            terminate = ?,
+                            quotafull = ?,
+                            screenout = ?,
+                            updated_at = NOW()
+                        WHERE id = ?
+                    ")->execute([$name, $email, $rc, $rt, $ro, $rs, $vlId]);
+                } else if (!empty($rc) || !empty($rt) || !empty($ro) || !empty($rs)) {
+                    $db->prepare("
+                        INSERT INTO vendorlists (
+                            vendor_id, name, email, success, terminate, quotafull, screenout, created_at, updated_at
+                        ) VALUES (
+                            ?, ?, ?, ?, ?, ?, ?, NOW(), NOW()
+                        )
+                    ")->execute([$code, $name, $email, $rc, $rt, $ro, $rs]);
+                }
+
+                // Sync extra settings to vendor_settings
+                $extraJson = json_encode([
+                    'hash_algorithm' => $hashAlg,
+                    'secret_key' => $secKey ?: (strtolower($code) . '_sec_2026'),
+                    'countries' => $countries,
+                    'blocked_clients' => $blockedClients,
+                    'contacts' => $contacts
                 ]);
-                $found = true;
-                break;
+                $db->prepare("
+                    REPLACE INTO vendor_settings (vendor_id, settings, updated_at)
+                    VALUES (?, ?, NOW())
+                ")->execute([$code, $extraJson]);
+
+                $savedData = array_merge($body, [
+                    'vendor_id' => $code,
+                    'vendor_code' => $code,
+                    '_id' => $code,
+                    'name' => $name,
+                    'email' => $email,
+                    'cpi' => $cpi,
+                    'commission_type' => $commType,
+                    'cpi_percentage' => $cpiPercentage,
+                    'redirect_complete' => $rc,
+                    'redirect_terminate' => $rt,
+                    'redirect_overquota' => $ro,
+                    'redirect_security' => $rs,
+                    'hash_algorithm' => $hashAlg,
+                    'secret_key' => $secKey ?: (strtolower($code) . '_sec_2026'),
+                    'countries' => $countries,
+                    'blocked_clients' => $blockedClients,
+                    'contacts' => $contacts,
+                    'status' => 'active'
+                ]);
+
+                echo json_encode(['success' => true, 'data' => $savedData]);
+                exit;
+            } catch (Throwable $e) {
+                echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+                exit;
             }
         }
-        if (!$found) {
-            $newV = array_merge($body, [
-                'id' => 'vnd_' . time(),
-                'vendor_id' => $code,
-                'commission_type' => $commType,
-                'cpi' => $cpi,
-                'cpi_percentage' => $cpiPercentage
-            ]);
-            $list[] = $newV;
-        }
-        file_put_contents($vendorsFile, json_encode($list, JSON_PRETTY_PRINT));
-        echo json_encode(['success' => true, 'data' => $body]);
-        exit;
     }
 
+    // DELETE: Soft delete vendor in MySQL
     if ($method === 'DELETE') {
-        $targetId = $segments[2] ?? ($body['id'] ?? ($body['vendor_id'] ?? ''));
-        if ($targetId) {
-            if ($db) {
-                try {
-                    $db->prepare("DELETE FROM vendor WHERE vendor_id = ? OR id = ?")->execute([$targetId, $targetId]);
-                } catch (Throwable $e) {}
-            }
-            if (file_exists($vendorsFile)) {
-                $list = json_decode((string)file_get_contents($vendorsFile), true) ?: [];
-                $list = array_values(array_filter($list, function($v) use ($targetId) {
-                    return ($v['vendor_id'] ?? $v['vendor_code'] ?? $v['id'] ?? '') !== $targetId;
-                }));
-                file_put_contents($vendorsFile, json_encode($list, JSON_PRETTY_PRINT));
-            }
+        $targetId = trim($segments[2] ?? ($body['id'] ?? ($body['vendor_id'] ?? '')));
+        if ($targetId && $db) {
+            try {
+                $db->prepare("UPDATE vendor SET is_active = 'N' WHERE vendor_id = ? OR id = ?")->execute([$targetId, $targetId]);
+                $db->prepare("DELETE FROM vendorlists WHERE vendor_id = ? OR id = ?")->execute([$targetId, $targetId]);
+                $db->prepare("DELETE FROM vendor_settings WHERE vendor_id = ?")->execute([$targetId]);
+            } catch (Throwable $e) {}
         }
         echo json_encode(['success' => true]);
         exit;
     }
 
-    // Support count
+    // GET: Support count
     if (isset($_GET['count']) && $db) {
         try {
-            $count = (int)$db->query("SELECT COUNT(*) FROM vendor WHERE is_active = 'Y'")->fetchColumn();
+            $count = (int)$db->query("SELECT COUNT(DISTINCT vendor_id) FROM vendor WHERE is_active = 'Y'")->fetchColumn();
             echo json_encode(['success' => true, 'count' => $count]);
             exit;
         } catch (Throwable $e) {}
     }
 
-    // Support search across all 2,137 vendors
-    $search = trim($_GET['search'] ?? '');
-    if ($search !== '' && $db) {
-        try {
-            $stmt = $db->prepare("
-                SELECT 
-                    id,
-                    id as _id,
-                    vendor_id,
-                    vendor_id as vendor_code,
-                    name,
-                    email,
-                    cpi,
-                    commission_type,
-                    cpi_percentage,
-                    clicks_count,
-                    complete_count,
-                    terminates_count,
-                    entry_link,
-                    is_active as status,
-                    date as createdAt
-                FROM vendor 
-                WHERE is_active = 'Y' 
-                  AND (name LIKE :q OR vendor_id LIKE :q OR email LIKE :q)
-                ORDER BY complete_count DESC, id DESC 
-                LIMIT 60
-            ");
-            $like = "%{$search}%";
-            $stmt->execute([':q' => $like]);
-            $found = $stmt->fetchAll();
-            echo json_encode(['success' => true, 'data' => $found, 'totalFound' => count($found), 'isSearch' => true]);
-            exit;
-        } catch (Throwable $e) {}
-    }
-
+    // GET: Search or Fetch All Vendors from Real MySQL
     if ($db) {
         try {
-            $vendors = $db->query("
-                SELECT 
-                    id,
-                    id as _id,
-                    vendor_id,
-                    vendor_id as vendor_code,
-                    name,
-                    email,
-                    cpi,
-                    commission_type,
-                    cpi_percentage,
-                    clicks_count,
-                    complete_count,
-                    complete_count as completes_count,
-                    terminates_count,
-                    entry_link,
-                    is_active as status,
-                    date as createdAt
-                FROM vendor 
-                WHERE is_active = 'Y' 
-                ORDER BY complete_count DESC, id DESC 
-                LIMIT 150
-            ")->fetchAll();
-            if (!empty($vendors)) {
-                echo json_encode(['success' => true, 'data' => $vendors, 'totalVendors' => 2137]);
-                exit;
+            $search = trim($_GET['search'] ?? '');
+            $where = "v.is_active = 'Y'";
+            $params = [];
+            if ($search !== '') {
+                $where .= " AND (v.name LIKE ? OR v.vendor_id LIKE ? OR v.email LIKE ?)";
+                $params = ["%{$search}%", "%{$search}%", "%{$search}%"];
             }
-        } catch (Throwable $e) {}
+
+            $sql = "
+                SELECT 
+                    v.vendor_id,
+                    v.vendor_id as _id,
+                    v.vendor_id as vendor_code,
+                    MAX(v.name) as name,
+                    MAX(v.email) as email,
+                    MAX(v.cpi) as cpi,
+                    COALESCE(MAX(v.commission_type), 'revenue_share') as commission_type,
+                    COALESCE(MAX(v.cpi_percentage), 70.00) as cpi_percentage,
+                    CAST(SUM(v.clicks_count) AS UNSIGNED) as clicks_count,
+                    CAST(SUM(v.complete_count) AS UNSIGNED) as complete_count,
+                    CAST(SUM(v.complete_count) AS UNSIGNED) as completes_count,
+                    CAST(SUM(v.terminates_count) AS UNSIGNED) as terminates_count,
+                    MAX(v.is_active) as status,
+                    MAX(v.date) as createdAt,
+                    MAX(vl.success) as redirect_complete,
+                    MAX(vl.terminate) as redirect_terminate,
+                    MAX(vl.quotafull) as redirect_overquota,
+                    MAX(vl.screenout) as redirect_security,
+                    MAX(vs.settings) as extra_settings
+                FROM vendor v
+                LEFT JOIN vendorlists vl ON vl.vendor_id = v.vendor_id
+                LEFT JOIN vendor_settings vs ON vs.vendor_id = v.vendor_id
+                WHERE {$where}
+                GROUP BY v.vendor_id
+                ORDER BY SUM(v.complete_count) DESC, MAX(v.id) DESC
+                LIMIT 250
+            ";
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            $rawVendors = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $vendors = [];
+            $origin = 'https://smr.vmhgroupsmr.com';
+            foreach ($rawVendors as $row) {
+                $settings = [];
+                if (!empty($row['extra_settings'])) {
+                    $decoded = json_decode($row['extra_settings'], true);
+                    if (is_array($decoded)) $settings = $decoded;
+                }
+                unset($row['extra_settings']);
+
+                $vid = $row['vendor_id'];
+                $row['cpi'] = (float)($row['cpi'] ?? 0);
+                $row['cpi_percentage'] = (float)($row['cpi_percentage'] ?? 70);
+                $row['redirect_complete'] = !empty($row['redirect_complete']) ? $row['redirect_complete'] : "{$origin}/survey/callback?status=10&vid={$vid}&hash=[HASH]&uid=[UID]";
+                $row['redirect_terminate'] = !empty($row['redirect_terminate']) ? $row['redirect_terminate'] : "{$origin}/survey/callback?status=20&vid={$vid}&hash=[HASH]&uid=[UID]";
+                $row['redirect_overquota'] = !empty($row['redirect_overquota']) ? $row['redirect_overquota'] : "{$origin}/survey/callback?status=30&vid={$vid}&hash=[HASH]&uid=[UID]";
+                $row['redirect_security']  = !empty($row['redirect_security']) ? $row['redirect_security'] : "{$origin}/survey/callback?status=40&vid={$vid}&hash=[HASH]&uid=[UID]";
+
+                $row['hash_algorithm']   = $settings['hash_algorithm'] ?? 'SHA3-256';
+                $row['secret_key']       = $settings['secret_key'] ?? (strtolower($vid) . '_sec_2026');
+                $row['countries']        = $settings['countries'] ?? [];
+                $row['blocked_clients']  = $settings['blocked_clients'] ?? [];
+                $row['contacts']         = $settings['contacts'] ?? [];
+
+                $vendors[] = $row;
+            }
+
+            $totalVendors = (int)$db->query("SELECT COUNT(DISTINCT vendor_id) FROM vendor WHERE is_active = 'Y'")->fetchColumn();
+
+            echo json_encode(['success' => true, 'data' => $vendors, 'totalVendors' => $totalVendors]);
+            exit;
+        } catch (Throwable $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            exit;
+        }
     }
 
-    $cList = file_exists($vendorsFile) ? json_decode((string)file_get_contents($vendorsFile), true) : [];
-    echo json_encode(['success' => true, 'data' => is_array($cList) ? $cList : []]);
+    echo json_encode(['success' => true, 'data' => []]);
     exit;
 }
 

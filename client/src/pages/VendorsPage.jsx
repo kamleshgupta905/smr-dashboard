@@ -36,7 +36,6 @@ import {
   updateVendor, 
   deleteVendor, 
   getProjects, 
-  DEFAULT_VENDORS,
   getCountries,
   getClients
 } from '../services/api';
@@ -442,9 +441,10 @@ function RestrictionsAndContacts({ blockedClients = [], onBlockedChange, contact
 }
 
 export default function VendorsPage({ onNavigate, globalSearch = '' }) {
-  const [vendors, setVendors] = useState(DEFAULT_VENDORS);
+  const [vendors, setVendors] = useState([]);
+  const [totalServerVendors, setTotalServerVendors] = useState(0);
   const [projectsList, setProjectsList] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showSpecModal, setShowSpecModal] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
@@ -510,6 +510,9 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
     setLoading(true);
     try {
       const res = await getVendors();
+      if (res?.totalVendors) {
+        setTotalServerVendors(res.totalVendors);
+      }
       const rawList = res?.data || res || [];
       if (Array.isArray(rawList) && rawList.length > 0) {
         // Deduplicate by vendor_code / vendor_id + name so project-level duplicate rows don't repeat
@@ -530,13 +533,13 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
           }
         });
         const deduped = Array.from(seen.values());
-        setVendors(deduped.length > 0 ? deduped : DEFAULT_VENDORS);
+        setVendors(deduped);
       } else {
-        setVendors(DEFAULT_VENDORS);
+        setVendors([]);
       }
     } catch (err) {
-      console.error('Failed to load vendors from API, keeping fallbacks:', err);
-      setVendors(DEFAULT_VENDORS);
+      console.error('Failed to load vendors from API:', err);
+      setVendors([]);
     } finally {
       setLoading(false);
     }
@@ -580,15 +583,13 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
       };
       const res = await createVendor(payload);
       setShowModal(false);
-      const created = res?.data || { ...payload, _id: `vnd_${Date.now()}` };
-      setVendors(prev => [created, ...prev]);
       setFormData({
         name: '',
         email: '',
         vendor_code: '',
-        commission_type: 'flat_rate',
+        commission_type: 'revenue_share',
         cpi: '',
-        cpi_percentage: '',
+        cpi_percentage: '70',
         status: 'active',
         redirect_complete: '',
         redirect_terminate: '',
@@ -602,6 +603,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
       });
       setShowAddRedirectsTab(false);
       setAddModalTab('general');
+      fetchVendorsList();
     } catch (err) {
       alert(err.response?.data?.message || err.message || 'Error creating vendor');
     }
@@ -611,12 +613,12 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
     setEditingVendor(vendor);
     setEditModalTab('general');
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
-    const vidCode = vendor.vendor_code || vendor.vendorUid || 'VND';
+    const vidCode = vendor.vendor_code || vendor.vendor_id || vendor.vendorUid || 'VND';
     const isDummy = (url) => !url || url.includes('vnddyn01.com') || url.includes('supplier.com');
     setRedirectForm({
-      commission_type: vendor.commission_type || 'flat_rate',
+      commission_type: vendor.commission_type || 'revenue_share',
       cpi: vendor.cpi !== undefined && vendor.cpi !== null ? vendor.cpi : '',
-      cpi_percentage: vendor.cpi_percentage !== undefined && vendor.cpi_percentage !== null ? vendor.cpi_percentage : '',
+      cpi_percentage: vendor.cpi_percentage !== undefined && vendor.cpi_percentage !== null ? vendor.cpi_percentage : 70,
       redirect_complete: !isDummy(vendor.redirect_complete) ? vendor.redirect_complete : `${origin}/survey/callback?status=10&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
       redirect_terminate: !isDummy(vendor.redirect_terminate) ? vendor.redirect_terminate : `${origin}/survey/callback?status=20&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
       redirect_overquota: !isDummy(vendor.redirect_overquota) ? vendor.redirect_overquota : `${origin}/survey/callback?status=30&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
@@ -635,11 +637,13 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
     if (!editingVendor) return;
     setSavingRedirects(true);
     try {
-      const vendorId = editingVendor._id || editingVendor.vendor_code;
+      const vendorId = editingVendor.vendor_code || editingVendor.vendor_id || editingVendor._id;
       const updatedFields = {
-        commission_type: redirectForm.commission_type,
-        cpi: Number(redirectForm.cpi),
-        cpi_percentage: Number(redirectForm.cpi_percentage),
+        name: editingVendor.name,
+        email: editingVendor.email,
+        commission_type: redirectForm.commission_type || 'revenue_share',
+        cpi: Number(redirectForm.cpi || 0),
+        cpi_percentage: Number(redirectForm.cpi_percentage !== undefined && redirectForm.cpi_percentage !== '' ? redirectForm.cpi_percentage : 70),
         redirect_complete: redirectForm.redirect_complete,
         redirect_terminate: redirectForm.redirect_terminate,
         redirect_overquota: redirectForm.redirect_overquota,
@@ -651,12 +655,13 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
         contacts: redirectForm.contacts || []
       };
       await updateVendor(vendorId, updatedFields);
-      setVendors(prev => prev.map(v => (v._id === vendorId || v.vendor_code === vendorId) ? { ...v, ...updatedFields } : v));
+      setVendors(prev => prev.map(v => (v._id === vendorId || v.vendor_code === vendorId || v.vendor_id === vendorId) ? { ...v, ...updatedFields } : v));
       setSaveSuccess(true);
       setTimeout(() => {
         setSaveSuccess(false);
         setEditingVendor(null);
-      }, 1200);
+        fetchVendorsList();
+      }, 1000);
     } catch (err) {
       alert(err.message || 'Error updating vendor redirects');
     } finally {
@@ -695,6 +700,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
     return (
       (v.name && v.name.toLowerCase().includes(effectiveSearch)) ||
       (v.vendor_code && v.vendor_code.toLowerCase().includes(effectiveSearch)) ||
+      (v.vendor_id && v.vendor_id.toLowerCase().includes(effectiveSearch)) ||
       (v.vendorUid && v.vendorUid.toLowerCase().includes(effectiveSearch)) ||
       (v.email && v.email.toLowerCase().includes(effectiveSearch))
     );
@@ -731,7 +737,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
               gap: '5px'
             }}>
               <span className="pulse-dot" />
-              {filtered.length} Connected Vendors
+              {totalServerVendors || filtered.length} Connected Vendors
             </span>
           </div>
         </div>
@@ -775,9 +781,9 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
               <Users size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins' }}>{vendors.length}</div>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins' }}>{totalServerVendors || vendors.length}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', fontSize: '11.5px', color: '#16a34a' }}>
-            <span className="pulse-dot" /> {activeCount} Active Vendors
+            <span className="pulse-dot" /> {totalServerVendors || activeCount} Active Vendors
           </div>
         </div>
 
@@ -839,7 +845,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
           </div>
 
           <span className="badge-soft-primary" style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 600 }}>
-            {filtered.length} Registered Panels
+            {effectiveSearch ? `${filtered.length} Matched Panels` : `${totalServerVendors || filtered.length} Registered Panels`}
           </span>
         </div>
 
@@ -854,7 +860,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
           </div>
         ) : (
           <div className="table-wrapper" style={{ margin: 0, border: 'none', borderRadius: 0 }}>
-            <table className="custom-table" style={{ width: '100%', minWidth: '100%' }}>
+            <table className="custom-table compact-table" style={{ width: '100%', minWidth: '100%' }}>
               <thead className="thead-light">
                 <tr>
                   <th>Vendor Name / Code</th>

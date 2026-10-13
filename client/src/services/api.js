@@ -809,64 +809,72 @@ export const getVendors = async () => {
     const remote = res.data?.data;
     if (Array.isArray(remote) && remote.length > 0) {
       setLocalData('smr_custom_vendors', remote);
-      return { success: true, data: remote };
+      return { success: true, data: remote, totalVendors: res.data?.totalVendors || remote.length };
     }
-  } catch {}
+  } catch (err) {
+    console.error('Failed to fetch vendors from API:', err);
+  }
   const local = getLocalData('smr_custom_vendors', null);
   if (local && Array.isArray(local) && local.length > 0 && !local.some(v => v.name?.includes('Dynata Global Panel'))) {
     return { success: true, data: local };
   }
-  setLocalData('smr_custom_vendors', DEFAULT_VENDORS);
-  return { success: true, data: DEFAULT_VENDORS };
+  return { success: true, data: [] };
 };
 
 export const createVendor = async (data) => {
-  const res = await getVendors();
-  const list = res.data || [];
-  const created = {
+  const payload = {
     ...data,
-    _id: `vnd_${Date.now()}`,
-    vendorUid: data.vendor_code || `VND-${Date.now().toString().slice(-4)}`,
-    completes_count: 0,
-    quality_score: 100,
-    createdAt: new Date().toISOString()
+    vendor_code: data.vendor_code || data.vendorUid || '',
+    cpi: Number(data.cpi || 0),
+    cpi_percentage: Number(data.cpi_percentage !== undefined && data.cpi_percentage !== '' ? data.cpi_percentage : 70)
   };
-  const updated = [created, ...list];
-  setLocalData('smr_custom_vendors', updated);
   try {
-    await api.post('/manage/vendors', created);
-  } catch {}
-  GoogleSheetAPI.syncToSheet('addVendor', created);
-  return { success: true, data: created };
+    const res = await api.post('/manage/vendors', payload);
+    const created = res.data?.data || payload;
+    const current = getLocalData('smr_custom_vendors', []);
+    setLocalData('smr_custom_vendors', [created, ...current]);
+    GoogleSheetAPI.syncToSheet('addVendor', created);
+    return { success: true, data: created };
+  } catch (err) {
+    console.error('Failed to create vendor on MySQL server:', err);
+    throw err;
+  }
 };
 
 export const updateVendor = async (id, data) => {
-  const res = await getVendors();
-  const list = res.data || [];
-  const updated = list.map(v => {
-    if (v._id === id || v.vendor_code === id || v.vendorUid === id) {
-      return { ...v, ...data, updatedAt: new Date().toISOString() };
-    }
-    return v;
-  });
-  setLocalData('smr_custom_vendors', updated);
+  const payload = {
+    ...data,
+    vendor_code: id,
+    vendor_id: id,
+    cpi: Number(data.cpi || 0),
+    cpi_percentage: Number(data.cpi_percentage !== undefined && data.cpi_percentage !== '' ? data.cpi_percentage : 70)
+  };
   try {
-    await api.post('/manage/vendors', { ...data, vendor_code: id, vendor_id: id, id });
-  } catch {}
-  GoogleSheetAPI.syncToSheet('updateVendor', { ...data, vendor_code: id, id });
-  return { success: true, data: updated };
+    const res = await api.post('/manage/vendors', payload);
+    const updated = res.data?.data || payload;
+    const current = getLocalData('smr_custom_vendors', []);
+    const next = current.map(v => (v._id === id || v.vendor_code === id || v.vendor_id === id) ? { ...v, ...updated } : v);
+    setLocalData('smr_custom_vendors', next);
+    GoogleSheetAPI.syncToSheet('updateVendor', { ...payload, id });
+    return { success: true, data: updated };
+  } catch (err) {
+    console.error('Failed to update vendor on MySQL server:', err);
+    throw err;
+  }
 };
 
 export const deleteVendor = async (id) => {
-  const res = await getVendors();
-  const list = res.data || [];
-  const updated = list.filter(v => (v._id !== id && v.vendor_code !== id && v.id !== id));
-  setLocalData('smr_custom_vendors', updated);
   try {
     await api.delete(`/manage/vendors/${id}`);
-  } catch {}
-  GoogleSheetAPI.syncToSheet('deleteVendor', { vendor_id: id, id });
-  return { success: true };
+    const current = getLocalData('smr_custom_vendors', []);
+    const next = current.filter(v => v._id !== id && v.vendor_code !== id && v.vendor_id !== id);
+    setLocalData('smr_custom_vendors', next);
+    GoogleSheetAPI.syncToSheet('deleteVendor', { vendor_id: id, id });
+    return { success: true };
+  } catch (err) {
+    console.error('Failed to delete vendor on MySQL server:', err);
+    throw err;
+  }
 };
 
 export const searchVendors = async (query) => {
