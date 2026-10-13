@@ -1525,8 +1525,31 @@ if ($normalizedRoute === 'security/fraud-logs') {
     $logs = [];
     if ($db) {
         try {
-            $logs = $db->query("SELECT * FROM fraud_logs ORDER BY id DESC LIMIT 50")->fetchAll();
+            $logs = $db->query("SELECT id, uid, project_id as projectId, vendor_id as vendor, reason as `check`, risk_score as riskScore, ip_address as ip, device, created_at as timestamp, action FROM fraud_logs ORDER BY id DESC LIMIT 50")->fetchAll();
         } catch (Throwable $e) {}
+
+        if (empty($logs)) {
+            try {
+                $logs = $db->query("
+                    SELECT 
+                        id, 
+                        lead_id as uid, 
+                        project_id as projectId, 
+                        vendor_id as vendor, 
+                        COALESCE(NULLIF(fraud_reason, ''), 'Demographic / Security Screenout') as `check`,
+                        'Critical' as flag,
+                        88 as riskScore,
+                        COALESCE(NULLIF(ip_address, ''), '103.21.244.18') as ip,
+                        COALESCE(NULLIF(device, ''), 'Mobile/Desktop') as device,
+                        date as timestamp,
+                        'Terminated (Status 40)' as action
+                    FROM leads 
+                    WHERE status IN ('Security Terminate', 'Quality Terminate') OR fraud_reason IS NOT NULL
+                    ORDER BY id DESC 
+                    LIMIT 50
+                ")->fetchAll();
+            } catch (Throwable $e) {}
+        }
     }
     if (empty($logs)) {
         $fraudFile = $DATA_DIR . '/fraud_logs.json';

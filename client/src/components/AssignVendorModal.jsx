@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import { 
   getVendors, 
-  DEFAULT_VENDORS, 
   RouterAPI, 
   getVendorAllotments, 
   saveVendorAllotment, 
@@ -18,8 +17,8 @@ import ModalPortal from './ModalPortal';
 import VendorIntegrationDocModal from './VendorIntegrationDocModal';
 
 export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPreScreener }) {
-  const [vendors, setVendors] = useState(DEFAULT_VENDORS);
-  const [selectedVendor, setSelectedVendor] = useState('VND-DYN-01');
+  const [vendors, setVendors] = useState([]);
+  const [selectedVendor, setSelectedVendor] = useState('');
   const [vendorCpi, setVendorCpi] = useState(1.50);
   const [quotaLimit, setQuotaLimit] = useState(100);
   const [loading, setLoading] = useState(false);
@@ -52,7 +51,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
   useEffect(() => {
     getVendors()
       .then((res) => {
-        const list = res?.data || res || [];
+        const list = res?.data || (Array.isArray(res) ? res : []);
         if (Array.isArray(list) && list.length > 0) {
           setVendors(list);
           const firstCode = list[0].vendor_code || list[0].vendorUid || list[0]._id;
@@ -64,17 +63,10 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
               : (p > 0 ? Number(((Number(currentCpi) * p) / 100).toFixed(2)) : Number(currentCpi));
             setVendorCpi(initCpi);
           }
-        } else {
-          setVendors(DEFAULT_VENDORS);
-          setSelectedVendor(DEFAULT_VENDORS[0].vendor_code);
-          setVendorCpi(Number(currentCpi) || 1.00);
         }
       })
-      .catch(() => {
-        setVendors(DEFAULT_VENDORS);
-        setSelectedVendor(DEFAULT_VENDORS[0].vendor_code);
-        const initCpi = Number(((Number(currentCpi) * 70) / 100).toFixed(2));
-        setVendorCpi(initCpi);
+      .catch((err) => {
+        console.error('Failed to load vendors:', err);
       });
   }, [currentCpi]);
 

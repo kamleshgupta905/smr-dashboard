@@ -13,11 +13,11 @@ import {
   ExternalLink,
   Trash2
 } from 'lucide-react';
-import { getProjects, createProject, deleteProject, DEFAULT_PROJECTS } from '../services/api';
+import { getProjects, createProject, deleteProject } from '../services/api';
 import ModalPortal from '../components/ModalPortal';
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState(DEFAULT_PROJECTS);
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState('');
@@ -42,14 +42,11 @@ export default function ProjectsPage() {
     setLoading(true);
     try {
       const res = await getProjects();
-      const list = res?.data || res || [];
-      if (Array.isArray(list) && list.length > 0) {
-        setProjects(list);
-      } else {
-        setProjects(DEFAULT_PROJECTS);
-      }
+      const list = res?.data || (Array.isArray(res) ? res : []);
+      setProjects(Array.isArray(list) ? list : []);
     } catch (err) {
-      console.error('Failed to load projects from API, keeping fallbacks:', err);
+      console.error('Failed to load projects from API:', err);
+      setProjects([]);
     } finally {
       setLoading(false);
     }

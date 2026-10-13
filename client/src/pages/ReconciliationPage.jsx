@@ -42,11 +42,10 @@ import {
   getLegacyStats,
   getLegacyProjects,
   getPayments,
-  updatePaymentStatus,
-  DEFAULT_VENDORS,
-  DEFAULT_PROJECTS
+  updatePaymentStatus
 } from '../services/api';
 import { exportToExcel } from '../utils/excelExport';
+import ModalPortal from '../components/ModalPortal';
 
 const STATUS_STYLES = {
   Complete: { bg: 'rgba(3, 216, 127, 0.1)', color: '#03a36a', label: 'Verified Complete' },
@@ -309,10 +308,10 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
         getInternalLeads(300)
       ]);
 
-      const clients = cRes.status === 'fulfilled' && Array.isArray(cRes.value) ? cRes.value : [];
-      const projects = pRes.status === 'fulfilled' && pRes.value?.data ? pRes.value.data : DEFAULT_PROJECTS;
-      const vendors = vRes.status === 'fulfilled' && vRes.value?.data ? vRes.value.data : DEFAULT_VENDORS;
-      const leads = lRes.status === 'fulfilled' && lRes.value?.data ? lRes.value.data : [];
+      const clients = cRes.status === 'fulfilled' && (cRes.value?.data || (Array.isArray(cRes.value) ? cRes.value : [])) || [];
+      const projects = pRes.status === 'fulfilled' && (pRes.value?.data || (Array.isArray(pRes.value) ? pRes.value : [])) || [];
+      const vendors = vRes.status === 'fulfilled' && (vRes.value?.data || (Array.isArray(vRes.value) ? vRes.value : [])) || [];
+      const leads = lRes.status === 'fulfilled' && (lRes.value?.data || (Array.isArray(lRes.value) ? lRes.value : [])) || [];
 
       setClientsList(clients);
       setProjectsList(projects);
@@ -351,14 +350,6 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
     }
 
     const map = {};
-    const defaultClientNames = [
-      { name: 'Market Xcel', code: '8ac835aab8871d26fd68e668a2932bd2', country: 'Global', currency: 'USD' },
-      { name: 'Zamplia', code: '4e24b469177989e0227c64bd382d1e0d', country: 'Global', currency: 'USD' },
-      { name: 'Robas Market Research', code: 'b1e9f85f1678f887c6409880cd3f858f', country: 'Global', currency: 'USD' },
-      { name: 'Mindforce', code: '0e1df3db096123ec93d939f83ae60a60', country: 'Global', currency: 'USD' },
-      { name: 'AMG', code: 'dabd75198dc6467205d56155a6793230', country: 'Global', currency: 'USD' },
-      { name: 'Snware Research', code: '0545b7a14931dd59dc282505104e7e1d', country: 'Global', currency: 'USD' }
-    ];
 
     clientsList.forEach(c => {
       const name = c.client_name || c.name || c.clientCode;
@@ -368,23 +359,6 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
           client_code: c.client_code || c.code || 'MX',
           country: c.country || 'Global',
           currency: c.currency || 'USD',
-          total_projects: 0,
-          total_clicks: 0,
-          total_completes: 0,
-          total_terminates: 0,
-          total_overquota: 0,
-          total_revenue: 0
-        };
-      }
-    });
-
-    defaultClientNames.forEach(dc => {
-      if (!map[dc.name]) {
-        map[dc.name] = {
-          client_name: dc.name,
-          client_code: dc.code,
-          country: dc.country,
-          currency: dc.currency,
           total_projects: 0,
           total_clicks: 0,
           total_completes: 0,
@@ -1644,17 +1618,29 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
       {/* Vendor Details Drilldown Modal: Konsi Assign Hui & Kitni Poori Ki */}
       {/* ------------------------------------------------------------- */}
       {selectedVendorDetail && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(15, 23, 42, 0.75)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 99999,
-          padding: '16px'
-        }}>
+        <ModalPortal isOpen={!!selectedVendorDetail} onClose={() => { setSelectedVendorDetail(null); setVendorDetailData(null); }}>
+          <div 
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setSelectedVendorDetail(null);
+                setVendorDetailData(null);
+              }
+            }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(4px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 999999,
+              padding: '16px',
+              overflowY: 'auto'
+            }}
+          >
           <div style={{
             background: '#ffffff',
             borderRadius: '12px',
@@ -2044,23 +2030,36 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
             </div>
           </div>
         </div>
-      )}
+      </ModalPortal>
+    )}
 
       {/* ------------------------------------------------------------- */}
       {/* Project Details Drilldown Modal: Assigned Vendors Breakdown */}
       {/* ------------------------------------------------------------- */}
       {selectedProjectDetail && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(15, 23, 42, 0.75)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 99999,
-          padding: '16px'
-        }}>
+        <ModalPortal isOpen={!!selectedProjectDetail} onClose={() => { setSelectedProjectDetail(null); setProjectDetailData(null); }}>
+          <div 
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setSelectedProjectDetail(null);
+                setProjectDetailData(null);
+              }
+            }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(4px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 999999,
+              padding: '16px',
+              overflowY: 'auto'
+            }}
+          >
           <div style={{
             background: '#ffffff',
             borderRadius: '12px',
@@ -2331,7 +2330,8 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
             </div>
           </div>
         </div>
-      )}
+      </ModalPortal>
+    )}
     </div>
   );
 }

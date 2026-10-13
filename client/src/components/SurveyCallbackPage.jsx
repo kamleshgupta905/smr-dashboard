@@ -21,12 +21,12 @@ import {
   Pause,
   Play
 } from 'lucide-react';
-import { GoogleSheetAPI, getVendors, DEFAULT_VENDORS } from '../services/api.js';
+import { GoogleSheetAPI, getVendors } from '../services/api.js';
 
 export default function SurveyCallbackPage() {
   const [copied, setCopied] = useState(false);
   const [detectedIp, setDetectedIp] = useState('2409:40d4:11e0:33bb:585a:1a12:5815:b7');
-  const [vendorList, setVendorList] = useState(DEFAULT_VENDORS);
+  const [vendorList, setVendorList] = useState([]);
   const [countdown, setCountdown] = useState(5);
   const [isPaused, setIsPaused] = useState(false);
   const [targetVendorUrl, setTargetVendorUrl] = useState('');

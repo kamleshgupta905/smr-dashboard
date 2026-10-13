@@ -1282,9 +1282,14 @@ tbody tr:hover {
   }
 }
 
+@keyframes pageFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* Page content animation */
 .page-body > * {
-  animation: pageSlideFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: pageFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Card hover & entrance animations across ALL project components */

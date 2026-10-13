@@ -19,7 +19,7 @@ import {
   Play, 
   Sparkles 
 } from 'lucide-react';
-import { SecurityAPI } from '../services/api';
+import { SecurityAPI, getFraudLogs } from '../services/api';
 
 export default function SecurityFraudPage({ onLaunchPreScreener }) {
   const [policy, setPolicy] = useState({
@@ -56,74 +56,19 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
   const [simDurationSeconds, setSimDurationSeconds] = useState(45);
   const [simTestOutput, setSimTestOutput] = useState(null);
   const [fraudFilter, setFraudFilter] = useState('ALL');
-  const [fraudLogs, setFraudLogs] = useState(() => {
-    try {
-      const saved = localStorage.getItem('smr_fraud_logs');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return [
-      {
-        id: 'FRD-8921',
-        timestamp: 'Just now',
-        uid: 'ARKanu8206251',
-        projectId: '2077902648',
-        vendor: 'VND-DYN-01',
-        check: 'Device & Abnormal Behavior',
-        flag: 'Critical',
-        riskScore: 95,
-        ip: '103.21.244.18',
-        action: 'Terminated (Status 40)'
-      },
-      {
-        id: 'FRD-8920',
-        timestamp: '12 mins ago',
-        uid: 'UID_9918237',
-        projectId: '2042481293',
-        vendor: 'VND-CNT-02',
-        check: 'Duplicate IP Violation',
-        flag: 'High',
-        riskScore: 88,
-        ip: '2409:40d4:11e0:33bb::',
-        action: 'Terminated (Status 40)'
-      },
-      {
-        id: 'FRD-8919',
-        timestamp: '45 mins ago',
-        uid: 'BOT_CRAWL_88',
-        projectId: '90142',
-        vendor: 'VND-LUC-04',
-        check: 'Automated Headless Bot',
-        flag: 'Critical',
-        riskScore: 99,
-        ip: '185.220.101.5',
-        action: 'Blocked at Pre-Screener'
-      },
-      {
-        id: 'FRD-8918',
-        timestamp: '1 hour ago',
-        uid: 'SPEED_TEST_01',
-        projectId: '90143',
-        vendor: 'VND-TOL-05',
-        check: 'Speeder Violation (< 45s LOI)',
-        flag: 'Medium',
-        riskScore: 82,
-        ip: '49.36.128.44',
-        action: 'Quality Terminate (Status 40)'
-      },
-      {
-        id: 'FRD-8917',
-        timestamp: '2 hours ago',
-        uid: 'GEO_MISMATCH_9',
-        projectId: '90144',
-        vendor: 'VND-PST-03',
-        check: 'Incorrect Country (Geo Mismatch)',
-        flag: 'High',
-        riskScore: 90,
-        ip: '178.62.204.11',
-        action: 'Terminated (Status 40)'
-      }
-    ];
-  });
+  const [fraudLogs, setFraudLogs] = useState([]);
+  const [fraudLoading, setFraudLoading] = useState(false);
+
+  const fetchFraudLogs = () => {
+    setFraudLoading(true);
+    getFraudLogs()
+      .then(res => {
+        const list = res?.data || (Array.isArray(res) ? res : []);
+        setFraudLogs(Array.isArray(list) ? list : []);
+      })
+      .catch(() => {})
+      .finally(() => setFraudLoading(false));
+  };
 
   useEffect(() => {
     SecurityAPI.getPolicy()
@@ -132,6 +77,8 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
+
+    fetchFraudLogs();
   }, []);
 
   const handleToggle = (key) => {
@@ -638,24 +585,12 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() => {
-                  const demo = {
-                    id: `FRD-${Math.floor(1000 + Math.random() * 9000)}`,
-                    timestamp: 'Just now',
-                    uid: `TEST_${Date.now().toString().slice(-6)}`,
-                    projectId: '2077902648',
-                    vendor: 'VND-DYN-01',
-                    check: 'Device & Abnormal Behavior',
-                    flag: 'Critical',
-                    riskScore: 95,
-                    ip: '103.21.244.18',
-                    action: 'Terminated (Status 40)'
-                  };
-                  setFraudLogs(prev => [demo, ...prev]);
-                }}
-                style={{ fontSize: '11.5px', padding: '6px 12px' }}
+                onClick={fetchFraudLogs}
+                disabled={fraudLoading}
+                style={{ fontSize: '11.5px', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}
               >
-                + Simulate Fraud Block
+                <RefreshCw size={12} className={fraudLoading ? 'animate-spin' : ''} />
+                <span>{fraudLoading ? 'Fetching MySQL...' : 'Refresh Live Logs'}</span>
               </button>
               <button
                 type="button"

@@ -35,7 +35,7 @@ export default function ModalPortal({ children, isOpen = true, onClose }) {
   return createPortal(
     <div 
       className="modal-portal-wrapper" 
-      style={{ position: 'relative', zIndex: 10000 }}
+      style={{ position: 'relative', zIndex: 999999 }}
     >
       {children}
     </div>,

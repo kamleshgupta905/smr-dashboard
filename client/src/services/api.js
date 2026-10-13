@@ -1067,6 +1067,11 @@ export const simulateTrafficCheck = (data) =>
       }
     }));
 
+export const getFraudLogs = () =>
+  api.get('/security/fraud-logs')
+    .then(res => res.data)
+    .catch(() => ({ success: true, data: [] }));
+
 // High-speed Router & Test Simulation API
 export const generateStandardVendorLink = (projectId, vendorId) =>
   api.post('/router/generate-vendor-link', { projectId, vendorId })
