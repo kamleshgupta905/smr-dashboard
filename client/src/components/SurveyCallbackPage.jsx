@@ -211,7 +211,6 @@ export default function SurveyCallbackPage() {
     eventType: 'VMH_SMR_ROUTER_SETTLEMENT_CALLBACK',
     status: statusConfig.code,
     statusLabel: statusConfig.tableStatus,
-    projectName: projectName,
     respondentUid: uid,
     vendorCode: vid,
     projectId: pid,

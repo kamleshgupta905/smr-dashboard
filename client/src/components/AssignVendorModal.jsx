@@ -58,17 +58,16 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
           const firstCode = list[0].vendor_code || list[0].vendorUid || list[0]._id;
           if (firstCode) {
             setSelectedVendor(firstCode);
-            const p = Number(list[0].cpi_percentage) || 70;
+            const p = Number(list[0].cpi_percentage) || 0;
             const initCpi = (list[0].commission_type === 'flat_rate' && list[0].cpi && Number(list[0].cpi) <= Number(currentCpi))
               ? Number(list[0].cpi)
-              : Number(((Number(currentCpi) * p) / 100).toFixed(2));
+              : (p > 0 ? Number(((Number(currentCpi) * p) / 100).toFixed(2)) : Number(currentCpi));
             setVendorCpi(initCpi);
           }
         } else {
           setVendors(DEFAULT_VENDORS);
           setSelectedVendor(DEFAULT_VENDORS[0].vendor_code);
-          const initCpi = Number(((Number(currentCpi) * 70) / 100).toFixed(2));
-          setVendorCpi(initCpi);
+          setVendorCpi(Number(currentCpi) || 1.00);
         }
       })
       .catch(() => {
@@ -404,7 +403,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                       ) : (
                         vendors.map((v) => {
                           const isRev = v.commission_type === 'revenue_share' || (!v.cpi && v.cpi_percentage);
-                          const rateLabel = isRev ? `${v.cpi_percentage || 70}% RevShare` : `$${Number(v.cpi || 0).toFixed(2)}`;
+                          const rateLabel = isRev ? `${v.cpi_percentage || 0}% RevShare` : `$${Number(v.cpi || 0).toFixed(2)}`;
                           const code = v.vendor_code || v.vendor_id || v.vendorUid || v._id || v.id;
                           return (
                             <option key={v._id || v.vendor_code || v.id} value={code}>
@@ -421,26 +420,27 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                       Allotted Vendor CPI ($):
                       {(() => {
                         const curV = vendors.find(vend => (vend.vendor_code === selectedVendor || vend.vendorUid === selectedVendor || vend._id === selectedVendor));
-                        const pct = Number(curV?.cpi_percentage) || 70;
-                        return (
+                        const pct = Number(curV?.cpi_percentage) || 0;
+                        return pct > 0 ? (
                           <span style={{ marginLeft: '5px', fontSize: '10.5px', color: '#1761FD', fontWeight: 600 }}>
                             (Auto {pct}% of ${Number(currentCpi).toFixed(2)})
                           </span>
-                        );
+                        ) : null;
                       })()}
                     </label>
                     <div style={{ position: 'relative' }}>
                       <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#16A34A', fontWeight: 700 }}>$</span>
                       <input 
-                        type="number" 
-                        step="0.05"
-                        min="0.10"
-                        max="50"
+                        type="text" 
+                        inputMode="decimal"
                         required
                         className="input-field"
                         style={{ width: '100%', paddingLeft: '24px', fontSize: '12.5px', fontWeight: 600 }}
-                        value={vendorCpi}
-                        onChange={(e) => setVendorCpi(parseFloat(e.target.value) || 0)}
+                        value={vendorCpi !== undefined && vendorCpi !== null ? vendorCpi : ''}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^0-9.]/g, '');
+                          setVendorCpi(val);
+                        }}
                       />
                     </div>
                     {/* 1-Click RevShare Quick Presets (70%, 75%, 80%) */}

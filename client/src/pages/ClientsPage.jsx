@@ -661,7 +661,28 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
                       className="input-field"
                       style={{ width: '100%' }}
                       value={formData.apiType}
-                      onChange={e => setFormData({ ...formData, apiType: e.target.value })}
+                      onChange={e => {
+                        const val = e.target.value;
+                        let autoAlgo = 'sha3-256';
+                        let autoSec = 'mx_secret_sha3_key_2026';
+                        let autoEndpoint = 'https://api.marketxcel.co.in/webservices/callback/updateRespondentStatus';
+                        if (val === 'zamplia') {
+                          autoAlgo = 'hmac-sha256';
+                          autoSec = 'zamplia_auth_token_live';
+                          autoEndpoint = 'https://api.zamplia.com/v1/surveys/callback';
+                        } else if (val === 'custom') {
+                          autoAlgo = 'none';
+                          autoSec = `${(formData.client_code || 'client').toLowerCase().replace(/[^a-z0-9]/g, '_')}_sec_2026`;
+                          autoEndpoint = 'https://api.vmhgroupsmr.com/redirects';
+                        }
+                        setFormData({
+                          ...formData,
+                          apiType: val,
+                          hashAlgorithm: autoAlgo,
+                          secretKey: autoSec,
+                          s2sEndpoint: autoEndpoint
+                        });
+                      }}
                     >
                       <option value="marketxcel">Market Xcel Demand API</option>
                       <option value="zamplia">Zamplia Supply API</option>
@@ -677,23 +698,29 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
                       value={formData.hashAlgorithm}
                       onChange={e => setFormData({ ...formData, hashAlgorithm: e.target.value })}
                     >
-                      <option value="sha3-256">SHA3-256 (Market Xcel Spec)</option>
-                      <option value="hmac-sha256">HMAC-SHA256 (Zamplia Spec)</option>
-                      <option value="none">None (Standard)</option>
+                      <option value="sha3-256">SHA3-256</option>
+                      <option value="hmac-sha256">HMAC-SHA256</option>
+                      <option value="none">None</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px' }}>Client S2S Secret Token:</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <label style={{ fontSize: '12.5px', fontWeight: 700 }}>Client S2S Secret Token:</label>
+                    <span style={{ fontSize: '11px', color: '#16A34A', fontWeight: 600 }}>🔒 Auto-Managed Background Token</span>
+                  </div>
                   <input
                     type="text"
-                    placeholder="Enter secret token for SHA3-256 hashing"
+                    placeholder="Auto-generated secure background token"
                     className="input-field"
-                    style={{ width: '100%', fontFamily: 'monospace' }}
-                    value={formData.secretKey}
+                    style={{ width: '100%', fontFamily: 'monospace', background: '#F8FAFC' }}
+                    value={formData.secretKey || `${(formData.client_code || 'client').toLowerCase().replace(/[^a-z0-9]/g, '_')}_sec_2026`}
                     onChange={e => setFormData({ ...formData, secretKey: e.target.value })}
                   />
+                  <span style={{ fontSize: '11px', color: '#64748b', marginTop: '3px', display: 'block' }}>
+                    Hashing signatures are automatically signed and applied across all projects and router links in the background.
+                  </span>
                 </div>
 
                 <div>

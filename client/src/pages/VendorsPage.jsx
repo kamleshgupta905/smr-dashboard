@@ -1216,18 +1216,23 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={{ width: '130px', position: 'relative' }}>
                           <input
-                            type="number"
-                            min="1"
-                            max="100"
+                            type="text"
+                            inputMode="decimal"
                             className="input-field"
                             style={{ width: '100%', fontSize: '12px', paddingRight: '28px' }}
-                            value={redirectForm.cpi_percentage || 70}
-                            onChange={e => setRedirectForm({ ...redirectForm, cpi_percentage: parseFloat(e.target.value) || 0 })}
+                            value={redirectForm.cpi_percentage !== undefined && redirectForm.cpi_percentage !== null ? redirectForm.cpi_percentage : ''}
+                            onChange={e => {
+                              const val = e.target.value.replace(/[^0-9.]/g, '');
+                              setRedirectForm({ ...redirectForm, cpi_percentage: val });
+                            }}
+                            placeholder="e.g. 70"
                           />
                           <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: '#64748b' }}>%</span>
                         </div>
                         <span style={{ fontSize: '11.5px', color: '#64748b' }}>
-                          Vendor receives {redirectForm.cpi_percentage || 70}% of survey CPI on each complete
+                          {redirectForm.cpi_percentage !== '' 
+                            ? `Vendor receives ${redirectForm.cpi_percentage}% of survey CPI on each complete`
+                            : 'Enter custom revenue share percentage'}
                         </span>
                       </div>
                     ) : (
@@ -1235,13 +1240,16 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
                         <div style={{ width: '130px', position: 'relative' }}>
                           <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: '#64748b' }}>$</span>
                           <input
-                            type="number"
-                            step="0.05"
-                            min="0"
+                            type="text"
+                            inputMode="decimal"
                             className="input-field"
                             style={{ width: '100%', fontSize: '12px', paddingLeft: '24px' }}
-                            value={redirectForm.cpi || 1.50}
-                            onChange={e => setRedirectForm({ ...redirectForm, cpi: parseFloat(e.target.value) || 0 })}
+                            value={redirectForm.cpi !== undefined && redirectForm.cpi !== null ? redirectForm.cpi : ''}
+                            onChange={e => {
+                              const val = e.target.value.replace(/[^0-9.]/g, '');
+                              setRedirectForm({ ...redirectForm, cpi: val });
+                            }}
+                            placeholder="1.50"
                           />
                         </div>
                         <span style={{ fontSize: '11.5px', color: '#64748b' }}>
@@ -1731,20 +1739,23 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
                           </label>
                           <div style={{ position: 'relative' }}>
                             <input 
-                              type="number" 
-                              step="1"
-                              min="1"
-                              max="100"
+                              type="text" 
+                              inputMode="decimal"
                               className="input-field" 
                               style={{ width: '100%', paddingRight: '28px' }}
                               placeholder="e.g. 70"
-                              value={formData.cpi_percentage ?? 70}
-                              onChange={e => setFormData({ ...formData, cpi_percentage: parseFloat(e.target.value) || 0 })}
+                              value={formData.cpi_percentage !== undefined && formData.cpi_percentage !== null ? formData.cpi_percentage : ''}
+                              onChange={e => {
+                                const val = e.target.value.replace(/[^0-9.]/g, '');
+                                setFormData({ ...formData, cpi_percentage: val });
+                              }}
                             />
                             <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: '#64748b' }}>%</span>
                           </div>
                           <span style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'block' }}>
-                            e.g. 70% of $2.50 CPI = $1.75 vendor payout
+                            {formData.cpi_percentage !== '' 
+                              ? `e.g. ${formData.cpi_percentage}% of $2.50 CPI = $${((2.50 * Number(formData.cpi_percentage || 0)) / 100).toFixed(2)} vendor payout` 
+                              : 'Enter custom revenue share percentage'}
                           </span>
                         </>
                       ) : (
@@ -1755,14 +1766,16 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
                           <div style={{ position: 'relative' }}>
                             <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: '#64748b' }}>$</span>
                             <input 
-                              type="number" 
-                              step="0.05"
-                              min="0"
+                              type="text" 
+                              inputMode="decimal"
                               className="input-field" 
                               style={{ width: '100%', paddingLeft: '24px' }}
                               placeholder="1.50"
-                              value={formData.cpi ?? 1.50}
-                              onChange={e => setFormData({ ...formData, cpi: parseFloat(e.target.value) || 0 })}
+                              value={formData.cpi !== undefined && formData.cpi !== null ? formData.cpi : ''}
+                              onChange={e => {
+                                const val = e.target.value.replace(/[^0-9.]/g, '');
+                                setFormData({ ...formData, cpi: val });
+                              }}
                             />
                           </div>
                           <span style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'block' }}>
