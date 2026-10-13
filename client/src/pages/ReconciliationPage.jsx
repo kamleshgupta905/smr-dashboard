@@ -26,7 +26,8 @@ import {
   Eye,
   Copy,
   Check,
-  X
+  X,
+  Target
 } from 'lucide-react';
 import {
   getReconciliationCompletes,
@@ -547,9 +548,45 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
     }
   };
 
+  const handleExportBankBatchCsv = () => {
+    const headers = [
+      'Recipient Name',
+      'Vendor ID',
+      'Payment Reference',
+      'Payout Amount ($)',
+      'Currency',
+      'Status',
+      'Study PID',
+      'Study Name',
+      'Payment Method',
+      'Bank Account / PayPal Email',
+      'Invoice Date',
+      'Audit Remarks'
+    ];
+    const rows = paymentsList.map(p => [
+      `"${(p.vendor_name || 'Vendor ' + (p.vendor_id || '')).replace(/"/g, '""')}"`,
+      `"${p.vendor_id || ''}"`,
+      `"${p.payment_id || 'PAY-' + p.id}"`,
+      Number(p.amount || 0).toFixed(2),
+      'USD',
+      `"${p.status || 'Pending'}"`,
+      `"${p.project_id || ''}"`,
+      `"${(p.project_name || '').replace(/"/g, '""')}"`,
+      `"${p.payment_method || 'Bank Batch Wire'}"`,
+      `"${p.account_details || p.vendor_email || ''}"`,
+      `"${p.created_at || ''}"`,
+      `"${(p.remarks || '').replace(/"/g, '""')}"`
+    ]);
+    exportCsv('bank_paypal_batch_settlement_file', headers, rows);
+  };
+
   const handleExportActiveTab = () => {
     if (reportTab === 'archive') {
       handleExportLegacyArchive();
+      return;
+    }
+    if (reportTab === 'payments') {
+      handleExportBankBatchCsv();
       return;
     }
     if (reportTab === 'clients') {
@@ -1414,6 +1451,16 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                     </div>
                     <button
                       type="button"
+                      className="btn btn-soft-success btn-sm"
+                      onClick={handleExportBankBatchCsv}
+                      disabled={paymentsList.length === 0}
+                      title="Download Bank / PayPal Batch Transfer File (RFC-4180 CSV)"
+                      style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, padding: '4px 10px' }}
+                    >
+                      <Download size={12} /> Bank Batch Settlement CSV
+                    </button>
+                    <button
+                      type="button"
                       className="btn btn-secondary btn-sm"
                       onClick={loadPayments}
                       title="Refresh Payments"
@@ -2152,6 +2199,122 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
 
             {/* Modal Body */}
             <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+              {/* Dynamic Quota Pacing Meter Card */}
+              {(() => {
+                const target = Number(selectedProjectDetail.target_completes || selectedProjectDetail.max_limit || 0);
+                const vendors = projectDetailData?.vendors || [];
+                const totalCompletes = vendors.reduce((acc, v) => acc + (Number(v.complete_count) || 0), 0) || Number(selectedProjectDetail.success_count || selectedProjectDetail.completes || 0);
+                const totalClicks = vendors.reduce((acc, v) => acc + (Number(v.clicks_count) || 0), 0) || Number(selectedProjectDetail.clicks_count || 0);
+                const pacingPercent = target > 0 ? Math.min(100, Math.round((totalCompletes / target) * 100)) : (totalCompletes > 0 ? 100 : 0);
+                const remainingGap = target > 0 ? Math.max(0, target - totalCompletes) : 0;
+                const totalPayout = vendors.reduce((acc, v) => acc + (Number(v.total_payout) || ((Number(v.cpi) || 0) * (Number(v.complete_count) || 0))), 0);
+                const clientRev = totalCompletes * (Number(selectedProjectDetail.cpi) || 0);
+                const margin = clientRev - totalPayout;
+
+                return (
+                  <div style={{
+                    background: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '10px',
+                    padding: '16px 20px',
+                    marginBottom: '20px'
+                  }}>
+                    {/* Top Stats Grid */}
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+                      gap: '12px',
+                      marginBottom: '14px'
+                    }}>
+                      <div style={{ background: '#FFFFFF', padding: '10px 14px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Target Quota</div>
+                        <div style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
+                          {target > 0 ? target.toLocaleString() : 'Open / Uncapped'}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#8997BD', marginTop: '2px' }}>Client Goal</div>
+                      </div>
+
+                      <div style={{ background: '#FFFFFF', padding: '10px 14px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Delivered Completes</div>
+                        <div style={{ fontSize: '18px', fontWeight: 800, color: '#10B981', marginTop: '2px' }}>
+                          {totalCompletes.toLocaleString()}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#10B981', marginTop: '2px', fontWeight: 600 }}>
+                          {pacingPercent}% Fulfilled
+                        </div>
+                      </div>
+
+                      <div style={{ background: '#FFFFFF', padding: '10px 14px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Remaining Gap</div>
+                        <div style={{ fontSize: '18px', fontWeight: 800, color: remainingGap === 0 ? '#10B981' : '#EA580C', marginTop: '2px' }}>
+                          {target > 0 ? remainingGap.toLocaleString() : '0'}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                          {remainingGap === 0 ? 'Goal Completed' : 'Completes Needed'}
+                        </div>
+                      </div>
+
+                      <div style={{ background: '#FFFFFF', padding: '10px 14px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Delivery Margin</div>
+                        <div style={{ fontSize: '18px', fontWeight: 800, color: margin >= 0 ? '#10B981' : '#DC2626', marginTop: '2px' }}>
+                          ${margin.toFixed(2)}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                          Rev: ${clientRev.toFixed(2)} &bull; Cost: ${totalPayout.toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Visual Quota Pacing Meter Bar */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
+                          <Target size={14} color="#1761FD" />
+                          <span>Dynamic Quota Pacing Meter</span>
+                        </div>
+                        <div style={{ fontSize: '12px', fontWeight: 800, color: pacingPercent >= 100 ? '#10B981' : '#1761FD' }}>
+                          {pacingPercent}% Full
+                        </div>
+                      </div>
+
+                      <div style={{
+                        width: '100%',
+                        height: '10px',
+                        background: '#E2E8F0',
+                        borderRadius: '5px',
+                        overflow: 'hidden',
+                        position: 'relative'
+                      }}>
+                        <div style={{
+                          width: `${pacingPercent}%`,
+                          height: '100%',
+                          background: pacingPercent >= 100 
+                            ? 'linear-gradient(90deg, #10B981 0%, #059669 100%)' 
+                            : pacingPercent >= 70 
+                              ? 'linear-gradient(90deg, #1761FD 0%, #0284C7 100%)' 
+                              : 'linear-gradient(90deg, #F59E0B 0%, #EA580C 100%)',
+                          borderRadius: '5px',
+                          transition: 'width 0.4s ease'
+                        }} />
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B', marginTop: '6px' }}>
+                        <span>Inbound Clicks: <strong>{totalClicks.toLocaleString()}</strong></span>
+                        <span>
+                          Status: {pacingPercent >= 100 ? (
+                            <strong style={{ color: '#10B981' }}>🎯 Target Completed</strong>
+                          ) : pacingPercent >= 75 ? (
+                            <strong style={{ color: '#1761FD' }}>🚀 Rapid Pacing</strong>
+                          ) : (
+                            <strong style={{ color: '#D97706' }}>⚡ Active Pacing</strong>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Sub-header & Filter Bar */}
               <div style={{
                 display: 'flex',

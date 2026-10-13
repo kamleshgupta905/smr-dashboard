@@ -803,22 +803,53 @@ export const deleteProject = async (id) => {
   return { success: true };
 };
 
-export const getVendors = async () => {
+export const getVendors = async (params = {}) => {
   try {
-    const res = await api.get('/manage/vendors');
+    const res = await api.get('/manage/vendors', { params });
     const remote = res.data?.data;
-    if (Array.isArray(remote) && remote.length > 0) {
-      setLocalData('smr_custom_vendors', remote);
-      return { success: true, data: remote, totalVendors: res.data?.totalVendors || remote.length };
+    if (Array.isArray(remote)) {
+      if (!params.search && (!params.page || params.page === 1)) {
+        setLocalData('smr_custom_vendors', remote);
+      }
+      return {
+        success: true,
+        data: remote,
+        totalVendors: res.data?.totalVendors || remote.length,
+        totalFiltered: res.data?.totalFiltered || remote.length,
+        page: res.data?.page || 1,
+        limit: res.data?.limit || 25,
+        totalPages: res.data?.totalPages || 1
+      };
     }
   } catch (err) {
     console.error('Failed to fetch vendors from API:', err);
   }
-  const local = getLocalData('smr_custom_vendors', null);
-  if (local && Array.isArray(local) && local.length > 0 && !local.some(v => v.name?.includes('Dynata Global Panel'))) {
-    return { success: true, data: local };
+  const local = getLocalData('smr_custom_vendors', []);
+  return { success: true, data: Array.isArray(local) ? local : [], totalVendors: (local || []).length, totalFiltered: (local || []).length, totalPages: 1 };
+};
+
+export const getAllVendors = async () => {
+  try {
+    const res = await api.get('/manage/vendors', { params: { limit: 'all' } });
+    return res.data?.data || [];
+  } catch (e) {
+    console.error('Failed to fetch all vendors:', e);
+    return [];
   }
-  return { success: true, data: [] };
+};
+
+export const getVendorAuditLogs = async (vendorId) => {
+  try {
+    const res = await api.get('/manage/vendors/audit', { params: { vendor_id: vendorId } });
+    return res.data?.data || [];
+  } catch (e) {
+    return [];
+  }
+};
+
+export const bulkAssignSurveys = async (payload) => {
+  const res = await api.post('/vendor/bulk-assign', payload);
+  return res.data;
 };
 
 export const createVendor = async (data) => {

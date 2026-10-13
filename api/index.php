@@ -1711,6 +1711,155 @@ if ($normalizedRoute === 'zamplia/reconciliation') {
 }
 
 // -------------------------------------------------------------
+// 6f. Multi-Study Bulk Assignment to Vendor API
+// -------------------------------------------------------------
+if ($normalizedRoute === 'vendor/bulk-assign' || $normalizedRoute === 'manage/vendors/bulk-assign') {
+    if ($method !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+        exit;
+    }
+
+    $db = getDbConnection();
+    if (!$db) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Database connection unavailable']);
+        exit;
+    }
+
+    $vendorId = trim($body['vendor_id'] ?? '');
+    $surveyIds = $body['survey_ids'] ?? [];
+    $cpiMode = $body['cpi_mode'] ?? 'rev_share'; // 'rev_share' | 'custom_cpi' | 'default'
+    $customValue = isset($body['cpi_value']) && $body['cpi_value'] !== '' ? (float)$body['cpi_value'] : null;
+    $quotaLimit = isset($body['quota_limit']) ? (int)$body['quota_limit'] : 0;
+
+    if (empty($vendorId) || empty($surveyIds) || !is_array($surveyIds)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'vendor_id and array of survey_ids are required']);
+        exit;
+    }
+
+    try {
+        // Fetch vendor baseline
+        $vStmt = $db->prepare("SELECT name, email, cpi, cpi_percentage FROM vendor WHERE vendor_id = ? LIMIT 1");
+        $vStmt->execute([$vendorId]);
+        $vendor = $vStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$vendor) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => "Vendor {$vendorId} not found in database"]);
+            exit;
+        }
+
+        $vendorName = $vendor['name'] ?? 'Supplier';
+        $vendorEmail = $vendor['email'] ?? '';
+        $vendorRevShare = (float)($vendor['cpi_percentage'] ?? 70.0);
+
+        // Fetch vendor redirects
+        $vlStmt = $db->prepare("SELECT success, terminate, quotafull, screenout FROM vendorlists WHERE vendor_id = ? ORDER BY id DESC LIMIT 1");
+        $vlStmt->execute([$vendorId]);
+        $vl = $vlStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        $origin = 'https://smr.vmhgroupsmr.com';
+        $rc = !empty($vl['success']) ? $vl['success'] : "{$origin}/survey/callback?status=10&vid={$vendorId}&hash=[HASH]&uid=[UID]";
+        $rt = !empty($vl['terminate']) ? $vl['terminate'] : "{$origin}/survey/callback?status=20&vid={$vendorId}&hash=[HASH]&uid=[UID]";
+        $ro = !empty($vl['quotafull']) ? $vl['quotafull'] : "{$origin}/survey/callback?status=30&vid={$vendorId}&hash=[HASH]&uid=[UID]";
+        $rs = !empty($vl['screenout']) ? $vl['screenout'] : "{$origin}/survey/callback?status=40&vid={$vendorId}&hash=[HASH]&uid=[UID]";
+
+        $assignedResults = [];
+
+        foreach ($surveyIds as $sid) {
+            $sid = trim((string)$sid);
+            if (empty($sid)) continue;
+
+            // Fetch study details if exists in projects table
+            $pStmt = $db->prepare("SELECT id, project_id, name, cost_per_complete FROM projects WHERE id = ? OR project_id = ? LIMIT 1");
+            $pStmt->execute([$sid, $sid]);
+            $proj = $pStmt->fetch(PDO::FETCH_ASSOC);
+
+            $clientCpi = $proj ? (float)$proj['cost_per_complete'] : 2.50;
+            $projCode = $proj ? $proj['project_id'] : $sid;
+            $projName = $proj ? $proj['name'] : "Survey Study #{$sid}";
+
+            // Calculate CPI for this assignment
+            if ($cpiMode === 'custom_cpi' && $customValue !== null && $customValue > 0) {
+                $finalCpi = round($customValue, 2);
+            } elseif ($cpiMode === 'rev_share' && $customValue !== null && $customValue > 0) {
+                $finalCpi = round(($clientCpi * $customValue) / 100, 2);
+            } else {
+                $finalCpi = round(($clientCpi * $vendorRevShare) / 100, 2);
+            }
+            if ($finalCpi <= 0) $finalCpi = 0.70;
+
+            // Generate entry link
+            $entryLink = "{$origin}/vendor/auth/{$vendorId}/project/{$projCode}?uid=[RESPONDENT_ID]";
+
+            // Check if already in vendorlists
+            $chkAssignment = $db->prepare("SELECT id FROM vendorlists WHERE vendor_id = ? AND project_id = ? LIMIT 1");
+            $chkAssignment->execute([$vendorId, $projCode]);
+            $existingId = $chkAssignment->fetchColumn();
+
+            if ($existingId) {
+                $db->prepare("
+                    UPDATE vendorlists 
+                    SET cpi = ?, max_limit = ?, updated_at = NOW()
+                    WHERE id = ?
+                ")->execute([$finalCpi, $quotaLimit, $existingId]);
+                $assignmentId = $existingId;
+            } else {
+                $insAllot = $db->prepare("
+                    INSERT INTO vendorlists (
+                        vendor_id, project_id, name, email, cpi, max_limit,
+                        success, terminate, quotafull, screenout, created_at, updated_at
+                    ) VALUES (
+                        ?, ?, ?, ?, ?, ?,
+                        ?, ?, ?, ?, NOW(), NOW()
+                    )
+                ");
+                $insAllot->execute([
+                    $vendorId, $projCode, $vendorName, $vendorEmail, $finalCpi, $quotaLimit,
+                    $rc, $rt, $ro, $rs
+                ]);
+                $assignmentId = (int)$db->lastInsertId();
+            }
+
+            $assignedResults[] = [
+                'assignment_id' => $assignmentId,
+                'project_id' => $projCode,
+                'project_name' => $projName,
+                'client_cpi' => $clientCpi,
+                'vendor_cpi' => $finalCpi,
+                'quota_limit' => $quotaLimit,
+                'entry_link' => $entryLink
+            ];
+        }
+
+        // Log bulk activity in MySQL log_table
+        logActivity($db, 'vendorlists', $vendorId, 'Bulk Allotment', [
+            'vendor_id' => $vendorId,
+            'vendor_name' => $vendorName,
+            'total_studies_assigned' => count($assignedResults),
+            'study_ids' => array_column($assignedResults, 'project_id'),
+            'admin' => 'Vmhgroup Super Admin',
+            'timestamp' => date('Y-m-d H:i:s')
+        ]);
+
+        echo json_encode([
+            'success' => true,
+            'message' => "Successfully assigned " . count($assignedResults) . " studies to {$vendorName} ({$vendorId})",
+            'count' => count($assignedResults),
+            'vendor_id' => $vendorId,
+            'vendor_name' => $vendorName,
+            'data' => $assignedResults
+        ]);
+        exit;
+    } catch (Throwable $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Bulk allotment failed: ' . $e->getMessage()]);
+        exit;
+    }
+}
+
+// -------------------------------------------------------------
 // 7. Vendors Management Store (Real MySQL Integration)
 // -------------------------------------------------------------
 $vendorsFile = $DATA_DIR . '/vendors.json';
@@ -1777,6 +1926,14 @@ if ($normalizedRoute === 'manage/vendors' || str_starts_with($normalizedRoute, '
                     ");
                     $ins->execute([$code, $name, $email, $cpi, $commType, $cpiPercentage]);
                 } else {
+                    $oldPercentage = 70.0;
+                    try {
+                        $chkStmt = $db->prepare("SELECT COALESCE(NULLIF(cpi_percentage, 0), 70.00) FROM vendor WHERE vendor_id = ? LIMIT 1");
+                        $chkStmt->execute([$code]);
+                        $oldVal = $chkStmt->fetchColumn();
+                        if ($oldVal !== false && $oldVal !== null) $oldPercentage = (float)$oldVal;
+                    } catch (Throwable $e) {}
+
                     // Update all existing project assignments for this vendor
                     $upd = $db->prepare("
                         UPDATE vendor 
@@ -1790,6 +1947,17 @@ if ($normalizedRoute === 'manage/vendors' || str_starts_with($normalizedRoute, '
                         WHERE vendor_id = ?
                     ");
                     $upd->execute([$name, $email, $cpi, $commType, $cpiPercentage, $code]);
+
+                    if (abs($oldPercentage - $cpiPercentage) > 0.01) {
+                        logActivity($db, 'vendor', $code, 'RevShare Update', [
+                            'vendor_id' => $code,
+                            'vendor_name' => $name,
+                            'old_rev_share' => $oldPercentage,
+                            'new_rev_share' => $cpiPercentage,
+                            'changed_by' => 'Vmhgroup Super Admin',
+                            'timestamp' => date('Y-m-d H:i:s')
+                        ]);
+                    }
                 }
 
                 // Sync to vendorlists table (callbacks)
@@ -1876,6 +2044,32 @@ if ($normalizedRoute === 'manage/vendors' || str_starts_with($normalizedRoute, '
         exit;
     }
 
+    // GET: Audit Log for a Specific Vendor
+    if (str_starts_with($normalizedRoute, 'manage/vendors/audit')) {
+        $vid = trim($_GET['vendor_id'] ?? '');
+        $auditLogs = [];
+        if ($db && $vid) {
+            try {
+                $aStmt = $db->prepare("
+                    SELECT id, action, data, ip_address, browser, date
+                    FROM log_table
+                    WHERE (table_name = 'vendor' OR table_name = 'vendorlists') AND row_id = ?
+                    ORDER BY id DESC LIMIT 20
+                ");
+                $aStmt->execute([$vid]);
+                $auditLogs = $aStmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($auditLogs as &$al) {
+                    if (!empty($al['data']) && is_string($al['data'])) {
+                        $dec = json_decode($al['data'], true);
+                        if (is_array($dec)) $al['data'] = $dec;
+                    }
+                }
+            } catch (Throwable $e) {}
+        }
+        echo json_encode(['success' => true, 'data' => $auditLogs]);
+        exit;
+    }
+
     // GET: Support count
     if (isset($_GET['count']) && $db) {
         try {
@@ -1885,7 +2079,7 @@ if ($normalizedRoute === 'manage/vendors' || str_starts_with($normalizedRoute, '
         } catch (Throwable $e) {}
     }
 
-    // GET: Search or Fetch All Vendors from Real MySQL
+    // GET: Search or Fetch All Vendors from Real MySQL with Server-Side Pagination
     if ($db) {
         try {
             $search = trim($_GET['search'] ?? '');
@@ -1895,6 +2089,17 @@ if ($normalizedRoute === 'manage/vendors' || str_starts_with($normalizedRoute, '
                 $where .= " AND (v.name LIKE ? OR v.vendor_id LIKE ? OR v.email LIKE ?)";
                 $params = ["%{$search}%", "%{$search}%", "%{$search}%"];
             }
+
+            // Pagination parameters
+            $page = max(1, (int)($_GET['page'] ?? 1));
+            $rawLimit = $_GET['limit'] ?? '25';
+            $limit = ($rawLimit === 'all' || (int)$rawLimit >= 900) ? 1000 : max(10, min(250, (int)$rawLimit));
+            $offset = ($page - 1) * $limit;
+
+            $countSql = "SELECT COUNT(DISTINCT v.vendor_id) FROM vendor v WHERE {$where}";
+            $countStmt = $db->prepare($countSql);
+            $countStmt->execute($params);
+            $totalFiltered = (int)$countStmt->fetchColumn();
 
             $sql = "
                 SELECT 
@@ -1923,7 +2128,7 @@ if ($normalizedRoute === 'manage/vendors' || str_starts_with($normalizedRoute, '
                 WHERE {$where}
                 GROUP BY v.vendor_id
                 ORDER BY SUM(v.complete_count) DESC, MAX(v.id) DESC
-                LIMIT 250
+                LIMIT {$limit} OFFSET {$offset}
             ";
             $stmt = $db->prepare($sql);
             $stmt->execute($params);
@@ -1952,13 +2157,23 @@ if ($normalizedRoute === 'manage/vendors' || str_starts_with($normalizedRoute, '
                 $row['countries']        = $settings['countries'] ?? [];
                 $row['blocked_clients']  = $settings['blocked_clients'] ?? [];
                 $row['contacts']         = $settings['contacts'] ?? [];
+                $row['last_revshare_change'] = $settings['last_revshare_change'] ?? null;
+                $row['last_revshare_previous'] = $settings['last_revshare_previous'] ?? null;
 
                 $vendors[] = $row;
             }
 
             $totalVendors = (int)$db->query("SELECT COUNT(DISTINCT vendor_id) FROM vendor WHERE is_active = 'Y'")->fetchColumn();
 
-            echo json_encode(['success' => true, 'data' => $vendors, 'totalVendors' => $totalVendors]);
+            echo json_encode([
+                'success' => true,
+                'data' => $vendors,
+                'totalVendors' => $totalVendors,
+                'totalFiltered' => $totalFiltered,
+                'page' => $page,
+                'limit' => $limit,
+                'totalPages' => max(1, ceil($totalFiltered / $limit))
+            ]);
             exit;
         } catch (Throwable $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);

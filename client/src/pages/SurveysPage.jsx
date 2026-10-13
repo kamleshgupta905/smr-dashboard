@@ -8,11 +8,14 @@ import {
 import { normalizeSurveys } from '../utils/normalize';
 import DemandProjectModal from '../components/DemandProjectModal';
 import DuplicateProjectModal from '../components/DuplicateProjectModal';
+import BulkAssignModal from '../components/BulkAssignModal';
 import { exportSurveysInventoryToExcel } from '../utils/excelExport';
 
 export default function SurveysPage({ surveys = [], globalSearch = '', loading, onRefresh, onAddSurvey, onOpenQuotas, onOpenQuals, onOpenAssign }) {
   const [demandModalOpen, setDemandModalOpen] = useState(false);
   const [duplicateModalProject, setDuplicateModalProject] = useState(null);
+  const [selectedSurveyIds, setSelectedSurveyIds] = useState(new Set());
+  const [showBulkModal, setShowBulkModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('ALL');
   const [selectedChannel, setSelectedChannel] = useState('ALL');
@@ -93,6 +96,42 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
   const totalPages = Math.ceil(filtered.length / pageSize) || 1;
   const paginatedSurveys = filtered.slice((page - 1) * pageSize, page * pageSize);
 
+  const pageSurveyIds = useMemo(() => paginatedSurveys.map(s => s.survey_id), [paginatedSurveys]);
+  const isAllPageSelected = pageSurveyIds.length > 0 && pageSurveyIds.every(id => selectedSurveyIds.has(id));
+  const isSomePageSelected = pageSurveyIds.some(id => selectedSurveyIds.has(id)) && !isAllPageSelected;
+
+  const handleToggleSelectAllPage = () => {
+    setSelectedSurveyIds(prev => {
+      const next = new Set(prev);
+      if (isAllPageSelected) {
+        pageSurveyIds.forEach(id => next.delete(id));
+      } else {
+        pageSurveyIds.forEach(id => next.add(id));
+      }
+      return next;
+    });
+  };
+
+  const handleToggleSelect = (id) => {
+    setSelectedSurveyIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleClearSelection = () => {
+    setSelectedSurveyIds(new Set());
+  };
+
+  const selectedSurveysList = useMemo(() => {
+    return normalized.filter(s => selectedSurveyIds.has(s.survey_id));
+  }, [normalized, selectedSurveyIds]);
+
   const toggleExpand = (id) => {
     setExpandedId(prev => prev === id ? null : id);
   };
@@ -140,6 +179,15 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
         </div>
 
         <div className="title-box-actions">
+          {selectedSurveyIds.size > 0 && (
+            <button
+              className="btn btn-primary"
+              onClick={() => setShowBulkModal(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, padding: '7px 14px', background: '#4361EE' }}
+            >
+              <Share2 size={13} /> Bulk Assign ({selectedSurveyIds.size} Selected)
+            </button>
+          )}
           <button
             className="btn btn-primary"
             onClick={() => setDemandModalOpen(true)}
@@ -261,6 +309,16 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
           <table className="custom-table" style={{ width: '100%', minWidth: '1280px' }}>
             <thead className="thead-light">
               <tr>
+                <th style={{ width: '42px', textAlign: 'center', padding: '8px 4px' }}>
+                  <input
+                    type="checkbox"
+                    checked={isAllPageSelected}
+                    ref={el => { if (el) el.indeterminate = isSomePageSelected; }}
+                    onChange={handleToggleSelectAllPage}
+                    title="Select all surveys on this page"
+                    style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#4361EE' }}
+                  />
+                </th>
                 <th style={{ width: '38px', textAlign: 'center' }}>#</th>
                 <th style={{ minWidth: '220px' }}>Survey Name & ID</th>
                 <th>Client</th>
@@ -276,7 +334,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="10" style={{ textAlign: 'center', padding: '60px 20px', color: '#64748B' }}>
+                  <td colSpan="11" style={{ textAlign: 'center', padding: '60px 20px', color: '#64748B' }}>
                     <div className="spinner" style={{ margin: '0 auto 12px auto' }}></div>
                     Synchronizing live inventory from Zamplia & Market Xcel...
                   </td>
@@ -296,10 +354,19 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                       <tr 
                         style={{ 
                           borderBottom: isExpanded ? 'none' : '1px solid #E2E8F0',
-                          background: isExpanded ? '#F8FAFC' : 'transparent',
+                          background: isExpanded ? '#F8FAFC' : selectedSurveyIds.has(s.survey_id) ? 'rgba(67, 97, 238, 0.04)' : 'transparent',
                           transition: 'background 0.15s'
                         }}
                       >
+                        <td style={{ textAlign: 'center', padding: '8px 4px' }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedSurveyIds.has(s.survey_id)}
+                            onChange={() => handleToggleSelect(s.survey_id)}
+                            title={`Select survey ${s.survey_id}`}
+                            style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#4361EE' }}
+                          />
+                        </td>
                         <td style={{ textAlign: 'center', color: '#94A3B8', fontSize: '12px' }}>
                           {globalIdx}
                         </td>
@@ -438,7 +505,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                       {/* Expandable Deep Specification View */}
                       {isExpanded && (
                         <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #CBD5E1' }}>
-                          <td colSpan="10" style={{ padding: '16px 24px' }}>
+                          <td colSpan="11" style={{ padding: '16px 24px' }}>
                             <div style={{
                               background: '#FFFFFF',
                               borderRadius: '8px',
@@ -486,7 +553,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                 })
               ) : (
                 <tr>
-                  <td colSpan="10" style={{ textAlign: 'center', padding: '50px 20px', color: '#64748B' }}>
+                  <td colSpan="11" style={{ textAlign: 'center', padding: '50px 20px', color: '#64748B' }}>
                     <AlertCircle size={32} style={{ margin: '0 auto 8px auto', display: 'block', opacity: 0.5, color: '#EA580C' }} />
                     <div style={{ fontWeight: 700, color: '#0F172A', marginBottom: '4px', fontSize: '14px' }}>
                       No allocated surveys match your filter criteria.
@@ -644,6 +711,113 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
               studyType: 'Consumer'
             });
           }
+          if (onRefresh) onRefresh();
+        }}
+      />
+
+      {/* Floating Bulk Action Bar */}
+      {selectedSurveyIds.size > 0 && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 9999,
+          background: '#0F172A',
+          color: '#FFFFFF',
+          padding: '10px 20px',
+          borderRadius: '50px',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+          backdropFilter: 'blur(10px)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600 }}>
+            <span style={{
+              background: '#4361EE',
+              color: '#FFFFFF',
+              borderRadius: '50%',
+              width: '24px',
+              height: '24px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '11.5px',
+              fontWeight: 800
+            }}>
+              {selectedSurveyIds.size}
+            </span>
+            <span>surveys selected</span>
+          </div>
+
+          <div style={{ height: '20px', width: '1px', background: 'rgba(255,255,255,0.2)' }} />
+
+          <button
+            onClick={() => setShowBulkModal(true)}
+            style={{
+              background: '#4361EE',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '30px',
+              padding: '7px 18px',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 2px 8px rgba(67, 97, 238, 0.4)'
+            }}
+          >
+            <Share2 size={13} /> Bulk Assign to Vendor
+          </button>
+
+          {selectedSurveyIds.size < filtered.length && (
+            <button
+              onClick={() => {
+                const all = new Set(filtered.map(s => s.survey_id));
+                setSelectedSurveyIds(all);
+              }}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                color: '#E2E8F0',
+                border: 'none',
+                borderRadius: '30px',
+                padding: '6px 12px',
+                fontSize: '11.5px',
+                cursor: 'pointer'
+              }}
+            >
+              Select All {filtered.length}
+            </button>
+          )}
+
+          <button
+            onClick={handleClearSelection}
+            style={{
+              background: 'transparent',
+              color: '#94A3B8',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '30px',
+              padding: '6px 12px',
+              fontSize: '11.5px',
+              cursor: 'pointer'
+            }}
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
+      {/* Enterprise Bulk Assignment Modal */}
+      <BulkAssignModal
+        isOpen={showBulkModal}
+        selectedSurveys={selectedSurveysList}
+        onClose={() => setShowBulkModal(false)}
+        onSuccess={() => {
+          setSelectedSurveyIds(new Set());
+          setShowBulkModal(false);
           if (onRefresh) onRefresh();
         }}
       />
