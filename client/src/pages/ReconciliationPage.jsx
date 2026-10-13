@@ -35,6 +35,8 @@ import {
   getVendorAllotments,
   getLegacyStats,
   getLegacyProjects,
+  getPayments,
+  updatePaymentStatus,
   DEFAULT_VENDORS,
   DEFAULT_PROJECTS
 } from '../services/api';
@@ -135,6 +137,65 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
   const [legacyPage, setLegacyPage] = useState(1);
   const [legacyLimit, setLegacyLimit] = useState(25);
   const [legacyStatusFilter, setLegacyStatusFilter] = useState('ALL');
+
+  // Real Payments State (2,245 MySQL Records)
+  const [paymentsList, setPaymentsList] = useState([]);
+  const [paymentsSummary, setPaymentsSummary] = useState({
+    total_count: 2245,
+    total_payout: 8662.10,
+    total_paid: 39.00,
+    total_pending: 8623.10,
+    total_rejected: 0.00,
+    count_paid: 1,
+    count_pending: 2240,
+    count_rejected: 4
+  });
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('ALL');
+  const [paymentsPage, setPaymentsPage] = useState(1);
+  const [paymentsLimit, setPaymentsLimit] = useState(25);
+  const [updatingPaymentId, setUpdatingPaymentId] = useState(null);
+
+  const loadPayments = async () => {
+    setPaymentsLoading(true);
+    try {
+      const res = await getPayments({
+        status: paymentStatusFilter !== 'ALL' ? paymentStatusFilter : undefined,
+        search: searchTerm || undefined,
+        limit: paymentsLimit,
+        offset: (paymentsPage - 1) * paymentsLimit
+      });
+      if (res?.success) {
+        setPaymentsList(res.data || []);
+        if (res.summary) setPaymentsSummary(res.summary);
+      }
+    } catch (err) {
+      console.error('Failed to load payments:', err);
+    } finally {
+      setPaymentsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (reportTab === 'payments') {
+      loadPayments();
+    }
+  }, [reportTab, paymentStatusFilter, paymentsPage, paymentsLimit, searchTerm]);
+
+  const handleUpdatePaymentStatus = async (id, newStatus) => {
+    setUpdatingPaymentId(id);
+    try {
+      const res = await updatePaymentStatus({ id, status: newStatus });
+      if (res?.success) {
+        setPaymentsList(prev => prev.map(p => (p.id === id ? { ...p, status: newStatus } : p)));
+        loadPayments();
+      }
+    } catch (err) {
+      alert('Error updating payment status: ' + (err.message || 'Server error'));
+    } finally {
+      setUpdatingPaymentId(null);
+    }
+  };
 
   useEffect(() => {
     if (reportTab === 'archive') {
@@ -611,6 +672,18 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
               <span>5. Legacy Database Archive</span>
               <span style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '4px', background: 'rgba(23, 97, 253, 0.15)', color: '#1761fd', fontWeight: 800 }}>
                 1,554
+              </span>
+            </button>
+
+            <button
+              className={`timeframe-btn ${reportTab === 'payments' ? 'active' : ''}`}
+              onClick={() => { setReportTab('payments'); setSearchTerm(''); }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 16px', fontSize: '12px', fontWeight: 700 }}
+            >
+              <DollarSign size={14} color="#10b981" />
+              <span>6. Vendor Payments & Payouts</span>
+              <span style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', fontWeight: 800 }}>
+                2,245
               </span>
             </button>
           </div>
@@ -1198,6 +1271,242 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                       className="btn btn-secondary btn-sm"
                       disabled={legacyPage * legacyLimit >= legacyTotal || legacyLoading}
                       onClick={() => setLegacyPage(p => p + 1)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', padding: '5px 10px' }}
+                    >
+                      Next <ChevronRight size={13} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 6. Vendor Payments & Payout Reconciliation (Real MySQL `payments`) */}
+            {reportTab === 'payments' && (
+              <div>
+                {/* Financial Overview Sub-header */}
+                <div style={{ padding: '16px 20px', background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Filter Status:</span>
+                    {['ALL', 'Pending', 'Paid', 'Rejected'].map(st => {
+                      const count = st === 'ALL' ? (paymentsSummary.total_count || 0) :
+                                    st === 'Pending' ? (paymentsSummary.count_pending || 0) :
+                                    st === 'Paid' ? (paymentsSummary.count_paid || 0) :
+                                    (paymentsSummary.count_rejected || 0);
+                      const active = paymentStatusFilter === st;
+                      return (
+                        <button
+                          key={st}
+                          type="button"
+                          className={`btn btn-sm ${active ? 'btn-primary' : 'btn-secondary'}`}
+                          onClick={() => { setPaymentStatusFilter(st); setPaymentsPage(1); }}
+                          style={{ fontSize: '11px', padding: '3px 10px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                        >
+                          <span>{st === 'ALL' ? 'All Invoices' : st}</span>
+                          <span style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '10px', background: active ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.06)' }}>
+                            {count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      Pending: <strong style={{ color: '#d97706' }}>${parseFloat(paymentsSummary.total_pending || 0).toFixed(2)}</strong>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      Settled Paid: <strong style={{ color: '#10b981' }}>${parseFloat(paymentsSummary.total_paid || 0).toFixed(2)}</strong>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      onClick={loadPayments}
+                      title="Refresh Payments"
+                      style={{ padding: '4px 8px', fontSize: '11px' }}
+                    >
+                      <RefreshCw size={12} className={paymentsLoading ? 'animate-spin' : ''} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Payments Table */}
+                <div className="table-wrapper" style={{ margin: 0, border: 'none', borderRadius: 0 }}>
+                  <table className="custom-table" style={{ width: '100%' }}>
+                    <thead className="thead-light">
+                      <tr>
+                        <th>Invoice / Payment ID</th>
+                        <th>Associated Study</th>
+                        <th>Partner Vendor</th>
+                        <th style={{ textAlign: 'right' }}>Payout Due</th>
+                        <th style={{ textAlign: 'center' }}>Settlement Status</th>
+                        <th>Remarks / Audit Note</th>
+                        <th>Invoice Date</th>
+                        <th style={{ textAlign: 'center' }}>Reconcile Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paymentsLoading ? (
+                        <tr>
+                          <td colSpan="8" style={{ textAlign: 'center', padding: '50px 20px', color: '#64748b' }}>
+                            <div className="spinner" style={{ margin: '0 auto 12px' }} />
+                            Loading live payout records from MySQL database...
+                          </td>
+                        </tr>
+                      ) : paymentsList.length === 0 ? (
+                        <tr>
+                          <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: '#8997bd' }}>
+                            No payment records found matching current criteria.
+                          </td>
+                        </tr>
+                      ) : (
+                        paymentsList.map(pay => {
+                          const isUpdating = updatingPaymentId === pay.id;
+                          return (
+                            <tr key={pay.id || pay.payment_id}>
+                              <td>
+                                <div style={{ fontWeight: 700, fontFamily: 'monospace', color: '#1761fd', fontSize: '12.5px' }}>
+                                  {pay.payment_id}
+                                </div>
+                                <span style={{ fontSize: '10.5px', color: '#8997bd' }}>
+                                  Ref #{pay.id}
+                                </span>
+                              </td>
+                              <td>
+                                <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '12.5px' }}>
+                                  {pay.project_name || `Study #${pay.project_id}`}
+                                </div>
+                                {pay.project_code && (
+                                  <span style={{ fontSize: '10.5px', color: '#64748b', fontFamily: 'monospace' }}>
+                                    {pay.project_code}
+                                  </span>
+                                )}
+                              </td>
+                              <td>
+                                <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '12px' }}>
+                                  {pay.vendor_name || `Vendor #${pay.vendor_id}`}
+                                </div>
+                              </td>
+                              <td style={{ textAlign: 'right' }}>
+                                <span style={{ fontWeight: 800, fontSize: '13px', color: parseFloat(pay.amount) > 0 ? '#10b981' : '#64748b' }}>
+                                  ${parseFloat(pay.amount || 0).toFixed(2)}
+                                </span>
+                              </td>
+                              <td style={{ textAlign: 'center' }}>
+                                <span style={{
+                                  padding: '3px 10px',
+                                  borderRadius: '20px',
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '5px',
+                                  background: pay.status === 'Paid' ? 'rgba(16, 185, 129, 0.12)' : pay.status === 'Rejected' ? 'rgba(239, 68, 68, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+                                  color: pay.status === 'Paid' ? '#10b981' : pay.status === 'Rejected' ? '#ef4444' : '#d97706'
+                                }}>
+                                  <span className="pulse-dot" style={{ background: pay.status === 'Paid' ? '#10b981' : pay.status === 'Rejected' ? '#ef4444' : '#d97706' }} />
+                                  {pay.status}
+                                </span>
+                              </td>
+                              <td>
+                                <span style={{ fontSize: '11.5px', color: '#64748b' }}>
+                                  {pay.remarks || '—'}
+                                </span>
+                              </td>
+                              <td>
+                                <span style={{ fontSize: '11.5px', color: '#475569' }}>
+                                  {pay.date ? pay.date.replace('T', ' ').substring(0, 16) : '—'}
+                                </span>
+                              </td>
+                              <td style={{ textAlign: 'center' }}>
+                                <div style={{ display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
+                                  {pay.status !== 'Paid' && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-soft-success btn-sm"
+                                      disabled={isUpdating}
+                                      onClick={() => handleUpdatePaymentStatus(pay.id, 'Paid')}
+                                      style={{ padding: '3px 8px', fontSize: '10.5px', fontWeight: 600, borderRadius: '4px' }}
+                                      title="Mark invoice as Paid"
+                                    >
+                                      ✓ Settle
+                                    </button>
+                                  )}
+                                  {pay.status !== 'Pending' && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-soft-secondary btn-sm"
+                                      disabled={isUpdating}
+                                      onClick={() => handleUpdatePaymentStatus(pay.id, 'Pending')}
+                                      style={{ padding: '3px 8px', fontSize: '10.5px', borderRadius: '4px' }}
+                                      title="Reset status to Pending"
+                                    >
+                                      Hold
+                                    </button>
+                                  )}
+                                  {pay.status !== 'Rejected' && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-soft-danger btn-sm"
+                                      disabled={isUpdating}
+                                      onClick={() => handleUpdatePaymentStatus(pay.id, 'Rejected')}
+                                      style={{ padding: '3px 8px', fontSize: '10.5px', borderRadius: '4px' }}
+                                      title="Reject / Dispute invoice"
+                                    >
+                                      ✕ Reject
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Payments Pagination Bar */}
+                <div style={{
+                  padding: '12px 20px',
+                  borderTop: '1px solid #E2E8F0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  background: '#F8FAFC'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748B' }}>
+                    <span>Showing</span>
+                    <select
+                      className="input-control"
+                      value={paymentsLimit}
+                      onChange={e => { setPaymentsLimit(Number(e.target.value)); setPaymentsPage(1); }}
+                      style={{ height: '30px', fontSize: '11.5px', width: '70px' }}
+                    >
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
+                    <span>records per page</span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      disabled={paymentsPage <= 1 || paymentsLoading}
+                      onClick={() => setPaymentsPage(p => Math.max(1, p - 1))}
+                      style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', padding: '5px 10px' }}
+                    >
+                      <ChevronLeft size={13} /> Previous
+                    </button>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A', padding: '0 8px' }}>
+                      Page {paymentsPage} of {Math.max(1, Math.ceil((paymentsSummary.total_count || 1) / paymentsLimit))}
+                    </span>
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      disabled={paymentsPage * paymentsLimit >= (paymentsSummary.total_count || 0) || paymentsLoading}
+                      onClick={() => setPaymentsPage(p => p + 1)}
                       style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', padding: '5px 10px' }}
                     >
                       Next <ChevronRight size={13} />

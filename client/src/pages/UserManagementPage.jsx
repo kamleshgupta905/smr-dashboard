@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getUsers, createUser, updateUser, deleteUser } from '../services/api';
+import { getUsers, createUser, updateUser, deleteUser, getRoles, getAuditLogs } from '../services/api';
 import { 
   Users, 
   Plus, 
@@ -15,7 +15,13 @@ import {
   X, 
   Key,
   ShieldAlert,
-  Info
+  Info,
+  Activity,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Code
 } from 'lucide-react';
 import ModalPortal from '../components/ModalPortal';
 
@@ -54,7 +60,60 @@ export default function UserManagementPage() {
 
   useEffect(() => {
     loadData();
+    loadRoles();
   }, []);
+
+  // Real Audit Logs State (8,814 MySQL Records)
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditTotal, setAuditTotal] = useState(8814);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditTableFilter, setAuditTableFilter] = useState('ALL');
+  const [auditActionFilter, setAuditActionFilter] = useState('ALL');
+  const [auditSearch, setAuditSearch] = useState('');
+  const [auditPage, setAuditPage] = useState(1);
+  const [auditLimit, setAuditLimit] = useState(25);
+  const [selectedAuditPayload, setSelectedAuditPayload] = useState(null);
+
+  // Real Roles State (MySQL `roles`)
+  const [dbRoles, setDbRoles] = useState([]);
+
+  const loadAuditLogs = async () => {
+    setAuditLoading(true);
+    try {
+      const res = await getAuditLogs({
+        table: auditTableFilter !== 'ALL' ? auditTableFilter : undefined,
+        action: auditActionFilter !== 'ALL' ? auditActionFilter : undefined,
+        search: auditSearch || undefined,
+        limit: auditLimit,
+        offset: (auditPage - 1) * auditLimit
+      });
+      if (res?.success) {
+        setAuditLogs(res.data || []);
+        if (res.total) setAuditTotal(res.total);
+      }
+    } catch (err) {
+      console.error('Failed to load audit logs:', err);
+    } finally {
+      setAuditLoading(false);
+    }
+  };
+
+  const loadRoles = async () => {
+    try {
+      const res = await getRoles();
+      if (res?.success) {
+        setDbRoles(res.data || []);
+      }
+    } catch (err) {
+      console.error('Failed to load roles:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (activeSubTab === 'audit') {
+      loadAuditLogs();
+    }
+  }, [activeSubTab, auditTableFilter, auditActionFilter, auditPage, auditLimit, auditSearch]);
 
   const handleAdd = async (e) => {
     e.preventDefault();
@@ -355,6 +414,26 @@ export default function UserManagementPage() {
         >
           <ShieldCheck size={14} /> Access Privileges & RBAC Matrix
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('audit')}
+          style={{
+            background: activeSubTab === 'audit' ? '#1761fd' : 'transparent',
+            color: activeSubTab === 'audit' ? '#ffffff' : '#64748b',
+            border: 'none',
+            borderRadius: '6px',
+            padding: '7px 16px',
+            fontSize: '12.5px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+        >
+          <Activity size={14} /> Team Activity Audit Trail ({auditTotal.toLocaleString()} Logs)
+        </button>
       </div>
 
       {/* TAB 1: USERS TABLE */}
@@ -553,6 +632,305 @@ export default function UserManagementPage() {
             </table>
           </div>
         </div>
+      )}
+
+      {/* TAB 3: TEAM ACTIVITY AUDIT TRAIL (Real MySQL `log_table` - 8,814+ Logs) */}
+      {activeSubTab === 'audit' && (
+        <div className="report-card" style={{ padding: 0, overflow: 'hidden' }}>
+          {/* Header & Filter Bar */}
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Activity size={18} color="#1761fd" /> Live Team Activity Audit Trail & Change Log
+              </h4>
+              <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                Total <strong>{auditTotal.toLocaleString()}</strong> immutable audit logs registered in MySQL database.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ position: 'relative' }}>
+                <Search size={13} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#8997bd' }} />
+                <input
+                  type="text"
+                  placeholder="Search logs, IP, ID..."
+                  value={auditSearch}
+                  onChange={e => { setAuditSearch(e.target.value); setAuditPage(1); }}
+                  className="input-control"
+                  style={{ paddingLeft: '28px', height: '32px', fontSize: '11.5px', width: '180px' }}
+                />
+              </div>
+
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={loadAuditLogs}
+                title="Refresh Audit Logs"
+                style={{ padding: '5px 10px', fontSize: '11.5px', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                <RefreshCw size={12} className={auditLoading ? 'animate-spin' : ''} />
+                <span>Refresh</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Subfilter chips */}
+          <div style={{ padding: '10px 20px', background: '#ffffff', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>Target Table:</span>
+              {['ALL', 'projects', 'payments', 'vendor', 'client'].map(tbl => (
+                <button
+                  key={tbl}
+                  type="button"
+                  className={`btn btn-sm ${auditTableFilter === tbl ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => { setAuditTableFilter(tbl); setAuditPage(1); }}
+                  style={{ fontSize: '11px', padding: '2px 8px' }}
+                >
+                  {tbl}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>Action:</span>
+              {['ALL', 'Insert', 'Update', 'Duplicate', 'Delete'].map(act => (
+                <button
+                  key={act}
+                  type="button"
+                  className={`btn btn-sm ${auditActionFilter === act ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => { setAuditActionFilter(act); setAuditPage(1); }}
+                  style={{ fontSize: '11px', padding: '2px 8px' }}
+                >
+                  {act}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Audit Logs Table */}
+          <div className="table-wrapper" style={{ margin: 0, border: 'none', borderRadius: 0 }}>
+            <table className="custom-table" style={{ width: '100%' }}>
+              <thead className="thead-light">
+                <tr>
+                  <th>Timestamp</th>
+                  <th style={{ textAlign: 'center' }}>Action</th>
+                  <th>Target Entity</th>
+                  <th>Record ID</th>
+                  <th>User / Operator</th>
+                  <th>Client IP Address</th>
+                  <th>Browser & Platform</th>
+                  <th style={{ textAlign: 'center' }}>Data Payload</th>
+                </tr>
+              </thead>
+              <tbody>
+                {auditLoading ? (
+                  <tr>
+                    <td colSpan="8" style={{ textAlign: 'center', padding: '50px 20px', color: '#64748b' }}>
+                      <div className="spinner" style={{ margin: '0 auto 12px' }} />
+                      Streaming audit trail logs from MySQL `log_table`...
+                    </td>
+                  </tr>
+                ) : auditLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: '#8997bd' }}>
+                      No audit records found matching current filters.
+                    </td>
+                  </tr>
+                ) : (
+                  auditLogs.map(log => {
+                    const actColor = log.action === 'Insert' ? '#10b981' :
+                                     log.action === 'Update' ? '#1761fd' :
+                                     log.action === 'Duplicate' ? '#9333ea' : '#ef4444';
+                    const actBg = log.action === 'Insert' ? 'rgba(16, 185, 129, 0.12)' :
+                                  log.action === 'Update' ? 'rgba(23, 97, 253, 0.12)' :
+                                  log.action === 'Duplicate' ? 'rgba(147, 51, 234, 0.12)' : 'rgba(239, 68, 68, 0.12)';
+                    return (
+                      <tr key={log.id}>
+                        <td>
+                          <div style={{ fontSize: '12px', fontWeight: 600, color: '#1e293b' }}>
+                            {log.log_date ? log.log_date.replace('T', ' ').substring(0, 19) : '—'}
+                          </div>
+                          <span style={{ fontSize: '10px', color: '#94a3b8' }}>Log #{log.id}</span>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <span style={{
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            background: actBg,
+                            color: actColor
+                          }}>
+                            {log.action}
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155', fontFamily: 'monospace' }}>
+                            {log.table_name}
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+                            #{log.row_id}
+                          </span>
+                        </td>
+                        <td>
+                          <div style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a' }}>
+                            {log.user_name || `User #${log.user_id}`}
+                          </div>
+                        </td>
+                        <td>
+                          <span style={{ fontSize: '11px', color: '#475569', fontFamily: 'monospace' }}>
+                            {log.ip_address}
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ fontSize: '11.5px', color: '#64748b' }}>
+                            {log.user_browser || 'Chrome'} ({log.user_platform || 'Windows'})
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <button
+                            type="button"
+                            className="btn btn-soft-secondary btn-sm"
+                            onClick={() => setSelectedAuditPayload(log)}
+                            style={{ padding: '3px 8px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                            title="Inspect Data Changes JSON"
+                          >
+                            <Eye size={12} /> Inspect
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Audit Pagination */}
+          <div style={{
+            padding: '12px 20px',
+            borderTop: '1px solid #E2E8F0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: '#F8FAFC'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748B' }}>
+              <span>Showing</span>
+              <select
+                className="input-control"
+                value={auditLimit}
+                onChange={e => { setAuditLimit(Number(e.target.value)); setAuditPage(1); }}
+                style={{ height: '30px', fontSize: '11.5px', width: '70px' }}
+              >
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span>logs per page</span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                disabled={auditPage <= 1 || auditLoading}
+                onClick={() => setAuditPage(p => Math.max(1, p - 1))}
+                style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', padding: '5px 10px' }}
+              >
+                <ChevronLeft size={13} /> Previous
+              </button>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A', padding: '0 8px' }}>
+                Page {auditPage} of {Math.max(1, Math.ceil(auditTotal / auditLimit))}
+              </span>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                disabled={auditPage * auditLimit >= auditTotal || auditLoading}
+                onClick={() => setAuditPage(p => p + 1)}
+                style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', padding: '5px 10px' }}
+              >
+                Next <ChevronRight size={13} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AUDIT LOG PAYLOAD INSPECTION MODAL */}
+      {selectedAuditPayload && (
+        <ModalPortal isOpen={Boolean(selectedAuditPayload)} onClose={() => setSelectedAuditPayload(null)}>
+          <div className="modal-overlay" onClick={() => setSelectedAuditPayload(null)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '92%' }}>
+              <div className="modal-header">
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Code size={16} color="#1761fd" /> Audit Log #{selectedAuditPayload.id} Details
+                  </h3>
+                  <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                    Action: <strong>{selectedAuditPayload.action}</strong> on <strong>{selectedAuditPayload.table_name}</strong> (Row #{selectedAuditPayload.row_id})
+                  </p>
+                </div>
+                <button onClick={() => setSelectedAuditPayload(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div style={{ padding: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px', background: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '12px' }}>
+                    <span style={{ color: '#64748b' }}>Timestamp: </span>
+                    <strong>{selectedAuditPayload.log_date}</strong>
+                  </div>
+                  <div style={{ fontSize: '12px' }}>
+                    <span style={{ color: '#64748b' }}>User / Actor: </span>
+                    <strong>{selectedAuditPayload.user_name}</strong>
+                  </div>
+                  <div style={{ fontSize: '12px' }}>
+                    <span style={{ color: '#64748b' }}>IP Address: </span>
+                    <strong style={{ fontFamily: 'monospace' }}>{selectedAuditPayload.ip_address}</strong>
+                  </div>
+                  <div style={{ fontSize: '12px' }}>
+                    <span style={{ color: '#64748b' }}>Device / Browser: </span>
+                    <strong>{selectedAuditPayload.user_browser}</strong>
+                  </div>
+                </div>
+
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  State Diff / Data Payload:
+                </label>
+                <pre style={{
+                  background: '#0f172a',
+                  color: '#38bdf8',
+                  padding: '14px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontFamily: 'monospace',
+                  maxHeight: '260px',
+                  overflowY: 'auto',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-all',
+                  margin: 0
+                }}>
+                  {JSON.stringify(selectedAuditPayload.parsed_data || selectedAuditPayload.data_array, null, 2)}
+                </pre>
+              </div>
+
+              <div className="modal-footer" style={{ padding: '12px 20px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', background: '#f8fafc' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setSelectedAuditPayload(null)}
+                  style={{ padding: '6px 16px', fontSize: '12px' }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
       )}
 
       {/* ADD USER MODAL */}

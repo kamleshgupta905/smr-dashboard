@@ -8,7 +8,9 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = (typeof localStorage !== 'undefined' && localStorage.getItem('smr_auth_token')) || 'authenticated_vmhgroup';
+  const role = (typeof localStorage !== 'undefined' && localStorage.getItem('smr_user_role')) || 'Admin';
   config.headers['X-SMR-Auth'] = token;
+  config.headers['X-SMR-Role'] = role;
   config.headers['Authorization'] = `Bearer ${token}`;
   return config;
 });
@@ -1395,11 +1397,94 @@ export const ZampliaAPI = {
   getReferenceData,
 };
 
+// -------------------------------------------------------------
+// 1-Click Project Cloner / Duplicator (Feature 1)
+// -------------------------------------------------------------
+export const duplicateProject = async (payload) => {
+  try {
+    const res = await api.post('/manage/projects/duplicate', payload);
+    return res.data;
+  } catch (err) {
+    console.error('Error duplicating project:', err);
+    throw err;
+  }
+};
+
+// -------------------------------------------------------------
+// Vendor Payment Status & Payout Reconciliation (Feature 2)
+// -------------------------------------------------------------
+export const getPayments = async (params = {}) => {
+  try {
+    const res = await api.get('/payments', { params });
+    return res.data;
+  } catch (err) {
+    console.error('Error fetching payments:', err);
+    return { success: false, data: [], summary: {} };
+  }
+};
+
+export const updatePaymentStatus = async (payload) => {
+  try {
+    const res = await api.post('/payments/update-status', payload);
+    return res.data;
+  } catch (err) {
+    console.error('Error updating payment status:', err);
+    throw err;
+  }
+};
+
+export const createPayment = async (payload) => {
+  try {
+    const res = await api.post('/payments/create', payload);
+    return res.data;
+  } catch (err) {
+    console.error('Error creating payment:', err);
+    throw err;
+  }
+};
+
+// -------------------------------------------------------------
+// RBAC Roles & Granular Permissions (Feature 3)
+// -------------------------------------------------------------
+export const getRoles = async () => {
+  try {
+    const res = await api.get('/auth/roles');
+    return res.data;
+  } catch (err) {
+    console.error('Error fetching roles:', err);
+    return { success: false, data: [] };
+  }
+};
+
+export const getCurrentUser = async (role) => {
+  try {
+    const res = await api.get('/auth/current-user', { params: { role } });
+    return res.data;
+  } catch (err) {
+    console.error('Error fetching current user:', err);
+    return { success: false };
+  }
+};
+
+// -------------------------------------------------------------
+// Team Activity Audit Trail & Change Log (Feature 4)
+// -------------------------------------------------------------
+export const getAuditLogs = async (params = {}) => {
+  try {
+    const res = await api.get('/audit-logs', { params });
+    return res.data;
+  } catch (err) {
+    console.error('Error fetching audit logs:', err);
+    return { success: false, data: [], total: 0 };
+  }
+};
+
 export const ManagementAPI = {
   getProjects,
   createProject,
   updateProject,
   deleteProject,
+  duplicateProject,
   getVendors,
   createVendor,
   updateVendor,
@@ -1412,6 +1497,12 @@ export const ManagementAPI = {
   updateUser,
   deleteUser,
   getDashboardAnalytics,
+  getPayments,
+  updatePaymentStatus,
+  createPayment,
+  getRoles,
+  getCurrentUser,
+  getAuditLogs,
 };
 
 export const SecurityAPI = {

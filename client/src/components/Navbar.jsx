@@ -13,6 +13,7 @@ export default function Navbar({
   onOpenSettings,
   globalSearch,
   onGlobalSearch,
+  onRoleChange,
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
@@ -20,6 +21,18 @@ export default function Navbar({
   const dropdownRef = useRef(null);
   const bellRef = useRef(null);
   const searchInputRef = useRef(null);
+
+  const [activeRole, setActiveRole] = useState(() => {
+    return (typeof localStorage !== 'undefined' && localStorage.getItem('smr_user_role')) || 'Admin';
+  });
+
+  const handleRoleSelect = (newRole) => {
+    setActiveRole(newRole);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('smr_user_role', newRole);
+    }
+    if (onRoleChange) onRoleChange(newRole);
+  };
 
   const notifications = [
     { id: 1, icon: Zap, color: '#1761fd', title: 'Zamplia Inventory Synced', text: `${surveyCount || 626} live surveys refreshed with fresh quotas.`, time: 'Just now' },
@@ -267,9 +280,21 @@ export default function Navbar({
             onClick={() => setDropdownOpen(prev => !prev)}
             title="VMH Admin Profile & Settings"
           >
-            <span className="user-profile-name">
-              {localStorage.getItem('smr_auth_user') || 'Admin'}
-            </span>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.2 }}>
+              <span className="user-profile-name">
+                {localStorage.getItem('smr_auth_user') || 'Admin'}
+              </span>
+              <span style={{
+                fontSize: '10px',
+                fontWeight: 800,
+                padding: '1px 6px',
+                borderRadius: '4px',
+                background: activeRole === 'Admin' ? 'rgba(23, 97, 253, 0.12)' : activeRole === 'Developer' ? 'rgba(147, 51, 234, 0.12)' : activeRole === 'Customer' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+                color: activeRole === 'Admin' ? '#1761fd' : activeRole === 'Developer' ? '#9333ea' : activeRole === 'Customer' ? '#d97706' : '#10b981'
+              }}>
+                {activeRole}
+              </span>
+            </div>
             <img
               src="/vmh-logo.png"
               alt="VMH Admin"
@@ -282,8 +307,37 @@ export default function Navbar({
           {dropdownOpen && (
             <div className="dastone-user-dropdown">
               <div className="dropdown-header">
-                <div className="name">{localStorage.getItem('smr_auth_user') || 'Admin'} (Super Admin)</div>
+                <div className="name">{localStorage.getItem('smr_auth_user') || 'Admin'} ({activeRole})</div>
                 <div className="email">admin@vmhgroupsmr.com</div>
+              </div>
+
+              {/* RBAC Role Switcher */}
+              <div style={{ padding: '10px 14px', background: '#f8fafc', borderBottom: '1px solid #f1f5fa' }}>
+                <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                  Switch RBAC Role
+                </span>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', marginTop: '6px' }}>
+                  {['Admin', 'Developer', 'User', 'Customer'].map(r => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => handleRoleSelect(r)}
+                      style={{
+                        padding: '4px 8px',
+                        fontSize: '11px',
+                        fontWeight: activeRole === r ? 800 : 500,
+                        background: activeRole === r ? '#1761fd' : '#ffffff',
+                        color: activeRole === r ? '#ffffff' : '#334155',
+                        border: '1px solid',
+                        borderColor: activeRole === r ? '#1761fd' : '#e2e8f0',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <button

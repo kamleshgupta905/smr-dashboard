@@ -3,14 +3,16 @@ import {
   Search, PieChart, UserCheck, Share2, AlertCircle, ChevronLeft, ChevronRight, 
   DollarSign, Clock, ArrowUpDown, Filter, Monitor, Smartphone, Tablet, 
   ShieldCheck, RefreshCw, ExternalLink, ChevronDown, ChevronUp, Layers, CheckCircle2,
-  Download
+  Download, Copy
 } from 'lucide-react';
 import { normalizeSurveys } from '../utils/normalize';
 import DemandProjectModal from '../components/DemandProjectModal';
+import DuplicateProjectModal from '../components/DuplicateProjectModal';
 import { exportSurveysInventoryToExcel } from '../utils/excelExport';
 
 export default function SurveysPage({ surveys = [], globalSearch = '', loading, onRefresh, onAddSurvey, onOpenQuotas, onOpenQuals, onOpenAssign }) {
   const [demandModalOpen, setDemandModalOpen] = useState(false);
+  const [duplicateModalProject, setDuplicateModalProject] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('ALL');
   const [selectedChannel, setSelectedChannel] = useState('ALL');
@@ -395,6 +397,15 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                             </button>
 
                             <button
+                              className="btn btn-soft-info btn-sm"
+                              style={{ padding: '4px 8px', fontSize: '11.5px', display: 'flex', alignItems: 'center', gap: '4px', borderRadius: '4px', background: 'rgba(6, 182, 212, 0.1)', color: '#0891b2', border: '1px solid rgba(6, 182, 212, 0.2)' }}
+                              onClick={() => setDuplicateModalProject(s)}
+                              title="1-Click Clone / Duplicate Project"
+                            >
+                              <Copy size={12} /> Duplicate
+                            </button>
+
+                            <button
                               className="btn btn-soft-secondary btn-sm"
                               style={{ padding: '4px 8px', fontSize: '11.5px', borderRadius: '4px' }}
                               onClick={() => onOpenQuotas(s.survey_id)}
@@ -605,6 +616,33 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
               liveSurveyUrl: created.liveSurveyUrl || created.LiveSurveyUrl || ''
             };
             onAddSurvey(newStudy);
+          }
+          if (onRefresh) onRefresh();
+        }}
+      />
+
+      {/* 1-Click Project Cloner Modal */}
+      <DuplicateProjectModal
+        isOpen={Boolean(duplicateModalProject)}
+        project={duplicateModalProject}
+        onClose={() => setDuplicateModalProject(null)}
+        onSuccess={(cloned) => {
+          if (cloned && onAddSurvey) {
+            onAddSurvey({
+              surveyId: cloned.id || cloned.project_id,
+              name: cloned.name || cloned.project_name,
+              cpi: Number(cloned.cpi || cloned.cost_per_complete),
+              loi: Number(cloned.loi),
+              ir: Number(cloned.ir),
+              client: 'Market Xcel',
+              clientCode: 'MX_DEMAND',
+              status: cloned.status || 'Pause',
+              totalRequired: Number(cloned.target_completes || cloned.max_limit || 500),
+              completesNeeded: Number(cloned.target_completes || cloned.max_limit || 500),
+              country: cloned.country || 'United States',
+              category: 'Cloned Enterprise Study',
+              studyType: 'Consumer'
+            });
           }
           if (onRefresh) onRefresh();
         }}

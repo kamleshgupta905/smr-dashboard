@@ -69,6 +69,35 @@ function getDbConnection(): ?PDO {
 }
 
 // -------------------------------------------------------------
+// Centralized Audit Activity Logger (Direct to MySQL `log_table`)
+// -------------------------------------------------------------
+function logActivity(?PDO $db, string $tableName, $rowId, string $action, array $dataArray = [], $userId = 1): void {
+    if (!$db) return;
+    try {
+        $ip = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        $browser = substr($_SERVER['HTTP_USER_AGENT'] ?? 'VMH SMR Enterprise Gateway / Web Client', 0, 250);
+        $platform = 'Web / Dashboard';
+        $stmt = $db->prepare("
+            INSERT INTO log_table (log_date, row_id, table_name, action, data_array, user_browser, user_platform, ip_address, member_id, user_id, created_at, updated_at)
+            VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+        ");
+        $stmt->execute([
+            (int)$rowId,
+            $tableName,
+            $action,
+            json_encode($dataArray),
+            $browser,
+            $platform,
+            $ip,
+            (int)$userId,
+            (int)$userId
+        ]);
+    } catch (Throwable $e) {
+        // Logging error shouldn't crash the request
+    }
+}
+
+// -------------------------------------------------------------
 // Helper: High-Speed IPv4 Zamplia cURL
 // -------------------------------------------------------------
 function zampliaRequest(string $endpoint, array $params = [], string $method = 'GET'): array {
@@ -1703,6 +1732,95 @@ if ($normalizedRoute === 'reports/legacy-projects') {
 // -------------------------------------------------------------
 if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 'manage/projects')) {
     $db = getDbConnection();
+
+    // 1-Click Project Cloner / Duplicator
+    if ($normalizedRoute === 'manage/projects/duplicate' && $method === 'POST') {
+        $srcId = $body['source_project_id'] ?? $body['project_id'] ?? $body['id'] ?? null;
+        if (!$srcId) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'source_project_id is required']);
+            exit;
+        }
+
+        if (!$db) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Database connection unavailable']);
+            exit;
+        }
+
+        try {
+            $stmt = $db->prepare("SELECT * FROM projects WHERE id = ? OR project_id = ? LIMIT 1");
+            $stmt->execute([$srcId, $srcId]);
+            $orig = $stmt->fetch();
+
+            if (!$orig) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => "Source project {$srcId} not found in database"]);
+                exit;
+            }
+
+            // Generate next project_id (e.g. VMHPI026652026)
+            $maxId = (int)$db->query("SELECT MAX(id) FROM projects")->fetchColumn();
+            $nextId = $maxId + 1;
+            $newProjId = sprintf("VMHPI%05d%d", $nextId, (int)date('Y'));
+
+            $targetName = !empty($body['target_name']) ? trim($body['target_name']) : (!empty($body['name']) ? trim($body['name']) : ($orig['name'] . ' (Copy)'));
+            $cpi = isset($body['cost_per_complete']) && $body['cost_per_complete'] !== '' ? (float)$body['cost_per_complete'] : (isset($body['cpi']) ? (float)$body['cpi'] : (float)$orig['cost_per_complete']);
+            $ir = isset($body['ir']) && $body['ir'] !== '' ? (float)$body['ir'] : (float)$orig['ir'];
+            $loi = isset($body['loi']) && $body['loi'] !== '' ? (int)$body['loi'] : (int)$orig['loi'];
+            $maxLimit = isset($body['max_limit']) && $body['max_limit'] !== '' ? (int)$body['max_limit'] : (isset($body['target_completes']) ? (int)$body['target_completes'] : (int)$orig['max_limit']);
+            $status = $body['status'] ?? 'Pause';
+            $clientId = $orig['client_id'] ?? 57;
+            $liveUrl = $body['live_url'] ?? $orig['live_url'];
+            $desc = !empty($body['description']) ? $body['description'] : ($orig['description'] . " [Cloned from Project #{$orig['id']} {$orig['project_id']}]");
+
+            $ins = $db->prepare("
+                INSERT INTO projects (project_id, client_id, name, description, cost_per_complete, ir, loi, max_limit, live_url, status, date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+            ");
+            $ins->execute([$newProjId, $clientId, $targetName, $desc, $cpi, $ir, $loi, $maxLimit, $liveUrl, $status]);
+            $insertedId = (int)$db->lastInsertId();
+
+            // Log activity in MySQL log_table
+            logActivity($db, 'projects', $insertedId, 'Duplicate', [
+                'source_id' => $orig['id'],
+                'source_project_id' => $orig['project_id'],
+                'new_id' => $insertedId,
+                'new_project_id' => $newProjId,
+                'name' => $targetName,
+                'cpi' => $cpi,
+                'max_limit' => $maxLimit
+            ]);
+
+            echo json_encode([
+                'success' => true,
+                'message' => "Project successfully duplicated as {$newProjId}",
+                'project' => [
+                    'id' => $insertedId,
+                    '_id' => $insertedId,
+                    'project_id' => $newProjId,
+                    'project_name' => $targetName,
+                    'name' => $targetName,
+                    'client_id' => $clientId,
+                    'cpi' => $cpi,
+                    'cost_per_complete' => $cpi,
+                    'ir' => $ir,
+                    'loi' => $loi,
+                    'target_completes' => $maxLimit,
+                    'max_limit' => $maxLimit,
+                    'live_url' => $liveUrl,
+                    'status' => $status,
+                    'createdAt' => date('Y-m-d H:i:s')
+                ]
+            ]);
+            exit;
+        } catch (Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Duplication failed: ' . $e->getMessage()]);
+            exit;
+        }
+    }
+
     if ($method === 'POST' || $method === 'PUT') {
         $pId = $body['id'] ?? $body['project_id'] ?? ('PRJ_' . time());
         $pName = $body['project_name'] ?? $body['name'] ?? 'New Enterprise Study';
@@ -1715,6 +1833,7 @@ if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 
             try {
                 $db->prepare("REPLACE INTO projects (id, project_id, name, cost_per_complete, loi, ir, max_limit, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
                    ->execute([$pId, $pId, $pName, $pCpi, $pLoi, $pIr, $pLimit, $pStatus]);
+                logActivity($db, 'projects', $pId, 'Update', ['name' => $pName, 'cpi' => $pCpi, 'status' => $pStatus]);
             } catch (Throwable $e) {}
         }
         echo json_encode(['success' => true, 'data' => $body]);
@@ -1726,6 +1845,7 @@ if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 
         if ($targetId && $db) {
             try {
                 $db->prepare("DELETE FROM projects WHERE id = ? OR project_id = ?")->execute([$targetId, $targetId]);
+                logActivity($db, 'projects', $targetId, 'Delete', ['id' => $targetId]);
             } catch (Throwable $e) {}
         }
         echo json_encode(['success' => true]);
@@ -1944,6 +2064,345 @@ if ($normalizedRoute === 'explorer/run-test') {
             'antiTamperHash' => hash('sha3-256', $ep . time())
         ]
     ]);
+    exit;
+}
+
+// -------------------------------------------------------------
+// 8d. Vendor Payments & Payout Reconciliation Store (Real MySQL `payments` - 2,245+ Rows)
+// -------------------------------------------------------------
+if ($normalizedRoute === 'payments' || str_starts_with($normalizedRoute, 'payments')) {
+    $db = getDbConnection();
+
+    // 1. Update Payment Status
+    if (($normalizedRoute === 'payments/update-status' || $normalizedRoute === 'payments/update') && ($method === 'POST' || $method === 'PUT')) {
+        $payId = $body['id'] ?? $body['payment_id'] ?? null;
+        $newStatus = $body['status'] ?? 'Pending';
+        $remarks = $body['remarks'] ?? null;
+        $amount = isset($body['amount']) ? (float)$body['amount'] : null;
+
+        if (!$payId) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Payment ID is required']);
+            exit;
+        }
+
+        if (!in_array($newStatus, ['Pending', 'Paid', 'Rejected'], true)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Invalid payment status']);
+            exit;
+        }
+
+        if ($db) {
+            try {
+                if ($amount !== null) {
+                    $stmt = $db->prepare("UPDATE payments SET status = ?, remarks = COALESCE(?, remarks), amount = ?, date = NOW() WHERE id = ? OR payment_id = ?");
+                    $stmt->execute([$newStatus, $remarks, $amount, $payId, $payId]);
+                } else {
+                    $stmt = $db->prepare("UPDATE payments SET status = ?, remarks = COALESCE(?, remarks), date = NOW() WHERE id = ? OR payment_id = ?");
+                    $stmt->execute([$newStatus, $remarks, $payId, $payId]);
+                }
+
+                logActivity($db, 'payments', $payId, 'Update', [
+                    'payment_id' => $payId,
+                    'status' => $newStatus,
+                    'remarks' => $remarks,
+                    'amount' => $amount
+                ]);
+
+                echo json_encode(['success' => true, 'message' => "Payment #{$payId} status updated to {$newStatus}"]);
+                exit;
+            } catch (Throwable $e) {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+                exit;
+            }
+        }
+        echo json_encode(['success' => true]);
+        exit;
+    }
+
+    // 2. Create New Payment Record
+    if ($normalizedRoute === 'payments/create' && $method === 'POST') {
+        if ($db) {
+            try {
+                $maxId = (int)$db->query("SELECT MAX(id) FROM payments")->fetchColumn();
+                $newId = $maxId + 1;
+                $paymentCode = sprintf("PAY%05d%d", $newId, (int)date('Y'));
+                $pId = (int)($body['project_id'] ?? 0);
+                $vId = (int)($body['vendor_id'] ?? 0);
+                $amt = (float)($body['amount'] ?? 0.00);
+                $status = in_array($body['status'] ?? '', ['Pending', 'Paid', 'Rejected'], true) ? $body['status'] : 'Pending';
+                $remarks = $body['remarks'] ?? 'Generated from SMR reconciliation';
+
+                $ins = $db->prepare("INSERT INTO payments (payment_id, project_id, vendor_id, amount, status, remarks, date) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+                $ins->execute([$paymentCode, $pId, $vId, $amt, $status, $remarks]);
+                $createdId = (int)$db->lastInsertId();
+
+                logActivity($db, 'payments', $createdId, 'Insert', [
+                    'payment_id' => $paymentCode,
+                    'project_id' => $pId,
+                    'vendor_id' => $vId,
+                    'amount' => $amt,
+                    'status' => $status
+                ]);
+
+                echo json_encode(['success' => true, 'data' => ['id' => $createdId, 'payment_id' => $paymentCode]]);
+                exit;
+            } catch (Throwable $e) {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+                exit;
+            }
+        }
+    }
+
+    // 3. List Payments with Summary Aggregates (Real MySQL)
+    if ($db) {
+        try {
+            $statusFilter = $_GET['status'] ?? '';
+            $search = $_GET['search'] ?? '';
+            $limit = isset($_GET['limit']) ? min((int)$_GET['limit'], 500) : 100;
+            $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+
+            $where = [];
+            $params = [];
+            if ($statusFilter && in_array($statusFilter, ['Pending', 'Paid', 'Rejected'], true)) {
+                $where[] = "p.status = ?";
+                $params[] = $statusFilter;
+            }
+            if ($search) {
+                $where[] = "(p.payment_id LIKE ? OR pr.name LIKE ? OR v.name LIKE ? OR p.remarks LIKE ?)";
+                $params[] = "%{$search}%";
+                $params[] = "%{$search}%";
+                $params[] = "%{$search}%";
+                $params[] = "%{$search}%";
+            }
+            $whereSql = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
+
+            $summaryStmt = $db->query("
+                SELECT 
+                    COUNT(*) as total_count,
+                    COALESCE(SUM(amount), 0) as total_payout,
+                    COALESCE(SUM(CASE WHEN status = 'Paid' THEN amount ELSE 0 END), 0) as total_paid,
+                    COALESCE(SUM(CASE WHEN status = 'Pending' THEN amount ELSE 0 END), 0) as total_pending,
+                    COALESCE(SUM(CASE WHEN status = 'Rejected' THEN amount ELSE 0 END), 0) as total_rejected,
+                    COUNT(CASE WHEN status = 'Paid' THEN 1 END) as count_paid,
+                    COUNT(CASE WHEN status = 'Pending' THEN 1 END) as count_pending,
+                    COUNT(CASE WHEN status = 'Rejected' THEN 1 END) as count_rejected
+                FROM payments
+            ");
+            $summary = $summaryStmt->fetch() ?: [];
+
+            $query = "
+                SELECT 
+                    p.id,
+                    p.id as _id,
+                    p.payment_id,
+                    p.project_id,
+                    COALESCE(pr.name, CONCAT('Study #', p.project_id)) as project_name,
+                    COALESCE(pr.project_id, '') as project_code,
+                    p.vendor_id,
+                    COALESCE(v.name, CONCAT('Vendor #', p.vendor_id)) as vendor_name,
+                    p.amount,
+                    p.status,
+                    p.remarks,
+                    COALESCE(p.date, '2026-10-10 12:00:00') as date,
+                    COALESCE(p.date, '2026-10-10 12:00:00') as created_at
+                FROM payments p
+                LEFT JOIN projects pr ON pr.id = p.project_id
+                LEFT JOIN vendor v ON v.id = p.vendor_id
+                {$whereSql}
+                ORDER BY p.id DESC
+                LIMIT {$limit} OFFSET {$offset}
+            ";
+            $stmt = $db->prepare($query);
+            $stmt->execute($params);
+            $payments = $stmt->fetchAll();
+
+            echo json_encode([
+                'success' => true,
+                'data' => $payments,
+                'summary' => $summary,
+                'total' => (int)($summary['total_count'] ?? count($payments))
+            ]);
+            exit;
+        } catch (Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            exit;
+        }
+    }
+
+    echo json_encode(['success' => true, 'data' => [], 'summary' => []]);
+    exit;
+}
+
+// -------------------------------------------------------------
+// 9b. RBAC User Roles & Granular Permissions (Real MySQL `roles` - 4 Roles)
+// -------------------------------------------------------------
+if ($normalizedRoute === 'auth/roles' || $normalizedRoute === 'roles') {
+    $db = getDbConnection();
+    if ($db) {
+        try {
+            $roles = $db->query("SELECT id, role as name, role, is_active FROM roles ORDER BY id ASC")->fetchAll();
+            echo json_encode(['success' => true, 'data' => $roles]);
+            exit;
+        } catch (Throwable $e) {}
+    }
+    echo json_encode(['success' => true, 'data' => [
+        ['id' => 1, 'name' => 'Developer', 'role' => 'Developer', 'is_active' => '1'],
+        ['id' => 2, 'name' => 'Admin', 'role' => 'Admin', 'is_active' => '1'],
+        ['id' => 3, 'name' => 'User', 'role' => 'User', 'is_active' => '1'],
+        ['id' => 4, 'name' => 'Customer', 'role' => 'Customer', 'is_active' => '1'],
+    ]]);
+    exit;
+}
+
+if ($normalizedRoute === 'auth/current-user') {
+    $requestedRole = $_SERVER['HTTP_X_SMR_ROLE'] ?? ($_GET['role'] ?? 'Admin');
+    $perms = [
+        'Admin' => [
+            'can_manage_projects' => true,
+            'can_duplicate_projects' => true,
+            'can_delete_projects' => true,
+            'can_manage_payments' => true,
+            'can_view_audit_logs' => true,
+            'can_manage_clients' => true,
+            'can_manage_vendors' => true,
+            'can_view_reports' => true,
+            'can_manage_security' => true,
+        ],
+        'Developer' => [
+            'can_manage_projects' => true,
+            'can_duplicate_projects' => true,
+            'can_delete_projects' => true,
+            'can_manage_payments' => true,
+            'can_view_audit_logs' => true,
+            'can_manage_clients' => true,
+            'can_manage_vendors' => true,
+            'can_view_reports' => true,
+            'can_manage_security' => true,
+        ],
+        'User' => [
+            'can_manage_projects' => true,
+            'can_duplicate_projects' => true,
+            'can_delete_projects' => false,
+            'can_manage_payments' => false,
+            'can_view_audit_logs' => false,
+            'can_manage_clients' => false,
+            'can_manage_vendors' => true,
+            'can_view_reports' => true,
+            'can_manage_security' => false,
+        ],
+        'Customer' => [
+            'can_manage_projects' => false,
+            'can_duplicate_projects' => false,
+            'can_delete_projects' => false,
+            'can_manage_payments' => false,
+            'can_view_audit_logs' => false,
+            'can_manage_clients' => false,
+            'can_manage_vendors' => false,
+            'can_view_reports' => true,
+            'can_manage_security' => false,
+        ]
+    ];
+    $activeRole = isset($perms[$requestedRole]) ? $requestedRole : 'Admin';
+
+    echo json_encode([
+        'success' => true,
+        'user' => [
+            'id' => 2,
+            'username' => 'kamlesh',
+            'name' => 'Kamlesh Gupta',
+            'email' => 'admin@vmhgroupsmr.com',
+            'role' => $activeRole,
+            'permissions' => $perms[$activeRole]
+        ]
+    ]);
+    exit;
+}
+
+// -------------------------------------------------------------
+// 9c. Team Activity Audit Trail & Change Log (Real MySQL `log_table` - 8,814+ Rows)
+// -------------------------------------------------------------
+if ($normalizedRoute === 'audit-logs' || $normalizedRoute === 'reports/audit-logs' || $normalizedRoute === 'logs/audit') {
+    $db = getDbConnection();
+    if ($db) {
+        try {
+            $tableFilter = $_GET['table'] ?? '';
+            $actionFilter = $_GET['action'] ?? '';
+            $search = $_GET['search'] ?? '';
+            $limit = isset($_GET['limit']) ? min((int)$_GET['limit'], 200) : 100;
+            $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+
+            $where = [];
+            $params = [];
+            if ($tableFilter && $tableFilter !== 'ALL') {
+                $where[] = "l.table_name = ?";
+                $params[] = $tableFilter;
+            }
+            if ($actionFilter && $actionFilter !== 'ALL') {
+                $where[] = "l.action = ?";
+                $params[] = $actionFilter;
+            }
+            if ($search) {
+                $where[] = "(l.table_name LIKE ? OR l.action LIKE ? OR l.data_array LIKE ? OR l.ip_address LIKE ?)";
+                $params[] = "%{$search}%";
+                $params[] = "%{$search}%";
+                $params[] = "%{$search}%";
+                $params[] = "%{$search}%";
+            }
+            $whereSql = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
+
+            $countStmt = $db->query("SELECT COUNT(*) FROM log_table");
+            $totalCount = (int)$countStmt->fetchColumn();
+
+            $query = "
+                SELECT 
+                    l.id,
+                    l.log_date,
+                    l.row_id,
+                    l.table_name,
+                    l.action,
+                    l.data_array,
+                    l.user_browser,
+                    l.user_platform,
+                    l.ip_address,
+                    l.user_id,
+                    COALESCE(u.name, CONCAT('User #', l.user_id)) as user_name
+                FROM log_table l
+                LEFT JOIN users u ON u.id = l.user_id
+                {$whereSql}
+                ORDER BY l.id DESC
+                LIMIT {$limit} OFFSET {$offset}
+            ";
+            $stmt = $db->prepare($query);
+            $stmt->execute($params);
+            $logs = $stmt->fetchAll();
+
+            foreach ($logs as &$log) {
+                if (!empty($log['data_array'])) {
+                    $decoded = json_decode($log['data_array'], true);
+                    $log['parsed_data'] = $decoded !== null ? $decoded : $log['data_array'];
+                } else {
+                    $log['parsed_data'] = null;
+                }
+            }
+
+            echo json_encode([
+                'success' => true,
+                'data' => $logs,
+                'total' => $totalCount,
+                'filtered' => count($logs)
+            ]);
+            exit;
+        } catch (Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            exit;
+        }
+    }
+    echo json_encode(['success' => true, 'data' => [], 'total' => 0]);
     exit;
 }
 
