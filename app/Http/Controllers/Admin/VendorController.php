@@ -141,31 +141,41 @@ public function VendorList_Update(Request $request, $id)
             $data["editData"] = DB::table('vendor')->where('id', $id)->first();
 
             // ✅ Fetch selected countries for this supplier
-            $data["selectedCountries"] = DB::table('supplier_country')
-                ->join('countries', 'countries.id', '=', 'supplier_country.country_id')
-                ->where('supplier_country.supplier_id', $id)
-                ->select('countries.id', 'countries.name')
-                ->get();
+            $data["selectedCountries"] = \Illuminate\Support\Facades\Schema::hasTable('supplier_country') && \Illuminate\Support\Facades\Schema::hasTable('countries')
+                ? DB::table('supplier_country')
+                    ->join('countries', 'countries.id', '=', 'supplier_country.country_id')
+                    ->where('supplier_country.supplier_id', $id)
+                    ->select('countries.id', 'countries.name')
+                    ->get()
+                : collect();
 
             // ✅ Fetch blocked clients for this supplier
-            $data["blockedClients"] = DB::table('supplier_blocked_clients')
-                ->join('client', 'client.id', '=', 'supplier_blocked_clients.client_id')
-                ->where('supplier_blocked_clients.supplier_id', $id)
-                ->select('client.id', 'client.client_name')
-                ->get();
+            $data["blockedClients"] = \Illuminate\Support\Facades\Schema::hasTable('supplier_blocked_clients') && \Illuminate\Support\Facades\Schema::hasTable('client')
+                ? DB::table('supplier_blocked_clients')
+                    ->join('client', 'client.id', '=', 'supplier_blocked_clients.client_id')
+                    ->where('supplier_blocked_clients.supplier_id', $id)
+                    ->select('client.id', 'client.client_name')
+                    ->get()
+                : collect();
 
             // ✅ Fetch contacts for this supplier
-            $data["existingContacts"] = DB::table('supplier_contacts')
-                ->where('supplier_id', $id)
-                ->get();
+            $data["existingContacts"] = \Illuminate\Support\Facades\Schema::hasTable('supplier_contacts')
+                ? DB::table('supplier_contacts')
+                    ->where('supplier_id', $id)
+                    ->get()
+                : collect();
                
         }
 
         // ✅ Country list (for Settings tab)
-        $data["countries"] = DB::table('countries')->orderBy('name', 'asc')->get();
+        $data["countries"] = \Illuminate\Support\Facades\Schema::hasTable('countries')
+            ? DB::table('countries')->orderBy('name', 'asc')->get()
+            : collect();
 
         // ✅ All clients list (for Settings tab)
-        $data["clients"] = DB::table('client')->orderByDesc('id')->get();
+        $data["clients"] = \Illuminate\Support\Facades\Schema::hasTable('client')
+            ? DB::table('client')->orderByDesc('id')->get()
+            : collect();
 
         // ✅ Pass view
         $body['bodyView'] = view('admin/vendor/vendor_add_edit', $data);

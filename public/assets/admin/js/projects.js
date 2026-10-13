@@ -670,6 +670,7 @@ function loadVendorList() {
             });
         },
         error: function (xhr) {
+            $("#loader").hide();
             console.log(xhr.responseText);
         },
     });

@@ -1,3 +1,6 @@
+@php
+    $isApiProject = $isApiProject ?? false;
+@endphp
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <button id="downloadExcel" class="btn btn-primary">Download Excel</button>
@@ -25,19 +28,27 @@
 
 <?php
 
-$links = DB::table('vendor_entry_links as vel')
-    ->join('bid_options as bo', 'bo.id', '=', 'vel.bid_option_id')
-    ->leftJoin('countries as c', 'c.id', '=', 'bo.country')
-    ->where('vel.vendor_id', $List->id)
-    ->where('vel.project_id', $projectsData->id)
-    ->select(
+$links = collect();
+if ($projectsData && isset($projectsData->id)) {
+    $linksQuery = DB::table('vendor_entry_links as vel')
+        ->where('vel.vendor_id', $List->id)
+        ->where('vel.project_id', $projectsData->id);
+
+    if (\Illuminate\Support\Facades\Schema::hasTable('bid_options')) {
+        $linksQuery->leftJoin('bid_options as bo', 'bo.id', '=', 'vel.bid_option_id');
+        if (\Illuminate\Support\Facades\Schema::hasTable('countries')) {
+            $linksQuery->leftJoin('countries as c', 'c.id', '=', 'bo.country');
+        }
+    }
+
+    $links = $linksQuery->select(
         'vel.entry_link',
         'vel.live_url',
         'vel.test_url',
         'vel.bid_option_id',
-        'c.name as country'
-    )
-    ->get();
+        DB::raw('NULL as country')
+    )->get();
+}
 
 ?>
 
@@ -45,9 +56,10 @@ $links = DB::table('vendor_entry_links as vel')
 
 <?php
 
+$surveyIdVal = $projectsData->SurveyId ?? $projectsData->id ?? 0;
 $links = DB::table('vendor_entry_links')
     ->where('vendor_id', $List->id)
-    ->where('project_id', $projectsData->SurveyId)
+    ->where('project_id', $surveyIdVal)
     ->select(
         'entry_link',
         'live_url',
