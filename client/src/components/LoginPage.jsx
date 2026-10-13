@@ -26,17 +26,16 @@ export default function LoginPage({ onLogin }) {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        // Enforce Admin-only verification
-        if (data.user?.role && data.user.role.toLowerCase() !== 'admin') {
-          setError('Access Denied: Only Admin accounts are authorized to access the VMH SMR platform.');
-          setLoading(false);
-          return;
-        }
-
         localStorage.setItem('smr_auth_token', data.token || 'authenticated_vmhgroup');
         localStorage.setItem('smr_auth_user', data.user?.username || data.user?.name || 'Vmhgroup');
-        localStorage.setItem('smr_auth_role', 'admin');
-        onLogin();
+        localStorage.setItem('smr_auth_role', data.user?.role_name || data.user?.role || 'admin');
+        if (data.user) {
+          localStorage.setItem('smr_auth_user_data', JSON.stringify(data.user));
+          if (data.user.permissions) {
+            localStorage.setItem('smr_auth_permissions', JSON.stringify(data.user.permissions));
+          }
+        }
+        onLogin(data.user);
       } else {
         setError(data.message || 'Invalid username or password. Please verify your admin credentials.');
         setLoading(false);
@@ -48,10 +47,21 @@ export default function LoginPage({ onLogin }) {
       const validPass = password === 'Jelly';
 
       if (validUser && validPass) {
+        const fallbackUser = {
+          id: 1,
+          name: 'VMH GROUPS',
+          username: 'vmhgroup',
+          email: 'vmhgroups.in@gmail.com',
+          role_id: 1,
+          role_name: 'Developer',
+          permissions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        };
         localStorage.setItem('smr_auth_token', 'authenticated_vmhgroup');
         localStorage.setItem('smr_auth_user', 'Vmhgroup');
-        localStorage.setItem('smr_auth_role', 'admin');
-        onLogin();
+        localStorage.setItem('smr_auth_role', 'Developer');
+        localStorage.setItem('smr_auth_user_data', JSON.stringify(fallbackUser));
+        localStorage.setItem('smr_auth_permissions', JSON.stringify(fallbackUser.permissions));
+        onLogin(fallbackUser);
       } else {
         setError('Authentication failed. Please verify your admin username and password.');
         setLoading(false);

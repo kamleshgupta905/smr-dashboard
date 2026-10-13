@@ -21,12 +21,48 @@ import { CheckCircle2, AlertTriangle, X } from 'lucide-react';
 
 import { getSurveys, syncSurveys, DEFAULT_SURVEYS, GoogleSheetAPI } from './services/api';
 
+// URL Hash Parser for Seamless Refresh Persistence
+const parseHashRoute = () => {
+  const hash = window.location.hash.replace(/^#\/?/, '');
+  if (!hash) {
+    const saved = localStorage.getItem('smr_active_tab') || 'dashboard';
+    const savedSub = localStorage.getItem('smr_recon_tab') || 'clients';
+    return { tab: saved, subTab: savedSub };
+  }
+  const [tabPart, queryPart] = hash.split('?');
+  const params = new URLSearchParams(queryPart || '');
+  const tab = tabPart || 'dashboard';
+  const subTab = params.get('tab') || 'clients';
+  return { tab, subTab };
+};
+
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('smr_auth_token') === 'authenticated_vmhgroup';
   });
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [reconciliationTab, setReconciliationTab] = useState('clients');
+
+  const initialRoute = parseHashRoute();
+  const [activeTab, setActiveTab] = useState(initialRoute.tab);
+  const [reconciliationTab, setReconciliationTab] = useState(initialRoute.subTab);
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const u = localStorage.getItem('smr_auth_user_data');
+      return u ? JSON.parse(u) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const [userPermissions, setUserPermissions] = useState(() => {
+    try {
+      const p = localStorage.getItem('smr_auth_permissions');
+      return p ? JSON.parse(p) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
   const [surveys, setSurveys] = useState([]);
   const [globalSearch, setGlobalSearch] = useState('');
   const [loading, setLoading] = useState(false);
@@ -35,12 +71,80 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [toast, setToast] = useState(null);
 
-  const handleTabChange = (tab, subTab) => {
+  // Modal states with Browser Back Button Integration
+  const [quotasModalId, setQuotasModalId] = useState(null);
+  const [qualsModalId, setQualsModalId] = useState(null);
+  const [assignModalId, setAssignModalId] = useState(null);
+  const [testPreScreener, setTestPreScreener] = useState(null);
+
+  const openQuotas = (val) => {
+    if (val) window.history.pushState({ modal: 'quotas' }, '');
+    setQuotasModalId(val);
+  };
+  const closeQuotas = () => setQuotasModalId(null);
+
+  const openQuals = (val) => {
+    if (val) window.history.pushState({ modal: 'quals' }, '');
+    setQualsModalId(val);
+  };
+  const closeQuals = () => setQualsModalId(null);
+
+  const openAssign = (val) => {
+    if (val) window.history.pushState({ modal: 'assign' }, '');
+    setAssignModalId(val);
+  };
+  const closeAssign = () => setAssignModalId(null);
+
+  const openTestPreScreener = (data) => {
+    if (data) window.history.pushState({ modal: 'prescreener' }, '');
+    setTestPreScreener(data);
+  };
+  const closeTestPreScreener = () => setTestPreScreener(null);
+
+  const handleTabChange = (tab, subTab, pushHistory = true) => {
     setActiveTab(tab);
-    if (tab === 'reconciliation' && subTab) {
-      setReconciliationTab(subTab);
+    localStorage.setItem('smr_active_tab', tab);
+    let hashStr = `#/${tab}`;
+    if (tab === 'reconciliation') {
+      const targetSub = subTab || reconciliationTab || 'clients';
+      setReconciliationTab(targetSub);
+      localStorage.setItem('smr_recon_tab', targetSub);
+      hashStr += `?tab=${targetSub}`;
+    }
+    if (pushHistory && window.location.hash !== hashStr) {
+      window.history.pushState({ tab, subTab: subTab || reconciliationTab }, '', hashStr);
     }
   };
+
+  // Browser Navigation & Back Button Interceptor (Popstate)
+  useEffect(() => {
+    const handlePopState = () => {
+      // 1. If any modal is currently open, close the modal first without leaving the page
+      if (quotasModalId || qualsModalId || assignModalId || testPreScreener) {
+        setQuotasModalId(null);
+        setQualsModalId(null);
+        setAssignModalId(null);
+        setTestPreScreener(null);
+        return;
+      }
+
+      // 2. Otherwise navigate to the URL hash route
+      const { tab, subTab } = parseHashRoute();
+      setActiveTab(tab);
+      if (subTab) setReconciliationTab(subTab);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [quotasModalId, qualsModalId, assignModalId, testPreScreener]);
+
+  // Ensure initial hash is synchronized
+  useEffect(() => {
+    if (!window.location.hash) {
+      const initialHash = activeTab === 'reconciliation' ? `#/reconciliation?tab=${reconciliationTab}` : `#/${activeTab}`;
+      window.history.replaceState({ tab: activeTab, subTab: reconciliationTab }, '', initialHash);
+    }
+  }, []);
 
   const handleToggleSidebar = () => {
     if (window.innerWidth < 992) {
@@ -49,11 +153,6 @@ export default function App() {
       setSidebarCollapsed(prev => !prev);
     }
   };
-
-  // Modal states
-  const [quotasModalId, setQuotasModalId] = useState(null);
-  const [qualsModalId, setQualsModalId] = useState(null);
-  const [assignModalId, setAssignModalId] = useState(null);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -147,12 +246,14 @@ export default function App() {
     reference: 'Categories & Reference Data'
   };
 
-  // Test Pre-Screener Modal State for Admin Testing
-  const [testPreScreener, setTestPreScreener] = useState(null);
-
   const handleLogout = () => {
     localStorage.removeItem('smr_auth_token');
     localStorage.removeItem('smr_auth_user');
+    localStorage.removeItem('smr_auth_role');
+    localStorage.removeItem('smr_auth_user_data');
+    localStorage.removeItem('smr_auth_permissions');
+    setCurrentUser(null);
+    setUserPermissions([]);
     setIsAuthenticated(false);
   };
 
@@ -188,8 +289,12 @@ export default function App() {
   }
 
   if (!isAuthenticated) {
-    return <LoginPage onLogin={() => {
+    return <LoginPage onLogin={(user) => {
       setIsAuthenticated(true);
+      if (user) {
+        setCurrentUser(user);
+        if (user.permissions) setUserPermissions(user.permissions);
+      }
       loadData();
     }} />;
   }
@@ -204,6 +309,8 @@ export default function App() {
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
         collapsed={sidebarCollapsed}
+        userPermissions={userPermissions}
+        currentUser={currentUser}
       />
 
       {/* VMH Fixed Topbar with Working Sidebar Toggle & Sleek Bell */}
@@ -232,15 +339,15 @@ export default function App() {
               loading={loading}
               onSync={handleSync}
               onNavigate={handleTabChange}
-              onOpenQuotas={setQuotasModalId}
-              onOpenQuals={setQualsModalId}
-              onOpenAssign={setAssignModalId}
+              onOpenQuotas={openQuotas}
+              onOpenQuals={openQuals}
+              onOpenAssign={openAssign}
             />
           )}
 
-          {activeTab === 'users' && <UserManagementPage />}
+          {activeTab === 'users' && <UserManagementPage currentUser={currentUser} />}
           {activeTab === 'clients' && <ClientsPage onNavigate={handleTabChange} globalSearch={globalSearch} />}
-          {activeTab === 'security' && <SecurityFraudPage onLaunchPreScreener={(data) => setTestPreScreener(data)} />}
+          {activeTab === 'security' && <SecurityFraudPage onLaunchPreScreener={(data) => openTestPreScreener(data)} />}
           {activeTab === 'developer-center' && <ApiDeveloperCenterPage />}
 
           {activeTab === 'surveys' && (
@@ -253,9 +360,9 @@ export default function App() {
                 setSurveys(prev => [newStudy, ...prev]);
                 showToast(`✓ Study #${newStudy.surveyId} launched & added to marketplace!`);
               }}
-              onOpenQuotas={setQuotasModalId}
-              onOpenQuals={setQualsModalId}
-              onOpenAssign={setAssignModalId}
+              onOpenQuotas={openQuotas}
+              onOpenQuals={openQuals}
+              onOpenAssign={openAssign}
             />
           )}
 
@@ -294,7 +401,7 @@ export default function App() {
           <QuotasModal 
             survey={resolved}
             surveyId={resolvedId} 
-            onClose={() => setQuotasModalId(null)} 
+            onClose={closeQuotas} 
           />
         );
       })()}
@@ -308,7 +415,7 @@ export default function App() {
           <QualsModal 
             survey={resolved}
             surveyId={resolvedId} 
-            onClose={() => setQualsModalId(null)} 
+            onClose={closeQuals} 
           />
         );
       })()}
@@ -322,8 +429,8 @@ export default function App() {
           <AssignVendorModal 
             survey={resolved}
             surveyId={resolvedId} 
-            onClose={() => setAssignModalId(null)} 
-            onOpenPreScreener={(data) => setTestPreScreener(data)}
+            onClose={closeAssign} 
+            onOpenPreScreener={(data) => openTestPreScreener(data)}
           />
         );
       })()}
@@ -338,7 +445,7 @@ export default function App() {
           overflowY: 'auto'
         }}>
           <button
-            onClick={() => setTestPreScreener(null)}
+            onClick={closeTestPreScreener}
             style={{
               position: 'fixed',
               top: '16px',
@@ -364,7 +471,7 @@ export default function App() {
             vendorId={testPreScreener.vendorId || 'VND-DYN-01'}
             projectId={testPreScreener.projectId || '2042481293'}
             uid={testPreScreener.uid || `TEST_${Date.now().toString().slice(-4)}`}
-            onComplete={() => setTestPreScreener(null)}
+            onComplete={closeTestPreScreener}
           />
         </div>
       )}

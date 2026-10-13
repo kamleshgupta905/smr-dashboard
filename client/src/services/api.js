@@ -1235,56 +1235,85 @@ export const runUniversalApiTest = (payload) =>
     }));
 
 export const getUsers = async () => {
-  const local = getLocalData('smr_custom_users', null);
-  if (local && Array.isArray(local) && local.length > 0) {
-    return { success: true, data: local };
-  }
   try {
     const res = await api.get('/manage/users');
-    const remote = res.data?.data;
-    if (Array.isArray(remote) && remote.length > 0) {
-      setLocalData('smr_custom_users', remote);
-      return { success: true, data: remote };
+    if (res.data?.success && Array.isArray(res.data?.data)) {
+      setLocalData('smr_custom_users', res.data.data);
+      return res.data;
     }
-  } catch {}
-  setLocalData('smr_custom_users', DEFAULT_USERS);
-  return { success: true, data: DEFAULT_USERS };
+  } catch (err) {
+    console.error('Failed to fetch users from MySQL:', err);
+  }
+  const local = getLocalData('smr_custom_users', DEFAULT_USERS);
+  return { success: true, data: local };
+};
+
+export const getMenus = async () => {
+  try {
+    const res = await api.get('/manage/menus');
+    return res.data;
+  } catch (err) {
+    console.error('Failed to fetch menus from MySQL:', err);
+    return {
+      success: true,
+      data: [
+        { id: 1, name: 'Dashboard' },
+        { id: 2, name: 'User Management' },
+        { id: 6, name: 'Client' },
+        { id: 7, name: 'Projects' },
+        { id: 8, name: 'Vendor' },
+        { id: 9, name: 'Leads' },
+        { id: 10, name: 'Payments' }
+      ]
+    };
+  }
+};
+
+export const getUserPermissions = async (userId) => {
+  try {
+    const res = await api.get(`/manage/user-permissions?user_id=${userId}`);
+    return res.data;
+  } catch (err) {
+    console.error('Failed to fetch user permissions:', err);
+    return { success: false, data: [], menu_ids: [] };
+  }
+};
+
+export const saveUserAndPermissions = async (userData) => {
+  try {
+    const res = await api.post('/manage/users/save', userData);
+    // Refresh local cache
+    try {
+      const uRes = await api.get('/manage/users');
+      if (uRes.data?.data) setLocalData('smr_custom_users', uRes.data.data);
+    } catch {}
+    return res.data;
+  } catch (err) {
+    console.error('Failed to save user and permissions:', err);
+    throw err;
+  }
 };
 
 export const createUser = async (data) => {
-  const res = await getUsers();
-  const list = res.data || [];
-  const created = { ...data, id: Date.now(), status: 'active', createdAt: new Date().toISOString() };
-  const updated = [created, ...list];
-  setLocalData('smr_custom_users', updated);
-  try {
-    await api.post('/manage/users', data);
-  } catch {}
-  GoogleSheetAPI.syncToSheet('addUser', created);
-  return { success: true, data: created };
+  return saveUserAndPermissions(data);
 };
 
 export const updateUser = async (id, data) => {
-  const res = await getUsers();
-  const list = res.data || [];
-  const updated = list.map(u => (u.id === id ? { ...u, ...data, updatedAt: new Date().toISOString() } : u));
-  setLocalData('smr_custom_users', updated);
-  try {
-    await api.post(`/manage/users/update/${id}`, data);
-  } catch {}
-  GoogleSheetAPI.syncToSheet('addUser', { ...data, id });
-  return { success: true, data: updated };
+  return saveUserAndPermissions({ ...data, id });
 };
 
 export const deleteUser = async (id) => {
-  const res = await getUsers();
-  const list = res.data || [];
-  const updated = list.filter(u => u.id !== id);
-  setLocalData('smr_custom_users', updated);
   try {
-    await api.post(`/manage/users/delete/${id}`);
-  } catch {}
-  return { success: true };
+    const res = await api.delete('/manage/users', { data: { id } });
+    try {
+      const uRes = await api.get('/manage/users');
+      if (uRes.data?.data) setLocalData('smr_custom_users', uRes.data.data);
+    } catch {}
+    return res.data;
+  } catch (err) {
+    console.error('Failed to delete user:', err);
+    throw err;
+  }
 };
 
 // Vendor Allotments API (Quota & CPI Management)
@@ -1571,6 +1600,9 @@ export const ManagementAPI = {
   createUser,
   updateUser,
   deleteUser,
+  getMenus,
+  getUserPermissions,
+  saveUserAndPermissions,
   getDashboardAnalytics,
   getPayments,
   updatePaymentStatus,

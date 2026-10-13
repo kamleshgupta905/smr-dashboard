@@ -10,7 +10,17 @@ import {
   X
 } from 'lucide-react';
 
-export default function Sidebar({ activeTab, currentReportSubTab, onTabChange, setActiveTab, isOpen, onClose, collapsed }) {
+export default function Sidebar({ 
+  activeTab, 
+  currentReportSubTab, 
+  onTabChange, 
+  setActiveTab, 
+  isOpen, 
+  onClose, 
+  collapsed,
+  userPermissions,
+  currentUser
+}) {
   const changeTab = onTabChange || setActiveTab || (() => {});
 
   // Dropdown states for each section
@@ -19,6 +29,29 @@ export default function Sidebar({ activeTab, currentReportSubTab, onTabChange, s
   const [reportsOpen, setReportsOpen] = useState(true);
   const [securityOpen, setSecurityOpen] = useState(true);
   const [developerOpen, setDeveloperOpen] = useState(true);
+
+  // Check if current user has permission for a specific menu ID
+  const isPermitted = (menuId) => {
+    // Super Admin / Developer has full system access
+    if (
+      !currentUser ||
+      currentUser.role_id === 1 ||
+      currentUser.role_name === 'Developer' ||
+      currentUser.role === 'Developer' ||
+      currentUser.role_name === 'Admin' ||
+      currentUser.username === 'admin' ||
+      currentUser.username === 'vmhgroup'
+    ) {
+      return true;
+    }
+
+    const perms = userPermissions || (currentUser && currentUser.permissions) || null;
+    if (!perms || !Array.isArray(perms) || perms.length === 0) {
+      return true; // Default fallback to preserve full usability if unassigned
+    }
+
+    return perms.includes(Number(menuId));
+  };
 
   // Auto-expand the dropdown containing the active tab
   useEffect(() => {
@@ -88,174 +121,200 @@ export default function Sidebar({ activeTab, currentReportSubTab, onTabChange, s
         <div className="sidebar-scrollable-content">
           
           {/* Section: MAIN */}
-          <div className="sidebar-section-title">MAIN</div>
+          {(isPermitted(1) || isPermitted(7)) && (
+            <>
+              <div className="sidebar-section-title">MAIN</div>
 
-          {/* Dropdown 1: Dashboard */}
-          <div className="sidebar-nav-group">
-            <button 
-              className={`sidebar-nav-heading ${['dashboard', 'surveys'].includes(activeTab) ? 'active' : ''}`}
-              onClick={() => setDashboardOpen(prev => !prev)}
-            >
-              <div className="nav-heading-left">
-                <Home size={16} className="nav-icon" />
-                <span>Dashboard</span>
-              </div>
-              <span className={`dropdown-chevron ${dashboardOpen ? 'rotated' : ''}`}>
-                <ChevronRight size={14} />
-              </span>
-            </button>
-
-            <div className={`sidebar-submenu-collapsible ${dashboardOpen ? 'open' : 'closed'}`}>
-              <div className="sidebar-submenu-inner">
-                <button
-                  className={`submenu-item ${activeTab === 'dashboard' ? 'active' : ''}`}
-                  onClick={() => handleNav('dashboard')}
+              {/* Dropdown 1: Dashboard */}
+              <div className="sidebar-nav-group">
+                <button 
+                  className={`sidebar-nav-heading ${['dashboard', 'surveys'].includes(activeTab) ? 'active' : ''}`}
+                  onClick={() => setDashboardOpen(prev => !prev)}
                 >
-                  <span className="bullet-circle" />
-                  <span>Overview</span>
+                  <div className="nav-heading-left">
+                    <Home size={16} className="nav-icon" />
+                    <span>Dashboard</span>
+                  </div>
+                  <span className={`dropdown-chevron ${dashboardOpen ? 'rotated' : ''}`}>
+                    <ChevronRight size={14} />
+                  </span>
                 </button>
-                <button
-                  className={`submenu-item ${activeTab === 'surveys' ? 'active' : ''}`}
-                  onClick={() => handleNav('surveys')}
-                >
-                  <span className="bullet-circle" />
-                  <span>Surveys</span>
-                </button>
+
+                <div className={`sidebar-submenu-collapsible ${dashboardOpen ? 'open' : 'closed'}`}>
+                  <div className="sidebar-submenu-inner">
+                    {isPermitted(1) && (
+                      <button
+                        className={`submenu-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+                        onClick={() => handleNav('dashboard')}
+                      >
+                        <span className="bullet-circle" />
+                        <span>Overview</span>
+                      </button>
+                    )}
+                    {isPermitted(7) && (
+                      <button
+                        className={`submenu-item ${activeTab === 'surveys' ? 'active' : ''}`}
+                        onClick={() => handleNav('surveys')}
+                      >
+                        <span className="bullet-circle" />
+                        <span>Surveys</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
 
-          {/* Dropdown 2: Partners (Clients, Vendors) */}
-          <div className="sidebar-nav-group">
-            <button 
-              className={`sidebar-nav-heading ${['clients', 'vendors'].includes(activeTab) ? 'active' : ''}`}
-              onClick={() => setAppsOpen(prev => !prev)}
-            >
-              <div className="nav-heading-left">
-                <LayoutGrid size={16} className="nav-icon" />
-                <span>Partners</span>
-              </div>
-              <span className={`dropdown-chevron ${appsOpen ? 'rotated' : ''}`}>
-                <ChevronRight size={14} />
-              </span>
-            </button>
-
-            <div className={`sidebar-submenu-collapsible ${appsOpen ? 'open' : 'closed'}`}>
-              <div className="sidebar-submenu-inner">
-                <button
-                  className={`submenu-item ${activeTab === 'clients' ? 'active' : ''}`}
-                  onClick={() => handleNav('clients')}
-                >
-                  <span className="bullet-circle" />
-                  <span>Clients</span>
-                </button>
-                <button
-                  className={`submenu-item ${activeTab === 'vendors' ? 'active' : ''}`}
-                  onClick={() => handleNav('vendors')}
-                >
-                  <span className="bullet-circle" />
-                  <span>Vendors</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Dotted Divider */}
-          <div className="sidebar-dotted-divider" />
-
-          {/* Section: REPORTS & ANALYTICS */}
-          <div className="sidebar-section-title">REPORTS & ANALYTICS</div>
-
-          {/* Direct Nav: Reports Hub (1-Click Direct Navigation) */}
-          <div className="sidebar-nav-group">
-            <button 
-              className={`sidebar-nav-heading ${activeTab === 'reconciliation' ? 'active' : ''}`}
-              onClick={() => handleNav('reconciliation')}
-            >
-              <div className="nav-heading-left">
-                <BarChart3 size={16} className="nav-icon" />
-                <span>Reports Hub</span>
-              </div>
-            </button>
-          </div>
-
-          {/* Dotted Divider */}
-          <div className="sidebar-dotted-divider" />
-
-          {/* Section: MANAGEMENT */}
-          <div className="sidebar-section-title">MANAGEMENT</div>
-
-          {/* Dropdown 4: Security & Quality Controls */}
-          <div className="sidebar-nav-group">
-            <button 
-              className={`sidebar-nav-heading ${['security', 'reference'].includes(activeTab) ? 'active' : ''}`}
-              onClick={() => setSecurityOpen(prev => !prev)}
-            >
-              <div className="nav-heading-left">
-                <ShieldCheck size={16} className="nav-icon" />
-                <span>Security & Reference</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span className={`dropdown-chevron ${securityOpen ? 'rotated' : ''}`}>
+          {/* Section: PARTNERS */}
+          {(isPermitted(6) || isPermitted(8)) && (
+            <div className="sidebar-nav-group">
+              <button 
+                className={`sidebar-nav-heading ${['clients', 'vendors'].includes(activeTab) ? 'active' : ''}`}
+                onClick={() => setAppsOpen(prev => !prev)}
+              >
+                <div className="nav-heading-left">
+                  <LayoutGrid size={16} className="nav-icon" />
+                  <span>Partners</span>
+                </div>
+                <span className={`dropdown-chevron ${appsOpen ? 'rotated' : ''}`}>
                   <ChevronRight size={14} />
                 </span>
-              </div>
-            </button>
+              </button>
 
-            <div className={`sidebar-submenu-collapsible ${securityOpen ? 'open' : 'closed'}`}>
-              <div className="sidebar-submenu-inner">
-                <button
-                  className={`submenu-item ${activeTab === 'security' ? 'active' : ''}`}
-                  onClick={() => handleNav('security')}
-                >
-                  <span className="bullet-circle" />
-                  <span>Security & Fraud Gate</span>
-                </button>
-                <button
-                  className={`submenu-item ${activeTab === 'reference' ? 'active' : ''}`}
-                  onClick={() => handleNav('reference')}
-                >
-                  <span className="bullet-circle" />
-                  <span>Categories & Reference Data</span>
-                </button>
+              <div className={`sidebar-submenu-collapsible ${appsOpen ? 'open' : 'closed'}`}>
+                <div className="sidebar-submenu-inner">
+                  {isPermitted(6) && (
+                    <button
+                      className={`submenu-item ${activeTab === 'clients' ? 'active' : ''}`}
+                      onClick={() => handleNav('clients')}
+                    >
+                      <span className="bullet-circle" />
+                      <span>Clients</span>
+                    </button>
+                  )}
+                  {isPermitted(8) && (
+                    <button
+                      className={`submenu-item ${activeTab === 'vendors' ? 'active' : ''}`}
+                      onClick={() => handleNav('vendors')}
+                    >
+                      <span className="bullet-circle" />
+                      <span>Vendors</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Dropdown 4: System & Team */}
-          <div className="sidebar-nav-group">
-            <button 
-              className={`sidebar-nav-heading ${['developer-center', 'users'].includes(activeTab) ? 'active' : ''}`}
-              onClick={() => setDeveloperOpen(prev => !prev)}
-            >
-              <div className="nav-heading-left">
-                <Terminal size={16} className="nav-icon" />
-                <span>System & Team</span>
-              </div>
-              <span className={`dropdown-chevron ${developerOpen ? 'rotated' : ''}`}>
-                <ChevronRight size={14} />
-              </span>
-            </button>
+          {/* Dotted Divider & REPORTS & ANALYTICS */}
+          {(isPermitted(9) || isPermitted(10)) && (
+            <>
+              <div className="sidebar-dotted-divider" />
+              <div className="sidebar-section-title">REPORTS & ANALYTICS</div>
 
-            <div className={`sidebar-submenu-collapsible ${developerOpen ? 'open' : 'closed'}`}>
-              <div className="sidebar-submenu-inner">
-                <button
-                  className={`submenu-item ${activeTab === 'developer-center' ? 'active' : ''}`}
-                  onClick={() => handleNav('developer-center')}
+              {/* Direct Nav: Reports Hub (1-Click Direct Navigation) */}
+              <div className="sidebar-nav-group">
+                <button 
+                  className={`sidebar-nav-heading ${activeTab === 'reconciliation' ? 'active' : ''}`}
+                  onClick={() => handleNav('reconciliation')}
                 >
-                  <span className="bullet-circle" />
-                  <span>API & Integrations</span>
-                </button>
-                <button
-                  className={`submenu-item ${activeTab === 'users' ? 'active' : ''}`}
-                  onClick={() => handleNav('users')}
-                >
-                  <span className="bullet-circle" />
-                  <span>Team Members</span>
+                  <div className="nav-heading-left">
+                    <BarChart3 size={16} className="nav-icon" />
+                    <span>Reports Hub</span>
+                  </div>
                 </button>
               </div>
-            </div>
-          </div>
+            </>
+          )}
+
+          {/* Section: MANAGEMENT */}
+          {(isPermitted(2) || isPermitted(3) || isPermitted(4) || isPermitted(7) || (!currentUser || currentUser.role_id === 1)) && (
+            <>
+              <div className="sidebar-dotted-divider" />
+              <div className="sidebar-section-title">MANAGEMENT</div>
+
+              {/* Dropdown: Security & Quality Controls */}
+              {(!currentUser || currentUser.role_id === 1 || isPermitted(4)) && (
+                <div className="sidebar-nav-group">
+                  <button 
+                    className={`sidebar-nav-heading ${['security', 'reference'].includes(activeTab) ? 'active' : ''}`}
+                    onClick={() => setSecurityOpen(prev => !prev)}
+                  >
+                    <div className="nav-heading-left">
+                      <ShieldCheck size={16} className="nav-icon" />
+                      <span>Security & Reference</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span className={`dropdown-chevron ${securityOpen ? 'rotated' : ''}`}>
+                        <ChevronRight size={14} />
+                      </span>
+                    </div>
+                  </button>
+
+                  <div className={`sidebar-submenu-collapsible ${securityOpen ? 'open' : 'closed'}`}>
+                    <div className="sidebar-submenu-inner">
+                      <button
+                        className={`submenu-item ${activeTab === 'security' ? 'active' : ''}`}
+                        onClick={() => handleNav('security')}
+                      >
+                        <span className="bullet-circle" />
+                        <span>Security & Fraud Gate</span>
+                      </button>
+                      <button
+                        className={`submenu-item ${activeTab === 'reference' ? 'active' : ''}`}
+                        onClick={() => handleNav('reference')}
+                      >
+                        <span className="bullet-circle" />
+                        <span>Categories & Reference Data</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Dropdown: System & Team */}
+              {(isPermitted(2) || isPermitted(3) || isPermitted(4) || (!currentUser || currentUser.role_id === 1)) && (
+                <div className="sidebar-nav-group">
+                  <button 
+                    className={`sidebar-nav-heading ${['developer-center', 'users'].includes(activeTab) ? 'active' : ''}`}
+                    onClick={() => setDeveloperOpen(prev => !prev)}
+                  >
+                    <div className="nav-heading-left">
+                      <Terminal size={16} className="nav-icon" />
+                      <span>System & Team</span>
+                    </div>
+                    <span className={`dropdown-chevron ${developerOpen ? 'rotated' : ''}`}>
+                      <ChevronRight size={14} />
+                    </span>
+                  </button>
+
+                  <div className={`sidebar-submenu-collapsible ${developerOpen ? 'open' : 'closed'}`}>
+                    <div className="sidebar-submenu-inner">
+                      {(!currentUser || currentUser.role_id === 1 || isPermitted(4)) && (
+                        <button
+                          className={`submenu-item ${activeTab === 'developer-center' ? 'active' : ''}`}
+                          onClick={() => handleNav('developer-center')}
+                        >
+                          <span className="bullet-circle" />
+                          <span>API & Integrations</span>
+                        </button>
+                      )}
+                      {(isPermitted(2) || isPermitted(3) || isPermitted(4) || (!currentUser || currentUser.role_id === 1)) && (
+                        <button
+                          className={`submenu-item ${activeTab === 'users' ? 'active' : ''}`}
+                          onClick={() => handleNav('users')}
+                        >
+                          <span className="bullet-circle" />
+                          <span>User Management</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
 
         </div>
 

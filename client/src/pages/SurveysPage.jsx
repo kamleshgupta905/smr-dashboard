@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Search, PieChart, UserCheck, Share2, AlertCircle, ChevronLeft, ChevronRight, 
   DollarSign, Clock, ArrowUpDown, Filter, Monitor, Smartphone, Tablet, 
@@ -16,6 +16,31 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
   const [duplicateModalProject, setDuplicateModalProject] = useState(null);
   const [selectedSurveyIds, setSelectedSurveyIds] = useState(new Set());
   const [showBulkModal, setShowBulkModal] = useState(false);
+
+  // Modal openers that push browser history so Back button closes modal
+  const openDemandModal = () => {
+    window.history.pushState({ modal: 'demand' }, '');
+    setDemandModalOpen(true);
+  };
+  const openDuplicateModal = (project) => {
+    window.history.pushState({ modal: 'duplicate' }, '');
+    setDuplicateModalProject(project);
+  };
+  const openBulkModal = () => {
+    window.history.pushState({ modal: 'bulk' }, '');
+    setShowBulkModal(true);
+  };
+
+  // Browser Back Button Interceptor for Modals
+  useEffect(() => {
+    const handlePopState = () => {
+      if (demandModalOpen) setDemandModalOpen(false);
+      if (duplicateModalProject) setDuplicateModalProject(null);
+      if (showBulkModal) setShowBulkModal(false);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [demandModalOpen, duplicateModalProject, showBulkModal]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('ALL');
   const [selectedChannel, setSelectedChannel] = useState('ALL');
@@ -182,7 +207,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
           {selectedSurveyIds.size > 0 && (
             <button
               className="btn btn-primary"
-              onClick={() => setShowBulkModal(true)}
+              onClick={openBulkModal}
               style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, padding: '7px 14px', background: '#4361EE' }}
             >
               <Share2 size={13} /> Bulk Assign ({selectedSurveyIds.size} Selected)
@@ -190,7 +215,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
           )}
           <button
             className="btn btn-primary"
-            onClick={() => setDemandModalOpen(true)}
+            onClick={openDemandModal}
             style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px' }}
           >
             <Layers size={14} /> + Add Survey
@@ -466,7 +491,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                             <button
                               className="btn btn-soft-info btn-sm"
                               style={{ padding: '4px 8px', fontSize: '11.5px', display: 'flex', alignItems: 'center', gap: '4px', borderRadius: '4px', background: 'rgba(6, 182, 212, 0.1)', color: '#0891b2', border: '1px solid rgba(6, 182, 212, 0.2)' }}
-                              onClick={() => setDuplicateModalProject(s)}
+                              onClick={() => openDuplicateModal(s)}
                               title="1-Click Clone / Duplicate Project"
                             >
                               <Copy size={12} /> Duplicate
@@ -754,7 +779,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
           <div style={{ height: '20px', width: '1px', background: 'rgba(255,255,255,0.2)' }} />
 
           <button
-            onClick={() => setShowBulkModal(true)}
+            onClick={openBulkModal}
             style={{
               background: '#4361EE',
               color: '#FFFFFF',
