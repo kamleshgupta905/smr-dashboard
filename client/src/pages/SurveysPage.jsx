@@ -241,7 +241,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
       </div>
 
       {/* Filter & Channel Switcher Bar (Dastone Report Card) */}
-      <div className="report-card" style={{ padding: '14px 20px', marginBottom: '20px' }}>
+      <div className="report-card" style={{ padding: '10px 14px', marginBottom: '14px' }}>
         <div style={{ 
           display: 'flex', 
           alignItems: 'center', 
@@ -322,7 +322,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
 
       {/* Main Data Table (Dastone Report Card) */}
       <div className="report-card card" style={{ padding: 0, overflow: 'hidden', marginBottom: '24px' }}>
-        <div className="report-card-header">
+        <div className="report-card-header" style={{ padding: '10px 14px' }}>
           <h4 className="report-card-title">
             <Layers size={15} color="#1761fd" /> Active Surveys ({filtered.length})
           </h4>
@@ -331,10 +331,10 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
           </span>
         </div>
         <div className="table-wrapper table-container" style={{ margin: 0, border: 'none', borderRadius: 0, width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', display: 'block' }}>
-          <table className="custom-table" style={{ width: '100%', minWidth: '1280px' }}>
+          <table className="custom-table compact-table" style={{ width: '100%', minWidth: '980px' }}>
             <thead className="thead-light">
               <tr>
-                <th style={{ width: '42px', textAlign: 'center', padding: '8px 4px' }}>
+                <th className="col-checkbox" style={{ width: '34px', textAlign: 'center', padding: '6px 2px' }}>
                   <input
                     type="checkbox"
                     checked={isAllPageSelected}
@@ -344,16 +344,16 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                     style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#4361EE' }}
                   />
                 </th>
-                <th style={{ width: '38px', textAlign: 'center' }}>#</th>
-                <th style={{ minWidth: '220px' }}>Survey Name & ID</th>
-                <th>Client</th>
-                <th>Country</th>
-                <th>Devices</th>
-                <th>Rate (CPI)</th>
-                <th>Length (LOI)</th>
-                <th style={{ minWidth: '140px' }}>Quota / Completes</th>
-                <th>Status</th>
-                <th style={{ textAlign: 'center', minWidth: '180px', paddingRight: '16px' }}>Actions</th>
+                <th className="col-index" style={{ width: '32px', textAlign: 'center', padding: '6px 2px' }}>#</th>
+                <th style={{ minWidth: '170px', padding: '6px 8px' }}>Survey Name & ID</th>
+                <th style={{ width: '85px', padding: '6px 6px' }}>Client</th>
+                <th style={{ width: '55px', textAlign: 'center', padding: '6px 4px' }}>Country</th>
+                <th style={{ width: '70px', textAlign: 'center', padding: '6px 4px' }}>Devices</th>
+                <th style={{ width: '80px', padding: '6px 6px' }}>Rate (CPI)</th>
+                <th style={{ width: '80px', padding: '6px 6px' }}>Length (LOI)</th>
+                <th style={{ minWidth: '120px', maxWidth: '140px', padding: '6px 8px' }}>Quota / Completes</th>
+                <th style={{ width: '70px', textAlign: 'center', padding: '6px 4px' }}>Status</th>
+                <th className="col-sticky-action" style={{ textAlign: 'center', minWidth: '175px', padding: '6px 8px' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -383,7 +383,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                           transition: 'background 0.15s'
                         }}
                       >
-                        <td style={{ textAlign: 'center', padding: '8px 4px' }}>
+                        <td className="col-checkbox" style={{ textAlign: 'center', padding: '6px 2px' }}>
                           <input
                             type="checkbox"
                             checked={selectedSurveyIds.has(s.survey_id)}
@@ -392,32 +392,32 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                             style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#4361EE' }}
                           />
                         </td>
-                        <td style={{ textAlign: 'center', color: '#94A3B8', fontSize: '12px' }}>
+                        <td className="col-index" style={{ textAlign: 'center', color: '#94A3B8', fontSize: '11.5px', padding: '6px 2px' }}>
                           {globalIdx}
                         </td>
-                        <td>
+                        <td style={{ padding: '6px 8px' }}>
                           <div 
-                            style={{ fontWeight: 800, color: '#0F172A', fontSize: '13.5px', cursor: 'pointer' }}
+                            style={{ fontWeight: 800, color: '#0F172A', fontSize: '13px', cursor: 'pointer', lineHeight: 1.25 }}
                             onClick={() => toggleExpand(s.survey_id)}
                           >
                             {s.survey_name}
                           </div>
-                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '3px' }}>
-                            <span style={{ fontSize: '11px', color: '#475569', fontFamily: 'monospace', fontWeight: 700 }}>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '2px' }}>
+                            <span style={{ fontSize: '10.5px', color: '#475569', fontFamily: 'monospace', fontWeight: 700 }}>
                               PID: {s.survey_id}
                             </span>
                             {s.category && (
-                              <span style={{ fontSize: '10.5px', color: '#64748B', background: '#F1F5F9', padding: '1px 6px', borderRadius: '4px' }}>
+                              <span style={{ fontSize: '10px', color: '#64748B', background: '#F1F5F9', padding: '1px 5px', borderRadius: '3px' }}>
                                 {s.category}
                               </span>
                             )}
                           </div>
                         </td>
-                        <td>
+                        <td style={{ padding: '6px 6px' }}>
                           <span style={{
-                            padding: '3px 8px',
-                            borderRadius: '6px',
-                            fontSize: '11px',
+                            padding: '2px 7px',
+                            borderRadius: '4px',
+                            fontSize: '10.5px',
                             fontWeight: 700,
                             background: clientName === 'Market Xcel' ? '#FFF7ED' : '#EFF6FF',
                             color: clientName === 'Market Xcel' ? '#C2410C' : '#1D4ED8',
@@ -426,35 +426,35 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                             {clientName}
                           </span>
                         </td>
-                        <td>
-                          <span className="badge badge-info" style={{ fontSize: '11.5px', fontWeight: 600 }}>
+                        <td style={{ textAlign: 'center', padding: '6px 4px' }}>
+                          <span className="badge badge-info" style={{ fontSize: '11px', fontWeight: 600, padding: '2px 6px' }}>
                             {s.country}
                           </span>
                         </td>
-                        <td>
+                        <td style={{ textAlign: 'center', padding: '6px 4px' }}>
                           {getDeviceBadges(s.device_type)}
                         </td>
-                        <td>
-                          <div style={{ fontWeight: 800, color: '#15803D', fontSize: '14px' }}>
+                        <td style={{ padding: '6px 6px' }}>
+                          <div style={{ fontWeight: 800, color: '#15803D', fontSize: '13px' }}>
                             ${Number(s.cpi).toFixed(2)}
                           </div>
-                          <div style={{ fontSize: '10.5px', color: '#64748B' }}>per complete</div>
+                          <div style={{ fontSize: '10px', color: '#64748B' }}>per complete</div>
                         </td>
-                        <td>
-                          <div style={{ fontSize: '12px', color: '#0F172A', fontWeight: 600 }}>
-                            <Clock size={12} style={{ display: 'inline', marginRight: '3px', verticalAlign: 'middle', color: '#64748B' }} />
-                            {s.loi} mins
+                        <td style={{ padding: '6px 6px' }}>
+                          <div style={{ fontSize: '11.5px', color: '#0F172A', fontWeight: 600 }}>
+                            <Clock size={11} style={{ display: 'inline', marginRight: '3px', verticalAlign: 'middle', color: '#64748B' }} />
+                            {s.loi}m
                           </div>
-                          <div style={{ fontSize: '11px', color: '#64748B' }}>
+                          <div style={{ fontSize: '10.5px', color: '#64748B' }}>
                             IR: <strong>{s.ir}%</strong>
                           </div>
                         </td>
-                        <td>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '3px' }}>
+                        <td style={{ padding: '6px 8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', marginBottom: '2px' }}>
                             <span style={{ fontWeight: 700, color: '#0F172A' }}>{quotaFilled} / {quotaTarget}</span>
                             <span style={{ color: '#64748B' }}>{fillPercent}%</span>
                           </div>
-                          <div style={{ width: '100%', height: '6px', background: '#E2E8F0', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: '100%', height: '5px', background: '#E2E8F0', borderRadius: '3px', overflow: 'hidden' }}>
                             <div style={{
                               width: `${fillPercent}%`,
                               height: '100%',
@@ -463,65 +463,65 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                             }} />
                           </div>
                         </td>
-                        <td>
+                        <td style={{ textAlign: 'center', padding: '6px 4px' }}>
                           <span className="badge-soft-success" style={{
-                            padding: '3px 9px',
+                            padding: '2px 7px',
                             borderRadius: '20px',
-                            fontSize: '11px',
+                            fontSize: '10.5px',
                             fontWeight: 700,
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '5px'
+                            gap: '4px'
                           }}>
                             <span className="pulse-dot" />
                             {s.status || 'Live'}
                           </span>
                         </td>
-                        <td style={{ textAlign: 'center' }}>
-                          <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+                        <td className="col-sticky-action" style={{ textAlign: 'center', padding: '6px 8px' }}>
+                          <div style={{ display: 'inline-flex', gap: '5px', alignItems: 'center' }}>
                             <button
-                              className="btn btn-soft-primary btn-sm"
-                              style={{ padding: '4px 10px', fontSize: '11.5px', display: 'flex', alignItems: 'center', gap: '4px', borderRadius: '4px' }}
+                              className="btn btn-primary btn-sm"
+                              style={{ padding: '4px 8px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', borderRadius: '4px', fontWeight: 600 }}
                               onClick={() => onOpenAssign(s)}
                               title="Assign survey to vendor"
                             >
-                              <Share2 size={12} /> Assign to Vendor
+                              <Share2 size={11} /> Assign
                             </button>
 
                             <button
                               className="btn btn-soft-info btn-sm"
-                              style={{ padding: '4px 8px', fontSize: '11.5px', display: 'flex', alignItems: 'center', gap: '4px', borderRadius: '4px', background: 'rgba(6, 182, 212, 0.1)', color: '#0891b2', border: '1px solid rgba(6, 182, 212, 0.2)' }}
+                              style={{ padding: '4px 7px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', borderRadius: '4px', background: 'rgba(6, 182, 212, 0.1)', color: '#0891b2', border: '1px solid rgba(6, 182, 212, 0.2)', fontWeight: 600 }}
                               onClick={() => openDuplicateModal(s)}
                               title="1-Click Clone / Duplicate Project"
                             >
-                              <Copy size={12} /> Duplicate
+                              <Copy size={11} /> Clone
                             </button>
 
                             <button
                               className="btn btn-soft-secondary btn-sm"
-                              style={{ padding: '4px 8px', fontSize: '11.5px', borderRadius: '4px' }}
+                              style={{ padding: '4px 6px', fontSize: '11px', borderRadius: '4px' }}
                               onClick={() => onOpenQuotas(s.survey_id)}
                               title="View Quotas"
                             >
-                              <PieChart size={12} />
+                              <PieChart size={11} />
                             </button>
 
                             <button
                               className="btn btn-soft-secondary btn-sm"
-                              style={{ padding: '4px 8px', fontSize: '11.5px', borderRadius: '4px' }}
+                              style={{ padding: '4px 6px', fontSize: '11px', borderRadius: '4px' }}
                               onClick={() => onOpenQuals(s.survey_id)}
                               title="View Criteria & Qualifications"
                             >
-                              <UserCheck size={12} />
+                              <UserCheck size={11} />
                             </button>
 
                             <button
                               className="btn btn-soft-secondary btn-sm"
-                              style={{ padding: '4px 6px', borderRadius: '4px', color: '#7081b9' }}
+                              style={{ padding: '4px 5px', borderRadius: '4px', color: '#7081b9' }}
                               onClick={() => toggleExpand(s.survey_id)}
                               title="Toggle Survey Details"
                             >
-                              {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                              {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                             </button>
                           </div>
                         </td>

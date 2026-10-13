@@ -658,7 +658,7 @@ select:disabled {
   max-width: calc(100% - var(--sidebar-width));
   min-width: 0;
   flex: 1 1 auto;
-  padding: 20px 24px 60px 24px;
+  padding: 14px 10px 50px 10px;
   min-height: calc(100vh - var(--topbar-height));
   box-sizing: border-box;
   overflow-x: hidden;
@@ -1072,7 +1072,7 @@ tbody tr:hover {
 
 /* Compact Enterprise Table density to eliminate horizontal scrolling */
 .custom-table.compact-table th {
-  padding: 7px 10px;
+  padding: 6px 8px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.3px;
@@ -1080,28 +1080,56 @@ tbody tr:hover {
 }
 
 .custom-table.compact-table td {
-  padding: 7px 10px;
+  padding: 6px 8px;
   font-size: 12px;
   vertical-align: middle;
 }
 
+/* Checkbox Column - Zero Wasted Space */
+.custom-table th.col-checkbox,
+.custom-table td.col-checkbox,
+.custom-table.compact-table th.col-checkbox,
+.custom-table.compact-table td.col-checkbox {
+  width: 34px !important;
+  min-width: 34px !important;
+  max-width: 34px !important;
+  padding: 6px 2px !important;
+  text-align: center !important;
+}
+
+/* Index / # Column - Ultra Compact */
+.custom-table th.col-index,
+.custom-table td.col-index,
+.custom-table.compact-table th.col-index,
+.custom-table.compact-table td.col-index {
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  padding: 6px 2px !important;
+  text-align: center !important;
+}
+
 /* Sticky Action Column on Right */
+.custom-table th.col-sticky-action,
+.custom-table td.col-sticky-action,
 .custom-table.compact-table th.col-sticky-action,
 .custom-table.compact-table td.col-sticky-action {
-  position: sticky;
-  right: 0;
-  background: #ffffff;
-  z-index: 5;
-  box-shadow: -3px 0 6px rgba(0, 0, 0, 0.04);
+  position: sticky !important;
+  right: 0 !important;
+  background: #ffffff !important;
+  z-index: 5 !important;
+  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.05) !important;
 }
 
+.custom-table thead th.col-sticky-action,
 .custom-table.compact-table thead th.col-sticky-action {
-  background: #f8fafc;
-  z-index: 6;
+  background: #f8fafc !important;
+  z-index: 6 !important;
 }
 
+.custom-table tbody tr:hover td.col-sticky-action,
 .custom-table.compact-table tbody tr:hover td.col-sticky-action {
-  background: #f8fafd;
+  background: #f8fafd !important;
 }
 
 /* ==========================================================================
