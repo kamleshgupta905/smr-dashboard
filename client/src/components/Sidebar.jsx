@@ -176,9 +176,6 @@ export default function Sidebar({ activeTab, currentReportSubTab, onTabChange, s
                 <BarChart3 size={16} className="nav-icon" />
                 <span>Reports Hub</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span className="badge-dastone-new" style={{ background: '#10B981', color: '#FFFFFF' }}>Live</span>
-              </div>
             </button>
           </div>
 
@@ -199,7 +196,6 @@ export default function Sidebar({ activeTab, currentReportSubTab, onTabChange, s
                 <span>Security & Reference</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span className="badge-dastone-new">Active</span>
                 <span className={`dropdown-chevron ${securityOpen ? 'rotated' : ''}`}>
                   <ChevronRight size={14} />
                 </span>
@@ -259,20 +255,6 @@ export default function Sidebar({ activeTab, currentReportSubTab, onTabChange, s
                 </button>
               </div>
             </div>
-          </div>
-
-          {/* VMH Network Status */}
-          <div className="sidebar-bottom-promo" style={{ margin: '24px 14px 16px 14px', padding: '12px 14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span className="pulse-dot" />
-                <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#1e293b' }}>VMH Network</span>
-              </div>
-              <span className="badge-soft-success" style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>99.9% Up</span>
-            </div>
-            <p style={{ margin: 0, fontSize: '11px', color: '#64748b', lineHeight: 1.4 }}>
-              Zamplia Supply & Market Xcel Demand Connected
-            </p>
           </div>
 
         </div>

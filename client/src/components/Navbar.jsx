@@ -170,16 +170,16 @@ export default function Navbar({
           )}
         </div>
 
-        {/* Sync Zamplia Button (Dastone soft pill style with animated refresh) */}
+        {/* Sync Button (VMH crisp pill style with animated refresh) */}
         {onSync && (
           <button
             className="btn-new-task"
             onClick={onSync}
             disabled={syncing}
-            title="Fetch live inventory from Zamplia Supply API"
+            title="Sync live inventory & demand stats"
           >
             <RefreshCw size={13} className={syncing ? 'sync-spin' : ''} />
-            <span>{syncing ? 'Syncing...' : 'Sync Zamplia'}</span>
+            <span>{syncing ? 'Syncing...' : 'Sync'}</span>
           </button>
         )}
       </div>

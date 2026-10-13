@@ -834,7 +834,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
             {/* 1. Client-Wise Report View */}
             {reportTab === 'clients' && (
               <div className="table-wrapper" style={{ margin: 0, border: 'none', borderRadius: 0 }}>
-                <table className="custom-table" style={{ width: '100%' }}>
+                <table className="custom-table compact-table" style={{ width: '100%' }}>
                   <thead className="thead-light">
                     <tr>
                       <th>Demand Client & Code</th>
@@ -912,27 +912,27 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
             {/* 2. Project Performance Report View */}
             {reportTab === 'projects' && (
               <div className="table-wrapper" style={{ margin: 0, border: 'none', borderRadius: 0 }}>
-                <table className="custom-table" style={{ width: '100%' }}>
+                <table className="custom-table compact-table" style={{ width: '100%' }}>
                   <thead className="thead-light">
                     <tr>
-                      <th>Project ID & Name</th>
-                      <th>Buyer Client</th>
-                      <th>Buyer CPI</th>
-                      <th>Quota Pacing</th>
-                      <th>Routed Clicks</th>
-                      <th>Completes</th>
-                      <th>Terminates</th>
-                      <th>Overquota</th>
-                      <th>CR (%)</th>
-                      <th>Total Revenue</th>
-                      <th>Status</th>
-                      <th style={{ textAlign: 'center' }}>Actions</th>
+                      <th style={{ width: '190px' }}>Project / PID</th>
+                      <th style={{ width: '90px' }}>Buyer</th>
+                      <th style={{ width: '60px' }}>CPI</th>
+                      <th style={{ width: '100px' }}>Quota Pacing</th>
+                      <th style={{ width: '55px', textAlign: 'center' }}>Clicks</th>
+                      <th style={{ width: '55px', textAlign: 'center' }}>Comp</th>
+                      <th style={{ width: '50px', textAlign: 'center' }}>Term</th>
+                      <th style={{ width: '50px', textAlign: 'center' }}>OQ</th>
+                      <th style={{ width: '55px', textAlign: 'center' }}>CR%</th>
+                      <th style={{ width: '75px' }}>Revenue</th>
+                      <th style={{ width: '55px', textAlign: 'center' }}>Status</th>
+                      <th className="col-sticky-action" style={{ width: '85px', textAlign: 'center' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredProjectRows.length === 0 ? (
                       <tr>
-                        <td colSpan="12" style={{ textAlign: 'center', padding: '40px', color: '#8997bd' }}>
+                        <td colSpan="12" style={{ textAlign: 'center', padding: '30px', color: '#8997bd' }}>
                           No study projects match current filters.
                         </td>
                       </tr>
@@ -944,63 +944,65 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
 
                         return (
                           <tr key={p.project_id}>
-                            <td>
-                              <div style={{ fontWeight: 700, color: '#1d2c48', fontSize: '13px' }}>
+                            <td style={{ maxWidth: '190px' }}>
+                              <div style={{ fontWeight: 700, color: '#1d2c48', fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={p.project_name}>
                                 {p.project_name}
                               </div>
-                              <span className="badge-soft-primary" style={{ fontFamily: 'monospace', fontSize: '10.5px', padding: '1px 6px', borderRadius: '4px', marginTop: '2px', display: 'inline-block' }}>
+                              <span className="badge-soft-primary" style={{ fontFamily: 'monospace', fontSize: '10px', padding: '1px 5px', borderRadius: '3px', marginTop: '1px', display: 'inline-block' }}>
                                 PID: {p.project_id}
                               </span>
                             </td>
-                            <td>
-                              <span style={{ color: '#303e67', fontSize: '12px', fontWeight: 600 }}>{p.client_name}</span>
+                            <td style={{ maxWidth: '90px' }}>
+                              <span style={{ color: '#303e67', fontSize: '11.5px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }} title={p.client_name}>
+                                {p.client_name}
+                              </span>
                             </td>
                             <td>
-                              <strong style={{ color: '#03d87f' }}>${Number(p.cpi).toFixed(2)}</strong>
+                              <strong style={{ color: '#028745', fontSize: '12px' }}>${Number(p.cpi).toFixed(2)}</strong>
                             </td>
-                            <td style={{ minWidth: '120px' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', marginBottom: '2px' }}>
-                                <span>{delivered} / {target}</span>
-                                <span style={{ fontWeight: 700, color: '#1761fd' }}>{pacing}%</span>
+                            <td style={{ minWidth: '95px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginBottom: '2px' }}>
+                                <span>{delivered}/{target}</span>
+                                <span style={{ fontWeight: 700, color: '#2e3094' }}>{pacing}%</span>
                               </div>
-                              <div style={{ width: '100%', height: '4px', background: '#e2e8f0', borderRadius: '2px', overflow: 'hidden' }}>
-                                <div style={{ width: `${pacing}%`, height: '100%', background: pacing > 80 ? '#16a34a' : '#1761fd' }} />
+                              <div style={{ width: '100%', height: '3px', background: '#e2e8f0', borderRadius: '2px', overflow: 'hidden' }}>
+                                <div style={{ width: `${pacing}%`, height: '100%', background: pacing > 80 ? '#028745' : '#2e3094' }} />
                               </div>
                             </td>
-                            <td>{p.total_clicks}</td>
-                            <td><strong style={{ color: '#16a34a' }}>{p.total_completes}</strong></td>
-                            <td><span style={{ color: '#d97706' }}>{p.total_terminates}</span></td>
-                            <td><span style={{ color: '#8997bd' }}>{p.total_overquota}</span></td>
-                            <td><strong style={{ color: '#1761fd' }}>{p.conversion_rate}%</strong></td>
-                            <td><strong style={{ color: '#03d87f', fontSize: '13px' }}>${Number(p.total_revenue).toFixed(2)}</strong></td>
-                            <td>
-                              <span className="badge-soft-success" style={{ padding: '2px 7px', borderRadius: '4px', fontSize: '10.5px', fontWeight: 700 }}>
+                            <td style={{ textAlign: 'center', fontSize: '11.5px' }}>{p.total_clicks}</td>
+                            <td style={{ textAlign: 'center' }}><strong style={{ color: '#028745', fontSize: '12px' }}>{p.total_completes}</strong></td>
+                            <td style={{ textAlign: 'center' }}><span style={{ color: '#d97706', fontSize: '11.5px' }}>{p.total_terminates}</span></td>
+                            <td style={{ textAlign: 'center' }}><span style={{ color: '#8997bd', fontSize: '11.5px' }}>{p.total_overquota}</span></td>
+                            <td style={{ textAlign: 'center' }}><strong style={{ color: '#2e3094', fontSize: '11.5px' }}>{p.conversion_rate}%</strong></td>
+                            <td><strong style={{ color: '#028745', fontSize: '12px' }}>${Number(p.total_revenue).toFixed(2)}</strong></td>
+                            <td style={{ textAlign: 'center' }}>
+                              <span className="badge-soft-success" style={{ padding: '1px 5px', borderRadius: '3px', fontSize: '10px', fontWeight: 700 }}>
                                 Live
                               </span>
                             </td>
-                            <td style={{ textAlign: 'center' }}>
+                            <td className="col-sticky-action" style={{ textAlign: 'center' }}>
                               <button
                                 type="button"
                                 className="btn btn-sm"
                                 onClick={() => handleOpenProjectDetails(p)}
                                 style={{
-                                  background: 'rgba(23, 97, 253, 0.08)',
-                                  color: '#1761fd',
-                                  border: '1px solid rgba(23, 97, 253, 0.25)',
-                                  padding: '4px 10px',
-                                  borderRadius: '5px',
+                                  background: 'rgba(46, 48, 148, 0.08)',
+                                  color: '#2e3094',
+                                  border: '1px solid rgba(46, 48, 148, 0.25)',
+                                  padding: '3px 8px',
+                                  borderRadius: '4px',
                                   fontWeight: 700,
                                   fontSize: '11px',
                                   display: 'inline-flex',
                                   alignItems: 'center',
-                                  gap: '5px',
+                                  gap: '4px',
                                   cursor: 'pointer',
                                   whiteSpace: 'nowrap'
                                 }}
                                 title={`View assigned vendors and delivery breakdown for ${p.project_name}`}
                               >
-                                <Eye size={12} />
-                                <span>View Details</span>
+                                <Eye size={11} />
+                                <span>Details</span>
                               </button>
                             </td>
                           </tr>
@@ -1015,88 +1017,88 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
             {/* 3. Vendor Performance Report View */}
             {reportTab === 'vendors' && (
               <div className="table-wrapper" style={{ margin: 0, border: 'none', borderRadius: 0 }}>
-                <table className="custom-table" style={{ width: '100%' }}>
+                <table className="custom-table compact-table" style={{ width: '100%' }}>
                   <thead className="thead-light">
                     <tr>
-                      <th>Supply Vendor Panel</th>
-                      <th>Base CPI Payout</th>
-                      <th>Assigned Studies</th>
-                      <th>Inbound Clicks</th>
-                      <th>Verified Completes</th>
-                      <th>Terminates</th>
-                      <th>Security Disqualified</th>
-                      <th>Conversion Rate</th>
-                      <th>Total Payout Due</th>
-                      <th style={{ textAlign: 'center' }}>Actions</th>
+                      <th style={{ width: '180px' }}>Vendor Panel</th>
+                      <th style={{ width: '65px' }}>Avg CPI</th>
+                      <th style={{ width: '65px', textAlign: 'center' }}>Studies</th>
+                      <th style={{ width: '60px', textAlign: 'center' }}>Clicks</th>
+                      <th style={{ width: '60px', textAlign: 'center' }}>Comp</th>
+                      <th style={{ width: '55px', textAlign: 'center' }}>Term</th>
+                      <th style={{ width: '55px', textAlign: 'center' }}>Sec Term</th>
+                      <th style={{ width: '55px', textAlign: 'center' }}>CR%</th>
+                      <th style={{ width: '80px' }}>Payout</th>
+                      <th className="col-sticky-action" style={{ width: '85px', textAlign: 'center' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredVendorRows.length === 0 ? (
                       <tr>
-                        <td colSpan="10" style={{ textAlign: 'center', padding: '40px', color: '#8997bd' }}>
+                        <td colSpan="10" style={{ textAlign: 'center', padding: '30px', color: '#8997bd' }}>
                           No vendor records match current filters.
                         </td>
                       </tr>
                     ) : (
                       filteredVendorRows.map(v => (
                         <tr key={v.vendor_id}>
-                          <td>
-                            <div style={{ fontWeight: 700, color: '#1d2c48', fontSize: '13px' }}>
+                          <td style={{ maxWidth: '180px' }}>
+                            <div style={{ fontWeight: 700, color: '#1d2c48', fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={v.vendor_name}>
                               {v.vendor_name}
                             </div>
-                            <span className="badge-soft-primary" style={{ fontFamily: 'monospace', fontSize: '10.5px', padding: '1px 6px', borderRadius: '4px', marginTop: '2px', display: 'inline-block' }}>
+                            <span className="badge-soft-primary" style={{ fontFamily: 'monospace', fontSize: '10px', padding: '1px 5px', borderRadius: '3px', marginTop: '1px', display: 'inline-block' }}>
                               {v.vendor_id}
                             </span>
                           </td>
                           <td>
-                            <strong style={{ color: '#1761fd', fontSize: '13px' }}>${Number(v.avg_cpi).toFixed(2)}</strong>
+                            <strong style={{ color: '#2e3094', fontSize: '12px' }}>${Number(v.avg_cpi).toFixed(2)}</strong>
                           </td>
-                          <td>
-                            <span style={{ color: '#303e67', fontWeight: 600 }}>{v.assigned_projects} Studies</span>
+                          <td style={{ textAlign: 'center' }}>
+                            <span style={{ color: '#303e67', fontWeight: 600, fontSize: '11.5px' }}>{v.assigned_projects}</span>
                           </td>
-                          <td>
+                          <td style={{ textAlign: 'center', fontSize: '11.5px' }}>
                             <span style={{ color: '#303e67' }}>{v.total_clicks.toLocaleString()}</span>
                           </td>
-                          <td>
-                            <strong style={{ color: '#16a34a', fontSize: '13px' }}>{v.total_completes.toLocaleString()}</strong>
+                          <td style={{ textAlign: 'center' }}>
+                            <strong style={{ color: '#028745', fontSize: '12px' }}>{v.total_completes.toLocaleString()}</strong>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span style={{ color: '#d97706', fontSize: '11.5px' }}>{v.total_terminates.toLocaleString()}</span>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span style={{ color: '#dc2626', fontWeight: 600, fontSize: '11.5px' }}>{v.security_terminates}</span>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span style={{ fontWeight: 700, color: '#2e3094', fontSize: '11.5px' }}>{v.conversion_rate}%</span>
                           </td>
                           <td>
-                            <span style={{ color: '#d97706' }}>{v.total_terminates.toLocaleString()}</span>
-                          </td>
-                          <td>
-                            <span style={{ color: '#dc2626', fontWeight: 600 }}>{v.security_terminates}</span>
-                          </td>
-                          <td>
-                            <span style={{ fontWeight: 700, color: '#1761fd' }}>{v.conversion_rate}%</span>
-                          </td>
-                          <td>
-                            <strong style={{ color: '#1d2c48', fontSize: '14px' }}>
+                            <strong style={{ color: '#1d2c48', fontSize: '12px' }}>
                               ${Number(v.total_payout).toFixed(2)}
                             </strong>
                           </td>
-                          <td style={{ textAlign: 'center' }}>
+                          <td className="col-sticky-action" style={{ textAlign: 'center' }}>
                             <button
                               type="button"
                               className="btn btn-sm"
                               onClick={() => handleOpenVendorDetails(v)}
                               style={{
-                                background: 'rgba(23, 97, 253, 0.08)',
-                                color: '#1761fd',
-                                border: '1px solid rgba(23, 97, 253, 0.25)',
-                                padding: '5px 12px',
-                                borderRadius: '5px',
+                                background: 'rgba(46, 48, 148, 0.08)',
+                                color: '#2e3094',
+                                border: '1px solid rgba(46, 48, 148, 0.25)',
+                                padding: '3px 8px',
+                                borderRadius: '4px',
                                 fontWeight: 700,
-                                fontSize: '11.5px',
+                                fontSize: '11px',
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: '6px',
+                                gap: '4px',
                                 cursor: 'pointer',
                                 whiteSpace: 'nowrap'
                               }}
-                              title={`View assigned studies breakdown (konsi assign hui aur kitni poori ki) for ${v.vendor_name}`}
+                              title={`View assigned studies breakdown for ${v.vendor_name}`}
                             >
-                              <Eye size={13} />
-                              <span>View Details</span>
+                              <Eye size={11} />
+                              <span>Details</span>
                             </button>
                           </td>
                         </tr>
@@ -1110,7 +1112,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
             {/* 4. Respondent Audit Journal View */}
             {reportTab === 'journal' && (
               <div className="table-wrapper" style={{ margin: 0, border: 'none', borderRadius: 0 }}>
-                <table className="custom-table" style={{ width: '100%' }}>
+                <table className="custom-table compact-table" style={{ width: '100%' }}>
                   <thead className="thead-light">
                     <tr>
                       <th>Participant UID</th>
@@ -1257,7 +1259,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
 
                 {/* Legacy Archive Data Table */}
                 <div className="table-wrapper" style={{ margin: 0, border: 'none', borderRadius: 0 }}>
-                  <table className="custom-table" style={{ width: '100%' }}>
+                  <table className="custom-table compact-table" style={{ width: '100%' }}>
                     <thead className="thead-light">
                       <tr>
                         <th>Study PID / Code</th>
