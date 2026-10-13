@@ -125,14 +125,14 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
     loadAllotments();
   }, [currentId]);
 
-  // Update default CPI when selected vendor changes (auto-calculate 70% RevShare standard)
+  // Update default CPI when selected vendor changes (respect user-entered values)
   useEffect(() => {
     const vObj = vendors.find(v => (v.vendor_code === selectedVendor || v.vendorUid === selectedVendor || v._id === selectedVendor));
     if (vObj) {
-      if (vObj.commission_type === 'flat_rate' && vObj.cpi && Number(vObj.cpi) <= Number(currentCpi)) {
+      if (vObj.commission_type === 'flat_rate' && vObj.cpi !== undefined && vObj.cpi !== '') {
         setVendorCpi(Number(vObj.cpi));
-      } else {
-        const p = Number(vObj.cpi_percentage) || 70;
+      } else if (vObj.cpi_percentage) {
+        const p = Number(vObj.cpi_percentage);
         const calculated = ((Number(currentCpi) * p) / 100).toFixed(2);
         setVendorCpi(Number(calculated));
       }
@@ -145,11 +145,11 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
     const statusMap = { 1: '10', 2: '20', 3: '30', 4: '40', 10: '10', 20: '20', 30: '30', 40: '40' };
     const code = statusMap[statusNum] || '10';
     const testUid = `TEST_${selectedVendor}_${Date.now().toString().slice(-4)}`;
-    const url = `${origin}/survey/callback?status=${code}&uid=${testUid}&vid=${selectedVendor}&pid=${currentId}&projectName=${encodeURIComponent(currentName)}`;
+    const url = `${origin}/survey/callback?status=${code}&vid=${selectedVendor}&pid=${currentId}&hash=[HASH]&uid=${testUid}`;
     window.open(url, '_blank');
   };
 
-  // 1-Click Allot All Active Supply Panels (Auto 70% RevShare)
+  // 1-Click Allot All Active Supply Panels
   const handleAllotAllVendors = async () => {
     if (!vendors || vendors.length === 0) return;
     setAllottingAll(true);
@@ -158,8 +158,8 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
       for (const vObj of vendors) {
         const v = vObj.vendor_code || vObj.vendorUid || vObj._id;
         if (!v) continue;
-        const p = Number(vObj.cpi_percentage) || 70;
-        const vCpi = Number(((Number(currentCpi) * p) / 100).toFixed(2));
+        const p = Number(vObj.cpi_percentage) || 0;
+        const vCpi = p > 0 ? Number(((Number(currentCpi) * p) / 100).toFixed(2)) : (Number(vObj.cpi) || 0);
         const live = `${host}/vendor/auth/${v}/project/${currentId}?uid=[RESPONDENT_ID]`;
         await saveVendorAllotment({
           project_id: String(currentId),
@@ -780,10 +780,10 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
                     const vidCode = vendorObj?.vendor_code || selectedVendor || 'VND-DYN-01';
                     const isDummy = (url) => !url || url.includes('vnddyn01.com') || url.includes('supplier.com');
-                    const rc = !isDummy(vendorObj?.redirect_complete) ? vendorObj.redirect_complete : `${origin}/survey/callback?status=10&uid=[UID]&vid=${vidCode}&hash=[HASH]`;
-                    const rt = !isDummy(vendorObj?.redirect_terminate) ? vendorObj.redirect_terminate : `${origin}/survey/callback?status=20&uid=[UID]&vid=${vidCode}&hash=[HASH]`;
-                    const ro = !isDummy(vendorObj?.redirect_overquota) ? vendorObj.redirect_overquota : `${origin}/survey/callback?status=30&uid=[UID]&vid=${vidCode}&hash=[HASH]`;
-                    const rs = !isDummy(vendorObj?.redirect_security) ? vendorObj.redirect_security : `${origin}/survey/callback?status=40&uid=[UID]&vid=${vidCode}&hash=[HASH]`;
+                    const rc = !isDummy(vendorObj?.redirect_complete) ? vendorObj.redirect_complete : `${origin}/survey/callback?status=10&vid=${vidCode}&hash=[HASH]&uid=[UID]`;
+                    const rt = !isDummy(vendorObj?.redirect_terminate) ? vendorObj.redirect_terminate : `${origin}/survey/callback?status=20&vid=${vidCode}&hash=[HASH]&uid=[UID]`;
+                    const ro = !isDummy(vendorObj?.redirect_overquota) ? vendorObj.redirect_overquota : `${origin}/survey/callback?status=30&vid=${vidCode}&hash=[HASH]&uid=[UID]`;
+                    const rs = !isDummy(vendorObj?.redirect_security) ? vendorObj.redirect_security : `${origin}/survey/callback?status=40&vid=${vidCode}&hash=[HASH]&uid=[UID]`;
                     const hashAlg = vendorObj?.hash_algorithm || 'SHA3-256';
 
                     const copyCallback = (url, key) => {

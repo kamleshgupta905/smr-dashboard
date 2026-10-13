@@ -342,64 +342,6 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
                     </div>
                   </div>
 
-                  {/* Cryptographic Signing Settings (Frame 006) */}
-                  <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
-                    <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Lock size={14} color="#1761fd" /> Cryptographic Anti-Tamper Security & Signing
-                    </h4>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '12px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
-                          Hash Algorithm
-                        </label>
-                        <select
-                          className="input-control"
-                          value={securityForm.hashAlgorithm}
-                          onChange={e => setSecurityForm({ ...securityForm, hashAlgorithm: e.target.value })}
-                          style={{ fontSize: '12px' }}
-                        >
-                          <option value="SHA3-256 (Market Xcel / SMR Enterprise)">SHA3-256 (Market Xcel / SMR Enterprise)</option>
-                          <option value="HMAC-SHA256 (Dynata / CINT Standard)">HMAC-SHA256 (Dynata / CINT Standard)</option>
-                          <option value="MD5 (Legacy Panels)">MD5 (Legacy Panels)</option>
-                          <option value="None (Unsigned Redirects)">None (Unsigned Redirects)</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
-                          Secret Key / Signing Salt
-                        </label>
-                        <input
-                          type="text"
-                          className="input-control"
-                          value={securityForm.secretKey}
-                          onChange={e => setSecurityForm({ ...securityForm, secretKey: e.target.value })}
-                          style={{ fontFamily: 'monospace', fontSize: '12px' }}
-                        />
-                      </div>
-                    </div>
-
-                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '12px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>
-                          Test Live Signed Complete URL:
-                        </span>
-                        <a
-                          href={signedPreviewUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ fontSize: '11px', fontWeight: 700, color: '#1761fd', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '3px' }}
-                        >
-                          <ExternalLink size={11} /> Test Open
-                        </a>
-                      </div>
-                      <div style={{ fontFamily: 'monospace', fontSize: '11px', color: '#0f172a', wordBreak: 'break-all', background: '#ffffff', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}>
-                        {signedPreviewUrl}
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Submit buttons */}
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
                     <button

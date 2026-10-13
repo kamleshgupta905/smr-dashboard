@@ -9,7 +9,7 @@ import { normalizeSurveys } from '../utils/normalize';
 import DemandProjectModal from '../components/DemandProjectModal';
 import { exportSurveysInventoryToExcel } from '../utils/excelExport';
 
-export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSurvey, onOpenQuotas, onOpenQuals, onOpenAssign }) {
+export default function SurveysPage({ surveys = [], globalSearch = '', loading, onRefresh, onAddSurvey, onOpenQuotas, onOpenQuals, onOpenAssign }) {
   const [demandModalOpen, setDemandModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('ALL');
@@ -19,6 +19,8 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState(null);
   const [pageSize, setPageSize] = useState(15);
+
+  const effectiveSearch = (searchTerm || globalSearch || '').toLowerCase().trim();
 
   const normalized = useMemo(() => normalizeSurveys(surveys), [surveys]);
 
@@ -63,8 +65,8 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
       }
 
       // 4. Search Filter (Multi-field fuzzy search)
-      if (!searchTerm) return true;
-      const term = searchTerm.toLowerCase().trim();
+      if (!effectiveSearch) return true;
+      const term = effectiveSearch;
       return (
         (s.survey_name || '').toLowerCase().includes(term) ||
         String(s.survey_id || '').toLowerCase().includes(term) ||
@@ -84,7 +86,7 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
     });
 
     return list;
-  }, [normalized, selectedCountry, selectedChannel, selectedCpiRange, searchTerm, sortBy]);
+  }, [normalized, selectedCountry, selectedChannel, selectedCpiRange, effectiveSearch, sortBy]);
 
   const totalPages = Math.ceil(filtered.length / pageSize) || 1;
   const paginatedSurveys = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -198,7 +200,7 @@ export default function SurveysPage({ surveys = [], loading, onRefresh, onAddSur
                 className="input-control"
                 style={{ paddingLeft: '32px', width: '220px', height: '34px', fontSize: '12px' }}
                 placeholder="Search by name, ID, category..."
-                value={searchTerm}
+                value={searchTerm || globalSearch}
                 onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
               />
             </div>

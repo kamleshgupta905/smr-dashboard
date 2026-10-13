@@ -126,11 +126,12 @@ export default function App() {
     const term = (globalSearch || '').toLowerCase().trim();
     if (!term) return surveys;
     return surveys.filter((s) =>
-      String(s.survey_id ?? s.SurveyId ?? s.id ?? '').toLowerCase().includes(term) ||
-      String(s.survey_name ?? s.Name ?? '').toLowerCase().includes(term) ||
+      String(s.survey_id ?? s.SurveyId ?? s.surveyId ?? s.id ?? s._id ?? '').toLowerCase().includes(term) ||
+      String(s.survey_name ?? s.Name ?? s.name ?? s.project_name ?? '').toLowerCase().includes(term) ||
       String(s.country ?? s.Country ?? '').toLowerCase().includes(term) ||
       String(s.category ?? s.IndustryName ?? '').toLowerCase().includes(term) ||
-      String(s.client ?? '').toLowerCase().includes(term)
+      String(s.client ?? s.client_name ?? '').toLowerCase().includes(term) ||
+      String(s.studyType ?? '').toLowerCase().includes(term)
     );
   }, [surveys, globalSearch]);
 
@@ -245,6 +246,7 @@ export default function App() {
           {activeTab === 'surveys' && (
             <SurveysPage 
               surveys={filteredSurveys}
+              globalSearch={globalSearch}
               loading={loading}
               onRefresh={handleSync}
               onAddSurvey={(newStudy) => {

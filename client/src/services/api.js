@@ -385,12 +385,12 @@ export const DEFAULT_CLIENTS = [
 ];
 
 export const DEFAULT_VENDORS = [
-  { _id: 1793, id: 1793, vendor_id: 'VI010152025', vendor_code: 'VI010152025', vendorUid: 'VI010152025', name: 'Rohan', email: 'rohan@vendor.com', commission_type: 'revenue_share', cpi: 0.00, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 164, completes_count: 164, clicks_count: 381, terminates_count: 68 },
-  { _id: 1674, id: 1674, vendor_id: 'VI010032025', vendor_code: 'VI010032025', vendorUid: 'VI010032025', name: 'Krishan', email: 'krishan@vendor.com', commission_type: 'revenue_share', cpi: 0.00, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 151, completes_count: 151, clicks_count: 250, terminates_count: 12 },
-  { _id: 938, id: 938, vendor_id: 'VI009692025', vendor_code: 'VI009692025', vendorUid: 'VI009692025', name: 'vivek', email: 'vivek@vendor.com', commission_type: 'revenue_share', cpi: 0.00, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 123, completes_count: 123, clicks_count: 391, terminates_count: 13 },
-  { _id: 2263, id: 2263, vendor_id: 'VI010312026', vendor_code: 'VI010312026', vendorUid: 'VI010312026', name: 'trayistats', email: 'bidding@trayistats.com', commission_type: 'revenue_share', cpi: 0.00, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 0, completes_count: 0, clicks_count: 1, terminates_count: 1 },
-  { _id: 2262, id: 2262, vendor_id: 'VI010662026', vendor_code: 'VI010662026', vendorUid: 'VI010662026', name: 'amrendra', email: 'amrendra@vendor.com', commission_type: 'revenue_share', cpi: 0.00, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 0, completes_count: 0, clicks_count: 18, terminates_count: 15 },
-  { _id: 2261, id: 2261, vendor_id: 'VI010652026', vendor_code: 'VI010652026', vendorUid: 'VI010652026', name: 'Cortex Vision Insight', email: 'cortex@vendor.com', commission_type: 'revenue_share', cpi: 0.00, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 0, completes_count: 0, clicks_count: 12, terminates_count: 9 }
+  { _id: 1793, id: 1793, vendor_id: 'VI010152025', vendor_code: 'VI010152025', vendorUid: 'VI010152025', name: 'Rohan', email: 'rohan@vendor.com', commission_type: 'flat_rate', cpi: 1.00, cpi_percentage: 0, status: 'Y', is_active: 'Y', complete_count: 164, completes_count: 164, clicks_count: 381, terminates_count: 68 },
+  { _id: 1674, id: 1674, vendor_id: 'VI010032025', vendor_code: 'VI010032025', vendorUid: 'VI010032025', name: 'Krishan', email: 'krishan@vendor.com', commission_type: 'flat_rate', cpi: 1.00, cpi_percentage: 0, status: 'Y', is_active: 'Y', complete_count: 151, completes_count: 151, clicks_count: 250, terminates_count: 12 },
+  { _id: 938, id: 938, vendor_id: 'VI009692025', vendor_code: 'VI009692025', vendorUid: 'VI009692025', name: 'vivek', email: 'vivek@vendor.com', commission_type: 'flat_rate', cpi: 1.00, cpi_percentage: 0, status: 'Y', is_active: 'Y', complete_count: 123, completes_count: 123, clicks_count: 391, terminates_count: 13 },
+  { _id: 2263, id: 2263, vendor_id: 'VI010312026', vendor_code: 'VI010312026', vendorUid: 'VI010312026', name: 'trayistats', email: 'bidding@trayistats.com', commission_type: 'flat_rate', cpi: 1.00, cpi_percentage: 0, status: 'Y', is_active: 'Y', complete_count: 0, completes_count: 0, clicks_count: 1, terminates_count: 1 },
+  { _id: 2262, id: 2262, vendor_id: 'VI010662026', vendor_code: 'VI010662026', vendorUid: 'VI010662026', name: 'amrendra', email: 'amrendra@vendor.com', commission_type: 'flat_rate', cpi: 1.00, cpi_percentage: 0, status: 'Y', is_active: 'Y', complete_count: 0, completes_count: 0, clicks_count: 18, terminates_count: 15 },
+  { _id: 2261, id: 2261, vendor_id: 'VI010652026', vendor_code: 'VI010652026', vendorUid: 'VI010652026', name: 'Cortex Vision Insight', email: 'cortex@vendor.com', commission_type: 'flat_rate', cpi: 1.00, cpi_percentage: 0, status: 'Y', is_active: 'Y', complete_count: 0, completes_count: 0, clicks_count: 12, terminates_count: 9 }
 ];
 
 export const DEFAULT_PROJECTS = [
@@ -766,17 +766,38 @@ export const createProject = async (data) => {
   const updated = [created, ...list];
   setLocalData('smr_custom_projects', updated);
   try {
-    await api.post('/manage/projects', data);
+    await api.post('/manage/projects', created);
   } catch {}
   GoogleSheetAPI.syncToSheet('addProject', created);
   return { success: true, data: created };
 };
 
+export const updateProject = async (id, data) => {
+  const res = await getProjects();
+  const list = res.data || [];
+  const updated = list.map(p => {
+    if (p._id === id || p.project_id === id || p.id === id) {
+      return { ...p, ...data, updatedAt: new Date().toISOString() };
+    }
+    return p;
+  });
+  setLocalData('smr_custom_projects', updated);
+  try {
+    await api.post('/manage/projects', { ...data, id, project_id: id });
+  } catch {}
+  GoogleSheetAPI.syncToSheet('updateProject', { ...data, id, project_id: id });
+  return { success: true, data: updated };
+};
+
 export const deleteProject = async (id) => {
   const res = await getProjects();
   const list = res.data || [];
-  const updated = list.filter(p => (p._id !== id && p.project_id !== id));
+  const updated = list.filter(p => (p._id !== id && p.project_id !== id && p.id !== id));
   setLocalData('smr_custom_projects', updated);
+  try {
+    await api.delete(`/manage/projects/${id}`);
+  } catch {}
+  GoogleSheetAPI.syncToSheet('deleteProject', { project_id: id, id });
   return { success: true };
 };
 
@@ -811,7 +832,7 @@ export const createVendor = async (data) => {
   const updated = [created, ...list];
   setLocalData('smr_custom_vendors', updated);
   try {
-    await api.post('/manage/vendors', data);
+    await api.post('/manage/vendors', created);
   } catch {}
   GoogleSheetAPI.syncToSheet('addVendor', created);
   return { success: true, data: created };
@@ -827,15 +848,22 @@ export const updateVendor = async (id, data) => {
     return v;
   });
   setLocalData('smr_custom_vendors', updated);
-  GoogleSheetAPI.syncToSheet('addVendor', { ...data, vendor_code: id });
+  try {
+    await api.post('/manage/vendors', { ...data, vendor_code: id, vendor_id: id, id });
+  } catch {}
+  GoogleSheetAPI.syncToSheet('updateVendor', { ...data, vendor_code: id, id });
   return { success: true, data: updated };
 };
 
 export const deleteVendor = async (id) => {
   const res = await getVendors();
   const list = res.data || [];
-  const updated = list.filter(v => (v._id !== id && v.vendor_code !== id));
+  const updated = list.filter(v => (v._id !== id && v.vendor_code !== id && v.id !== id));
   setLocalData('smr_custom_vendors', updated);
+  try {
+    await api.delete(`/manage/vendors/${id}`);
+  } catch {}
+  GoogleSheetAPI.syncToSheet('deleteVendor', { vendor_id: id, id });
   return { success: true };
 };
 
@@ -945,6 +973,7 @@ export const deleteClient = async (id) => {
   try {
     await api.delete(`/clients/${id}`);
   } catch {}
+  GoogleSheetAPI.syncToSheet('deleteClient', { client_id: id, id });
   return { success: true };
 };
 
@@ -1059,9 +1088,9 @@ export const simulateTestRouting = async (payload) => {
   const projectId = payload?.projectId || '2042481293';
   const secretKey = payload?.secretKey || 'marketxcel_smr_sec_2026';
   
-  const baseUrl = `${origin}/survey/callback?status=${statusCode}&auth=1&uid=${encodeURIComponent(testUid)}&vid=${encodeURIComponent(vendorId)}&pid=${encodeURIComponent(projectId)}`;
-  const dynamicSha3 = sha3_256(baseUrl + secretKey);
-  const targetUrl = `${baseUrl}&hash=${dynamicSha3}`;
+  const baseWithoutUid = `${origin}/survey/callback?status=${statusCode}&auth=1&vid=${encodeURIComponent(vendorId)}&pid=${encodeURIComponent(projectId)}`;
+  const dynamicSha3 = sha3_256(baseWithoutUid + secretKey);
+  const targetUrl = `${baseWithoutUid}&hash=${dynamicSha3}&uid=${encodeURIComponent(testUid)}`;
   
   // Asynchronously record routing test activity in Google Sheet if connected
   GoogleSheetAPI.syncToSheet('logActivity', {
@@ -1369,6 +1398,7 @@ export const ZampliaAPI = {
 export const ManagementAPI = {
   getProjects,
   createProject,
+  updateProject,
   deleteProject,
   getVendors,
   createVendor,

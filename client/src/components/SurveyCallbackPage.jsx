@@ -25,7 +25,6 @@ import { GoogleSheetAPI, getVendors, DEFAULT_VENDORS } from '../services/api.js'
 
 export default function SurveyCallbackPage() {
   const [copied, setCopied] = useState(false);
-  const [showDeveloperAudit, setShowDeveloperAudit] = useState(false);
   const [detectedIp, setDetectedIp] = useState('2409:40d4:11e0:33bb:585a:1a12:5815:b7');
   const [vendorList, setVendorList] = useState(DEFAULT_VENDORS);
   const [countdown, setCountdown] = useState(5);
@@ -43,10 +42,28 @@ export default function SurveyCallbackPage() {
   else if (pathname.includes('terminate') || pathname.includes('screenout')) defaultStatus = '20';
 
   const rawStatus = params.get('status') || params.get('st') || params.get('res') || params.get('code') || defaultStatus;
-  const uid = params.get('uid') || params.get('rid') || params.get('transaction_id') || params.get('resp_id') || params.get('tid') || 'wslnkdxldd';
+  const rawUidParam = params.get('uid') || params.get('rid') || params.get('transaction_id') || params.get('resp_id') || params.get('tid') || '';
+
+  // Dynamically resolve actual entered UID (avoiding placeholder strings like [UID] or [RESPONDENT_ID])
+  const resolveEnteredUid = () => {
+    if (rawUidParam && !rawUidParam.includes('[') && !rawUidParam.includes('%5B') && rawUidParam !== 'wslnkdxldd') {
+      try { sessionStorage.setItem('active_test_uid', rawUidParam); } catch {}
+      return rawUidParam;
+    }
+    const sessionUid = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('active_test_uid') : null;
+    if (sessionUid && !sessionUid.includes('[') && !sessionUid.includes('%5B')) {
+      return sessionUid;
+    }
+    const localUid = typeof localStorage !== 'undefined' ? localStorage.getItem('smr_last_uid') : null;
+    if (localUid && !localUid.includes('[') && !localUid.includes('%5B')) {
+      return localUid;
+    }
+    return 'VMH_' + Math.random().toString(36).substring(2, 9).toUpperCase();
+  };
+
+  const uid = resolveEnteredUid();
   const vid = params.get('vid') || params.get('vendor') || params.get('vendor_id') || params.get('username') || '713';
   const pid = params.get('pid') || params.get('sid') || params.get('project') || params.get('projectId') || params.get('project_id') || '2077902648';
-  const projectName = params.get('projectName') || params.get('project_name') || params.get('pname') || (pid.startsWith('VMH') ? pid : `VMHMXUS2659`);
   const hash = params.get('hash') || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
   const reason = params.get('reason') || '';
 
@@ -212,12 +229,6 @@ export default function SurveyCallbackPage() {
       console.warn('Callback logging notice:', e);
     }
   }, [detectedIp]);
-
-  const handleCopyAuditJson = () => {
-    navigator.clipboard.writeText(JSON.stringify(auditRecord, null, 2));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   return (
     <div style={{
@@ -433,9 +444,6 @@ export default function SurveyCallbackPage() {
             <thead>
               <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                 <th style={{ padding: '12px 14px', fontWeight: 600, color: '#475569', fontSize: '12px', textTransform: 'capitalize' }}>
-                  Project Name
-                </th>
-                <th style={{ padding: '12px 14px', fontWeight: 600, color: '#475569', fontSize: '12px', textTransform: 'capitalize' }}>
                   Project ID
                 </th>
                 <th style={{ padding: '12px 14px', fontWeight: 600, color: '#475569', fontSize: '12px', textTransform: 'capitalize' }}>
@@ -454,13 +462,10 @@ export default function SurveyCallbackPage() {
             </thead>
             <tbody>
               <tr>
-                <td style={{ padding: '14px 14px', fontWeight: 500, color: '#1e293b', borderRight: '1px solid #f1f5f9' }}>
-                  {projectName}
-                </td>
                 <td style={{ padding: '14px 14px', fontFamily: 'monospace', color: '#64748b', fontSize: '12px', borderRight: '1px solid #f1f5f9' }}>
                   {pid}
                 </td>
-                <td style={{ padding: '14px 14px', fontFamily: 'monospace', color: '#334155', borderRight: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '14px 14px', fontFamily: 'monospace', color: '#334155', fontWeight: 600, borderRight: '1px solid #f1f5f9' }}>
                   {uid}
                 </td>
                 <td style={{ padding: '14px 14px', fontFamily: 'monospace', color: '#64748b', fontSize: '12px', borderRight: '1px solid #f1f5f9' }}>
@@ -485,131 +490,15 @@ export default function SurveyCallbackPage() {
           </table>
         </div>
 
-        {/* Developer & Settlement Audit Section Toggle */}
-        <div style={{ marginTop: '24px', borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
-          <button
-            onClick={() => setShowDeveloperAudit(!showDeveloperAudit)}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#64748b',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              borderRadius: '6px'
-            }}
-          >
-            <Lock size={13} color="#2563eb" />
-            <span>Technical Session Details</span>
-            {showDeveloperAudit ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </button>
-
-          {showDeveloperAudit && (
-            <div style={{
-              marginTop: '16px',
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: '8px',
-              padding: '18px 20px',
-              textAlign: 'left',
-              fontSize: '12px'
-            }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '14px' }}>
-                <div>
-                  <div style={{ color: '#94a3b8', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>
-                    Vendor Code
-                  </div>
-                  <div style={{ color: '#0f172a', fontWeight: 600, fontFamily: 'monospace' }}>
-                    {vid}
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ color: '#94a3b8', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>
-                    Target Project ID
-                  </div>
-                  <div style={{ color: '#0f172a', fontWeight: 600, fontFamily: 'monospace' }}>
-                    {pid}
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ color: '#94a3b8', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>
-                    S2S Webhook Result
-                  </div>
-                  <div style={{ color: '#16a34a', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Check size={12} strokeWidth={3} /> HTTP 200 OK — Dispatched & Settled
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ color: '#94a3b8', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>
-                    Hashing Algorithm
-                  </div>
-                  <div style={{ color: '#2563eb', fontWeight: 600, fontFamily: 'monospace' }}>
-                    SHA3-256 (Market Xcel / Enterprise)
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '10px' }}>
-                <div style={{ color: '#94a3b8', fontSize: '11px', textTransform: 'uppercase', fontWeight: 700, marginBottom: '4px' }}>
-                  Anti-Tamper Cryptographic Checksum
-                </div>
-                <code style={{
-                  display: 'block',
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '4px',
-                  padding: '8px 10px',
-                  fontFamily: 'monospace',
-                  fontSize: '11px',
-                  color: '#334155',
-                  wordBreak: 'break-all'
-                }}>
-                  {hash}
-                </code>
-              </div>
-
-              <div style={{ marginTop: '14px', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                <button
-                  onClick={handleCopyAuditJson}
-                  style={{
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '6px',
-                    padding: '6px 14px',
-                    fontSize: '11.5px',
-                    fontWeight: 600,
-                    color: '#334155',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  {copied ? <Check size={13} color="#16a34a" /> : <Copy size={13} />}
-                  <span>{copied ? 'Copied Audit JSON' : 'Copy Full Audit JSON'}</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Action Controls */}
-        <div style={{ marginTop: '28px', display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          {targetVendorUrl && (
+        {targetVendorUrl && (
+          <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'center' }}>
             <a
               href={targetVendorUrl}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '9px 20px',
+                padding: '10px 24px',
                 borderRadius: '6px',
                 backgroundColor: '#16a34a',
                 color: '#ffffff',
@@ -621,46 +510,8 @@ export default function SurveyCallbackPage() {
             >
               <ArrowUpRight size={14} /> Return to Panel Provider
             </a>
-          )}
-
-          <a
-            href="/"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '9px 20px',
-              borderRadius: '6px',
-              backgroundColor: '#2563eb',
-              color: '#ffffff',
-              fontSize: '13px',
-              fontWeight: 600,
-              textDecoration: 'none',
-              boxShadow: '0 1px 3px rgba(37, 99, 235, 0.2)'
-            }}
-          >
-            <ArrowLeft size={14} /> SMR Platform Dashboard
-          </a>
-
-          <a
-            href={`/vendor/auth/${vid}/project/${pid}?uid=TEST_${Date.now().toString().slice(-4)}`}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '9px 18px',
-              borderRadius: '6px',
-              backgroundColor: '#ffffff',
-              border: '1px solid #cbd5e1',
-              color: '#475569',
-              fontSize: '13px',
-              fontWeight: 600,
-              textDecoration: 'none'
-            }}
-          >
-            <RotateCcw size={14} /> Test Router Entry Link
-          </a>
-        </div>
+          </div>
+        )}
 
       </div>
 

@@ -468,8 +468,8 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
     hash_algorithm: 'SHA3-256',
     secret_key: '',
     commission_type: 'flat_rate',
-    cpi: 1.50,
-    cpi_percentage: 70,
+    cpi: '',
+    cpi_percentage: '',
     countries: [],
     blocked_clients: [],
     contacts: []
@@ -491,8 +491,8 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
     email: '',
     vendor_code: '',
     commission_type: 'flat_rate',
-    cpi: 1.50,
-    cpi_percentage: 70,
+    cpi: '',
+    cpi_percentage: '',
     status: 'active',
     redirect_complete: '',
     redirect_terminate: '',
@@ -566,12 +566,12 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
       const vidCode = formData.vendor_code || 'VND';
       const payload = {
         ...formData,
-        cpi: Number(formData.cpi),
-        cpi_percentage: Number(formData.cpi_percentage),
-        redirect_complete: formData.redirect_complete || `${origin}/survey/callback?status=10&uid=[UID]&vid=${vidCode}&hash=[HASH]`,
-        redirect_terminate: formData.redirect_terminate || `${origin}/survey/callback?status=20&uid=[UID]&vid=${vidCode}&hash=[HASH]`,
-        redirect_overquota: formData.redirect_overquota || `${origin}/survey/callback?status=30&uid=[UID]&vid=${vidCode}&hash=[HASH]`,
-        redirect_security: formData.redirect_security || `${origin}/survey/callback?status=40&uid=[UID]&vid=${vidCode}&hash=[HASH]`,
+        cpi: formData.cpi !== '' && formData.cpi !== undefined ? Number(formData.cpi) : 0,
+        cpi_percentage: formData.cpi_percentage !== '' && formData.cpi_percentage !== undefined ? Number(formData.cpi_percentage) : 0,
+        redirect_complete: formData.redirect_complete || `${origin}/survey/callback?status=10&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
+        redirect_terminate: formData.redirect_terminate || `${origin}/survey/callback?status=20&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
+        redirect_overquota: formData.redirect_overquota || `${origin}/survey/callback?status=30&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
+        redirect_security: formData.redirect_security || `${origin}/survey/callback?status=40&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
         hash_algorithm: formData.hash_algorithm || 'SHA3-256',
         secret_key: formData.secret_key || `${vidCode.toLowerCase()}_sec_2026`,
         countries: formData.countries || [],
@@ -587,8 +587,8 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
         email: '',
         vendor_code: '',
         commission_type: 'flat_rate',
-        cpi: 1.50,
-        cpi_percentage: 70,
+        cpi: '',
+        cpi_percentage: '',
         status: 'active',
         redirect_complete: '',
         redirect_terminate: '',
@@ -615,12 +615,12 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
     const isDummy = (url) => !url || url.includes('vnddyn01.com') || url.includes('supplier.com');
     setRedirectForm({
       commission_type: vendor.commission_type || 'flat_rate',
-      cpi: vendor.cpi !== undefined ? Number(vendor.cpi) : 1.50,
-      cpi_percentage: vendor.cpi_percentage || 70,
-      redirect_complete: !isDummy(vendor.redirect_complete) ? vendor.redirect_complete : `${origin}/survey/callback?status=10&uid=[UID]&vid=${vidCode}&hash=[HASH]`,
-      redirect_terminate: !isDummy(vendor.redirect_terminate) ? vendor.redirect_terminate : `${origin}/survey/callback?status=20&uid=[UID]&vid=${vidCode}&hash=[HASH]`,
-      redirect_overquota: !isDummy(vendor.redirect_overquota) ? vendor.redirect_overquota : `${origin}/survey/callback?status=30&uid=[UID]&vid=${vidCode}&hash=[HASH]`,
-      redirect_security: !isDummy(vendor.redirect_security) ? vendor.redirect_security : `${origin}/survey/callback?status=40&uid=[UID]&vid=${vidCode}&hash=[HASH]`,
+      cpi: vendor.cpi !== undefined && vendor.cpi !== null ? vendor.cpi : '',
+      cpi_percentage: vendor.cpi_percentage !== undefined && vendor.cpi_percentage !== null ? vendor.cpi_percentage : '',
+      redirect_complete: !isDummy(vendor.redirect_complete) ? vendor.redirect_complete : `${origin}/survey/callback?status=10&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
+      redirect_terminate: !isDummy(vendor.redirect_terminate) ? vendor.redirect_terminate : `${origin}/survey/callback?status=20&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
+      redirect_overquota: !isDummy(vendor.redirect_overquota) ? vendor.redirect_overquota : `${origin}/survey/callback?status=30&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
+      redirect_security: !isDummy(vendor.redirect_security) ? vendor.redirect_security : `${origin}/survey/callback?status=40&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
       hash_algorithm: vendor.hash_algorithm || 'SHA3-256',
       secret_key: vendor.secret_key || `${vidCode.toLowerCase()}_sec_key_2026`,
       countries: Array.isArray(vendor.countries) ? vendor.countries : (vendor.country_ids || []),
@@ -1395,55 +1395,6 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
                     </span>
                   </div>
 
-                  {/* Security Hashing & Secret Key */}
-                  <div style={{ 
-                    background: '#f8fafc', 
-                    border: '1px solid #e2e8f0', 
-                    borderRadius: '8px', 
-                    padding: '14px', 
-                    marginTop: '4px' 
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
-                      <Shield size={16} color="#1761fd" />
-                      <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#1d2c48' }}>
-                        Cryptographic Anti-Tamper Security & Signing
-                      </span>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
-                          Hash Algorithm
-                        </label>
-                        <select 
-                          className="input-field"
-                          style={{ width: '100%', fontSize: '12px' }}
-                          value={redirectForm.hash_algorithm}
-                          onChange={e => setRedirectForm({ ...redirectForm, hash_algorithm: e.target.value })}
-                        >
-                          <option value="SHA3-256">SHA3-256 (Market Xcel / SMR Enterprise)</option>
-                          <option value="HMAC-SHA256">HMAC-SHA256 (Dynata / Cint Standard)</option>
-                          <option value="MD5">MD5 (Legacy Panels)</option>
-                          <option value="None">None (Unsigned Redirects)</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
-                          Secret Key / Signing Salt
-                        </label>
-                        <input 
-                          type="text"
-                          className="input-field"
-                          style={{ width: '100%', fontFamily: 'monospace', fontSize: '12px' }}
-                          placeholder="e.g. dynata_sec_pass_2026"
-                          value={redirectForm.secret_key}
-                          onChange={e => setRedirectForm({ ...redirectForm, secret_key: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Runtime Simulator & Live UID Verification Box */}
                   <div style={{ 
                     background: '#f8fafc', 
@@ -1919,39 +1870,6 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
                             value={formData.redirect_security}
                             onChange={e => setFormData({ ...formData, redirect_security: e.target.value })}
                           />
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '4px' }}>
-                          <div>
-                            <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 600, color: '#475569', marginBottom: '3px' }}>
-                              Hash Algorithm
-                            </label>
-                            <select 
-                              className="input-field"
-                              style={{ width: '100%', fontSize: '11.5px' }}
-                              value={formData.hash_algorithm}
-                              onChange={e => setFormData({ ...formData, hash_algorithm: e.target.value })}
-                            >
-                              <option value="SHA3-256">SHA3-256</option>
-                              <option value="HMAC-SHA256">HMAC-SHA256</option>
-                              <option value="MD5">MD5</option>
-                              <option value="None">None</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 600, color: '#475569', marginBottom: '3px' }}>
-                              Secret Key
-                            </label>
-                            <input 
-                              type="text"
-                              className="input-field"
-                              style={{ width: '100%', fontSize: '11.5px', fontFamily: 'monospace' }}
-                              placeholder="e.g. sec_pass_2026"
-                              value={formData.secret_key}
-                              onChange={e => setFormData({ ...formData, secret_key: e.target.value })}
-                            />
-                          </div>
                         </div>
                       </div>
                     )}

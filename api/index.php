@@ -798,7 +798,7 @@ if (
         }
     }
     if ($allotment && !empty($allotment['quota_limit']) && ((int)($allotment['complete_count'] ?? 0) >= (int)$allotment['quota_limit'])) {
-        $overquotaUrl = "{$appUrl}/survey/callback?status=30&uid=" . urlencode($uid) . "&vid=" . urlencode($vendorId) . "&pid=" . urlencode($surveyId) . "&reason=vendor_quota_reached";
+        $overquotaUrl = "{$appUrl}/survey/callback?status=30&vid=" . urlencode($vendorId) . "&pid=" . urlencode($surveyId) . "&reason=vendor_quota_reached&uid=" . urlencode($uid);
         header("Location: {$overquotaUrl}", true, 302);
         exit;
     }
@@ -825,7 +825,7 @@ if (
                    ->execute([$uid, $surveyId, $vendorId, "Restricted Device: {$clientInfo['device']}", $clientInfo['ip'], $clientInfo['device']]);
             } catch (Throwable $e) {}
         }
-        $rejectUrl = "{$appUrl}/survey/callback?status=40&uid=" . urlencode($uid) . "&vid=" . urlencode($vendorId) . "&pid=" . urlencode($surveyId) . "&ip=" . urlencode($clientInfo['ip']) . "&reason=device_blocked";
+        $rejectUrl = "{$appUrl}/survey/callback?status=40&vid=" . urlencode($vendorId) . "&pid=" . urlencode($surveyId) . "&ip=" . urlencode($clientInfo['ip']) . "&reason=device_blocked&uid=" . urlencode($uid);
         header("Location: {$rejectUrl}", true, 302);
         exit;
     }
@@ -866,7 +866,7 @@ if (
                 'ip_address' => $clientInfo['ip'],
                 'device' => $clientInfo['device']
             ]);
-            $rejectUrl = "{$appUrl}/survey/callback?status=40&uid=" . urlencode($uid) . "&vid=" . urlencode($vendorId) . "&pid=" . urlencode($surveyId) . "&ip=" . urlencode($clientInfo['ip']) . "&reason=duplicate_ip";
+            $rejectUrl = "{$appUrl}/survey/callback?status=40&vid=" . urlencode($vendorId) . "&pid=" . urlencode($surveyId) . "&ip=" . urlencode($clientInfo['ip']) . "&reason=duplicate_ip&uid=" . urlencode($uid);
             header("Location: {$rejectUrl}", true, 302);
             exit;
         }
@@ -907,7 +907,7 @@ if (
     if (str_starts_with($uid, 'TEST_')) {
         $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
         $host = $_SERVER['HTTP_HOST'] ?? 'smr.vmhgroupsmr.com';
-        header("Location: {$scheme}://{$host}/survey/callback?status=10&uid=" . urlencode($uid) . "&vid=" . urlencode($vendorId) . "&pid=" . urlencode($surveyId) . "&test=1", true, 302);
+        header("Location: {$scheme}://{$host}/survey/callback?status=10&vid=" . urlencode($vendorId) . "&pid=" . urlencode($surveyId) . "&test=1&uid=" . urlencode($uid), true, 302);
         exit;
     }
 
@@ -1096,7 +1096,7 @@ if (
     if (empty($vendorReturnUrl)) {
         $statusCodes = ['complete' => 10, 'terminate' => 20, 'overquota' => 30, 'security' => 40];
         $code = $statusCodes[$statusParam] ?? 10;
-        $vendorReturnUrl = "https://smr.vmhgroupsmr.com/survey/callback?status={$code}&uid={$uid}&vid={$vendorId}&hash=[HASH]";
+        $vendorReturnUrl = "https://smr.vmhgroupsmr.com/survey/callback?status={$code}&vid={$vendorId}&hash=[HASH]&uid={$uid}";
     }
 
     // 1. UID Mapping: Replace [UID], [#UID#], vmhgroupss with respondent UID
@@ -1452,8 +1452,8 @@ if ($normalizedRoute === 'manage/vendors' || str_starts_with($normalizedRoute, '
         $name = $body['name'] ?? 'Vendor ' . $code;
         $email = $body['email'] ?? '';
         $commType = $body['commission_type'] ?? 'flat_rate';
-        $cpi = isset($body['cpi']) ? (float)$body['cpi'] : 1.50;
-        $cpiPercentage = isset($body['cpi_percentage']) ? (float)$body['cpi_percentage'] : 70;
+        $cpi = isset($body['cpi']) && $body['cpi'] !== '' ? (float)$body['cpi'] : 0.00;
+        $cpiPercentage = isset($body['cpi_percentage']) && $body['cpi_percentage'] !== '' ? (float)$body['cpi_percentage'] : 0;
         $rc = $body['redirect_complete'] ?? '';
         $rt = $body['redirect_terminate'] ?? '';
         $ro = $body['redirect_overquota'] ?? '';
@@ -1501,12 +1501,19 @@ if ($normalizedRoute === 'manage/vendors' || str_starts_with($normalizedRoute, '
 
     if ($method === 'DELETE') {
         $targetId = $segments[2] ?? ($body['id'] ?? ($body['vendor_id'] ?? ''));
-        if ($targetId && file_exists($vendorsFile)) {
-            $list = json_decode((string)file_get_contents($vendorsFile), true) ?: [];
-            $list = array_values(array_filter($list, function($v) use ($targetId) {
-                return ($v['vendor_id'] ?? $v['vendor_code'] ?? $v['id'] ?? '') !== $targetId;
-            }));
-            file_put_contents($vendorsFile, json_encode($list, JSON_PRETTY_PRINT));
+        if ($targetId) {
+            if ($db) {
+                try {
+                    $db->prepare("DELETE FROM vendor WHERE vendor_id = ? OR id = ?")->execute([$targetId, $targetId]);
+                } catch (Throwable $e) {}
+            }
+            if (file_exists($vendorsFile)) {
+                $list = json_decode((string)file_get_contents($vendorsFile), true) ?: [];
+                $list = array_values(array_filter($list, function($v) use ($targetId) {
+                    return ($v['vendor_id'] ?? $v['vendor_code'] ?? $v['id'] ?? '') !== $targetId;
+                }));
+                file_put_contents($vendorsFile, json_encode($list, JSON_PRETTY_PRINT));
+            }
         }
         echo json_encode(['success' => true]);
         exit;
@@ -1694,19 +1701,34 @@ if ($normalizedRoute === 'reports/legacy-projects') {
 // -------------------------------------------------------------
 // 8. Projects & Clients Management Store
 // -------------------------------------------------------------
-if ($normalizedRoute === 'manage/projects') {
+if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 'manage/projects')) {
     $db = getDbConnection();
-    if ($method === 'POST') {
-        $pId = $body['id'] ?? ('PRJ_' . time());
-        $pName = $body['name'] ?? 'New Enterprise Study';
-        $pCpi = $body['cpi'] ?? 2.50;
-        $pLoi = $body['loi'] ?? 10;
+    if ($method === 'POST' || $method === 'PUT') {
+        $pId = $body['id'] ?? $body['project_id'] ?? ('PRJ_' . time());
+        $pName = $body['project_name'] ?? $body['name'] ?? 'New Enterprise Study';
+        $pCpi = isset($body['cpi']) && $body['cpi'] !== '' ? (float)$body['cpi'] : (isset($body['cost_per_complete']) ? (float)$body['cost_per_complete'] : 1.00);
+        $pLoi = isset($body['loi']) && $body['loi'] !== '' ? (int)$body['loi'] : 10;
+        $pIr = isset($body['ir']) && $body['ir'] !== '' ? (int)$body['ir'] : 80;
+        $pLimit = isset($body['target_completes']) ? (int)$body['target_completes'] : (isset($body['max_limit']) ? (int)$body['max_limit'] : 1000);
+        $pStatus = $body['status'] ?? 'Live';
         if ($db) {
             try {
-                $db->prepare("REPLACE INTO projects (id, name, cost_per_complete, loi) VALUES (?, ?, ?, ?)")->execute([$pId, $pName, $pCpi, $pLoi]);
+                $db->prepare("REPLACE INTO projects (id, project_id, name, cost_per_complete, loi, ir, max_limit, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+                   ->execute([$pId, $pId, $pName, $pCpi, $pLoi, $pIr, $pLimit, $pStatus]);
             } catch (Throwable $e) {}
         }
         echo json_encode(['success' => true, 'data' => $body]);
+        exit;
+    }
+
+    if ($method === 'DELETE') {
+        $targetId = $segments[2] ?? ($body['id'] ?? ($body['project_id'] ?? ''));
+        if ($targetId && $db) {
+            try {
+                $db->prepare("DELETE FROM projects WHERE id = ? OR project_id = ?")->execute([$targetId, $targetId]);
+            } catch (Throwable $e) {}
+        }
+        echo json_encode(['success' => true]);
         exit;
     }
 
@@ -1826,6 +1848,11 @@ if ($normalizedRoute === 'clients' || str_starts_with($normalizedRoute, 'clients
         $cList = file_exists($clientsFile) ? json_decode((string)file_get_contents($clientsFile), true) : [];
         if (preg_match('#clients/([^/?]+)#', $normalizedRoute, $dm)) {
             $delId = $dm[1];
+            if ($db) {
+                try {
+                    $db->prepare("DELETE FROM client WHERE client_code = ? OR id = ?")->execute([$delId, $delId]);
+                } catch (Throwable $e) {}
+            }
             $cList = array_values(array_filter($cList, fn($c) => ($c['_id'] ?? $c['id'] ?? $c['client_code'] ?? '') !== $delId));
             file_put_contents($clientsFile, json_encode($cList, JSON_PRETTY_PRINT));
         }
