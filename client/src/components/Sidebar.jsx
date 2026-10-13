@@ -166,11 +166,11 @@ export default function Sidebar({ activeTab, currentReportSubTab, onTabChange, s
           {/* Section: REPORTS & ANALYTICS */}
           <div className="sidebar-section-title">REPORTS & ANALYTICS</div>
 
-          {/* Dropdown 3: Reports & Performance Hub */}
+          {/* Direct Nav: Reports Hub (1-Click Direct Navigation) */}
           <div className="sidebar-nav-group">
             <button 
               className={`sidebar-nav-heading ${activeTab === 'reconciliation' ? 'active' : ''}`}
-              onClick={() => setReportsOpen(prev => !prev)}
+              onClick={() => handleNav('reconciliation')}
             >
               <div className="nav-heading-left">
                 <BarChart3 size={16} className="nav-icon" />
@@ -178,54 +178,8 @@ export default function Sidebar({ activeTab, currentReportSubTab, onTabChange, s
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span className="badge-dastone-new" style={{ background: '#10B981', color: '#FFFFFF' }}>Live</span>
-                <span className={`dropdown-chevron ${reportsOpen ? 'rotated' : ''}`}>
-                  <ChevronRight size={14} />
-                </span>
               </div>
             </button>
-
-            <div className={`sidebar-submenu-collapsible ${reportsOpen ? 'open' : 'closed'}`}>
-              <div className="sidebar-submenu-inner">
-                <button
-                  className={`submenu-item ${activeTab === 'reconciliation' && (!currentReportSubTab || currentReportSubTab === 'clients') ? 'active' : ''}`}
-                  onClick={() => handleNav('reconciliation', 'clients')}
-                >
-                  <span className="bullet-circle" />
-                  <span>Client Performance Reports</span>
-                </button>
-                <button
-                  className={`submenu-item ${activeTab === 'reconciliation' && currentReportSubTab === 'vendors' ? 'active' : ''}`}
-                  onClick={() => handleNav('reconciliation', 'vendors')}
-                >
-                  <span className="bullet-circle" />
-                  <span>Vendor Performance Reports</span>
-                </button>
-                <button
-                  className={`submenu-item ${activeTab === 'reconciliation' && currentReportSubTab === 'projects' ? 'active' : ''}`}
-                  onClick={() => handleNav('reconciliation', 'projects')}
-                >
-                  <span className="bullet-circle" />
-                  <span>Project / PID Reports</span>
-                </button>
-                <button
-                  className={`submenu-item ${activeTab === 'reconciliation' && currentReportSubTab === 'journal' ? 'active' : ''}`}
-                  onClick={() => handleNav('reconciliation', 'journal')}
-                >
-                  <span className="bullet-circle" />
-                  <span>Respondent Audit Journal</span>
-                </button>
-                <button
-                  className={`submenu-item ${activeTab === 'reconciliation' && currentReportSubTab === 'archive' ? 'active' : ''}`}
-                  onClick={() => handleNav('reconciliation', 'archive')}
-                >
-                  <span className="bullet-circle" />
-                  <span>Legacy Database Archive</span>
-                  <span style={{ marginLeft: 'auto', fontSize: '9px', fontWeight: 800, padding: '1px 6px', borderRadius: '4px', background: 'rgba(23, 97, 253, 0.15)', color: '#1761fd' }}>
-                    1,554
-                  </span>
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* Dotted Divider */}

@@ -1298,6 +1298,37 @@ export const getUnifiedReports = async (fromDate, toDate) => {
   return null;
 };
 
+// Detailed Vendor Breakdown: Assigned Studies & Completed Counts
+export const getVendorReportDetails = async (vendorId, vendorName) => {
+  try {
+    const res = await api.get('/reports/vendor-details', {
+      params: { vendor_id: vendorId, name: vendorName }
+    });
+    if (res.data?.success) {
+      return res.data.data;
+    }
+  } catch (err) {
+    console.error('Failed to fetch vendor report details:', err);
+  }
+  return null;
+};
+
+// Detailed Project Breakdown: Assigned Vendors & Quota Pacing
+export const getProjectReportDetails = async (projectId) => {
+  try {
+    const res = await api.get('/reports/project-details', {
+      params: { project_id: projectId }
+    });
+    if (res.data?.success) {
+      return res.data.data;
+    }
+  } catch (err) {
+    console.error('Failed to fetch project report details:', err);
+  }
+  return null;
+};
+
+
 // Silent Background Database Connector API
 export const GoogleSheetAPI = {
   getScriptUrl: () => {

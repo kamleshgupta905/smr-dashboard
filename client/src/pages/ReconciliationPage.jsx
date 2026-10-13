@@ -22,13 +22,19 @@ import {
   Archive,
   ChevronLeft,
   ChevronRight,
-  Layers
+  Layers,
+  Eye,
+  Copy,
+  Check,
+  X
 } from 'lucide-react';
 import {
   getReconciliationCompletes,
   getReconciliationReversals,
   getInternalLeads,
   getUnifiedReports,
+  getVendorReportDetails,
+  getProjectReportDetails,
   getClients,
   getProjects,
   getVendors,
@@ -155,6 +161,67 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [paymentsLimit, setPaymentsLimit] = useState(25);
   const [updatingPaymentId, setUpdatingPaymentId] = useState(null);
+
+  // Drilldown Modal States: Vendor Reports & Project Reports
+  const [selectedVendorDetail, setSelectedVendorDetail] = useState(null);
+  const [vendorDetailLoading, setVendorDetailLoading] = useState(false);
+  const [vendorDetailData, setVendorDetailData] = useState(null);
+  const [vendorStudySearch, setVendorStudySearch] = useState('');
+  const [copiedLinkId, setCopiedLinkId] = useState(null);
+
+  const [selectedProjectDetail, setSelectedProjectDetail] = useState(null);
+  const [projectDetailLoading, setProjectDetailLoading] = useState(false);
+  const [projectDetailData, setProjectDetailData] = useState(null);
+  const [projectVendorSearch, setProjectVendorSearch] = useState('');
+  const [copiedProjectLinkId, setCopiedProjectLinkId] = useState(null);
+
+  const handleOpenVendorDetails = async (vendor) => {
+    setSelectedVendorDetail(vendor);
+    setVendorDetailLoading(true);
+    setVendorDetailData(null);
+    setVendorStudySearch('');
+    try {
+      const res = await getVendorReportDetails(vendor.vendor_id, vendor.vendor_name);
+      if (res) {
+        setVendorDetailData(res);
+      }
+    } catch (err) {
+      console.error('Error fetching vendor report details:', err);
+    } finally {
+      setVendorDetailLoading(false);
+    }
+  };
+
+  const handleOpenProjectDetails = async (project) => {
+    setSelectedProjectDetail(project);
+    setProjectDetailLoading(true);
+    setProjectDetailData(null);
+    setProjectVendorSearch('');
+    try {
+      const res = await getProjectReportDetails(project.project_id);
+      if (res) {
+        setProjectDetailData(res);
+      }
+    } catch (err) {
+      console.error('Error fetching project report details:', err);
+    } finally {
+      setProjectDetailLoading(false);
+    }
+  };
+
+  const handleCopyLink = (text, id) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedLinkId(id);
+    setTimeout(() => setCopiedLinkId(null), 2500);
+  };
+
+  const handleCopyProjectVendorLink = (text, id) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedProjectLinkId(id);
+    setTimeout(() => setCopiedProjectLinkId(null), 2500);
+  };
 
   const loadPayments = async () => {
     setPaymentsLoading(true);
@@ -859,12 +926,13 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                       <th>CR (%)</th>
                       <th>Total Revenue</th>
                       <th>Status</th>
+                      <th style={{ textAlign: 'center' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredProjectRows.length === 0 ? (
                       <tr>
-                        <td colSpan="11" style={{ textAlign: 'center', padding: '40px', color: '#8997bd' }}>
+                        <td colSpan="12" style={{ textAlign: 'center', padding: '40px', color: '#8997bd' }}>
                           No study projects match current filters.
                         </td>
                       </tr>
@@ -910,6 +978,31 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                                 Live
                               </span>
                             </td>
+                            <td style={{ textAlign: 'center' }}>
+                              <button
+                                type="button"
+                                className="btn btn-sm"
+                                onClick={() => handleOpenProjectDetails(p)}
+                                style={{
+                                  background: 'rgba(23, 97, 253, 0.08)',
+                                  color: '#1761fd',
+                                  border: '1px solid rgba(23, 97, 253, 0.25)',
+                                  padding: '4px 10px',
+                                  borderRadius: '5px',
+                                  fontWeight: 700,
+                                  fontSize: '11px',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '5px',
+                                  cursor: 'pointer',
+                                  whiteSpace: 'nowrap'
+                                }}
+                                title={`View assigned vendors and delivery breakdown for ${p.project_name}`}
+                              >
+                                <Eye size={12} />
+                                <span>View Details</span>
+                              </button>
+                            </td>
                           </tr>
                         );
                       })
@@ -934,12 +1027,13 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                       <th>Security Disqualified</th>
                       <th>Conversion Rate</th>
                       <th>Total Payout Due</th>
+                      <th style={{ textAlign: 'center' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredVendorRows.length === 0 ? (
                       <tr>
-                        <td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: '#8997bd' }}>
+                        <td colSpan="10" style={{ textAlign: 'center', padding: '40px', color: '#8997bd' }}>
                           No vendor records match current filters.
                         </td>
                       </tr>
@@ -979,6 +1073,31 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                             <strong style={{ color: '#1d2c48', fontSize: '14px' }}>
                               ${Number(v.total_payout).toFixed(2)}
                             </strong>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <button
+                              type="button"
+                              className="btn btn-sm"
+                              onClick={() => handleOpenVendorDetails(v)}
+                              style={{
+                                background: 'rgba(23, 97, 253, 0.08)',
+                                color: '#1761fd',
+                                border: '1px solid rgba(23, 97, 253, 0.25)',
+                                padding: '5px 12px',
+                                borderRadius: '5px',
+                                fontWeight: 700,
+                                fontSize: '11.5px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap'
+                              }}
+                              title={`View assigned studies breakdown (konsi assign hui aur kitni poori ki) for ${v.vendor_name}`}
+                            >
+                              <Eye size={13} />
+                              <span>View Details</span>
+                            </button>
                           </td>
                         </tr>
                       ))
@@ -1518,6 +1637,699 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
           </>
         )}
       </div>
+
+      {/* ------------------------------------------------------------- */}
+      {/* Vendor Details Drilldown Modal: Konsi Assign Hui & Kitni Poori Ki */}
+      {/* ------------------------------------------------------------- */}
+      {selectedVendorDetail && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999,
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '12px',
+            width: '100%',
+            maxWidth: '1150px',
+            maxHeight: '92vh',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+            border: '1px solid #e2e8f0',
+            overflow: 'hidden'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '16px 24px',
+              borderBottom: '1px solid #e2e8f0',
+              background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '10px',
+                  background: 'rgba(23, 97, 253, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#1761fd'
+                }}>
+                  <Users size={20} />
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+                      {selectedVendorDetail.vendor_name}
+                    </h3>
+                    <span style={{
+                      fontFamily: 'monospace',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      background: 'rgba(23, 97, 253, 0.1)',
+                      color: '#1761fd'
+                    }}>
+                      {selectedVendorDetail.vendor_id}
+                    </span>
+                    <span style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: '20px',
+                      background: 'rgba(16, 185, 129, 0.12)',
+                      color: '#10b981'
+                    }}>
+                      Verified Supplier
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                    Lifetime Study Assignments & Delivery Breakdown &bull; Real-Time Database Audit
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => {
+                    const studies = vendorDetailData?.studies || [];
+                    const exportRows = studies.map(s => ({
+                      'Vendor': selectedVendorDetail.vendor_name,
+                      'Vendor ID': selectedVendorDetail.vendor_id,
+                      'Study PID': s.project_code,
+                      'Study Name': s.project_name,
+                      'Client': s.client_name,
+                      'Agreed CPI ($)': Number(s.cpi).toFixed(2),
+                      'Target Quota': s.quota_limit > 0 ? s.quota_limit : 'Open',
+                      'Inbound Clicks': s.clicks_count,
+                      'Verified Completes': s.complete_count,
+                      'Terminates': s.terminates_count,
+                      'CR (%)': `${s.conversion_rate}%`,
+                      'Fulfillment (%)': `${s.fulfillment_rate}%`,
+                      'Total Payout ($)': Number(s.total_payout).toFixed(2),
+                      'Status': s.project_status,
+                      'Entry Link': s.entry_link
+                    }));
+                    exportToExcel(exportRows, `${selectedVendorDetail.vendor_name.replace(/\s+/g, '_')}_Assigned_Studies`, 'Assigned Studies');
+                  }}
+                  disabled={!vendorDetailData?.studies?.length}
+                  style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', padding: '6px 12px' }}
+                >
+                  <Download size={13} />
+                  <span>Export Excel</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setSelectedVendorDetail(null); setVendorDetailData(null); }}
+                  style={{
+                    background: '#f1f5f9',
+                    border: 'none',
+                    borderRadius: '8px',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#64748b',
+                    cursor: 'pointer'
+                  }}
+                  title="Close modal"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+              {/* Top Stat Cards */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '12px',
+                marginBottom: '20px'
+              }}>
+                <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                    Assigned Studies
+                  </div>
+                  <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
+                    {vendorDetailData?.vendor?.total_studies ?? vendorDetailData?.studies?.length ?? selectedVendorDetail.assigned_projects}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#8997bd', marginTop: '2px' }}>
+                    Total studies assigned to partner
+                  </div>
+                </div>
+
+                <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                    Inbound Traffic
+                  </div>
+                  <div style={{ fontSize: '22px', fontWeight: 800, color: '#1761fd', marginTop: '4px' }}>
+                    {Number(vendorDetailData?.vendor?.total_clicks ?? selectedVendorDetail.total_clicks).toLocaleString()}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#8997bd', marginTop: '2px' }}>
+                    Clicks routed &bull; {Number(vendorDetailData?.vendor?.total_terminates ?? selectedVendorDetail.total_terminates).toLocaleString()} terminates
+                  </div>
+                </div>
+
+                <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                    Verified Completes
+                  </div>
+                  <div style={{ fontSize: '22px', fontWeight: 800, color: '#16a34a', marginTop: '4px' }}>
+                    {Number(vendorDetailData?.vendor?.total_completes ?? selectedVendorDetail.total_completes).toLocaleString()}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#8997bd', marginTop: '2px' }}>
+                    {vendorDetailData?.vendor?.conversion_rate ?? selectedVendorDetail.conversion_rate}% Conversion Rate (CR)
+                  </div>
+                </div>
+
+                <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                    Total Payout Due
+                  </div>
+                  <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
+                    ${Number(vendorDetailData?.vendor?.total_payout ?? selectedVendorDetail.total_payout).toFixed(2)}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#8997bd', marginTop: '2px' }}>
+                    Avg CPI: ${Number(vendorDetailData?.vendor?.avg_cpi ?? selectedVendorDetail.avg_cpi).toFixed(2)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Sub-header & Filter Bar */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '12px',
+                flexWrap: 'wrap',
+                gap: '10px'
+              }}>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>
+                    Assigned Studies Breakdown (Konsi Assign Hui aur Kitni Poori Ki)
+                  </h4>
+                  <span style={{ fontSize: '11.5px', color: '#64748b' }}>
+                    Complete study-by-study performance, assigned quota, and fulfillment progress
+                  </span>
+                </div>
+
+                <div style={{ position: 'relative' }}>
+                  <Search size={13} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#8997bd' }} />
+                  <input
+                    type="text"
+                    className="input-control"
+                    placeholder="Search studies by name or PID..."
+                    value={vendorStudySearch}
+                    onChange={e => setVendorStudySearch(e.target.value)}
+                    style={{ paddingLeft: '30px', width: '250px', height: '32px', fontSize: '11.5px' }}
+                  />
+                </div>
+              </div>
+
+              {/* Table of Assigned Studies */}
+              {vendorDetailLoading ? (
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
+                  <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 10px auto', display: 'block', color: '#1761fd' }} />
+                  <div>Loading live study assignments from database...</div>
+                </div>
+              ) : (
+                <div className="table-wrapper" style={{ margin: 0, border: '1px solid #e2e8f0', borderRadius: '8px', overflowX: 'auto' }}>
+                  <table className="custom-table" style={{ width: '100%', fontSize: '12px' }}>
+                    <thead className="thead-light">
+                      <tr>
+                        <th>Study PID & Name</th>
+                        <th>Client Buyer</th>
+                        <th>Agreed CPI</th>
+                        <th>Target Quota</th>
+                        <th>Inbound Clicks</th>
+                        <th>Verified Completes</th>
+                        <th>Terminates</th>
+                        <th>Quota Fulfillment</th>
+                        <th>Study Payout</th>
+                        <th>Status</th>
+                        <th>Entry Link</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        const studies = vendorDetailData?.studies || [];
+                        const q = vendorStudySearch.toLowerCase().trim();
+                        const filtered = q
+                          ? studies.filter(s =>
+                              String(s.project_code || '').toLowerCase().includes(q) ||
+                              String(s.project_name || '').toLowerCase().includes(q) ||
+                              String(s.client_name || '').toLowerCase().includes(q)
+                            )
+                          : studies;
+
+                        if (filtered.length === 0) {
+                          return (
+                            <tr>
+                              <td colSpan="11" style={{ textAlign: 'center', padding: '40px', color: '#8997bd' }}>
+                                No assigned studies match current search.
+                              </td>
+                            </tr>
+                          );
+                        }
+
+                        return filtered.map((s, sIdx) => {
+                          const quota = s.quota_limit > 0 ? s.quota_limit : 0;
+                          const completes = s.complete_count || 0;
+                          const fulfillment = quota > 0 ? Math.min(100, Math.round((completes / quota) * 100)) : (s.clicks_count > 0 ? Math.round((completes / s.clicks_count) * 100) : 0);
+
+                          return (
+                            <tr key={s.assignment_id || sIdx}>
+                              <td>
+                                <div style={{ fontWeight: 700, color: '#1e293b' }}>
+                                  {s.project_name}
+                                </div>
+                                <span className="badge-soft-primary" style={{ fontFamily: 'monospace', fontSize: '10px', padding: '1px 5px', borderRadius: '3px', marginTop: '2px', display: 'inline-block' }}>
+                                  {s.project_code}
+                                </span>
+                              </td>
+                              <td>
+                                <span style={{ color: '#475569', fontWeight: 600 }}>{s.client_name || 'Market Xcel'}</span>
+                              </td>
+                              <td>
+                                <strong style={{ color: '#1761fd' }}>${Number(s.cpi).toFixed(2)}</strong>
+                              </td>
+                              <td>
+                                <span style={{ color: '#334155' }}>
+                                  {quota > 0 ? quota.toLocaleString() : <span style={{ color: '#8997bd' }}>Open</span>}
+                                </span>
+                              </td>
+                              <td>
+                                <span style={{ color: '#334155' }}>{s.clicks_count.toLocaleString()}</span>
+                              </td>
+                              <td>
+                                <strong style={{ color: completes > 0 ? '#16a34a' : '#64748b', fontSize: '12.5px' }}>
+                                  {completes.toLocaleString()}
+                                </strong>
+                              </td>
+                              <td>
+                                <span style={{ color: '#d97706' }}>{s.terminates_count.toLocaleString()}</span>
+                              </td>
+                              <td style={{ minWidth: '110px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginBottom: '2px' }}>
+                                  <span>{completes} {quota > 0 ? `/ ${quota}` : ''}</span>
+                                  <span style={{ fontWeight: 700, color: '#1761fd' }}>{fulfillment}%</span>
+                                </div>
+                                <div style={{ width: '100%', height: '4px', background: '#e2e8f0', borderRadius: '2px', overflow: 'hidden' }}>
+                                  <div style={{ width: `${fulfillment}%`, height: '100%', background: fulfillment >= 80 ? '#16a34a' : '#1761fd' }} />
+                                </div>
+                              </td>
+                              <td>
+                                <strong style={{ color: '#0f172a' }}>
+                                  ${Number(s.total_payout).toFixed(2)}
+                                </strong>
+                              </td>
+                              <td>
+                                <span style={{
+                                  padding: '2px 6px',
+                                  borderRadius: '4px',
+                                  fontSize: '10px',
+                                  fontWeight: 700,
+                                  background: s.project_status === 'Live' ? 'rgba(16, 185, 129, 0.12)' : s.project_status === 'Pause' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(100, 116, 139, 0.12)',
+                                  color: s.project_status === 'Live' ? '#10b981' : s.project_status === 'Pause' ? '#d97706' : '#64748b'
+                                }}>
+                                  {s.project_status}
+                                </span>
+                              </td>
+                              <td>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCopyLink(s.entry_link, s.assignment_id)}
+                                    style={{
+                                      background: copiedLinkId === s.assignment_id ? '#dcfce7' : '#f1f5f9',
+                                      color: copiedLinkId === s.assignment_id ? '#16a34a' : '#334155',
+                                      border: '1px solid #cbd5e1',
+                                      borderRadius: '4px',
+                                      padding: '3px 7px',
+                                      fontSize: '10.5px',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      cursor: 'pointer',
+                                      whiteSpace: 'nowrap'
+                                    }}
+                                    title="Copy inbound vendor link"
+                                  >
+                                    {copiedLinkId === s.assignment_id ? <Check size={11} color="#16a34a" /> : <Copy size={11} />}
+                                    <span>{copiedLinkId === s.assignment_id ? 'Copied!' : 'Copy Link'}</span>
+                                  </button>
+                                  {s.entry_link && (
+                                    <a
+                                      href={s.entry_link}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      style={{ color: '#8997bd', display: 'flex', alignItems: 'center' }}
+                                      title="Open link in new tab"
+                                    >
+                                      <ExternalLink size={12} />
+                                    </a>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        });
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{
+              padding: '12px 24px',
+              borderTop: '1px solid #e2e8f0',
+              background: '#f8fafc',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '12px',
+              color: '#64748b'
+            }}>
+              <div>
+                Showing <strong>{vendorDetailData?.studies?.length || 0}</strong> assigned study records for <strong>{selectedVendorDetail.vendor_name}</strong>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => { setSelectedVendorDetail(null); setVendorDetailData(null); }}
+                style={{ padding: '5px 14px', fontSize: '12px' }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* Project Details Drilldown Modal: Assigned Vendors Breakdown */}
+      {/* ------------------------------------------------------------- */}
+      {selectedProjectDetail && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999,
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '12px',
+            width: '100%',
+            maxWidth: '1100px',
+            maxHeight: '92vh',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+            border: '1px solid #e2e8f0',
+            overflow: 'hidden'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '16px 24px',
+              borderBottom: '1px solid #e2e8f0',
+              background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '10px',
+                  background: 'rgba(3, 216, 127, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#03a36a'
+                }}>
+                  <Briefcase size={20} />
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+                      {selectedProjectDetail.project_name}
+                    </h3>
+                    <span style={{
+                      fontFamily: 'monospace',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      background: 'rgba(23, 97, 253, 0.1)',
+                      color: '#1761fd'
+                    }}>
+                      PID: {selectedProjectDetail.project_id}
+                    </span>
+                    <span style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: '20px',
+                      background: 'rgba(16, 185, 129, 0.12)',
+                      color: '#10b981'
+                    }}>
+                      {selectedProjectDetail.status || 'Live'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                    Client: <strong>{selectedProjectDetail.client_name}</strong> &bull; Agreed CPI: <strong>${Number(selectedProjectDetail.cpi).toFixed(2)}</strong> &bull; Target Quota: <strong>{selectedProjectDetail.target_completes}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => { setSelectedProjectDetail(null); setProjectDetailData(null); }}
+                  style={{
+                    background: '#f1f5f9',
+                    border: 'none',
+                    borderRadius: '8px',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#64748b',
+                    cursor: 'pointer'
+                  }}
+                  title="Close modal"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+              {/* Sub-header & Filter Bar */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '12px',
+                flexWrap: 'wrap',
+                gap: '10px'
+              }}>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>
+                    Assigned Supply Partners Breakdown
+                  </h4>
+                  <span style={{ fontSize: '11.5px', color: '#64748b' }}>
+                    Partners allocated to this study and their individual delivery metrics
+                  </span>
+                </div>
+
+                <div style={{ position: 'relative' }}>
+                  <Search size={13} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#8997bd' }} />
+                  <input
+                    type="text"
+                    className="input-control"
+                    placeholder="Search vendors..."
+                    value={projectVendorSearch}
+                    onChange={e => setProjectVendorSearch(e.target.value)}
+                    style={{ paddingLeft: '30px', width: '220px', height: '32px', fontSize: '11.5px' }}
+                  />
+                </div>
+              </div>
+
+              {/* Table of Assigned Vendors */}
+              {projectDetailLoading ? (
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
+                  <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 10px auto', display: 'block', color: '#1761fd' }} />
+                  <div>Loading assigned vendors from database...</div>
+                </div>
+              ) : (
+                <div className="table-wrapper" style={{ margin: 0, border: '1px solid #e2e8f0', borderRadius: '8px', overflowX: 'auto' }}>
+                  <table className="custom-table" style={{ width: '100%', fontSize: '12px' }}>
+                    <thead className="thead-light">
+                      <tr>
+                        <th>Supply Vendor</th>
+                        <th>Vendor CPI</th>
+                        <th>Allocated Quota</th>
+                        <th>Inbound Clicks</th>
+                        <th>Delivered Completes</th>
+                        <th>Terminates</th>
+                        <th>CR (%)</th>
+                        <th>Fulfillment</th>
+                        <th>Total Payout</th>
+                        <th>Entry Link</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        const vendors = projectDetailData?.vendors || [];
+                        const q = projectVendorSearch.toLowerCase().trim();
+                        const filtered = q
+                          ? vendors.filter(v =>
+                              String(v.vendor_name || '').toLowerCase().includes(q) ||
+                              String(v.vendor_id || '').toLowerCase().includes(q)
+                            )
+                          : vendors;
+
+                        if (filtered.length === 0) {
+                          return (
+                            <tr>
+                              <td colSpan="10" style={{ textAlign: 'center', padding: '40px', color: '#8997bd' }}>
+                                No vendors currently assigned to this study.
+                              </td>
+                            </tr>
+                          );
+                        }
+
+                        return filtered.map((v, vIdx) => {
+                          const quota = v.quota_limit > 0 ? v.quota_limit : 0;
+                          const completes = v.complete_count || 0;
+                          const fulfillment = quota > 0 ? Math.min(100, Math.round((completes / quota) * 100)) : (v.clicks_count > 0 ? Math.round((completes / v.clicks_count) * 100) : 0);
+
+                          return (
+                            <tr key={v.assignment_id || vIdx}>
+                              <td>
+                                <div style={{ fontWeight: 700, color: '#1e293b' }}>
+                                  {v.vendor_name}
+                                </div>
+                                <span className="badge-soft-primary" style={{ fontFamily: 'monospace', fontSize: '10px', padding: '1px 5px', borderRadius: '3px', marginTop: '2px', display: 'inline-block' }}>
+                                  {v.vendor_id}
+                                </span>
+                              </td>
+                              <td>
+                                <strong style={{ color: '#1761fd' }}>${Number(v.cpi).toFixed(2)}</strong>
+                              </td>
+                              <td>
+                                <span style={{ color: '#334155' }}>
+                                  {quota > 0 ? quota.toLocaleString() : <span style={{ color: '#8997bd' }}>Open</span>}
+                                </span>
+                              </td>
+                              <td>{v.clicks_count.toLocaleString()}</td>
+                              <td>
+                                <strong style={{ color: completes > 0 ? '#16a34a' : '#64748b', fontSize: '12.5px' }}>
+                                  {completes.toLocaleString()}
+                                </strong>
+                              </td>
+                              <td><span style={{ color: '#d97706' }}>{v.terminates_count.toLocaleString()}</span></td>
+                              <td><strong style={{ color: '#1761fd' }}>{v.conversion_rate}%</strong></td>
+                              <td style={{ minWidth: '100px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginBottom: '2px' }}>
+                                  <span>{completes} {quota > 0 ? `/ ${quota}` : ''}</span>
+                                  <span style={{ fontWeight: 700, color: '#1761fd' }}>{fulfillment}%</span>
+                                </div>
+                                <div style={{ width: '100%', height: '4px', background: '#e2e8f0', borderRadius: '2px', overflow: 'hidden' }}>
+                                  <div style={{ width: `${fulfillment}%`, height: '100%', background: fulfillment >= 80 ? '#16a34a' : '#1761fd' }} />
+                                </div>
+                              </td>
+                              <td>
+                                <strong style={{ color: '#0f172a' }}>
+                                  ${Number(v.total_payout).toFixed(2)}
+                                </strong>
+                              </td>
+                              <td>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyProjectVendorLink(v.entry_link, v.assignment_id)}
+                                  style={{
+                                    background: copiedProjectLinkId === v.assignment_id ? '#dcfce7' : '#f1f5f9',
+                                    color: copiedProjectLinkId === v.assignment_id ? '#16a34a' : '#334155',
+                                    border: '1px solid #cbd5e1',
+                                    borderRadius: '4px',
+                                    padding: '3px 7px',
+                                    fontSize: '10.5px',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    cursor: 'pointer',
+                                    whiteSpace: 'nowrap'
+                                  }}
+                                  title="Copy vendor inbound survey link"
+                                >
+                                  {copiedProjectLinkId === v.assignment_id ? <Check size={11} color="#16a34a" /> : <Copy size={11} />}
+                                  <span>{copiedProjectLinkId === v.assignment_id ? 'Copied!' : 'Copy Link'}</span>
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        });
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{
+              padding: '12px 24px',
+              borderTop: '1px solid #e2e8f0',
+              background: '#f8fafc',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '12px',
+              color: '#64748b'
+            }}>
+              <div>
+                Total <strong>{projectDetailData?.vendors?.length || 0}</strong> supply partners assigned to <strong>{selectedProjectDetail.project_name}</strong>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => { setSelectedProjectDetail(null); setProjectDetailData(null); }}
+                style={{ padding: '5px 14px', fontSize: '12px' }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

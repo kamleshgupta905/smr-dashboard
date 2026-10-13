@@ -709,42 +709,29 @@ if ($normalizedRoute === 'reports/unified' || $normalizedRoute === 'reports') {
             // 3. Real Vendors Aggregate Data from MySQL
             $vendorRows = $db->query("
                 SELECT 
-                    v.id,
-                    v.vendor_id,
                     v.name as vendor_name,
+                    MAX(v.vendor_id) as vendor_id,
                     COUNT(DISTINCT v.project_id) as assigned_projects,
-                    COALESCE(
-                        CASE 
-                            WHEN v.commission_type = 'revenue_share' AND v.cpi_percentage > 0 THEN ROUND(p.cost_per_complete * v.cpi_percentage / 100, 2)
-                            WHEN v.cpi > 0 THEN v.cpi
-                            ELSE ROUND(p.cost_per_complete * 0.70, 2)
-                        END, 1.00
-                    ) as avg_cpi,
-                    v.clicks_count as total_clicks,
-                    v.complete_count as total_completes,
-                    v.terminates_count as total_terminates,
+                    ROUND(AVG(COALESCE(NULLIF(v.cpi, 0), 0.70)), 2) as avg_cpi,
+                    SUM(v.clicks_count) as total_clicks,
+                    SUM(v.complete_count) as total_completes,
+                    SUM(v.terminates_count) as total_terminates,
                     0 as security_terminates,
-                    ROUND(CASE WHEN v.clicks_count > 0 THEN (v.complete_count / v.clicks_count) * 100 ELSE 0 END, 1) as conversion_rate,
-                    ROUND(v.complete_count * COALESCE(
-                        CASE 
-                            WHEN v.commission_type = 'revenue_share' AND v.cpi_percentage > 0 THEN ROUND(p.cost_per_complete * v.cpi_percentage / 100, 2)
-                            WHEN v.cpi > 0 THEN v.cpi
-                            ELSE ROUND(p.cost_per_complete * 0.70, 2)
-                        END, 1.00
-                    ), 2) as total_payout
+                    ROUND(CASE WHEN SUM(v.clicks_count) > 0 THEN (SUM(v.complete_count) / SUM(v.clicks_count)) * 100 ELSE 0 END, 1) as conversion_rate,
+                    ROUND(SUM(v.complete_count * COALESCE(NULLIF(v.cpi, 0), 0.70)), 2) as total_payout
                 FROM vendor v
-                LEFT JOIN projects p ON p.id = v.project_id
-                WHERE v.clicks_count > 0 OR v.complete_count > 0
-                GROUP BY v.id, v.vendor_id, v.name, v.cpi, v.commission_type, v.cpi_percentage, v.clicks_count, v.complete_count, v.terminates_count, p.cost_per_complete
-                ORDER BY v.complete_count DESC, v.clicks_count DESC
-                LIMIT 50
+                WHERE v.name IS NOT NULL AND TRIM(v.name) != ''
+                GROUP BY v.name
+                HAVING total_clicks > 0 OR total_completes > 0
+                ORDER BY total_completes DESC, total_clicks DESC
+                LIMIT 100
             ")->fetchAll();
 
             if (!empty($vendorRows)) {
                 $vendors = array_map(function($v) {
                     return [
-                        'vendor_id' => $v['vendor_id'] ?: ('VND-' . $v['id']),
-                        'vendor_name' => $v['vendor_name'] ?: 'Vendor ' . $v['id'],
+                        'vendor_id' => $v['vendor_id'] ?: 'VND-01',
+                        'vendor_name' => $v['vendor_name'],
                         'assigned_projects' => (int)($v['assigned_projects'] ?? 1),
                         'avg_cpi' => (float)$v['avg_cpi'],
                         'total_clicks' => (int)$v['total_clicks'],
@@ -768,6 +755,236 @@ if ($normalizedRoute === 'reports/unified' || $normalizedRoute === 'reports') {
         ],
         'source' => 'SMR Live Production MySQL Aggregates'
     ]);
+    exit;
+}
+
+// -------------------------------------------------------------
+// 1e. Detailed Vendor Reports API (Assigned Studies & Delivery Breakdown)
+// -------------------------------------------------------------
+if ($normalizedRoute === 'reports/vendor-details') {
+    $db = getDbConnection();
+    $vendorId = trim((string)($_GET['vendor_id'] ?? ''));
+    $vendorName = trim((string)($_GET['name'] ?? ''));
+    $id = trim((string)($_GET['id'] ?? ''));
+
+    if (!$db) {
+        echo json_encode(['success' => false, 'message' => 'Database connection unavailable', 'data' => null]);
+        exit;
+    }
+
+    try {
+        // Find vendor summary
+        $summaryStmt = $db->prepare("
+            SELECT 
+                v.name as vendor_name,
+                MAX(v.vendor_id) as vendor_id,
+                MAX(v.email) as email,
+                COUNT(DISTINCT v.project_id) as total_studies,
+                SUM(v.clicks_count) as total_clicks,
+                SUM(v.complete_count) as total_completes,
+                SUM(v.terminates_count) as total_terminates,
+                ROUND(AVG(COALESCE(NULLIF(v.cpi, 0), 0.70)), 2) as avg_cpi,
+                ROUND(CASE WHEN SUM(v.clicks_count) > 0 THEN (SUM(v.complete_count) / SUM(v.clicks_count)) * 100 ELSE 0 END, 1) as conversion_rate,
+                ROUND(SUM(v.complete_count * COALESCE(NULLIF(v.cpi, 0), 0.70)), 2) as total_payout
+            FROM vendor v
+            WHERE (:vname != '' AND v.name = :vname)
+               OR (:vid != '' AND v.vendor_id = :vid)
+               OR (:id != '' AND v.id = :id)
+            GROUP BY v.name
+            LIMIT 1
+        ");
+        $summaryStmt->execute([':vname' => $vendorName, ':vid' => $vendorId, ':id' => $id]);
+        $summary = $summaryStmt->fetch();
+
+        if (!$summary && !empty($vendorName)) {
+            $altStmt = $db->prepare("
+                SELECT v.name as vendor_name, MAX(v.vendor_id) as vendor_id, MAX(v.email) as email,
+                       COUNT(DISTINCT v.project_id) as total_studies, SUM(v.clicks_count) as total_clicks,
+                       SUM(v.complete_count) as total_completes, SUM(v.terminates_count) as total_terminates,
+                       ROUND(AVG(COALESCE(NULLIF(v.cpi, 0), 0.70)), 2) as avg_cpi,
+                       ROUND(CASE WHEN SUM(v.clicks_count) > 0 THEN (SUM(v.complete_count) / SUM(v.clicks_count)) * 100 ELSE 0 END, 1) as conversion_rate,
+                       ROUND(SUM(v.complete_count * COALESCE(NULLIF(v.cpi, 0), 0.70)), 2) as total_payout
+                FROM vendor v WHERE v.name LIKE :vlike GROUP BY v.name LIMIT 1
+            ");
+            $altStmt->execute([':vlike' => '%' . $vendorName . '%']);
+            $summary = $altStmt->fetch();
+        }
+
+        $vFilterName = $summary['vendor_name'] ?? $vendorName;
+        $vFilterId = $summary['vendor_id'] ?? $vendorId;
+
+        // Fetch all assigned studies for this vendor
+        $studiesStmt = $db->prepare("
+            SELECT 
+                v.id as assignment_id,
+                v.vendor_id,
+                v.name as vendor_name,
+                COALESCE(
+                    CASE 
+                        WHEN v.commission_type = 'revenue_share' AND v.cpi_percentage > 0 THEN ROUND(p.cost_per_complete * v.cpi_percentage / 100, 2)
+                        WHEN v.cpi > 0 THEN v.cpi
+                        ELSE ROUND(COALESCE(p.cost_per_complete, 1.00) * 0.70, 2)
+                    END, 0.70
+                ) as cpi,
+                v.commission_type,
+                v.cpi_percentage,
+                v.max_limit as quota_limit,
+                v.clicks_count,
+                v.complete_count,
+                v.terminates_count,
+                v.entry_link,
+                v.is_active,
+                v.date as assigned_date,
+                p.id as project_primary_id,
+                COALESCE(p.project_id, CONCAT('VMH_', p.id)) as project_code,
+                COALESCE(p.name, CONCAT('Study #', p.id)) as project_name,
+                COALESCE(p.cost_per_complete, 1.00) as client_cpi,
+                COALESCE(p.status, 'Live') as project_status,
+                COALESCE(c.client_name, 'Market Xcel') as client_name
+            FROM vendor v
+            LEFT JOIN projects p ON p.id = v.project_id
+            LEFT JOIN client c ON c.id = p.client_id
+            WHERE (:vname != '' AND v.name = :vname)
+               OR (:vid != '' AND v.vendor_id = :vid)
+            ORDER BY v.complete_count DESC, v.clicks_count DESC, v.id DESC
+        ");
+        $studiesStmt->execute([':vname' => $vFilterName, ':vid' => $vFilterId]);
+        $rawStudies = $studiesStmt->fetchAll();
+
+        $studies = array_map(function($s) {
+            $quota = (int)($s['quota_limit'] ?? 0);
+            $completes = (int)($s['complete_count'] ?? 0);
+            $clicks = (int)($s['clicks_count'] ?? 0);
+            $cpi = (float)($s['cpi'] ?? 0.70);
+            $payout = round($completes * $cpi, 2);
+            $fulfillment = $quota > 0 ? round(($completes / $quota) * 100, 1) : ($clicks > 0 ? round(($completes / $clicks) * 100, 1) : 0);
+            $cr = $clicks > 0 ? round(($completes / $clicks) * 100, 1) : 0;
+            
+            $entry = $s['entry_link'];
+            if (empty($entry) || $entry === 'N/A') {
+                $entry = "https://smr.vmhgroupsmr.com/vendor/auth/{$s['assignment_id']}/project/{$s['project_code']}?user=xxxx";
+            } elseif (!str_starts_with($entry, 'http')) {
+                $entry = "https://smr.vmhgroupsmr.com/" . ltrim($entry, '/');
+            }
+
+            return [
+                'assignment_id' => (int)$s['assignment_id'],
+                'project_primary_id' => (int)$s['project_primary_id'],
+                'project_code' => $s['project_code'],
+                'project_name' => $s['project_name'],
+                'client_name' => $s['client_name'],
+                'cpi' => $cpi,
+                'commission_type' => $s['commission_type'] ?: 'fixed',
+                'cpi_percentage' => (float)$s['cpi_percentage'],
+                'quota_limit' => $quota,
+                'clicks_count' => $clicks,
+                'complete_count' => $completes,
+                'terminates_count' => (int)($s['terminates_count'] ?? 0),
+                'fulfillment_rate' => $fulfillment,
+                'conversion_rate' => $cr,
+                'total_payout' => $payout,
+                'entry_link' => $entry,
+                'project_status' => $s['project_status'] ?: 'Live',
+                'is_active' => $s['is_active'] ?: 'Y',
+                'assigned_date' => $s['assigned_date'] ?: 'Active'
+            ];
+        }, $rawStudies);
+
+        echo json_encode([
+            'success' => true,
+            'data' => [
+                'vendor' => $summary ?: [
+                    'vendor_name' => $vFilterName,
+                    'vendor_id' => $vFilterId,
+                    'email' => 'contact@' . strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $vFilterName)) . '.com',
+                    'total_studies' => count($studies),
+                    'total_clicks' => array_sum(array_column($studies, 'clicks_count')),
+                    'total_completes' => array_sum(array_column($studies, 'complete_count')),
+                    'total_terminates' => array_sum(array_column($studies, 'terminates_count')),
+                    'avg_cpi' => 0.70,
+                    'conversion_rate' => 0,
+                    'total_payout' => array_sum(array_column($studies, 'total_payout'))
+                ],
+                'studies' => $studies
+            ]
+        ]);
+    } catch (Throwable $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
+// -------------------------------------------------------------
+// 1f. Detailed Project Reports API (Assigned Vendors Breakdown)
+// -------------------------------------------------------------
+if ($normalizedRoute === 'reports/project-details') {
+    $db = getDbConnection();
+    $projectId = trim((string)($_GET['project_id'] ?? $_GET['id'] ?? ''));
+
+    if (!$db) {
+        echo json_encode(['success' => false, 'message' => 'Database connection unavailable', 'data' => null]);
+        exit;
+    }
+
+    try {
+        $projStmt = $db->prepare("
+            SELECT p.id, p.project_id, p.name as project_name, COALESCE(c.client_name, 'Market Xcel') as client_name,
+                   p.cost_per_complete as cpi, p.max_limit as target_completes, p.status
+            FROM projects p
+            LEFT JOIN client c ON c.id = p.client_id
+            WHERE p.id = :pid OR p.project_id = :pcode
+            LIMIT 1
+        ");
+        $projStmt->execute([':pid' => $projectId, ':pcode' => $projectId]);
+        $project = $projStmt->fetch();
+
+        $vendors = [];
+        if ($project) {
+            $vStmt = $db->prepare("
+                SELECT v.id as assignment_id, v.vendor_id, v.name as vendor_name, v.email, v.cpi as vendor_cpi,
+                       v.commission_type, v.cpi_percentage, v.max_limit, v.clicks_count, v.complete_count,
+                       v.terminates_count, v.entry_link, v.is_active, v.date as assigned_date
+                FROM vendor v
+                WHERE v.project_id = :proj_id
+                ORDER BY v.complete_count DESC, v.clicks_count DESC
+            ");
+            $vStmt->execute([':proj_id' => $project['id']]);
+            $rawV = $vStmt->fetchAll();
+
+            $vendors = array_map(function($v) {
+                $cpi = (float)($v['vendor_cpi'] > 0 ? $v['vendor_cpi'] : 0.70);
+                $completes = (int)$v['complete_count'];
+                $clicks = (int)$v['clicks_count'];
+                $quota = (int)$v['max_limit'];
+                return [
+                    'assignment_id' => (int)$v['assignment_id'],
+                    'vendor_id' => $v['vendor_id'],
+                    'vendor_name' => $v['vendor_name'],
+                    'email' => $v['email'],
+                    'cpi' => $cpi,
+                    'quota_limit' => $quota,
+                    'clicks_count' => $clicks,
+                    'complete_count' => $completes,
+                    'terminates_count' => (int)$v['terminates_count'],
+                    'conversion_rate' => $clicks > 0 ? round(($completes / $clicks) * 100, 1) : 0,
+                    'fulfillment_rate' => $quota > 0 ? round(($completes / $quota) * 100, 1) : 0,
+                    'total_payout' => round($completes * $cpi, 2),
+                    'entry_link' => $v['entry_link'],
+                    'is_active' => $v['is_active'] ?: 'Y'
+                ];
+            }, $rawV);
+        }
+
+        echo json_encode([
+            'success' => true,
+            'data' => [
+                'project' => $project,
+                'vendors' => $vendors
+            ]
+        ]);
+    } catch (Throwable $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
     exit;
 }
 
