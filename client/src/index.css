@@ -1026,11 +1026,17 @@ select:disabled {
 .table-container, .table-wrapper {
   width: 100% !important;
   max-width: 100% !important;
-  overflow-x: auto !important;
+  overflow-x: hidden !important;
   -webkit-overflow-scrolling: touch;
   display: block;
   background: #ffffff;
   border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+  .table-container, .table-wrapper {
+    overflow-x: auto !important;
+  }
 }
 
 table, .custom-table {

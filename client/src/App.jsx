@@ -372,7 +372,9 @@ export default function App() {
 
           {/* VMH Enterprise Footer */}
           <footer style={{
-            margin: '24px -16px -16px -16px',
+            margin: '24px 0 0 0',
+            width: '100%',
+            boxSizing: 'border-box',
             padding: '14px 20px',
             borderTop: '1px solid #e3ebf6',
             background: '#ffffff',
