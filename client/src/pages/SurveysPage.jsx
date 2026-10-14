@@ -330,11 +330,11 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
             Page {page} of {totalPages}
           </span>
         </div>
-        <div className="table-wrapper table-container" style={{ margin: 0, border: 'none', borderRadius: 0, width: '100%', overflowX: 'hidden', WebkitOverflowScrolling: 'touch', display: 'block' }}>
+        <div className="table-wrapper table-container" style={{ margin: 0, border: 'none', borderRadius: 0, width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', display: 'block' }}>
           <table className="custom-table compact-table" style={{ width: '100%', tableLayout: 'auto' }}>
             <thead className="thead-light">
               <tr>
-                <th className="col-checkbox" style={{ width: '30px', textAlign: 'center', padding: '6px 2px' }}>
+                <th className="col-checkbox" style={{ width: '28px', textAlign: 'center', padding: '6px 2px' }}>
                   <input
                     type="checkbox"
                     checked={isAllPageSelected}
@@ -344,16 +344,16 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                     style={{ cursor: 'pointer', width: '14px', height: '14px', accentColor: '#4361EE' }}
                   />
                 </th>
-                <th className="col-index" style={{ width: '28px', textAlign: 'center', padding: '6px 2px' }}>#</th>
+                <th className="col-index" style={{ width: '26px', textAlign: 'center', padding: '6px 2px' }}>#</th>
                 <th style={{ minWidth: '130px', padding: '6px 6px' }}>Survey Name & ID</th>
-                <th style={{ width: '75px', padding: '6px 4px' }}>Client</th>
-                <th style={{ width: '46px', textAlign: 'center', padding: '6px 2px' }}>Country</th>
-                <th style={{ width: '54px', textAlign: 'center', padding: '6px 2px' }}>Devices</th>
-                <th style={{ width: '64px', padding: '6px 4px' }}>Rate (CPI)</th>
-                <th style={{ width: '64px', padding: '6px 4px' }}>Length (LOI)</th>
-                <th style={{ width: '90px', padding: '6px 4px' }}>Quota / Completes</th>
-                <th style={{ width: '52px', textAlign: 'center', padding: '6px 2px' }}>Status</th>
-                <th className="col-sticky-action" style={{ textAlign: 'center', width: '170px', padding: '6px 6px' }}>Actions</th>
+                <th style={{ width: '70px', padding: '6px 4px' }}>Client</th>
+                <th style={{ width: '40px', textAlign: 'center', padding: '6px 2px' }}>Country</th>
+                <th style={{ width: '48px', textAlign: 'center', padding: '6px 2px' }}>Devices</th>
+                <th style={{ width: '58px', padding: '6px 4px' }}>Rate (CPI)</th>
+                <th style={{ width: '58px', padding: '6px 4px' }}>Length (LOI)</th>
+                <th style={{ width: '82px', padding: '6px 4px' }}>Quota / Completes</th>
+                <th style={{ width: '48px', textAlign: 'center', padding: '6px 2px' }}>Status</th>
+                <th className="col-sticky-action" style={{ textAlign: 'center', width: '180px', padding: '6px 4px' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -397,7 +397,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                         </td>
                         <td style={{ padding: '6px 6px' }}>
                           <div 
-                            style={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px', cursor: 'pointer', lineHeight: 1.25, wordBreak: 'break-word' }}
+                            style={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px', cursor: 'pointer', lineHeight: 1.25, wordBreak: 'break-word', whiteSpace: 'normal' }}
                             onClick={() => toggleExpand(s.survey_id)}
                           >
                             {s.survey_name}
@@ -479,42 +479,42 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                             {s.status || 'Live'}
                           </span>
                         </td>
-                        <td className="col-sticky-action" style={{ textAlign: 'center', padding: '6px 6px' }}>
-                          <div style={{ display: 'inline-flex', gap: '3px', alignItems: 'center' }}>
+                        <td className="col-sticky-action" style={{ textAlign: 'center', padding: '6px 4px' }}>
+                          <div style={{ display: 'inline-flex', gap: '3px', alignItems: 'center', justifyContent: 'center' }}>
                             <button
                               className="btn btn-primary btn-sm"
-                              style={{ padding: '3px 6px', fontSize: '10.5px', display: 'flex', alignItems: 'center', gap: '3px', borderRadius: '4px', fontWeight: 600 }}
+                              style={{ padding: '3px 7px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '3px', borderRadius: '4px', fontWeight: 600, whiteSpace: 'nowrap' }}
                               onClick={() => onOpenAssign(s)}
                               title="Assign survey to vendor"
                             >
-                              <Share2 size={10} /> Assign
+                              <Share2 size={11} /> Assign
                             </button>
 
                             <button
                               className="btn btn-soft-info btn-sm"
-                              style={{ padding: '3px 5px', fontSize: '10.5px', display: 'flex', alignItems: 'center', gap: '2px', borderRadius: '4px', background: 'rgba(6, 182, 212, 0.1)', color: '#0891b2', border: '1px solid rgba(6, 182, 212, 0.2)', fontWeight: 600 }}
+                              style={{ padding: '3px 6px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '2px', borderRadius: '4px', background: 'rgba(6, 182, 212, 0.1)', color: '#0891b2', border: '1px solid rgba(6, 182, 212, 0.2)', fontWeight: 600, whiteSpace: 'nowrap' }}
                               onClick={() => openDuplicateModal(s)}
                               title="1-Click Clone / Duplicate Project"
                             >
-                              <Copy size={10} /> Clone
+                              <Copy size={11} /> Clone
                             </button>
 
                             <button
                               className="btn btn-soft-secondary btn-sm"
-                              style={{ padding: '3px 5px', fontSize: '10.5px', borderRadius: '4px' }}
+                              style={{ padding: '3px 5px', fontSize: '11px', borderRadius: '4px' }}
                               onClick={() => onOpenQuotas(s.survey_id)}
                               title="View Quotas"
                             >
-                              <PieChart size={10} />
+                              <PieChart size={11} />
                             </button>
 
                             <button
                               className="btn btn-soft-secondary btn-sm"
-                              style={{ padding: '3px 5px', fontSize: '10.5px', borderRadius: '4px' }}
+                              style={{ padding: '3px 5px', fontSize: '11px', borderRadius: '4px' }}
                               onClick={() => onOpenQuals(s.survey_id)}
                               title="View Criteria & Qualifications"
                             >
-                              <UserCheck size={10} />
+                              <UserCheck size={11} />
                             </button>
 
                             <button
