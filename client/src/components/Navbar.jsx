@@ -22,17 +22,7 @@ export default function Navbar({
   const bellRef = useRef(null);
   const searchInputRef = useRef(null);
 
-  const [activeRole, setActiveRole] = useState(() => {
-    return (typeof localStorage !== 'undefined' && localStorage.getItem('smr_user_role')) || 'Admin';
-  });
-
-  const handleRoleSelect = (newRole) => {
-    setActiveRole(newRole);
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('smr_user_role', newRole);
-    }
-    if (onRoleChange) onRoleChange(newRole);
-  };
+  const activeRole = (typeof localStorage !== 'undefined' && (localStorage.getItem('smr_auth_role') || 'Admin')) || 'Admin';
 
   const notifications = [
     { id: 1, icon: Zap, color: '#1761fd', title: 'Zamplia Inventory Synced', text: `${surveyCount || 626} live surveys refreshed with fresh quotas.`, time: 'Just now' },
@@ -307,37 +297,20 @@ export default function Navbar({
           {dropdownOpen && (
             <div className="dastone-user-dropdown">
               <div className="dropdown-header">
-                <div className="name">{localStorage.getItem('smr_auth_user') || 'Admin'} ({activeRole})</div>
-                <div className="email">admin@vmhgroupsmr.com</div>
-              </div>
-
-              {/* RBAC Role Switcher */}
-              <div style={{ padding: '10px 14px', background: '#f8fafc', borderBottom: '1px solid #f1f5fa' }}>
-                <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-                  Switch RBAC Role
-                </span>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', marginTop: '6px' }}>
-                  {['Admin', 'Developer', 'User', 'Customer'].map(r => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => handleRoleSelect(r)}
-                      style={{
-                        padding: '4px 8px',
-                        fontSize: '11px',
-                        fontWeight: activeRole === r ? 800 : 500,
-                        background: activeRole === r ? '#1761fd' : '#ffffff',
-                        color: activeRole === r ? '#ffffff' : '#334155',
-                        border: '1px solid',
-                        borderColor: activeRole === r ? '#1761fd' : '#e2e8f0',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {r}
-                    </button>
-                  ))}
+                <div className="name" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>{localStorage.getItem('smr_auth_user') || 'Admin'}</span>
+                  <span style={{
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    padding: '2px 7px',
+                    borderRadius: '4px',
+                    background: 'rgba(23, 97, 253, 0.1)',
+                    color: '#1761fd'
+                  }}>
+                    {activeRole}
+                  </span>
                 </div>
+                <div className="email">admin@vmhgroupsmr.com</div>
               </div>
 
               <button
