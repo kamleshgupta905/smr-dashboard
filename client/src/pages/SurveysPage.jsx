@@ -734,7 +734,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
               totalRequired: Number(cloned.target_completes || cloned.max_limit || 500),
               completesNeeded: Number(cloned.target_completes || cloned.max_limit || 500),
               country: cloned.country || 'United States',
-              category: 'Cloned Enterprise Study',
+              category: 'Market Research',
               studyType: 'Consumer'
             });
           }

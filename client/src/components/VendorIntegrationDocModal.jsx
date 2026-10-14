@@ -80,7 +80,7 @@ $hash = hash('sha3-256', $baseUrl . $secretKey);
 ---
 
 ## 4. Server-to-Server (S2S) Postback Webhook Specification
-If the vendor enables S2S, the VMH engine automatically dispatches an asynchronous HTTP POST webhook upon completion:
+If the vendor enables S2S, the VMH platform automatically dispatches an asynchronous HTTP POST webhook upon completion:
 
 Endpoint: Configured by vendor in SMR (e.g., https://api.vendor.com/s2s/callback)
 Method: POST
@@ -247,7 +247,7 @@ Expected Response: HTTP 200 OK within 3000ms.
                     <span>Survey Routing Architecture</span>
                   </div>
                   <p style={{ margin: 0, color: '#1E3A8A', fontSize: '12.5px', lineHeight: 1.5 }}>
-                    Vendors send participants into SMR via their dedicated entry URL. The SMR engine enforces IP fraud checks, speeder prevention, and UID mapping before automatically redirecting the respondent to the live survey.
+                    Vendors send participants into SMR via their dedicated entry URL. The SMR router enforces IP fraud checks, speeder prevention, and UID mapping before automatically redirecting the respondent to the live survey.
                   </p>
                 </div>
 

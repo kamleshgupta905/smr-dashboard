@@ -137,9 +137,9 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
       setSimTestOutput({
         verdict: 'BLOCKED',
         statusCode: 4,
-        reason: 'Security Threat Detected: Headless crawler / automated bot script blocked by Bot Protection Engine.',
+        reason: 'Security check: Headless browser or bot traffic blocked.',
         color: '#DC2626',
-        rule: 'Bot Protection Suite'
+        rule: 'Bot Protection'
       });
       return;
     }
@@ -151,9 +151,9 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
       setSimTestOutput({
         verdict: 'FLAGGED_SPEEDER',
         statusCode: 4,
-        reason: `Speeder Quality Violation: Session duration (${simDurationSeconds}s) is below 30% of stated LOI (${minThreshold}s). Flagged as Security Terminate.`,
+        reason: `Quality check: Session duration (${simDurationSeconds}s) is below 30% of average LOI (${minThreshold}s).`,
         color: '#F59E0B',
-        rule: 'Speeder Detection Engine'
+        rule: 'Speeder Detection'
       });
       return;
     }
@@ -163,9 +163,9 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
       setSimTestOutput({
         verdict: 'PRE_SCREEN_REQUIRED',
         statusCode: 1,
-        reason: 'Pre-Click Safeguards Passed! Respondent forwarded to demographic Pre-Screener questionnaire before client survey.',
+        reason: 'Pre-screening active: Respondent forwarded to qualifying questions before survey.',
         color: '#2563EB',
-        rule: 'Pre-Screen Gate Active'
+        rule: 'Pre-Screen Gate'
       });
       return;
     }
@@ -174,7 +174,7 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
     setSimTestOutput({
       verdict: 'PASSED_DIRECT',
       statusCode: 1,
-      reason: 'All active security & fraud safeguards satisfied! Direct survey access granted with SHA3-256 signature.',
+      reason: 'All security checks passed. Direct survey link generated with signature.',
       color: '#10B981',
       rule: 'Direct Inbound Access'
     });

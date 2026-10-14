@@ -98,8 +98,8 @@ export default function DashboardPage({
   const activities = useMemo(() => {
     if (!normalized.length) return [
       {
-        text: 'Sync with Zamplia Supply Engine to load live marketplace activities and survey alerts.',
-        time: 'Press "Sync" in the topbar',
+        text: 'Sync with Zamplia to load active surveys and inventory alerts.',
+        time: 'Click "Sync Surveys" above',
         color: '#8997bd'
       }
     ];
@@ -134,8 +134,8 @@ export default function DashboardPage({
     }
 
     events.push({
-      text: `Live Marketplace: ${normalized.length} allocated studies · ${b2bCount} B2B executive panels · ${highCpiCount} high-yield studies (≥$5 CPI) · ${countryCount} countries · Avg CPI $${avgCpi}`,
-      time: 'Zamplia Supply Engine + Market Xcel · Synced live',
+      text: `Marketplace Inventory: ${normalized.length} allocated studies · ${b2bCount} B2B panels · ${highCpiCount} high-rate studies (≥$5 CPI) · ${countryCount} countries · Avg CPI $${avgCpi}`,
+      time: 'Zamplia + Market Xcel · Live',
       color: '#f59e0b'
     });
 

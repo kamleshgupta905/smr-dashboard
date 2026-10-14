@@ -1879,31 +1879,31 @@ if ($normalizedRoute === 'vendor/bulk-assign' || $normalizedRoute === 'manage/ve
             // Generate entry link
             $entryLink = "{$origin}/vendor/auth/{$vendorId}/project/{$projCode}?uid=[RESPONDENT_ID]";
 
-            // Check if already in vendorlists
-            $chkAssignment = $db->prepare("SELECT id FROM vendorlists WHERE vendor_id = ? AND project_id = ? LIMIT 1");
+            // Check if already in vendor_allotments
+            $chkAssignment = $db->prepare("SELECT id FROM vendor_allotments WHERE vendor_id = ? AND project_id = ? LIMIT 1");
             $chkAssignment->execute([$vendorId, $projCode]);
             $existingId = $chkAssignment->fetchColumn();
 
             if ($existingId) {
                 $db->prepare("
-                    UPDATE vendorlists 
-                    SET cpi = ?, max_limit = ?, updated_at = NOW()
+                    UPDATE vendor_allotments 
+                    SET vendor_cpi = ?, quota_limit = ?, entry_link = ?, status = 'Active', updated_at = NOW()
                     WHERE id = ?
-                ")->execute([$finalCpi, $quotaLimit, $existingId]);
+                ")->execute([$finalCpi, $quotaLimit, $entryLink, $existingId]);
                 $assignmentId = $existingId;
             } else {
                 $insAllot = $db->prepare("
-                    INSERT INTO vendorlists (
-                        vendor_id, project_id, name, email, cpi, max_limit,
-                        success, terminate, quotafull, screenout, created_at, updated_at
+                    INSERT INTO vendor_allotments (
+                        vendor_id, project_id, vendor_name, vendor_cpi, quota_limit,
+                        complete_count, entry_link, status, created_at, updated_at
                     ) VALUES (
-                        ?, ?, ?, ?, ?, ?,
-                        ?, ?, ?, ?, NOW(), NOW()
+                        ?, ?, ?, ?, ?,
+                        0, ?, 'Active', NOW(), NOW()
                     )
                 ");
                 $insAllot->execute([
-                    $vendorId, $projCode, $vendorName, $vendorEmail, $finalCpi, $quotaLimit,
-                    $rc, $rt, $ro, $rs
+                    $vendorId, $projCode, $vendorName, $finalCpi, $quotaLimit,
+                    $entryLink
                 ]);
                 $assignmentId = (int)$db->lastInsertId();
             }
@@ -2919,6 +2919,49 @@ if ($normalizedRoute === 'explorer/run-test') {
 // -------------------------------------------------------------
 if ($normalizedRoute === 'payments' || str_starts_with($normalizedRoute, 'payments')) {
     $db = getDbConnection();
+
+    // 0. Delete Payment Record
+    if ($normalizedRoute === 'payments/delete' || ($normalizedRoute === 'payments' && $method === 'DELETE')) {
+        $payId = $body['id'] ?? $body['payment_id'] ?? $_GET['id'] ?? null;
+        if (!$payId) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Payment ID is required']);
+            exit;
+        }
+
+        if ($db) {
+            try {
+                $chk = $db->prepare("SELECT * FROM payments WHERE id = ? OR payment_id = ? LIMIT 1");
+                $chk->execute([$payId, $payId]);
+                $record = $chk->fetch(PDO::FETCH_ASSOC);
+
+                if ($record) {
+                    $del = $db->prepare("DELETE FROM payments WHERE id = ? OR payment_id = ?");
+                    $del->execute([$payId, $payId]);
+
+                    logActivity($db, 'payments', (int)$record['id'], 'Delete', [
+                        'payment_id' => $record['payment_id'],
+                        'project_id' => $record['project_id'],
+                        'vendor_id' => $record['vendor_id'],
+                        'amount' => $record['amount']
+                    ]);
+
+                    echo json_encode(['success' => true, 'message' => "Payment #{$record['payment_id']} deleted permanently"]);
+                    exit;
+                } else {
+                    http_response_code(404);
+                    echo json_encode(['success' => false, 'message' => 'Payment record not found']);
+                    exit;
+                }
+            } catch (Throwable $e) {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+                exit;
+            }
+        }
+        echo json_encode(['success' => true]);
+        exit;
+    }
 
     // 1. Update Payment Status
     if (($normalizedRoute === 'payments/update-status' || $normalizedRoute === 'payments/update') && ($method === 'POST' || $method === 'PUT')) {

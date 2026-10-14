@@ -27,7 +27,8 @@ import {
   Copy,
   Check,
   X,
-  Target
+  Target,
+  Trash2
 } from 'lucide-react';
 import {
   getReconciliationCompletes,
@@ -43,7 +44,8 @@ import {
   getLegacyStats,
   getLegacyProjects,
   getPayments,
-  updatePaymentStatus
+  updatePaymentStatus,
+  deletePayment
 } from '../services/api';
 import { exportToExcel } from '../utils/excelExport';
 import ModalPortal from '../components/ModalPortal';
@@ -259,6 +261,26 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
       }
     } catch (err) {
       alert('Error updating payment status: ' + (err.message || 'Server error'));
+    } finally {
+      setUpdatingPaymentId(null);
+    }
+  };
+
+  const handleDeletePayment = async (id, paymentCode) => {
+    if (!window.confirm(`Are you sure you want to delete payment record ${paymentCode || ('#' + id)} permanently? This cannot be undone.`)) {
+      return;
+    }
+    setUpdatingPaymentId(id);
+    try {
+      const res = await deletePayment(id);
+      if (res?.success) {
+        setPaymentsList(prev => prev.filter(p => p.id !== id));
+        loadPayments();
+      } else {
+        alert(res?.message || 'Failed to delete payment');
+      }
+    } catch (err) {
+      alert('Error deleting payment: ' + (err.message || 'Server error'));
     } finally {
       setUpdatingPaymentId(null);
     }
@@ -1597,6 +1619,26 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                                       ✕ Reject
                                     </button>
                                   )}
+                                  <button
+                                    type="button"
+                                    className="btn btn-soft-danger btn-sm"
+                                    disabled={isUpdating}
+                                    onClick={() => handleDeletePayment(pay.id, pay.payment_id)}
+                                    style={{
+                                      padding: '3px 8px',
+                                      fontSize: '10.5px',
+                                      borderRadius: '4px',
+                                      color: '#b91c1c',
+                                      backgroundColor: '#fef2f2',
+                                      border: '1px solid #fecaca',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '3px'
+                                    }}
+                                    title="Delete invoice permanently from database"
+                                  >
+                                    <Trash2 size={11} /> Delete
+                                  </button>
                                 </div>
                               </td>
                             </tr>

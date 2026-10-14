@@ -272,7 +272,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
                       style={{ fontFamily: 'monospace', fontSize: '12px' }}
                     />
                     <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                      Survey successfully finish hone par respondent is URL par wapas jayega.
+                      Respondent is redirected to this destination upon survey completion.
                     </div>
                   </div>
 
@@ -294,7 +294,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
                       style={{ fontFamily: 'monospace', fontSize: '12px' }}
                     />
                     <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                      Demographics ya screener fail hone par respondent is URL par bhej diya jayega.
+                      Respondent is redirected here if demographic qualifications are not met.
                     </div>
                   </div>
 
@@ -316,7 +316,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
                       style={{ fontFamily: 'monospace', fontSize: '12px' }}
                     />
                     <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                      Target quota full hone par respondent is URL par redirect hoga.
+                      Respondent is redirected here if the target quota is full.
                     </div>
                   </div>
 
@@ -338,7 +338,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
                       style={{ fontFamily: 'monospace', fontSize: '12px' }}
                     />
                     <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                      VPN/Proxy/Bot, Speeding ya Fraud check trigger hone par respondent security URL par drop hoga.
+                      Respondent is redirected here if security, proxy, or fraud checks fail.
                     </div>
                   </div>
 
@@ -435,7 +435,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {loading ? (
           <div className="report-card" style={{ padding: '40px', textAlign: 'center', color: '#8997bd' }}>
-            Loading enterprise demand clients...
+            Loading clients...
           </div>
         ) : filtered.map((client) => {
           const clientCode = client.client_code || client.client_name.replace(/\s+/g, '_').toUpperCase();
@@ -607,7 +607,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
             <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
             <div className="modal-header">
               <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0F172A' }}>
-                Onboard Enterprise Demand Client
+                Add Client
               </h3>
               <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
                 <X size={18} />
@@ -741,7 +741,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
                   className="btn btn-primary"
                   style={{ width: '100%', justifyContent: 'center', marginTop: '10px' }}
                 >
-                  {submitting ? 'Generating Integration...' : '✓ Complete Client Onboarding'}
+                  {submitting ? 'Saving Client...' : 'Add Client'}
                 </button>
               </div>
             </form>

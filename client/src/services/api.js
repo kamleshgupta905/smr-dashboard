@@ -15,220 +15,12 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Base realistic survey inventory dataset
-const BASE_SURVEYS = [
-  {
-    surveyId: 90142,
-    name: 'Global Electric Vehicle & Mobility Outlook 2026',
-    cpi: 4.80,
-    loi: 14,
-    ir: 75,
-    client: 'Zamplia Global',
-    clientCode: 'ZAMP_GLOBAL',
-    status: 'Live',
-    totalRequired: 600,
-    completesNeeded: 340,
-    device: 'Desktop,Mobile,Tablet',
-    languageCode: 'en-US',
-    country: 'United States',
-    category: 'Automotive & Mobility',
-    studyType: 'Consumer'
-  },
-  {
-    surveyId: 90143,
-    name: 'Healthcare Providers Digital Records & EHR Adoption',
-    cpi: 7.50,
-    loi: 18,
-    ir: 40,
-    client: 'Market Xcel',
-    clientCode: 'MX_HEALTH',
-    status: 'Live',
-    totalRequired: 300,
-    completesNeeded: 210,
-    device: 'Desktop,Tablet',
-    languageCode: 'en-US',
-    country: 'United States',
-    category: 'Healthcare & Medical',
-    studyType: 'B2B'
-  },
-  {
-    surveyId: 90144,
-    name: 'German Consumer Retail & E-Commerce Preferences',
-    cpi: 3.90,
-    loi: 10,
-    ir: 90,
-    client: 'Zamplia Global',
-    clientCode: 'ZAMP_EU',
-    status: 'Live',
-    totalRequired: 800,
-    completesNeeded: 450,
-    device: 'Desktop,Mobile,Tablet',
-    languageCode: 'de-DE',
-    country: 'Germany',
-    category: 'Retail & Shopping',
-    studyType: 'Consumer'
-  },
-  {
-    surveyId: 90145,
-    name: 'Cloud SaaS Infrastructure & Security Purchasing Habits',
-    cpi: 9.20,
-    loi: 20,
-    ir: 30,
-    client: 'Market Xcel',
-    clientCode: 'MX_TECH',
-    status: 'Live',
-    totalRequired: 250,
-    completesNeeded: 180,
-    device: 'Desktop',
-    languageCode: 'en-US',
-    country: 'United States',
-    category: 'Technology & Enterprise IT',
-    studyType: 'B2B'
-  },
-  {
-    surveyId: 90146,
-    name: 'Next-Gen Mobile Banking & FinTech User Experience',
-    cpi: 3.20,
-    loi: 12,
-    ir: 80,
-    client: 'Zamplia Global',
-    clientCode: 'ZAMP_FIN',
-    status: 'Live',
-    totalRequired: 1200,
-    completesNeeded: 620,
-    device: 'Mobile,Tablet',
-    languageCode: 'en-US',
-    country: 'United States',
-    category: 'Banking & Financial Services',
-    studyType: 'Consumer'
-  },
-  {
-    surveyId: 90147,
-    name: 'North American Beverage Consumption Trends Q2',
-    cpi: 2.10,
-    loi: 8,
-    ir: 95,
-    client: 'Market Xcel',
-    clientCode: 'MX_FMCG',
-    status: 'Live',
-    totalRequired: 1500,
-    completesNeeded: 780,
-    device: 'Desktop,Mobile,Tablet',
-    languageCode: 'en-US',
-    country: 'United States',
-    category: 'Food & Beverage',
-    studyType: 'Consumer'
-  },
-  {
-    surveyId: 90148,
-    name: 'Enterprise Cybersecurity & Zero-Trust Architecture Audit',
-    cpi: 11.50,
-    loi: 22,
-    ir: 25,
-    client: 'Zamplia Global',
-    clientCode: 'ZAMP_SEC',
-    status: 'Live',
-    totalRequired: 200,
-    completesNeeded: 145,
-    device: 'Desktop',
-    languageCode: 'en-US',
-    country: 'United States',
-    category: 'Information Security',
-    studyType: 'B2B Executive'
-  },
-  {
-    surveyId: 90149,
-    name: 'UK Telecommunications 5G Home Broadband Feedback',
-    cpi: 2.85,
-    loi: 11,
-    ir: 85,
-    client: 'Zamplia Global',
-    clientCode: 'ZAMP_UK',
-    status: 'Live',
-    totalRequired: 900,
-    completesNeeded: 410,
-    device: 'Desktop,Mobile,Tablet',
-    languageCode: 'en-GB',
-    country: 'United Kingdom',
-    category: 'Telecommunications',
-    studyType: 'Consumer'
-  },
-  {
-    surveyId: 90150,
-    name: 'Renewable Energy & Residential Solar Adoption Study',
-    cpi: 4.25,
-    loi: 15,
-    ir: 65,
-    client: 'Market Xcel',
-    clientCode: 'MX_ENERGY',
-    status: 'Live',
-    totalRequired: 500,
-    completesNeeded: 290,
-    device: 'Desktop,Mobile,Tablet',
-    languageCode: 'en-US',
-    country: 'United States',
-    category: 'Energy & Utilities',
-    studyType: 'Consumer'
-  },
-  {
-    surveyId: 90151,
-    name: 'Airline Loyalty Programs & Business Travel Recovery',
-    cpi: 6.40,
-    loi: 16,
-    ir: 45,
-    client: 'Zamplia Global',
-    clientCode: 'ZAMP_TRAVEL',
-    status: 'Live',
-    totalRequired: 400,
-    completesNeeded: 230,
-    device: 'Desktop,Mobile',
-    languageCode: 'en-US',
-    country: 'United States',
-    category: 'Travel & Hospitality',
-    studyType: 'B2B Travel'
-  },
-  {
-    surveyId: 90152,
-    name: 'Smart Home Automation & IoT Device Security',
-    cpi: 3.60,
-    loi: 13,
-    ir: 70,
-    client: 'Market Xcel',
-    clientCode: 'MX_IOT',
-    status: 'Live',
-    totalRequired: 750,
-    completesNeeded: 380,
-    device: 'Desktop,Mobile,Tablet',
-    languageCode: 'en-US',
-    country: 'United States',
-    category: 'Consumer Electronics',
-    studyType: 'Consumer'
-  },
-  {
-    surveyId: 90153,
-    name: 'Pharmaceutical OTC Brand Awareness & Perception',
-    cpi: 5.10,
-    loi: 14,
-    ir: 55,
-    client: 'Zamplia Global',
-    clientCode: 'ZAMP_PHARMA',
-    status: 'Live',
-    totalRequired: 650,
-    completesNeeded: 310,
-    device: 'Desktop,Mobile,Tablet',
-    languageCode: 'en-US',
-    country: 'United States',
-    category: 'Pharmaceuticals',
-    studyType: 'Consumer'
-  }
-];
-
 import { LIVE_ZAMPLIA_SNAPSHOT } from '../data/surveysData.js';
 
 // Real live Zamplia marketplace survey inventory (622+ studies)
 export const DEFAULT_SURVEYS = Array.isArray(LIVE_ZAMPLIA_SNAPSHOT) && LIVE_ZAMPLIA_SNAPSHOT.length > 0
   ? LIVE_ZAMPLIA_SNAPSHOT
-  : BASE_SURVEYS;
+  : [];
 
 export const getCustomSurveys = () => {
   return getLocalData('smr_custom_surveys', []);
@@ -298,10 +90,7 @@ export const getSurveyQualifications = (surveyId) =>
     .then(res => res.data)
     .catch(() => ({
       success: true,
-      data: [
-        { QuestionId: 42, QuestionText: 'What is your current employment status?', Answers: [{ AnswerId: 1, AnswerText: 'Employed Full-Time' }, { AnswerId: 2, AnswerText: 'Employed Part-Time' }] },
-        { QuestionId: 103, QuestionText: 'What is your age range?', Answers: [{ AnswerId: 3, AnswerText: '25-34' }, { AnswerId: 4, AnswerText: '35-44' }] }
-      ]
+      data: []
     }));
 
 export const getSurveyQuotas = (surveyId) => 
@@ -309,11 +98,7 @@ export const getSurveyQuotas = (surveyId) =>
     .then(res => res.data)
     .catch(() => ({
       success: true,
-      data: [
-        { QuotaId: 101, Name: 'Age 25-34 Quota', Target: 200, Completes: 140, PercentFull: 70 },
-        { QuotaId: 102, Name: 'Age 35-44 Quota', Target: 200, Completes: 110, PercentFull: 55 },
-        { QuotaId: 103, Name: 'Gender: Female', Target: 300, Completes: 195, PercentFull: 65 }
-      ]
+      data: []
     }));
 
 export const getSurveyStats = (surveyId = '') => 
@@ -1547,6 +1332,16 @@ export const createPayment = async (payload) => {
   }
 };
 
+export const deletePayment = async (id) => {
+  try {
+    const res = await api.post('/payments/delete', { id });
+    return res.data;
+  } catch (err) {
+    console.error('Error deleting payment:', err);
+    throw err;
+  }
+};
+
 // -------------------------------------------------------------
 // RBAC Roles & Granular Permissions (Feature 3)
 // -------------------------------------------------------------
@@ -1607,6 +1402,7 @@ export const ManagementAPI = {
   getPayments,
   updatePaymentStatus,
   createPayment,
+  deletePayment,
   getRoles,
   getCurrentUser,
   getAuditLogs,

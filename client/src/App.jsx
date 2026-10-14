@@ -386,9 +386,9 @@ export default function App() {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <img src="/vmh-logo.png" alt="VMH" style={{ height: '18px', width: 'auto' }} />
-              <span>&copy; {new Date().getFullYear()} <strong>VMH GROUP'S</strong> &bull; Survey Marketplace & Routing Platform</span>
+              <span>&copy; {new Date().getFullYear()} <strong>VMH GROUP</strong> &bull; Survey Routing & Sample Marketplace</span>
             </div>
-            <span style={{ fontSize: '11px', color: '#1761fd', fontWeight: 600 }}>v3.4 Production Engine</span>
+            <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>v3.4</span>
           </footer>
         </main>
       </div>
