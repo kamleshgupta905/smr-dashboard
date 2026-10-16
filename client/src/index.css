@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  /* VMH Analytics Design System Tokens (Authentic Brand Parity) */
-  --font-family-primary: 'Montserrat', 'Inter', sans-serif;
-  --font-family-stack: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* VMH Analytics Design System Tokens (Calibri 10 Enterprise Standard) */
+  --font-family-primary: 'Calibri', 'Carlito', 'Segoe UI', Candara, Arial, sans-serif;
+  --font-family-stack: 'Calibri', 'Carlito', 'Segoe UI', Candara, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
   --font-size-base: 13px;
   --font-weight-base: 400;
   --font-line-height-base: 19.5px;
@@ -1070,18 +1070,18 @@ tbody tr:hover {
   background: #f8fafd;
 }
 
-/* Compact Enterprise Table density to fit all data on screen without scrolling */
+/* Compact Enterprise Table density to fit all data on screen without scrolling (Calibri 10 Standard) */
 .custom-table.compact-table th {
-  padding: 6px 6px;
-  font-size: 11px;
+  padding: 5px 6px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
   white-space: nowrap;
 }
 
 .custom-table.compact-table td {
-  padding: 6px 6px;
-  font-size: 12px;
+  padding: 5px 6px;
+  font-size: 10.5px;
   vertical-align: middle;
 }
 
