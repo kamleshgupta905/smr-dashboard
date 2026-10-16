@@ -345,14 +345,14 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                   />
                 </th>
                 <th className="col-index" style={{ width: '26px', textAlign: 'center', padding: '6px 2px' }}>#</th>
-                <th style={{ minWidth: '130px', padding: '6px 6px' }}>Survey Name & ID</th>
-                <th style={{ width: '70px', padding: '6px 4px' }}>Client</th>
-                <th style={{ width: '40px', textAlign: 'center', padding: '6px 2px' }}>Country</th>
-                <th style={{ width: '48px', textAlign: 'center', padding: '6px 2px' }}>Devices</th>
-                <th style={{ width: '58px', padding: '6px 4px' }}>Rate (CPI)</th>
-                <th style={{ width: '58px', padding: '6px 4px' }}>Length (LOI)</th>
-                <th style={{ width: '82px', padding: '6px 4px' }}>Quota / Completes</th>
-                <th style={{ width: '48px', textAlign: 'center', padding: '6px 2px' }}>Status</th>
+                <th style={{ width: '220px', minWidth: '180px', padding: '6px 6px' }}>Survey Name & ID</th>
+                <th style={{ width: '90px', padding: '6px 4px' }}>Client</th>
+                <th style={{ width: '45px', textAlign: 'center', padding: '6px 2px' }}>Country</th>
+                <th style={{ width: '55px', textAlign: 'center', padding: '6px 2px' }}>Devices</th>
+                <th style={{ width: '68px', padding: '6px 4px' }}>Rate (CPI)</th>
+                <th style={{ width: '68px', padding: '6px 4px' }}>Length (LOI)</th>
+                <th style={{ minWidth: '140px', padding: '6px 6px' }}>Quota / Completes</th>
+                <th style={{ width: '55px', textAlign: 'center', padding: '6px 2px' }}>Status</th>
                 <th className="col-sticky-action" style={{ textAlign: 'center', width: '180px', padding: '6px 4px' }}>Actions</th>
               </tr>
             </thead>
@@ -395,7 +395,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                         <td className="col-index" style={{ textAlign: 'center', color: '#94A3B8', fontSize: '11px', padding: '6px 2px' }}>
                           {globalIdx}
                         </td>
-                        <td style={{ padding: '6px 6px' }}>
+                        <td style={{ width: '220px', minWidth: '180px', padding: '6px 6px' }}>
                           <div 
                             style={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px', cursor: 'pointer', lineHeight: 1.25, wordBreak: 'break-word', whiteSpace: 'normal' }}
                             onClick={() => toggleExpand(s.survey_id)}
@@ -413,7 +413,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                             )}
                           </div>
                         </td>
-                        <td style={{ padding: '6px 4px' }}>
+                        <td style={{ width: '90px', padding: '6px 4px' }}>
                           <span style={{
                             padding: '2px 5px',
                             borderRadius: '4px',
@@ -451,7 +451,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                             IR: <strong>{s.ir}%</strong>
                           </div>
                         </td>
-                        <td style={{ padding: '6px 4px' }}>
+                        <td style={{ minWidth: '140px', padding: '6px 6px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginBottom: '2px' }}>
                             <span style={{ fontWeight: 700, color: '#0F172A' }}>{quotaFilled} / {quotaTarget}</span>
                             <span style={{ color: '#64748B' }}>{fillPercent}%</span>
