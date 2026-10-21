@@ -60,9 +60,7 @@ export default function Sidebar({
       setDashboardOpen(true);
     } else if (['clients', 'vendors'].includes(activeTab)) {
       setAppsOpen(true);
-    } else if (['security'].includes(activeTab)) {
-      setSecurityOpen(true);
-    } else if (['bids', 'payments', 'leads'].includes(activeTab)) {
+    } else if (['bids', 'payments', 'leads', 'security'].includes(activeTab)) {
       setOpsOpen(true);
     } else if (['users', 'team', 'reference'].includes(activeTab)) {
       setDeveloperOpen(true);
@@ -217,7 +215,7 @@ export default function Sidebar({
 
               <div className="sidebar-nav-group">
                 <button 
-                  className={`sidebar-nav-heading ${['bids', 'payments', 'leads'].includes(activeTab) ? 'active' : ''}`}
+                  className={`sidebar-nav-heading ${['bids', 'payments', 'leads', 'security'].includes(activeTab) ? 'active' : ''}`}
                   onClick={() => setOpsOpen(prev => !prev)}
                 >
                   <div className="nav-heading-left">
@@ -252,6 +250,13 @@ export default function Sidebar({
                       <span className="bullet-circle" />
                       <span>Traffic Leads Stream</span>
                     </button>
+                    <button
+                      className={`submenu-item ${activeTab === 'security' ? 'active' : ''}`}
+                      onClick={() => handleNav('security')}
+                    >
+                      <span className="bullet-circle" />
+                      <span>Security & Fraud Gate</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -266,37 +271,7 @@ export default function Sidebar({
               <div className="sidebar-dotted-divider" />
               <div className="sidebar-section-title">MANAGEMENT</div>
 
-              {/* Dropdown: Security & Quality Controls */}
-              {(!currentUser || currentUser.role_id === 1 || isPermitted(4)) && (
-                <div className="sidebar-nav-group">
-                  <button 
-                    className={`sidebar-nav-heading ${['security'].includes(activeTab) ? 'active' : ''}`}
-                    onClick={() => setSecurityOpen(prev => !prev)}
-                  >
-                    <div className="nav-heading-left">
-                      <ShieldCheck size={16} className="nav-icon" />
-                      <span>Security & Fraud Controls</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span className={`dropdown-chevron ${securityOpen ? 'rotated' : ''}`}>
-                        <ChevronRight size={14} />
-                      </span>
-                    </div>
-                  </button>
 
-                  <div className={`sidebar-submenu-collapsible ${securityOpen ? 'open' : 'closed'}`}>
-                    <div className="sidebar-submenu-inner">
-                      <button
-                        className={`submenu-item ${activeTab === 'security' ? 'active' : ''}`}
-                        onClick={() => handleNav('security')}
-                      >
-                        <span className="bullet-circle" />
-                        <span>Security & Fraud Gate</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Dropdown: System & Team */}
               {(isPermitted(2) || isPermitted(3) || isPermitted(4) || (!currentUser || currentUser.role_id === 1)) && (
