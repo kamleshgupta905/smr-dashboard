@@ -3,7 +3,7 @@ import {
   Search, PieChart, UserCheck, Share2, AlertCircle, ChevronLeft, ChevronRight, 
   DollarSign, Clock, ArrowUpDown, Filter, Monitor, Smartphone, Tablet, 
   ShieldCheck, RefreshCw, ExternalLink, ChevronDown, ChevronUp, Layers, CheckCircle2,
-  Download, Copy
+  Download, Copy, Link as LinkIcon, Check
 } from 'lucide-react';
 import { normalizeSurveys } from '../utils/normalize';
 import DemandProjectModal from '../components/DemandProjectModal';
@@ -16,6 +16,20 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
   const [duplicateModalProject, setDuplicateModalProject] = useState(null);
   const [selectedSurveyIds, setSelectedSurveyIds] = useState(new Set());
   const [showBulkModal, setShowBulkModal] = useState(false);
+  const [copiedId, setCopiedId] = useState(null);
+
+  const handleCopyLink = (s) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://api.vmhgroupsmr.com';
+    const link = s.entry_live_url || `${origin}/redirect?pid=${s.survey_id}&uid=[RESPONDENT_ID]`;
+    try {
+      navigator.clipboard.writeText(link);
+      setCopiedId(s.survey_id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (e) {
+      prompt("Copy survey entry link:", link);
+    }
+  };
+
 
   // Modal openers that push browser history so Back button closes modal
   const openDemandModal = () => {
@@ -490,6 +504,27 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                               <Share2 size={11} /> Assign
                             </button>
 
+                            <button
+                              className="btn btn-sm"
+                              style={{ 
+                                padding: '3px 6px', 
+                                fontSize: '11px', 
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                gap: '3px', 
+                                borderRadius: '4px', 
+                                background: copiedId === s.survey_id ? '#dcfce7' : '#f8fafc',
+                                color: copiedId === s.survey_id ? '#15803d' : '#475569',
+                                border: '1px solid #cbd5e1',
+                                fontWeight: 600, 
+                                whiteSpace: 'nowrap' 
+                              }}
+                              onClick={() => handleCopyLink(s)}
+                              title={copiedId === s.survey_id ? "Copied to clipboard!" : "1-Click Fast Copy Live/Test Link"}
+                            >
+                              {copiedId === s.survey_id ? <Check size={11} /> : <LinkIcon size={11} />}
+                              {copiedId === s.survey_id ? 'Copied' : 'Link'}
+                            </button>
                             <button
                               className="btn btn-soft-info btn-sm"
                               style={{ padding: '3px 6px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '2px', borderRadius: '4px', background: 'rgba(6, 182, 212, 0.1)', color: '#0891b2', border: '1px solid rgba(6, 182, 212, 0.2)', fontWeight: 600, whiteSpace: 'nowrap' }}

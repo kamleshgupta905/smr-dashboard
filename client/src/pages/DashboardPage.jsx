@@ -178,6 +178,22 @@ export default function DashboardPage({
             <li className="separator">/</li>
             <li className="active">Overview</li>
           </ol>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+            <span style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              background: '#dcfce7',
+              color: '#15803d',
+              padding: '3px 10px',
+              borderRadius: '12px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <span className="pulse-dot" style={{ width: '6px', height: '6px', background: '#16a34a', borderRadius: '50%', display: 'inline-block' }} />
+              Live Sync Active • Zamplia Supply Engine ({normalized.length} Studies Connected)
+            </span>
+          </div>
         </div>
 
         <div className="title-box-actions">

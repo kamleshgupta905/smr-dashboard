@@ -1462,4 +1462,46 @@ export const addVendorContact = (data) =>
 export const deleteVendorContact = (id) =>
   api.delete('/vendor-contacts', { data: { id } })
     .then(res => res.data);
+// =============================================================
+// Live Traffic Leads & Respondent Audit Logs (Feature 1)
+// =============================================================
+export const getLeads = (params = {}) =>
+  api.get('/leads', { params })
+    .then(res => res.data)
+    .catch(() => ({ success: true, data: [], summary: {}, total: 0 }));
+
+export const createLead = (data) =>
+  api.post('/leads', data)
+    .then(res => res.data);
+
+// =============================================================
+// Security & Staff Login Activity Audit (Feature 2)
+// =============================================================
+export const changePassword = (data) =>
+  api.post('/auth/change-password', data)
+    .then(res => res.data);
+
+export const getTeamActivity = () =>
+  api.get('/team/activity')
+    .then(res => res.data)
+    .catch(() => ({ success: true, data: [] }));
+
+export const logTeamActivity = (data) =>
+  api.post('/team/activity', data)
+    .then(res => res.data);
+
+// =============================================================
+// Bid Multi-Options Tiers (Feature 5)
+// =============================================================
+export const getBidOptions = (bidId) =>
+  api.get('/bids/options', { params: { bid_id: bidId } })
+    .then(res => res.data);
+
+export const addBidOption = (data) =>
+  api.post('/bids/options', data)
+    .then(res => res.data);
+
+export const deleteBidOption = (id) =>
+  api.delete('/bids/options', { data: { id } })
+    .then(res => res.data);
 

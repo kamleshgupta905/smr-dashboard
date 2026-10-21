@@ -62,7 +62,7 @@ export default function Sidebar({
       setAppsOpen(true);
     } else if (['security'].includes(activeTab)) {
       setSecurityOpen(true);
-    } else if (['bids', 'payments'].includes(activeTab)) {
+    } else if (['bids', 'payments', 'leads'].includes(activeTab)) {
       setOpsOpen(true);
     } else if (['developer-center', 'users', 'team', 'reference'].includes(activeTab)) {
       setDeveloperOpen(true);
@@ -217,7 +217,7 @@ export default function Sidebar({
 
               <div className="sidebar-nav-group">
                 <button 
-                  className={`sidebar-nav-heading ${['bids', 'payments'].includes(activeTab) ? 'active' : ''}`}
+                  className={`sidebar-nav-heading ${['bids', 'payments', 'leads'].includes(activeTab) ? 'active' : ''}`}
                   onClick={() => setOpsOpen(prev => !prev)}
                 >
                   <div className="nav-heading-left">
@@ -244,6 +244,13 @@ export default function Sidebar({
                     >
                       <span className="bullet-circle" />
                       <span>Vendor Payments</span>
+                    </button>
+                    <button
+                      className={`submenu-item ${activeTab === 'leads' ? 'active' : ''}`}
+                      onClick={() => handleNav('leads')}
+                    >
+                      <span className="bullet-circle" />
+                      <span>Traffic Leads Stream</span>
                     </button>
                   </div>
                 </div>

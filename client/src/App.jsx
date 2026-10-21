@@ -11,6 +11,7 @@ import SecurityFraudPage from './pages/SecurityFraudPage';
 import ApiDeveloperCenterPage from './pages/ApiDeveloperCenterPage';
 import UserManagementPage from './pages/UserManagementPage';
 import BidsPage from './pages/BidsPage';
+import LeadsPage from './pages/LeadsPage';
 import PaymentsPage from './pages/PaymentsPage';
 import TeamPage from './pages/TeamPage';
 import QuotasModal from './components/QuotasModal';
@@ -241,6 +242,7 @@ export default function App() {
 
   const pageTitles = {
     dashboard: 'Dashboard',
+    leads: 'Traffic Leads Stream',
     users: 'Team & Users',
     clients: 'Clients',
     vendors: 'Vendors',
@@ -375,6 +377,7 @@ export default function App() {
           {activeTab === 'bids' && <BidsPage />}
           {activeTab === 'payments' && <PaymentsPage />}
           {activeTab === 'team' && <TeamPage />}
+          {activeTab === 'leads' && <LeadsPage />}
           {activeTab === 'reference' && <ReferenceDataPage />}
           
 
