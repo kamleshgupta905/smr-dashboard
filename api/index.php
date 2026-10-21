@@ -3403,7 +3403,7 @@ if ($normalizedRoute === 'leads' || str_starts_with($normalizedRoute, 'leads') |
                     l.id,
                     l.project_id,
                     l.vendor_id,
-                    COALESCE(v.name, CONCAT('Vendor #', l.vendor_id)) as vendor_name,
+                    COALESCE(vl.name, v.name, CONCAT('Vendor #', l.vendor_id)) as vendor_name,
                     l.client_id,
                     l.username as uid,
                     l.status,
@@ -3411,6 +3411,7 @@ if ($normalizedRoute === 'leads' || str_starts_with($normalizedRoute, 'leads') |
                     l.created_at,
                     l.updated_at
                 FROM leads l
+                LEFT JOIN vendorlists vl ON vl.id = l.vendor_id OR vl.vendor_id COLLATE utf8mb4_general_ci = l.vendor_id COLLATE utf8mb4_general_ci
                 LEFT JOIN vendor v ON v.id = l.vendor_id OR v.vendor_id = l.vendor_id
                 {$whereSql}
                 ORDER BY l.id DESC
@@ -3925,13 +3926,14 @@ if ($normalizedRoute === 'payments' || str_starts_with($normalizedRoute, 'paymen
                     p.project_id,
                     COALESCE(p.project_name, CONCAT('Study #', p.project_id)) as project_name,
                     p.vendor_id,
-                    COALESCE(v.name, CONCAT('Vendor #', p.vendor_id)) as vendor_name,
+                    COALESCE(vl.name, v.name, CONCAT('Vendor #', p.vendor_id)) as vendor_name,
                     p.amount,
                     p.status,
                     p.remarks,
                     COALESCE(p.date, p.created_at, NOW()) as date,
                     COALESCE(p.created_at, NOW()) as created_at
                 FROM payments p
+                LEFT JOIN vendorlists vl ON vl.id = p.vendor_id OR vl.vendor_id COLLATE utf8mb4_general_ci = p.vendor_id COLLATE utf8mb4_general_ci
                 LEFT JOIN vendor v ON v.id = p.vendor_id
                 {$whereSql}
                 ORDER BY p.id DESC
