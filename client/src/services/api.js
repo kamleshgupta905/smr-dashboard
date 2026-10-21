@@ -1390,3 +1390,44 @@ export const RouterAPI = {
 
 export default api;
 
+
+
+// =============================================================
+// Bids & Feasibility Pipeline API
+// =============================================================
+export const getBids = () => 
+  api.get('/bids')
+    .then(res => res.data)
+    .catch(() => ({ success: true, data: [], summary: {} }));
+
+export const createBid = (data) => 
+  api.post('/bids', data)
+    .then(res => res.data);
+
+export const updateBidStatus = (id, status) => 
+  api.post('/bids/status', { id, status })
+    .then(res => res.data);
+
+export const deleteBid = (id) => 
+  api.delete('/bids/delete', { data: { id } })
+    .then(res => res.data);
+
+// =============================================================
+// Team & Staff Management API
+// =============================================================
+export const getTeamMembers = () => 
+  api.get('/team')
+    .then(res => res.data)
+    .catch(() => ({ success: true, data: [] }));
+
+export const createTeamMember = (data) => 
+  api.post('/team', data)
+    .then(res => res.data);
+
+export const updateTeamMemberStatus = (id, status) => 
+  api.post('/team/status', { id, status })
+    .then(res => res.data);
+
+export const deleteTeamMember = (id) => 
+  api.delete('/team/delete', { data: { id } })
+    .then(res => res.data);

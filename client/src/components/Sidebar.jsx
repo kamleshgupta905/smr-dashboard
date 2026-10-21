@@ -5,6 +5,7 @@ import {
   ShieldCheck,
   Terminal,
   BarChart3,
+  Briefcase,
   ChevronDown,
   ChevronRight,
   X
@@ -29,6 +30,7 @@ export default function Sidebar({
   const [reportsOpen, setReportsOpen] = useState(true);
   const [securityOpen, setSecurityOpen] = useState(true);
   const [developerOpen, setDeveloperOpen] = useState(true);
+  const [opsOpen, setOpsOpen] = useState(true);
 
   // Check if current user has permission for a specific menu ID
   const isPermitted = (menuId) => {
@@ -63,7 +65,9 @@ export default function Sidebar({
       setReportsOpen(true);
     } else if (['security'].includes(activeTab)) {
       setSecurityOpen(true);
-    } else if (['developer-center', 'users'].includes(activeTab)) {
+    } else if (['bids', 'payments'].includes(activeTab)) {
+      setOpsOpen(true);
+    } else if (['developer-center', 'users', 'team'].includes(activeTab)) {
       setDeveloperOpen(true);
     }
   }, [activeTab]);
@@ -208,13 +212,55 @@ export default function Sidebar({
             </div>
           )}
 
+          {/* Section: OPERATIONS */}
+          {(isPermitted(7) || isPermitted(10) || (!currentUser || currentUser.role_id === 1)) && (
+            <>
+              <div className="sidebar-dotted-divider" />
+              <div className="sidebar-section-title">OPERATIONS</div>
+
+              <div className="sidebar-nav-group">
+                <button 
+                  className={`sidebar-nav-heading ${['bids', 'payments'].includes(activeTab) ? 'active' : ''}`}
+                  onClick={() => setOpsOpen(prev => !prev)}
+                >
+                  <div className="nav-heading-left">
+                    <Briefcase size={16} className="nav-icon" />
+                    <span>Operations & Payouts</span>
+                  </div>
+                  <span className={`dropdown-chevron ${opsOpen ? 'rotated' : ''}`}>
+                    <ChevronRight size={14} />
+                  </span>
+                </button>
+
+                <div className={`sidebar-submenu-collapsible ${opsOpen ? 'open' : 'closed'}`}>
+                  <div className="sidebar-submenu-inner">
+                    <button
+                      className={`submenu-item ${activeTab === 'bids' ? 'active' : ''}`}
+                      onClick={() => handleNav('bids')}
+                    >
+                      <span className="bullet-circle" />
+                      <span>Bids & Feasibility</span>
+                    </button>
+                    <button
+                      className={`submenu-item ${activeTab === 'payments' ? 'active' : ''}`}
+                      onClick={() => handleNav('payments')}
+                    >
+                      <span className="bullet-circle" />
+                      <span>Vendor Payments</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
           {/* Dotted Divider & REPORTS & ANALYTICS */}
           {(isPermitted(9) || isPermitted(10)) && (
             <>
               <div className="sidebar-dotted-divider" />
               <div className="sidebar-section-title">REPORTS & ANALYTICS</div>
 
-              {/* Direct Nav: Reports Hub (1-Click Direct Navigation) */}
+              {/* Direct Nav: Reports Hub */}
               <div className="sidebar-nav-group">
                 <button 
                   className={`sidebar-nav-heading ${activeTab === 'reconciliation' ? 'active' : ''}`}
@@ -262,7 +308,6 @@ export default function Sidebar({
                         <span className="bullet-circle" />
                         <span>Security & Fraud Gate</span>
                       </button>
-
                     </div>
                   </div>
                 </div>
@@ -272,7 +317,7 @@ export default function Sidebar({
               {(isPermitted(2) || isPermitted(3) || isPermitted(4) || (!currentUser || currentUser.role_id === 1)) && (
                 <div className="sidebar-nav-group">
                   <button 
-                    className={`sidebar-nav-heading ${['developer-center', 'users'].includes(activeTab) ? 'active' : ''}`}
+                    className={`sidebar-nav-heading ${['developer-center', 'users', 'team'].includes(activeTab) ? 'active' : ''}`}
                     onClick={() => setDeveloperOpen(prev => !prev)}
                   >
                     <div className="nav-heading-left">
@@ -296,13 +341,22 @@ export default function Sidebar({
                         </button>
                       )}
                       {(isPermitted(2) || isPermitted(3) || isPermitted(4) || (!currentUser || currentUser.role_id === 1)) && (
-                        <button
-                          className={`submenu-item ${activeTab === 'users' ? 'active' : ''}`}
-                          onClick={() => handleNav('users')}
-                        >
-                          <span className="bullet-circle" />
-                          <span>User Management</span>
-                        </button>
+                        <>
+                          <button
+                            className={`submenu-item ${activeTab === 'users' ? 'active' : ''}`}
+                            onClick={() => handleNav('users')}
+                          >
+                            <span className="bullet-circle" />
+                            <span>User Management</span>
+                          </button>
+                          <button
+                            className={`submenu-item ${activeTab === 'team' ? 'active' : ''}`}
+                            onClick={() => handleNav('team')}
+                          >
+                            <span className="bullet-circle" />
+                            <span>Team Directory</span>
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>

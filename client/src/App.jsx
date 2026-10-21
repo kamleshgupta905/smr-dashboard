@@ -11,6 +11,9 @@ import ClientsPage from './pages/ClientsPage';
 import SecurityFraudPage from './pages/SecurityFraudPage';
 import ApiDeveloperCenterPage from './pages/ApiDeveloperCenterPage';
 import UserManagementPage from './pages/UserManagementPage';
+import BidsPage from './pages/BidsPage';
+import PaymentsPage from './pages/PaymentsPage';
+import TeamPage from './pages/TeamPage';
 import QuotasModal from './components/QuotasModal';
 import QualsModal from './components/QualsModal';
 import AssignVendorModal from './components/AssignVendorModal';
@@ -375,6 +378,9 @@ export default function App() {
           )}
 
           {activeTab === 'vendors' && <VendorsPage onNavigate={handleTabChange} globalSearch={globalSearch} />}
+          {activeTab === 'bids' && <BidsPage />}
+          {activeTab === 'payments' && <PaymentsPage />}
+          {activeTab === 'team' && <TeamPage />}
           {activeTab === 'reconciliation' && <ReconciliationPage initialTab={reconciliationTab} />}
           
 
