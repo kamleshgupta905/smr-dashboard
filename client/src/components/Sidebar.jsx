@@ -97,10 +97,10 @@ export default function Sidebar({
               style={{ height: '36px', width: 'auto', objectFit: 'contain', display: 'block' }} 
             />
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
-              <span className="brand-text" style={{ fontSize: '15px', fontWeight: 800, color: '#1d2c48', letterSpacing: '-0.2px' }}>
+              <span className="brand-text" style={{ fontSize: '15px', fontWeight: 800, letterSpacing: '-0.2px' }}>
                 VMH GROUP'S
               </span>
-              <span style={{ fontSize: '9px', fontWeight: 700, color: '#1761fd', letterSpacing: '0.8px' }}>
+              <span className="brand-subtext" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.8px' }}>
                 SMR PLATFORM
               </span>
             </div>

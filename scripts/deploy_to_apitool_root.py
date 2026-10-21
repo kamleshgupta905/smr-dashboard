@@ -87,7 +87,25 @@ if (str_starts_with($path, "/api") || $path === "/api" || $path === "/health" ||
 // 2. Serve static files if exist
 $file = __DIR__ . $path;
 if ($path !== "/" && is_file($file)) {
-    return false;
+    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+    $mimes = [
+        "css"  => "text/css; charset=utf-8",
+        "js"   => "application/javascript; charset=utf-8",
+        "svg"  => "image/svg+xml",
+        "png"  => "image/png",
+        "jpg"  => "image/jpeg",
+        "jpeg" => "image/jpeg",
+        "ico"  => "image/x-icon",
+        "json" => "application/json",
+        "woff" => "font/woff",
+        "woff2"=> "font/woff2",
+        "ttf"  => "font/ttf",
+    ];
+    if (isset($mimes[$ext])) {
+        header("Content-Type: " . $mimes[$ext]);
+    }
+    readfile($file);
+    exit;
 }
 
 // 3. Serve SMR Single Page App

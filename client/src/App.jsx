@@ -49,6 +49,17 @@ export default function App() {
 
   const initialRoute = parseHashRoute();
   const [activeTab, setActiveTab] = useState(initialRoute.tab);
+
+  useEffect(() => {
+    if (activeTab === 'dashboard') {
+      document.body.classList.add('linear-dark-mode');
+    } else {
+      document.body.classList.remove('linear-dark-mode');
+    }
+    return () => {
+      document.body.classList.remove('linear-dark-mode');
+    };
+  }, [activeTab]);
   
   const [currentUser, setCurrentUser] = useState(() => {
     try {
@@ -336,13 +347,14 @@ export default function App() {
       />
 
       {/* VMH Main Content Area */}
-      <div className={`page-content-tab ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <div className={`page-content-tab ${sidebarCollapsed ? 'sidebar-collapsed' : ''} ${activeTab === 'dashboard' ? 'dark-canvas' : ''}`}>
         <main className="page-body">
           {activeTab === 'dashboard' && (
             <DashboardPage 
               stats={computedStats}
               surveys={filteredSurveys}
               loading={loading}
+              syncing={syncing}
               onSync={handleSync}
               onNavigate={handleTabChange}
               onOpenQuotas={openQuotas}
