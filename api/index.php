@@ -2834,7 +2834,11 @@ if ($normalizedRoute === 'clients' || str_starts_with($normalizedRoute, 'clients
                 SELECT 
                     id as _id, 
                     id, 
-                    CONCAT('CLI_', id) as client_code, 
+                    CASE 
+                        WHEN client_name LIKE '%Market%' THEN 'MX_DEMAND'
+                        WHEN client_name LIKE '%Zamplia%' THEN 'ZAMP_GLOBAL'
+                        ELSE CONCAT('CLI_', id)
+                    END as client_code, 
                     client_name, 
                     email, 
                     phone, 
