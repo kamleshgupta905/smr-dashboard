@@ -138,6 +138,7 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
   const newVisits = currentDataset.newVisits;
   const uniqueVisits = currentDataset.uniqueVisits;
 
+  // Dynamic Scaling
   const rawMax = Math.max(...newVisits, ...uniqueVisits, 10);
   let maxVal = 250;
   if (rawMax > 500) maxVal = 1000;
@@ -181,11 +182,11 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
   const newVisitsCurve = generatePath(newVisits);
   const uniqueVisitsCurve = generatePath(uniqueVisits);
 
-  // Device list with Concept 1 electric colors
+  // Real Live Sessions Device Table Data
   const deviceList = [
-    { name: 'Mobiles', icon: Smartphone, sessions: mobileCount, share: `${Math.round((mobileCount / totalStudies) * 100)}%`, tier: 'High Supply', color: '#6366F1' },
-    { name: 'Desktops', icon: Monitor, sessions: desktopCount, share: `${Math.round((desktopCount / totalStudies) * 100)}%`, tier: 'Enterprise', color: '#06B6D4' },
-    { name: 'Tablets', icon: Tablet, sessions: tabletCount, share: `${Math.round((tabletCount / totalStudies) * 100)}%`, tier: 'Standard', color: '#A855F7' },
+    { name: 'Mobiles', icon: Smartphone, sessions: mobileCount, share: `${Math.round((mobileCount / totalStudies) * 100)}%`, tier: 'High Supply', color: '#ff9f43' },
+    { name: 'Desktops', icon: Monitor, sessions: desktopCount, share: `${Math.round((desktopCount / totalStudies) * 100)}%`, tier: 'Enterprise', color: '#1761fd' },
+    { name: 'Tablets', icon: Tablet, sessions: tabletCount, share: `${Math.round((tabletCount / totalStudies) * 100)}%`, tier: 'Standard', color: '#22c55e' },
   ];
 
   const visibleDevices = deviceFilter === 'All'
@@ -199,40 +200,35 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
   }));
 
   return (
-    <div style={{ marginBottom: '18px' }}>
+    <div style={{ marginBottom: '16px' }}>
       <div className="dastone-analytics-grid">
-        {/* Left 8 Columns: Marketplace Capacity & Yield Trajectory */}
+        {/* Left 8 Columns: Dastone Audience Overview */}
         <div className="card report-card analytics-main-card">
-          <div className="card-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '20px' }}>
+          <div className="card-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '16px' }}>
             <div style={{ 
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center', 
-              marginBottom: '18px',
+              marginBottom: '16px',
               flexWrap: 'wrap',
-              gap: '12px'
+              gap: '10px'
             }}>
-              <div>
-                <h4 className="card-title" style={{ fontSize: '15px' }}>Marketplace Capacity & Yield Trajectory</h4>
-                <p style={{ margin: '3px 0 0 0', fontSize: '11px', color: '#64748B' }}>
-                  Real-time routing throughput vs. target quota intake
-                </p>
-              </div>
+              <h4 className="card-title">Marketplace Capacity & Yield Trajectory</h4>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 {/* Series Legend */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '12px' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#CBD5E1' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#6366F1', boxShadow: '0 0 8px rgba(99, 102, 241, 0.6)' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#303e67' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#1761fd' }} />
                     Active Study Intake
                   </span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#94A3B8' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#06B6D4', boxShadow: '0 0 6px rgba(6, 182, 212, 0.5)' }} />
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#303e67' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#94a3b8' }} />
                     Target Quotas (k)
                   </span>
                 </div>
 
-                {/* Timeframe Pill Group */}
+                {/* Timeframe Dropdown / Pill Group */}
                 <div className="timeframe-group">
                   {['today', 'weekly', 'monthly', 'yearly'].map((t) => (
                     <button 
@@ -247,7 +243,7 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
               </div>
             </div>
 
-            {/* SVG Spline Chart with Concept 1 Dark Glow */}
+            {/* SVG Spline Chart with Dastone Dual-Tone Gradient */}
             <div style={{ flex: 1, minHeight: '230px', position: 'relative', overflow: 'hidden' }}>
               <svg 
                 viewBox={`0 0 ${svgWidth} ${svgHeight}`} 
@@ -257,14 +253,10 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
                   <clipPath id="chart-area-clip">
                     <rect x="0" y="0" width={svgWidth} height={svgHeight} />
                   </clipPath>
-                  <linearGradient id="linear_indigo_gradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6366F1" stopOpacity="0.35" />
-                    <stop offset="60%" stopColor="#6366F1" stopOpacity="0.08" />
-                    <stop offset="100%" stopColor="#6366F1" stopOpacity="0.00" />
+                  <linearGradient id="vmh_blue_gradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#1761fd" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="#1761fd" stopOpacity="0.00" />
                   </linearGradient>
-                  <filter id="indigo_glow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#6366F1" floodOpacity="0.5" />
-                  </filter>
                 </defs>
 
                 {/* Main chart drawing grouped inside clipPath */}
@@ -274,53 +266,52 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
                     const y = svgHeight - paddingY - (val / range) * chartH;
                     return (
                       <g key={val}>
-                        <text x="8" y={y + 4} fill="#64748B" fontSize="10.5" fontFamily="Plus Jakarta Sans, Inter, sans-serif">{val}</text>
+                        <text x="8" y={y + 4} fill="#8997bd" fontSize="10.5" fontFamily="Roboto, sans-serif">{val}</text>
                         <line 
                           x1={paddingX} 
                           y1={y} 
                           x2={svgWidth - paddingX} 
                           y2={y} 
-                          stroke="rgba(255, 255, 255, 0.05)" 
-                          strokeDasharray="4 4" 
+                          stroke="#e3ebf6" 
+                          strokeDasharray="3 3" 
                           strokeWidth="1" 
                         />
                       </g>
                     );
                   })}
 
-                  {/* Area Fill with Glowing Fade-In */}
+                  {/* Area Fill with Smooth Blue Fade-In */}
                   <path 
                     key={`fill-${timeframe}`}
                     d={newVisitsCurve.fillD} 
-                    fill="url(#linear_indigo_gradient)" 
+                    fill="url(#vmh_blue_gradient)" 
                     className="apple-chart-area"
                   />
 
-                  {/* Spline 1: Primary Electric Indigo Curve */}
+                  {/* Dastone Smooth Spline Primary Curve */}
                   <path 
                     key={`new-${timeframe}`}
                     d={newVisitsCurve.pathD} 
                     fill="none" 
-                    stroke="#6366F1" 
+                    stroke="#1761fd" 
                     strokeWidth="2.75" 
                     strokeLinecap="round" 
-                    filter="url(#indigo_glow)"
                     className="apple-chart-path"
                   />
 
-                  {/* Spline 2: Cyber Cyan Curve */}
+                  {/* Dashed Secondary Target Quotas Curve */}
                   <path 
                     key={`unique-${timeframe}`}
                     d={uniqueVisitsCurve.pathD} 
                     fill="none" 
-                    stroke="#06B6D4" 
+                    stroke="#94a3b8" 
                     strokeWidth="2" 
                     strokeDasharray="4 3" 
                     strokeLinecap="round" 
                     className="apple-chart-path"
                   />
 
-                  {/* Interactive Data Points on Hover */}
+                  {/* Data Points on Hover */}
                   {newVisitsCurve.points.map((p, idx) => (
                     <g 
                       key={idx} 
@@ -332,8 +323,8 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
                         cx={p.x} 
                         cy={p.y} 
                         r={hoverIndex === idx ? 6 : 3.5} 
-                        fill="#0F172A" 
-                        stroke="#6366F1" 
+                        fill="#ffffff" 
+                        stroke="#1761fd" 
                         strokeWidth="2.5" 
                         className="apple-chart-point"
                       />
@@ -341,8 +332,8 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
                         cx={uniqueVisitsCurve.points[idx].x} 
                         cy={uniqueVisitsCurve.points[idx].y} 
                         r={hoverIndex === idx ? 5 : 2.5} 
-                        fill="#0F172A" 
-                        stroke="#06B6D4" 
+                        fill="#ffffff" 
+                        stroke="#94a3b8" 
                         strokeWidth="1.75" 
                         className="apple-chart-point"
                       />
@@ -351,43 +342,34 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
                 </g>
               </svg>
 
-              {/* Floating Dark Glass Tooltip */}
+              {/* Dastone Classic Floating Tooltip */}
               {hoverIndex !== null && newVisitsCurve.points[hoverIndex] && (
                 <div style={{
                   position: 'absolute',
-                  top: `${Math.max(newVisitsCurve.points[hoverIndex].y - 52, 8)}px`,
+                  top: `${Math.max(newVisitsCurve.points[hoverIndex].y - 48, 10)}px`,
                   left: `${(newVisitsCurve.points[hoverIndex].x / svgWidth) * 100}%`,
                   transform: 'translateX(-50%)',
-                  background: 'rgba(15, 23, 42, 0.92)',
-                  backdropFilter: 'blur(12px)',
-                  WebkitBackdropFilter: 'blur(12px)',
-                  color: '#FFFFFF',
-                  padding: '8px 14px',
-                  borderRadius: '8px',
-                  fontSize: '11.5px',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  background: '#1d2c48',
+                  color: '#ffffff',
+                  padding: '7px 14px',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: 600,
                   whiteSpace: 'nowrap',
-                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.6), 0 0 16px rgba(99, 102, 241, 0.2)',
+                  boxShadow: '0 6px 18px rgba(29, 44, 72, 0.3)',
                   pointerEvents: 'none',
                   zIndex: 20,
                   transition: 'all 0.15s cubic-bezier(0.16, 1, 0.3, 1)'
                 }}>
-                  <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#6366F1' }} />
-                    <span>{labels[hoverIndex]}:</span>
-                    <strong style={{ color: '#818CF8' }}>{newVisits[hoverIndex]}</strong> Active Studies
-                  </div>
-                  <div style={{ color: '#94A3B8', fontSize: '10.5px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#06B6D4' }} />
-                    <span>{uniqueVisits[hoverIndex]}k Quota Capacity Target</span>
-                  </div>
+                  <div>{labels[hoverIndex]}: <strong>{newVisits[hoverIndex]}</strong> Active Studies</div>
+                  <div style={{ color: '#8997bd', fontSize: '10px' }}>{uniqueVisits[hoverIndex]}k Quota Capacity</div>
                 </div>
               )}
 
-              {/* X-Axis Labels */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 40px 0 40px', fontSize: '11px', color: '#64748B', fontFamily: 'Plus Jakarta Sans, Inter, sans-serif' }}>
+              {/* X-Axis Month Labels */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 40px 0 40px', fontSize: '11.5px', color: '#8997bd', fontFamily: 'Roboto, sans-serif' }}>
                 {labels.map((lbl, idx) => (
-                  <span key={idx} style={{ fontWeight: hoverIndex === idx ? 700 : 500, color: hoverIndex === idx ? '#818CF8' : '#64748B', transition: 'color 0.15s' }}>
+                  <span key={idx} style={{ fontWeight: hoverIndex === idx ? 700 : 400, color: hoverIndex === idx ? '#1761fd' : '#8997bd' }}>
                     {lbl}
                   </span>
                 ))}
@@ -396,25 +378,25 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
           </div>
         </div>
 
-        {/* Right 4 Columns: Sessions Device (Donut & Breakdown Table) */}
+        {/* Right 4 Columns: Dastone Sessions Device (Donut & 4-Col Table) */}
         <div className="card report-card analytics-side-card">
-          <div className="card-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '20px' }}>
+          <div className="card-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <h4 className="card-title" style={{ fontSize: '15px' }}>Device Compatibility</h4>
-              <div style={{ display: 'flex', gap: '4px', fontSize: '11px' }}>
+              <h4 className="card-title">Sessions Device</h4>
+              <div style={{ display: 'flex', gap: '4px', fontSize: '11px', color: '#8997bd' }}>
                 {['All', 'Mobile', 'Tablet', 'Desktop'].map(tab => (
                   <button 
                     key={tab}
                     onClick={() => setDeviceFilter(tab)}
                     style={{
                       border: 'none',
-                      background: deviceFilter === tab ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-                      color: deviceFilter === tab ? '#818CF8' : '#64748B',
-                      fontWeight: deviceFilter === tab ? 600 : 500,
-                      padding: '3px 8px',
-                      borderRadius: '6px',
+                      background: deviceFilter === tab ? 'rgba(23, 97, 253, 0.08)' : 'transparent',
+                      color: deviceFilter === tab ? '#1761fd' : '#8997bd',
+                      fontWeight: deviceFilter === tab ? 600 : 400,
+                      padding: '2px 6px',
+                      borderRadius: '3px',
                       cursor: 'pointer',
-                      transition: 'all 0.18s ease'
+                      transition: 'all 0.2s ease'
                     }}
                   >
                     {tab}
@@ -423,11 +405,11 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
               </div>
             </div>
 
-            <p style={{ margin: '0 0 10px 0', fontSize: '11px', color: '#64748B' }}>
-              Active Routing Inventory Compatibility
+            <p style={{ margin: '0 0 8px 0', fontSize: '11px', color: '#8997bd' }}>
+              Active Marketplace Compatibility Breakdown
             </p>
 
-            {/* SVG Donut with Concept 1 Glowing Rings */}
+            {/* SVG Donut with Clean Dastone Multi-Color Rings */}
             <div style={{ position: 'relative', width: '150px', height: '150px', margin: '4px auto' }}>
               <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
                 {(() => {
@@ -444,11 +426,10 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
                         r="40"
                         fill="transparent"
                         stroke={item.color}
-                        strokeWidth="11"
+                        strokeWidth="12"
                         strokeDasharray={strokeDasharray}
                         strokeDashoffset={strokeDashoffset}
-                        strokeLinecap="round"
-                        style={{ filter: `drop-shadow(0 0 4px ${item.color}66)` }}
+                        className="apple-donut-ring"
                       />
                     );
                   });
@@ -463,50 +444,40 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
                 justifyContent: 'center',
                 pointerEvents: 'none'
               }}>
-                <span style={{ fontSize: '22px', fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
+                <span style={{ fontSize: '20px', fontWeight: 800, color: '#1d2c48', fontFamily: 'Poppins, sans-serif' }}>
                   <AnimatedCounter value={totalStudies} duration={1600} />
                 </span>
-                <span style={{ fontSize: '9px', color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>
+                <span style={{ fontSize: '9px', color: '#8997bd', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
                   Active Studies
                 </span>
               </div>
             </div>
 
-            {/* 4-Column Modern Table: Device | Studies | Share | Tier */}
-            <div className="table-responsive" style={{ marginTop: '12px', width: '100%', overflowX: 'auto' }}>
+            {/* 4-Column Dastone Table: Device | Studies | Share | Tier */}
+            <div className="table-responsive" style={{ marginTop: '10px', width: '100%', overflowX: 'auto' }}>
               <table style={{ width: '100%', minWidth: '260px', fontSize: '11.5px', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.07)', color: '#64748B' }}>
-                    <th style={{ textAlign: 'left', padding: '6px 4px', fontWeight: 600, fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Device</th>
-                    <th style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 600, fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Studies</th>
-                    <th style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 600, fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Share</th>
-                    <th style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 600, fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tier</th>
+                  <tr style={{ borderBottom: '1px solid #e3ebf6', color: '#8997bd' }}>
+                    <th style={{ textAlign: 'left', padding: '6px 4px', fontWeight: 600, fontSize: '10.5px' }}>Device</th>
+                    <th style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 600, fontSize: '10.5px' }}>Studies</th>
+                    <th style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 600, fontSize: '10.5px' }}>Share</th>
+                    <th style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 600, fontSize: '10.5px' }}>Tier</th>
                   </tr>
                 </thead>
                 <tbody>
                   {safeDevices.map((dev, idx) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                      <td style={{ padding: '7px 4px', display: 'flex', alignItems: 'center', gap: '6px', color: '#E2E8F0', fontWeight: 500 }}>
-                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: dev.color, boxShadow: `0 0 6px ${dev.color}` }} />
+                    <tr key={idx} style={{ borderBottom: '1px solid #f1f5fa' }}>
+                      <td style={{ padding: '6px 4px', display: 'flex', alignItems: 'center', gap: '6px', color: '#303e67' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: dev.color }} />
                         {dev.name}
                       </td>
-                      <td style={{ textAlign: 'right', padding: '7px 4px', fontWeight: 600, color: '#FFFFFF' }}>
+                      <td style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 600, color: '#1d2c48' }}>
                         <AnimatedCounter value={dev.sessions} duration={1200} />
                       </td>
-                      <td style={{ textAlign: 'right', padding: '7px 4px' }}>
-                        <span style={{
-                          background: 'rgba(16, 185, 129, 0.12)',
-                          color: '#10B981',
-                          padding: '1px 6px',
-                          borderRadius: '4px',
-                          fontWeight: 700,
-                          fontSize: '11px',
-                          border: '1px solid rgba(16, 185, 129, 0.2)'
-                        }}>
-                          {dev.share || '—'}
-                        </span>
+                      <td style={{ textAlign: 'right', padding: '6px 4px', color: '#16a34a', fontWeight: 700 }}>
+                        {dev.share || '—'}
                       </td>
-                      <td style={{ textAlign: 'right', padding: '7px 4px', color: '#94A3B8', fontSize: '10.5px' }}>
+                      <td style={{ textAlign: 'right', padding: '6px 4px', color: '#64748b', fontSize: '10.5px' }}>
                         {dev.tier || 'Standard'}
                       </td>
                     </tr>

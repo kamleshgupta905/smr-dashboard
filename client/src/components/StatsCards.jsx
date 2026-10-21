@@ -3,7 +3,7 @@ import { Database, DollarSign, CheckCircle2, Building2, TrendingUp, TrendingDown
 import AnimatedCounter from './AnimatedCounter';
 
 export default function StatsCards({ stats, totalSurveys, onNavigate }) {
-  // Real metrics derived from the live marketplace inventory (App.jsx computes these)
+  // Real metrics derived from the live marketplace inventory
   const totalStudies = (stats?.totalSurveys && stats.totalSurveys > 0)
     ? stats.totalSurveys
     : (totalSurveys || 0);
@@ -23,48 +23,48 @@ export default function StatsCards({ stats, totalSurveys, onNavigate }) {
       trendLabel: 'Live Capacity',
       isPositive: true,
       icon: Database,
+      accentColor: '#1761fd',
       clickable: true,
       hint: `View ${totalStudies} surveys`,
       onClick: () => onNavigate && onNavigate('surveys'),
-      microGraphic: 'bars',
     },
     {
       title: 'Avg. Rate (CPI)',
       numericValue: avgCpi,
       prefix: '$',
       decimals: 2,
-      trend: avgCpi >= 3 ? 'High Yield' : 'Standard',
+      trend: avgCpi >= 3 ? 'High' : 'Normal',
       trendLabel: 'Per Complete',
       isPositive: avgCpi >= 3,
       icon: DollarSign,
+      accentColor: '#2a76f4',
       clickable: true,
-      hint: 'View yield rates',
+      hint: 'View surveys',
       onClick: () => onNavigate && onNavigate('surveys'),
-      microGraphic: 'sparkline',
     },
     {
       title: 'Active Surveys',
       numericValue: liveStudies,
       trend: 'Open',
-      trendLabel: 'Accepting Traffic',
+      trendLabel: 'Accepting Responses',
       isPositive: true,
       icon: CheckCircle2,
+      accentColor: '#22c55e',
       clickable: true,
-      hint: `View ${liveStudies} active studies`,
+      hint: `View ${liveStudies} active surveys`,
       onClick: () => onNavigate && onNavigate('surveys'),
-      microGraphic: 'ring',
     },
     {
-      title: 'Connected Partners',
+      title: 'Connected Clients',
       numericValue: demandSources,
-      trend: 'Live Synced',
-      trendLabel: 'Active Routing Sources',
+      trend: 'Connected',
+      trendLabel: 'Active Sources',
       isPositive: true,
       icon: Building2,
+      accentColor: '#f59e0b',
       clickable: true,
-      hint: 'Manage partners',
+      hint: 'View clients',
       onClick: () => onNavigate && onNavigate('clients'),
-      microGraphic: 'network',
     },
   ];
 
@@ -82,20 +82,10 @@ export default function StatsCards({ stats, totalSurveys, onNavigate }) {
             tabIndex={item.clickable ? 0 : undefined}
             onKeyDown={(e) => { if (item.clickable && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); item.onClick && item.onClick(); } }}
           >
-            {/* Top Row: Title + Icon */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-              <span className="kpi-title" style={{ margin: 0 }}>
-                {item.title}
-              </span>
-              <div className="kpi-icon-bubble" style={{ width: '36px', height: '36px' }}>
-                <Icon size={18} />
-              </div>
-            </div>
-
-            {/* Middle Row: Large Value + Visual Telemetry Micro-Graphic */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '14px' }}>
+            <div className="kpi-card-content">
               <div>
-                <h3 className="kpi-value" style={{ margin: 0 }}>
+                <p className="kpi-title">{item.title}</p>
+                <h3 className="kpi-value">
                   {item.numericValue > 0 || item.numericValue === 0 ? (
                     <AnimatedCounter
                       value={item.numericValue}
@@ -107,86 +97,45 @@ export default function StatsCards({ stats, totalSurveys, onNavigate }) {
                     '—'
                   )}
                 </h3>
-              </div>
+                <div className="kpi-trend-row">
+                  <span className={`kpi-trend-pct ${item.isPositive ? 'positive' : 'negative'}`}>
+                    {item.isPositive ? (
+                      <TrendingUp size={12} className="trend-arrow" />
+                    ) : (
+                      <TrendingDown size={12} className="trend-arrow" />
+                    )}
+                    {item.trend}
+                  </span>
+                  <span className="kpi-trend-label">{item.trendLabel}</span>
+                </div>
 
-              {/* Linear-Style Micro Telemetry Visual */}
-              <div style={{ width: '48px', height: '24px', display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
-                {item.microGraphic === 'bars' && (
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '22px' }}>
-                    <span style={{ width: '4px', height: '40%', background: 'rgba(99, 102, 241, 0.4)', borderRadius: '2px' }} />
-                    <span style={{ width: '4px', height: '65%', background: 'rgba(99, 102, 241, 0.6)', borderRadius: '2px' }} />
-                    <span style={{ width: '4px', height: '50%', background: 'rgba(99, 102, 241, 0.8)', borderRadius: '2px' }} />
-                    <span style={{ width: '4px', height: '100%', background: '#6366F1', borderRadius: '2px', boxShadow: '0 0 6px rgba(99, 102, 241, 0.6)' }} />
-                  </div>
-                )}
-                {item.microGraphic === 'sparkline' && (
-                  <svg width="48" height="22" viewBox="0 0 48 22" fill="none">
-                    <path
-                      d="M2 18 C 10 16, 16 6, 24 10 C 32 14, 38 4, 46 3"
-                      stroke="#10B981"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    <circle cx="46" cy="3" r="2.5" fill="#10B981" />
-                  </svg>
-                )}
-                {item.microGraphic === 'ring' && (
-                  <svg width="24" height="24" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="9" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="2.5" fill="none" />
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="9"
-                      stroke="#6366F1"
-                      strokeWidth="2.5"
-                      strokeDasharray="56.5"
-                      strokeDashoffset="12"
-                      strokeLinecap="round"
-                      fill="none"
-                      transform="rotate(-90 12 12)"
-                    />
-                  </svg>
-                )}
-                {item.microGraphic === 'network' && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#06B6D4', boxShadow: '0 0 6px #06B6D4' }} />
-                    <span style={{ width: '12px', height: '1.5px', background: 'rgba(6, 182, 212, 0.5)' }} />
-                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#6366F1', boxShadow: '0 0 6px #6366F1' }} />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Bottom Row: Trend Pill + Action Link */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-              <div className="kpi-trend-row">
-                <span className={`kpi-trend-pct ${item.isPositive ? 'positive' : 'negative'}`}>
-                  {item.isPositive ? (
-                    <TrendingUp size={11} className="trend-arrow" />
-                  ) : (
-                    <TrendingDown size={11} className="trend-arrow" />
-                  )}
-                  {item.trend}
-                </span>
-                <span className="kpi-trend-label">{item.trendLabel}</span>
-              </div>
-
-              {item.clickable && (
-                <div
-                  className="kpi-action-link"
-                  style={{
+                {item.clickable && (
+                  <div className="kpi-action-link" style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '4px',
+                    marginTop: '8px',
                     fontSize: '11px',
-                    fontWeight: 600,
+                    fontWeight: 700,
+                    color: item.accentColor || '#1761fd',
                     cursor: 'pointer'
-                  }}
-                >
-                  <span>{item.hint}</span>
-                  <ArrowRight size={11} />
-                </div>
-              )}
+                  }}>
+                    <span>{item.hint}</span>
+                    <ArrowRight size={11} />
+                  </div>
+                )}
+              </div>
+
+              {/* Exact Dastone Circular Soft Icon Bubble */}
+              <div
+                className="kpi-icon-bubble"
+                style={{
+                  backgroundColor: `${item.accentColor}14`,
+                  color: item.accentColor
+                }}
+              >
+                <Icon size={20} color={item.accentColor} />
+              </div>
             </div>
           </div>
         );
