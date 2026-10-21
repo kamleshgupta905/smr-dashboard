@@ -807,9 +807,8 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
         </div>
       </ModalPortal>
       )}
-    </div>
-  );
-}
+
+
       {/* Multi-Contact Persons Modal (Laravel client_contacts) */}
       {contactsModalClient && (
         <ModalPortal isOpen={!!contactsModalClient} onClose={() => setContactsModalClient(null)}>
@@ -918,3 +917,6 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
           </div>
         </ModalPortal>
       )}
+    </div>
+  );
+}
