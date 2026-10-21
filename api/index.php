@@ -1686,23 +1686,16 @@ if ($normalizedRoute === 'dashboard/analytics') {
     global $DATA_DIR, $CACHE_FILE;
     $db = getDbConnection();
 
-    $totalVendors = 2137;
-    $totalClick = 33688;
-    $completeLeads = 3875;
-    $pendingLeads = 13568;
-    $activeProjects = 1554;
-    $chartData = [
-        'VMH#100223' => 577,
-        'VMH#100170 USA (B2C)' => 548,
-        'VMHAML29201 US' => 459,
-        'VMHZASI26213- TG -1' => 418,
-        'VMH_1498' => 404,
-        'VMH_1685' => 393
-    ];
+    $totalVendors = 23;
+    $totalClick = 0;
+    $completeLeads = 0;
+    $pendingLeads = 0;
+    $activeProjects = 0;
+    $chartData = [];
 
     if ($db) {
         try {
-            $totalVendors   = (int) $db->query("SELECT COUNT(*) FROM vendor WHERE is_active = 'Y'")->fetchColumn();
+            $totalVendors   = (int) $db->query("SELECT COUNT(DISTINCT vendor_id) FROM vendorlists WHERE vendor_id IS NOT NULL AND vendor_id != ''")->fetchColumn();
             $totalClick     = (int) $db->query("SELECT COUNT(*) FROM leads")->fetchColumn();
             $completeLeads  = (int) $db->query("SELECT COUNT(*) FROM leads WHERE status = 'Complete'")->fetchColumn();
             $pendingLeads   = (int) $db->query("SELECT COUNT(*) FROM leads WHERE status NOT IN ('Complete', 'Terminates', 'Quota Full')")->fetchColumn();
@@ -2333,7 +2326,7 @@ if ($normalizedRoute === 'vendors' || $normalizedRoute === 'manage/vendors' || s
     // GET: Support count
     if (isset($_GET['count']) && $db) {
         try {
-            $count = (int)$db->query("SELECT COUNT(DISTINCT vendor_id) FROM vendor WHERE is_active = 'Y'")->fetchColumn();
+            $count = (int)$db->query("SELECT COUNT(DISTINCT vendor_id) FROM vendorlists WHERE vendor_id IS NOT NULL AND vendor_id != ''")->fetchColumn();
             echo json_encode(['success' => true, 'count' => $count]);
             exit;
         } catch (Throwable $e) {}
@@ -2356,40 +2349,47 @@ if ($normalizedRoute === 'vendors' || $normalizedRoute === 'manage/vendors' || s
             $limit = ($rawLimit === 'all' || (int)$rawLimit >= 900) ? 1000 : max(10, min(250, (int)$rawLimit));
             $offset = ($page - 1) * $limit;
 
-            $countSql = "SELECT COUNT(DISTINCT v.vendor_id) FROM vendor v WHERE {$where}";
+            $where = "vl.vendor_id IS NOT NULL AND vl.vendor_id != ''";
+            $params = [];
+            if ($search !== '') {
+                $where .= " AND (vl.name LIKE ? OR vl.vendor_id LIKE ? OR vl.email LIKE ?)";
+                $params = ["%{$search}%", "%{$search}%", "%{$search}%"];
+            }
+
+            $countSql = "SELECT COUNT(DISTINCT vl.vendor_id) FROM vendorlists vl WHERE {$where}";
             $countStmt = $db->prepare($countSql);
             $countStmt->execute($params);
             $totalFiltered = (int)$countStmt->fetchColumn();
 
             $sql = "
                 SELECT 
-                    v.vendor_id,
-                    v.vendor_id as _id,
-                    v.vendor_id as vendor_code,
-                    MAX(v.name) as name,
-                    MAX(v.email) as email,
-                    MAX(v.cpi) as cpi,
+                    vl.vendor_id,
+                    vl.vendor_id as _id,
+                    vl.vendor_id as vendor_code,
+                    vl.name as name,
+                    vl.email as email,
+                    COALESCE(MAX(v.cpi), 1.00) as cpi,
                     COALESCE(MAX(v.commission_type), 'revenue_share') as commission_type,
                     COALESCE(MAX(v.cpi_percentage), 70.00) as cpi_percentage,
-                    CAST(SUM(v.clicks_count) AS UNSIGNED) as clicks_count,
-                    CAST(SUM(v.complete_count) AS UNSIGNED) as complete_count,
-                    CAST(SUM(v.complete_count) AS UNSIGNED) as completes_count,
-                    CAST(SUM(v.terminates_count) AS UNSIGNED) as terminates_count,
+                    CAST(COALESCE(SUM(v.clicks_count), 0) AS UNSIGNED) as clicks_count,
+                    CAST(COALESCE(SUM(v.complete_count), 0) AS UNSIGNED) as complete_count,
+                    CAST(COALESCE(SUM(v.complete_count), 0) AS UNSIGNED) as completes_count,
+                    CAST(COALESCE(SUM(v.terminates_count), 0) AS UNSIGNED) as terminates_count,
                     COUNT(DISTINCT v.project_id) as total_projects,
-                    ROUND(SUM(v.complete_count * COALESCE(NULLIF(v.cpi, 0), 1.50)), 2) as estimated_gross_payout,
-                    MAX(v.is_active) as status,
-                    MAX(v.date) as createdAt,
-                    MAX(vl.success) as redirect_complete,
-                    MAX(vl.terminate) as redirect_terminate,
-                    MAX(vl.quotafull) as redirect_overquota,
-                    MAX(vl.screenout) as redirect_security,
+                    ROUND(COALESCE(SUM(v.complete_count * COALESCE(NULLIF(v.cpi, 0), 1.50)), 0), 2) as estimated_gross_payout,
+                    'Y' as status,
+                    COALESCE(MAX(v.date), vl.created_at) as createdAt,
+                    vl.success as redirect_complete,
+                    vl.terminate as redirect_terminate,
+                    vl.quotafull as redirect_overquota,
+                    vl.screenout as redirect_security,
                     MAX(vs.settings) as extra_settings
-                FROM vendor v
-                LEFT JOIN vendorlists vl ON vl.vendor_id = v.vendor_id
-                LEFT JOIN vendor_settings vs ON vs.vendor_id = v.vendor_id
+                FROM vendorlists vl
+                LEFT JOIN vendor v ON v.vendor_id = vl.vendor_id COLLATE utf8mb4_general_ci
+                LEFT JOIN vendor_settings vs ON vs.vendor_id = vl.vendor_id COLLATE utf8mb4_general_ci
                 WHERE {$where}
-                GROUP BY v.vendor_id
-                ORDER BY SUM(v.complete_count) DESC, MAX(v.id) DESC
+                GROUP BY vl.vendor_id, vl.name, vl.email, vl.success, vl.terminate, vl.quotafull, vl.screenout, vl.created_at
+                ORDER BY SUM(v.complete_count) DESC, vl.id ASC
                 LIMIT {$limit} OFFSET {$offset}
             ";
             $stmt = $db->prepare($sql);
@@ -2427,7 +2427,7 @@ if ($normalizedRoute === 'vendors' || $normalizedRoute === 'manage/vendors' || s
                 $vendors[] = $row;
             }
 
-            $totalVendors = (int)$db->query("SELECT COUNT(DISTINCT vendor_id) FROM vendor WHERE is_active = 'Y'")->fetchColumn();
+            $totalVendors = (int)$db->query("SELECT COUNT(DISTINCT vendor_id) FROM vendorlists WHERE vendor_id IS NOT NULL AND vendor_id != ''")->fetchColumn();
 
             echo json_encode([
                 'success' => true,
@@ -2482,8 +2482,8 @@ if ($normalizedRoute === 'reports/legacy-stats') {
             $stats['totalProjects'] = (int)$db->query("SELECT COUNT(*) FROM projects")->fetchColumn();
             $stats['totalLeads'] = (int)$db->query("SELECT COUNT(*) FROM leads")->fetchColumn();
             $stats['totalCompletes'] = (int)$db->query("SELECT COUNT(*) FROM leads WHERE status = 'Complete'")->fetchColumn();
-            $stats['totalVendors'] = (int)$db->query("SELECT COUNT(*) FROM vendor WHERE is_active = 'Y'")->fetchColumn();
-            $stats['totalClients'] = (int)$db->query("SELECT COUNT(*) FROM client")->fetchColumn();
+            $stats['totalVendors'] = (int)$db->query("SELECT COUNT(DISTINCT vendor_id) FROM vendorlists WHERE vendor_id IS NOT NULL AND vendor_id != ''")->fetchColumn();
+            $stats['totalClients'] = (int)$db->query("SELECT COUNT(*) FROM client WHERE is_active = 'Y' AND (client_name LIKE '%Market%' OR client_name LIKE '%Zamplia%')")->fetchColumn();
         } catch (Throwable $e) {}
     }
     echo json_encode(['success' => true, 'data' => $stats]);
@@ -3023,7 +3023,7 @@ if ($normalizedRoute === 'clients' || str_starts_with($normalizedRoute, 'clients
                     is_active as status, 
                     created_at as createdAt 
                 FROM client 
-                WHERE is_active = 'Y' 
+                WHERE is_active = 'Y' AND (client_name LIKE '%Market%' OR client_name LIKE '%Zamplia%')
                 ORDER BY id ASC
             ");
             $dbClients = $stmt->fetchAll();
