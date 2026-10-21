@@ -355,7 +355,7 @@ export default function App() {
           {activeTab === 'users' && <UserManagementPage currentUser={currentUser} />}
           {activeTab === 'clients' && <ClientsPage onNavigate={handleTabChange} globalSearch={globalSearch} />}
           {activeTab === 'security' && <SecurityFraudPage onLaunchPreScreener={(data) => openTestPreScreener(data)} />}
-          {activeTab === 'developer-center' && <ApiDeveloperCenterPage />}
+          {activeTab === 'developer-center' && <DashboardPage />}
 
           {activeTab === 'surveys' && (
             <SurveysPage 

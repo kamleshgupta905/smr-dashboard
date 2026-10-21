@@ -64,7 +64,7 @@ export default function Sidebar({
       setSecurityOpen(true);
     } else if (['bids', 'payments', 'leads'].includes(activeTab)) {
       setOpsOpen(true);
-    } else if (['developer-center', 'users', 'team', 'reference'].includes(activeTab)) {
+    } else if (['users', 'team', 'reference'].includes(activeTab)) {
       setDeveloperOpen(true);
     }
   }, [activeTab]);
@@ -302,7 +302,7 @@ export default function Sidebar({
               {(isPermitted(2) || isPermitted(3) || isPermitted(4) || (!currentUser || currentUser.role_id === 1)) && (
                 <div className="sidebar-nav-group">
                   <button 
-                    className={`sidebar-nav-heading ${['developer-center', 'users', 'team', 'reference'].includes(activeTab) ? 'active' : ''}`}
+                    className={`sidebar-nav-heading ${['users', 'team', 'reference'].includes(activeTab) ? 'active' : ''}`}
                     onClick={() => setDeveloperOpen(prev => !prev)}
                   >
                     <div className="nav-heading-left">
@@ -316,15 +316,7 @@ export default function Sidebar({
 
                   <div className={`sidebar-submenu-collapsible ${developerOpen ? 'open' : 'closed'}`}>
                     <div className="sidebar-submenu-inner">
-                      {(!currentUser || currentUser.role_id === 1 || isPermitted(4)) && (
-                        <button
-                          className={`submenu-item ${activeTab === 'developer-center' ? 'active' : ''}`}
-                          onClick={() => handleNav('developer-center')}
-                        >
-                          <span className="bullet-circle" />
-                          <span>API & Integrations</span>
-                        </button>
-                      )}
+
                       {(isPermitted(2) || isPermitted(3) || isPermitted(4) || (!currentUser || currentUser.role_id === 1)) && (
                         <>
                           <button

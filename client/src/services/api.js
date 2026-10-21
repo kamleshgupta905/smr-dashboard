@@ -1536,3 +1536,13 @@ export const saveVendorBilling = (data) =>
 export const sendBidBookingNotification = (data) =>
   api.post('/bids/send-booking-email', data)
     .then(res => res.data);
+
+// =============================================================
+// Vendor Assignment Email & Master Catalogs
+// =============================================================
+export const sendVendorAssignmentEmail = (data) =>
+  api.post('/vendors/send-assignment-email', data)
+    .then(res => res.data)
+    .catch(() => ({ success: false }));
+
+

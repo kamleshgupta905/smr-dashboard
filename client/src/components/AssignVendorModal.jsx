@@ -10,7 +10,8 @@ import {
   getVendorAllotments, 
   saveVendorAllotment, 
   deleteVendorAllotment,
-  searchVendors
+  searchVendors,
+  sendVendorAssignmentEmail
 } from '../services/api';
 import { exportToExcel } from '../utils/excelExport';
 import ModalPortal from './ModalPortal';
@@ -208,6 +209,14 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
       };
 
       await saveVendorAllotment(allotmentPayload);
+      try {
+        await sendVendorAssignmentEmail({
+          vendor_id: v,
+          project_id: String(currentId),
+          cpi: Number(vendorCpi) || 1.50,
+          entry_link: generatedLive
+        });
+      } catch (me) {}
       setAllotSuccess(true);
       await loadAllotments();
       setTimeout(() => setAllotSuccess(false), 3500);
