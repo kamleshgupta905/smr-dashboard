@@ -5,7 +5,6 @@ import DashboardPage from './pages/DashboardPage';
 import SurveysPage from './pages/SurveysPage';
 
 import VendorsPage from './pages/VendorsPage';
-import ReconciliationPage from './pages/ReconciliationPage';
 import ReferenceDataPage from './pages/ReferenceDataPage';
 import ClientsPage from './pages/ClientsPage';
 import SecurityFraudPage from './pages/SecurityFraudPage';
@@ -30,14 +29,11 @@ const parseHashRoute = () => {
   const hash = window.location.hash.replace(/^#\/?/, '');
   if (!hash) {
     const saved = localStorage.getItem('smr_active_tab') || 'dashboard';
-    const savedSub = localStorage.getItem('smr_recon_tab') || 'clients';
-    return { tab: saved, subTab: savedSub };
+    return { tab: saved };
   }
-  const [tabPart, queryPart] = hash.split('?');
-  const params = new URLSearchParams(queryPart || '');
+  const [tabPart] = hash.split('?');
   const tab = tabPart || 'dashboard';
-  const subTab = params.get('tab') || 'clients';
-  return { tab, subTab };
+  return { tab };
 };
 
 export default function App() {
@@ -52,8 +48,7 @@ export default function App() {
 
   const initialRoute = parseHashRoute();
   const [activeTab, setActiveTab] = useState(initialRoute.tab);
-  const [reconciliationTab, setReconciliationTab] = useState(initialRoute.subTab);
-
+  
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const u = localStorage.getItem('smr_auth_user_data');
@@ -110,18 +105,12 @@ export default function App() {
   };
   const closeTestPreScreener = () => setTestPreScreener(null);
 
-  const handleTabChange = (tab, subTab, pushHistory = true) => {
+  const handleTabChange = (tab, pushHistory = true) => {
     setActiveTab(tab);
     localStorage.setItem('smr_active_tab', tab);
-    let hashStr = `#/${tab}`;
-    if (tab === 'reconciliation') {
-      const targetSub = subTab || reconciliationTab || 'clients';
-      setReconciliationTab(targetSub);
-      localStorage.setItem('smr_recon_tab', targetSub);
-      hashStr += `?tab=${targetSub}`;
-    }
+    const hashStr = `#/${tab}`;
     if (pushHistory && window.location.hash !== hashStr) {
-      window.history.pushState({ tab, subTab: subTab || reconciliationTab }, '', hashStr);
+      window.history.pushState({ tab }, '', hashStr);
     }
   };
 
@@ -138,9 +127,8 @@ export default function App() {
       }
 
       // 2. Otherwise navigate to the URL hash route
-      const { tab, subTab } = parseHashRoute();
+      const { tab } = parseHashRoute();
       setActiveTab(tab);
-      if (subTab) setReconciliationTab(subTab);
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -150,8 +138,8 @@ export default function App() {
   // Ensure initial hash is synchronized
   useEffect(() => {
     if (!window.location.hash) {
-      const initialHash = activeTab === 'reconciliation' ? `#/reconciliation?tab=${reconciliationTab}` : `#/${activeTab}`;
-      window.history.replaceState({ tab: activeTab, subTab: reconciliationTab }, '', initialHash);
+      const initialHash = `#/${activeTab}`;
+      window.history.replaceState({ tab: activeTab }, '', initialHash);
     }
   }, []);
 
@@ -252,8 +240,7 @@ export default function App() {
     
     'developer-center': 'API & Integrations',
     security: 'Security Settings',
-    reconciliation: 'Reports & Reconciliation',
-    reference: 'Categories & Reference Data'
+        reference: 'Categories & Reference Data'
   };
 
   const handleLogout = () => {
@@ -313,8 +300,7 @@ export default function App() {
     <div className="page-wrapper">
       {/* VMH Sidebar Navigation */}
       <Sidebar 
-        activeTab={activeTab} 
-        currentReportSubTab={reconciliationTab}
+        activeTab={activeTab}
         onTabChange={handleTabChange}
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
@@ -381,7 +367,6 @@ export default function App() {
           {activeTab === 'bids' && <BidsPage />}
           {activeTab === 'payments' && <PaymentsPage />}
           {activeTab === 'team' && <TeamPage />}
-          {activeTab === 'reconciliation' && <ReconciliationPage initialTab={reconciliationTab} />}
           
 
           {/* VMH Enterprise Footer */}

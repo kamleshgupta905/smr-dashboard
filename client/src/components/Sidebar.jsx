@@ -4,8 +4,7 @@ import {
   LayoutGrid,
   ShieldCheck,
   Terminal,
-  BarChart3,
-  Briefcase,
+    Briefcase,
   ChevronDown,
   ChevronRight,
   X
@@ -27,7 +26,6 @@ export default function Sidebar({
   // Dropdown states for each section
   const [dashboardOpen, setDashboardOpen] = useState(true);
   const [appsOpen, setAppsOpen] = useState(true);
-  const [reportsOpen, setReportsOpen] = useState(true);
   const [securityOpen, setSecurityOpen] = useState(true);
   const [developerOpen, setDeveloperOpen] = useState(true);
   const [opsOpen, setOpsOpen] = useState(true);
@@ -61,8 +59,6 @@ export default function Sidebar({
       setDashboardOpen(true);
     } else if (['clients', 'vendors'].includes(activeTab)) {
       setAppsOpen(true);
-    } else if (activeTab === 'reconciliation') {
-      setReportsOpen(true);
     } else if (['security'].includes(activeTab)) {
       setSecurityOpen(true);
     } else if (['bids', 'payments'].includes(activeTab)) {
@@ -254,26 +250,7 @@ export default function Sidebar({
             </>
           )}
 
-          {/* Dotted Divider & REPORTS & ANALYTICS */}
-          {(isPermitted(9) || isPermitted(10)) && (
-            <>
-              <div className="sidebar-dotted-divider" />
-              <div className="sidebar-section-title">REPORTS & ANALYTICS</div>
 
-              {/* Direct Nav: Reports Hub */}
-              <div className="sidebar-nav-group">
-                <button 
-                  className={`sidebar-nav-heading ${activeTab === 'reconciliation' ? 'active' : ''}`}
-                  onClick={() => handleNav('reconciliation')}
-                >
-                  <div className="nav-heading-left">
-                    <BarChart3 size={16} className="nav-icon" />
-                    <span>Reports Hub</span>
-                  </div>
-                </button>
-              </div>
-            </>
-          )}
 
           {/* Section: MANAGEMENT */}
           {(isPermitted(2) || isPermitted(3) || isPermitted(4) || isPermitted(7) || (!currentUser || currentUser.role_id === 1)) && (
