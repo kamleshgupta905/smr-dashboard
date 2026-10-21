@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
   /* VMH Analytics Design System Tokens (Calibri 10 Enterprise Standard) */
-  --font-family-primary: 'Roboto', 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-  --font-family-stack: 'Roboto', 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --font-family-primary: 'Calibri', 'Carlito', 'Segoe UI', Candara, Arial, sans-serif;
+  --font-family-stack: 'Calibri', 'Carlito', 'Segoe UI', Candara, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
   --font-size-base: 13px;
   --font-weight-base: 400;
   --font-line-height-base: 19.5px;
@@ -19,7 +19,7 @@
   --font-size-4xl: 20px;
 
   /* Color Palette Tokens */
-  --theme-blue-color: #1761fd;
+  --theme-blue-color: #2e3094;
   --theme-green-color: #028745;
   --color-text-primary: #303e67;
   --color-text-secondary: #8997bd;
@@ -49,8 +49,8 @@
   --motion-duration-fast: 300ms;
 
   /* Bootstrap / System Semantic Mappings */
-  --bs-primary: #1761fd;
-  --bs-primary-rgb: 23, 97, 253;
+  --bs-primary: #2e3094;
+  --bs-primary-rgb: 46, 48, 148;
   --bs-primary-light: #3e41b3;
   --bs-secondary: #9ba7ca;
   --bs-success: #028745;
@@ -63,7 +63,7 @@
   --bs-heading: var(--color-text-inverse);
   --bs-muted: var(--color-text-secondary);
   --bs-border: var(--color-border-strong);
-  --bs-canvas: #f1f5fa;
+  --bs-canvas: #f5f8fb;
   --bs-surface: var(--color-surface-muted);
 
   --sidebar-width: 240px;
@@ -1885,73 +1885,3 @@ tbody tr:hover {
 }
 
 
-
-
-/* ==========================================================================
-   PANEL 1 DASHBOARD IDENTITY & COMPATIBILITY STYLES
-   Exact specification from resources/views/admin/dashboard/dashboard_view.blade.php
-   ========================================================================== */
-
-.chart-top {
-  background: #FFFFFF !important;
-  border-radius: 16px !important;
-  border: 1px solid #E5E7EB !important;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05) !important;
-  padding: 18px 20px !important;
-  transition: all 0.25s ease !important;
-}
-
-.chart-top:hover {
-  transform: translateY(-4px) !important;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important;
-}
-
-.chart-card {
-  background: #FFFFFF !important;
-  border-radius: 16px !important;
-  border: 1px solid #E5E7EB !important;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05) !important;
-  padding: 20px 24px !important;
-  transition: all 0.25s ease !important;
-}
-
-.chart-card:hover {
-  transform: translateY(-3px) !important;
-  box-shadow: 0 16px 36px rgba(0,0,0,0.07) !important;
-}
-
-.chart-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.chart-title {
-  font-size: 13px !important;
-  color: #64748B !important;
-  font-weight: 500 !important;
-}
-
-.chart-value {
-  font-size: 24px !important;
-  font-weight: 700 !important;
-  color: #0F172A !important;
-}
-
-@media (max-width: 1024px) {
-  .panel1-top-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  .panel1-charts-row {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-@media (max-width: 640px) {
-  .panel1-top-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .chart-value {
-    font-size: 20px !important;
-  }
-}

@@ -343,7 +343,6 @@ export default function App() {
               stats={computedStats}
               surveys={filteredSurveys}
               loading={loading}
-              syncing={syncing}
               onSync={handleSync}
               onNavigate={handleTabChange}
               onOpenQuotas={openQuotas}

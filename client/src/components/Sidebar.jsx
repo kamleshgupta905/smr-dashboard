@@ -100,7 +100,7 @@ export default function Sidebar({
               <span className="brand-text" style={{ fontSize: '15px', fontWeight: 800, color: '#1d2c48', letterSpacing: '-0.2px' }}>
                 VMH GROUP'S
               </span>
-              <span className="brand-subtext" style={{ fontSize: '9px', fontWeight: 700, color: '#1761fd', letterSpacing: '0.8px' }}>
+              <span style={{ fontSize: '9px', fontWeight: 700, color: '#1761fd', letterSpacing: '0.8px' }}>
                 SMR PLATFORM
               </span>
             </div>
