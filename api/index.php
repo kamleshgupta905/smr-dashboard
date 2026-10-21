@@ -48,9 +48,9 @@ function getDbConnection(): ?PDO {
     if ($pdo !== null) return $pdo;
 
     $configs = [
-        ['host' => 'localhost', 'user' => 'u839355029_vmhgropu', 'pass' => 'U839355029_vmhgroup', 'db' => 'u839355029_vmh_group'],
-        ['host' => '127.0.0.1', 'user' => 'u839355029_vmhgropu', 'pass' => 'U839355029_vmhgroup', 'db' => 'u839355029_vmh_group'],
-        ['host' => 'srv2215.hstgr.io', 'user' => 'u839355029_vmhgropu', 'pass' => 'U839355029_vmhgroup', 'db' => 'u839355029_vmh_group'],
+        ['host' => 'localhost', 'user' => 'u839355029_apitool', 'pass' => 'Z^3k!2dVKs8', 'db' => 'u839355029_api'],
+        ['host' => '127.0.0.1', 'user' => 'u839355029_apitool', 'pass' => 'Z^3k!2dVKs8', 'db' => 'u839355029_api'],
+        ['host' => 'srv2215.hstgr.io', 'user' => 'u839355029_apitool', 'pass' => 'Z^3k!2dVKs8', 'db' => 'u839355029_api'],
     ];
 
     foreach ($configs as $cfg) {
@@ -504,7 +504,7 @@ if ($normalizedRoute === 'health') {
         'service' => 'SMR Enterprise Supply Engine',
         'host' => 'smr.vmhgroupsmr.com',
         'php_version' => PHP_VERSION,
-        'database' => $db ? 'Connected (u839355029_api)' : 'JSON File Store Active',
+        'database' => $db ? 'Connected (u839355029_api - Clean & Independent)' : 'JSON File Store Active',
         'hashing' => 'SHA3-256 Market Xcel Standard Active',
         'zamplia_proxy' => 'Online (v1)',
         'timestamp' => date('c'),
@@ -2372,7 +2372,7 @@ if ($normalizedRoute === 'reports/legacy-projects') {
 // -------------------------------------------------------------
 // 8. Projects & Clients Management Store
 // -------------------------------------------------------------
-if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 'manage/projects')) {
+if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 'manage/projects') || $normalizedRoute === 'projects' || str_starts_with($normalizedRoute, 'projects')) {
     $db = getDbConnection();
 
     // 1-Click Project Cloner / Duplicator
@@ -2510,7 +2510,7 @@ if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 
                     p.loi,
                     p.live_url,
                     p.status,
-                    p.date as createdAt
+                    COALESCE(p.created_at, NOW()) as createdAt
                 FROM projects p
                 LEFT JOIN client c ON c.id = p.client_id
                 ORDER BY p.id DESC 
@@ -2834,14 +2834,12 @@ if ($normalizedRoute === 'clients' || str_starts_with($normalizedRoute, 'clients
                 SELECT 
                     id as _id, 
                     id, 
-                    client_id as client_code, 
+                    CONCAT('CLI_', id) as client_code, 
                     client_name, 
-                    description, 
-                    complete_url, 
-                    terminate_url, 
-                    quotafull_url, 
+                    email, 
+                    phone, 
                     is_active as status, 
-                    date as createdAt 
+                    created_at as createdAt 
                 FROM client 
                 WHERE is_active = 'Y' 
                 ORDER BY id ASC
