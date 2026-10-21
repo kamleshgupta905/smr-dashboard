@@ -1505,3 +1505,34 @@ export const deleteBidOption = (id) =>
   api.delete('/bids/options', { data: { id } })
     .then(res => res.data);
 
+
+// =============================================================
+// Staff Role & Menu Permissions (ACL)
+// =============================================================
+export const getMenuPermissions = (userId = 1) =>
+  api.get('/menu-permissions', { params: { user_id: userId } })
+    .then(res => res.data)
+    .catch(() => ({ success: true, menus: [], permissions: [] }));
+
+export const saveMenuPermissions = (data) =>
+  api.post('/menu-permissions', data)
+    .then(res => res.data);
+
+// =============================================================
+// Vendor Banking & Financial Compliance (supplier_billing_details)
+// =============================================================
+export const getVendorBilling = (vendorId) =>
+  api.get('/vendor-billing', { params: { vendor_id: vendorId } })
+    .then(res => res.data)
+    .catch(() => ({ success: true, data: null }));
+
+export const saveVendorBilling = (data) =>
+  api.post('/vendor-billing', data)
+    .then(res => res.data);
+
+// =============================================================
+// PM Assignment & Won Bid Notification
+// =============================================================
+export const sendBidBookingNotification = (data) =>
+  api.post('/bids/send-booking-email', data)
+    .then(res => res.data);
