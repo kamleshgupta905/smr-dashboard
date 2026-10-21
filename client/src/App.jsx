@@ -38,6 +38,11 @@ const parseHashRoute = () => {
 };
 
 export default function App() {
+  useEffect(() => {
+    localStorage.removeItem('smr_custom_clients');
+    localStorage.removeItem('smr_custom_projects');
+  }, []);
+
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('smr_auth_token') === 'authenticated_vmhgroup';
   });

@@ -158,18 +158,7 @@ const setLocalData = (key, data) => {
   } catch {}
 };
 
-export const DEFAULT_CLIENTS = [
-  { _id: 43, id: 43, client_name: 'Market Xcel', client_code: '8ac835aab8871d26fd68e668a2932bd2', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
-  { _id: 51, id: 51, client_name: 'Zamplia', client_code: '4e24b469177989e0227c64bd382d1e0d', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
-  { _id: 52, id: 52, client_name: 'Robas Market Research', client_code: 'b1e9f85f1678f887c6409880cd3f858f', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
-  { _id: 53, id: 53, client_name: 'Grafotics', client_code: 'd6630b78149b5dfe6818fba18ae01c04', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
-  { _id: 54, id: 54, client_name: 'SPER', client_code: 'a23c2369ffc13fd31823bf9e1ea8ae8f', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
-  { _id: 55, id: 55, client_name: 'Snware Research', client_code: '0545b7a14931dd59dc282505104e7e1d', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
-  { _id: 56, id: 56, client_name: 'RIWI', client_code: '9703df41cab7670924a1b6336eff5468', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
-  { _id: 57, id: 57, client_name: 'AMG', client_code: 'dabd75198dc6467205d56155a6793230', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
-  { _id: 58, id: 58, client_name: 'Mindforce', client_code: '0e1df3db096123ec93d939f83ae60a60', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' },
-  { _id: 59, id: 59, client_name: 'Orchid', client_code: '02a61f3a880c57cfe9357ddd1e577dde', country: 'Global', currency: 'USD', status: 'Y', is_active: 'Y', createdAt: '2026-10-08 11:09:11' }
-];
+export const DEFAULT_CLIENTS = [];
 
 export const DEFAULT_VENDORS = [
   { _id: 1793, id: 1793, vendor_id: 'VI010152025', vendor_code: 'VI010152025', vendorUid: 'VI010152025', name: 'Rohan', email: 'rohan@vendor.com', commission_type: 'flat_rate', cpi: 1.00, cpi_percentage: 0, status: 'Y', is_active: 'Y', complete_count: 164, completes_count: 164, clicks_count: 381, terminates_count: 68 },
@@ -180,13 +169,7 @@ export const DEFAULT_VENDORS = [
   { _id: 2261, id: 2261, vendor_id: 'VI010652026', vendor_code: 'VI010652026', vendorUid: 'VI010652026', name: 'Cortex Vision Insight', email: 'cortex@vendor.com', commission_type: 'flat_rate', cpi: 1.00, cpi_percentage: 0, status: 'Y', is_active: 'Y', complete_count: 0, completes_count: 0, clicks_count: 12, terminates_count: 9 }
 ];
 
-export const DEFAULT_PROJECTS = [
-  { _id: 1477, id: 1477, project_id: 'VMHPI024912025', project_name: 'VMH#100188', client_name: 'Market Xcel', cpi: 1.00, cost_per_complete: 1.00, target_completes: 2000, completeCount: 164, status: 'Pause', country: 'Global', loi: 15, ir: 85, createdAt: '2026-10-08 11:09:11' },
-  { _id: 1392, id: 1392, project_id: 'VMHPI024062025', project_name: 'VMH#100123 China', client_name: 'Market Xcel', cpi: 1.00, cost_per_complete: 1.00, target_completes: 1500, completeCount: 152, status: 'Live', country: 'China', loi: 12, ir: 90, createdAt: '2026-10-08 11:09:11' },
-  { _id: 1523, id: 1523, project_id: 'VMHPI025372026', project_name: 'VMH#100223', client_name: 'Market Xcel', cpi: 1.00, cost_per_complete: 1.00, target_completes: 1500, completeCount: 138, status: 'Pause', country: 'Global', loi: 15, ir: 80, createdAt: '2026-10-08 11:09:11' },
-  { _id: 1647, id: 1647, project_id: 'VMHPI026622026', project_name: 'VMHMXIN2661', client_name: 'Market Xcel', cpi: 1.00, cost_per_complete: 1.00, target_completes: 500, completeCount: 85, status: 'Live', country: 'India', loi: 15, ir: 90, createdAt: '2026-10-08 11:09:11' },
-  { _id: 1644, id: 1644, project_id: 'VMHPI026592026', project_name: 'VMHAML29213', client_name: 'Market Xcel', cpi: 1.00, cost_per_complete: 1.00, target_completes: 1000, completeCount: 92, status: 'Live', country: 'United States', loi: 10, ir: 75, createdAt: '2026-10-08 11:09:11' }
-];
+export const DEFAULT_PROJECTS = [];
 
 export const DEFAULT_USERS = [
   {
@@ -525,18 +508,11 @@ export const getDemandFeasibility = (params) =>
 export const getProjects = async () => {
   try {
     const res = await api.get('/manage/projects');
-    const remote = res.data?.data;
-    if (Array.isArray(remote) && remote.length > 0) {
-      setLocalData('smr_custom_projects', remote);
-      return { success: true, data: remote };
+    if (Array.isArray(res.data?.data)) {
+      return { success: true, data: res.data.data };
     }
   } catch {}
-  const local = getLocalData('smr_custom_projects', null);
-  if (local && Array.isArray(local) && local.length > 0 && !local.some(p => p.project_name?.includes('NielsenIQ'))) {
-    return { success: true, data: local };
-  }
-  setLocalData('smr_custom_projects', DEFAULT_PROJECTS);
-  return { success: true, data: DEFAULT_PROJECTS };
+  return { success: true, data: [] };
 };
 
 export const createProject = async (data) => {
@@ -761,18 +737,11 @@ export const getDashboardAnalytics = () =>
 export const getClients = async () => {
   try {
     const res = await api.get('/clients');
-    const remote = res.data?.data;
-    if (Array.isArray(remote) && remote.length > 0) {
-      setLocalData('smr_custom_clients', remote);
-      return remote;
+    if (Array.isArray(res.data?.data)) {
+      return res.data.data;
     }
   } catch {}
-  const local = getLocalData('smr_custom_clients', null);
-  if (local && Array.isArray(local) && local.length > 0 && !local.some(c => c.client_name?.includes('Demand Network'))) {
-    return local;
-  }
-  setLocalData('smr_custom_clients', DEFAULT_CLIENTS);
-  return DEFAULT_CLIENTS;
+  return [];
 };
 
 export const createClient = async (data) => {
