@@ -1545,4 +1545,13 @@ export const sendVendorAssignmentEmail = (data) =>
     .then(res => res.data)
     .catch(() => ({ success: false }));
 
+// =============================================================
+// Vendor Payout Reconciliation & Project Statement
+// =============================================================
+export const getVendorReconciliation = (vendorId) =>
+  api.get('/manage/vendors/reconciliation', { params: { vendor_id: vendorId } })
+    .then(res => res.data)
+    .catch(err => ({ success: false, error: err.message }));
+
+
 

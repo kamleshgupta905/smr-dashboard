@@ -1980,7 +1980,7 @@ if ($normalizedRoute === 'vendor/bulk-assign' || $normalizedRoute === 'manage/ve
 // 7. Vendors Management Store (Real MySQL Integration)
 // -------------------------------------------------------------
 $vendorsFile = $DATA_DIR . '/vendors.json';
-if ($normalizedRoute === 'vendors' || $normalizedRoute === 'manage/vendors' || str_starts_with($normalizedRoute, 'manage/vendors')) {
+if ($normalizedRoute === 'vendors' || $normalizedRoute === 'manage/vendors' || str_starts_with($normalizedRoute, 'manage/vendors') || str_starts_with($normalizedRoute, 'vendors/')) {
     $db = getDbConnection();
 
     // POST / PUT: Create or Update Vendor in MySQL
@@ -2212,6 +2212,124 @@ if ($normalizedRoute === 'vendors' || $normalizedRoute === 'manage/vendors' || s
         exit;
     }
 
+    // GET: Vendor Payout Reconciliation Statement & Project Breakdown
+    if (str_starts_with($normalizedRoute, 'manage/vendors/reconciliation') || str_starts_with($normalizedRoute, 'vendors/reconciliation')) {
+        $vid = trim($_GET['vendor_id'] ?? '');
+        if (!$vid) {
+            echo json_encode(['success' => false, 'message' => 'vendor_id is required']);
+            exit;
+        }
+
+        if ($db) {
+            try {
+                // 1. Vendor Profile
+                $vStmt = $db->prepare("
+                    SELECT 
+                        v.vendor_id,
+                        MAX(v.name) as name,
+                        MAX(v.email) as email,
+                        MAX(v.cpi) as cpi,
+                        COALESCE(MAX(v.commission_type), 'revenue_share') as commission_type,
+                        COALESCE(MAX(v.cpi_percentage), 70.00) as cpi_percentage,
+                        CAST(SUM(v.clicks_count) AS UNSIGNED) as total_clicks,
+                        CAST(SUM(v.complete_count) AS UNSIGNED) as total_completes,
+                        CAST(SUM(v.terminates_count) AS UNSIGNED) as total_terminates,
+                        MAX(v.is_active) as status
+                    FROM vendor v
+                    WHERE v.vendor_id = ?
+                    GROUP BY v.vendor_id
+                    LIMIT 1
+                ");
+                $vStmt->execute([$vid]);
+                $vendorInfo = $vStmt->fetch(PDO::FETCH_ASSOC);
+
+                if (!$vendorInfo) {
+                    echo json_encode(['success' => false, 'message' => 'Vendor not found']);
+                    exit;
+                }
+
+                // 2. Billing & Bank Details
+                $bStmt = $db->prepare("SELECT * FROM supplier_billing_details WHERE supplier_id = ? LIMIT 1");
+                $bStmt->execute([$vid]);
+                $billingInfo = $bStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+                // 3. Project-by-Project Delivery Breakdown
+                $pStmt = $db->prepare("
+                    SELECT 
+                        v.project_id,
+                        COALESCE(p.name, CONCAT('Study #', v.project_id)) as project_name,
+                        p.cost_per_complete as client_cpc,
+                        v.complete_count,
+                        v.clicks_count,
+                        v.terminates_count,
+                        COALESCE(NULLIF(v.cpi, 0), 1.50) as agreed_cpi,
+                        ROUND(v.complete_count * COALESCE(NULLIF(v.cpi, 0), 1.50), 2) as line_total,
+                        v.date as allocated_at
+                    FROM vendor v
+                    LEFT JOIN projects p ON p.id = v.project_id
+                    WHERE v.vendor_id = ? AND (v.complete_count > 0 OR v.clicks_count > 0)
+                    ORDER BY v.complete_count DESC, v.clicks_count DESC
+                ");
+                $pStmt->execute([$vid]);
+                $projectsList = $pStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                // 4. Past Payments for this Vendor
+                $payStmt = $db->prepare("
+                    SELECT 
+                        p.id, p.payment_id, p.project_id, p.amount, p.status, p.remarks, p.date
+                    FROM payments p
+                    LEFT JOIN vendor v ON v.id = p.vendor_id
+                    WHERE v.vendor_id = ? OR p.vendor_id = ?
+                    ORDER BY p.id DESC
+                    LIMIT 20
+                ");
+                $payStmt->execute([$vid, $vid]);
+                $paymentsList = $payStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                // Financial Summaries
+                $totalCompletes = array_sum(array_column($projectsList, 'complete_count'));
+                $totalClicks = array_sum(array_column($projectsList, 'clicks_count'));
+                $grossPayable = array_sum(array_column($projectsList, 'line_total'));
+                $totalPaid = 0.0;
+                foreach ($paymentsList as $pay) {
+                    if (($pay['status'] ?? '') === 'Paid') {
+                        $totalPaid += (float)$pay['amount'];
+                    }
+                }
+                $tdsRate = 2.0; // Standard 2% TDS
+                $tdsAmount = round(($grossPayable * $tdsRate) / 100, 2);
+                $netPayable = round($grossPayable - $tdsAmount, 2);
+                $netBalanceDue = max(0, round($netPayable - $totalPaid, 2));
+
+                echo json_encode([
+                    'success' => true,
+                    'vendor' => $vendorInfo,
+                    'billing' => $billingInfo,
+                    'projects' => $projectsList,
+                    'payments' => $paymentsList,
+                    'financial_summary' => [
+                        'total_projects' => count($projectsList),
+                        'total_clicks' => $totalClicks,
+                        'total_completes' => $totalCompletes,
+                        'conversion_rate' => $totalClicks > 0 ? round(($totalCompletes / $totalClicks) * 100, 2) : 0,
+                        'gross_payable' => $grossPayable,
+                        'tds_rate' => $tdsRate,
+                        'tds_amount' => $tdsAmount,
+                        'net_payable' => $netPayable,
+                        'total_paid' => $totalPaid,
+                        'net_balance_due' => $netBalanceDue,
+                        'statement_date' => date('Y-m-d H:i:s'),
+                        'statement_ref' => 'STMT-' . $vid . '-' . date('Ymd')
+                    ]
+                ]);
+                exit;
+            } catch (Throwable $e) {
+                echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+                exit;
+            }
+        }
+    }
+
     // GET: Support count
     if (isset($_GET['count']) && $db) {
         try {
@@ -2257,6 +2375,8 @@ if ($normalizedRoute === 'vendors' || $normalizedRoute === 'manage/vendors' || s
                     CAST(SUM(v.complete_count) AS UNSIGNED) as complete_count,
                     CAST(SUM(v.complete_count) AS UNSIGNED) as completes_count,
                     CAST(SUM(v.terminates_count) AS UNSIGNED) as terminates_count,
+                    COUNT(DISTINCT v.project_id) as total_projects,
+                    ROUND(SUM(v.complete_count * COALESCE(NULLIF(v.cpi, 0), 1.50)), 2) as estimated_gross_payout,
                     MAX(v.is_active) as status,
                     MAX(v.date) as createdAt,
                     MAX(vl.success) as redirect_complete,
@@ -2289,6 +2409,8 @@ if ($normalizedRoute === 'vendors' || $normalizedRoute === 'manage/vendors' || s
                 $vid = $row['vendor_id'];
                 $row['cpi'] = (float)($row['cpi'] ?? 0);
                 $row['cpi_percentage'] = (float)($row['cpi_percentage'] ?? 70);
+                $row['total_projects'] = (int)($row['total_projects'] ?? 0);
+                $row['estimated_gross_payout'] = (float)($row['estimated_gross_payout'] ?? 0);
                 $row['redirect_complete'] = !empty($row['redirect_complete']) ? $row['redirect_complete'] : "{$origin}/survey/callback?status=10&vid={$vid}&hash=[HASH]&uid=[UID]";
                 $row['redirect_terminate'] = !empty($row['redirect_terminate']) ? $row['redirect_terminate'] : "{$origin}/survey/callback?status=20&vid={$vid}&hash=[HASH]&uid=[UID]";
                 $row['redirect_overquota'] = !empty($row['redirect_overquota']) ? $row['redirect_overquota'] : "{$origin}/survey/callback?status=30&vid={$vid}&hash=[HASH]&uid=[UID]";
@@ -3281,7 +3403,7 @@ if ($normalizedRoute === 'leads' || str_starts_with($normalizedRoute, 'leads') |
                     l.id,
                     l.project_id,
                     l.vendor_id,
-                    COALESCE(v.vendor_name, CONCAT('Vendor #', l.vendor_id)) as vendor_name,
+                    COALESCE(v.name, CONCAT('Vendor #', l.vendor_id)) as vendor_name,
                     l.client_id,
                     l.username as uid,
                     l.status,
@@ -3773,7 +3895,7 @@ if ($normalizedRoute === 'payments' || str_starts_with($normalizedRoute, 'paymen
                 $params[] = $statusFilter;
             }
             if ($search) {
-                $where[] = "(p.payment_id LIKE ? OR p.project_name LIKE ? OR v.vendor_name LIKE ? OR p.remarks LIKE ?)";
+                $where[] = "(p.payment_id LIKE ? OR p.project_name LIKE ? OR v.name LIKE ? OR p.remarks LIKE ?)";
                 $params[] = "%{$search}%";
                 $params[] = "%{$search}%";
                 $params[] = "%{$search}%";
@@ -3803,7 +3925,7 @@ if ($normalizedRoute === 'payments' || str_starts_with($normalizedRoute, 'paymen
                     p.project_id,
                     COALESCE(p.project_name, CONCAT('Study #', p.project_id)) as project_name,
                     p.vendor_id,
-                    COALESCE(v.vendor_name, CONCAT('Vendor #', p.vendor_id)) as vendor_name,
+                    COALESCE(v.name, CONCAT('Vendor #', p.vendor_id)) as vendor_name,
                     p.amount,
                     p.status,
                     p.remarks,

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { 
   X, Link2, Copy, Check, Share2, Play, ShieldAlert, CheckCircle2, 
   AlertTriangle, Info, ExternalLink, ShieldCheck, DollarSign, Target, 
-  Trash2, FileText, CheckCheck, RefreshCw, Zap, Download
+  Trash2, FileText, CheckCheck, RefreshCw, Zap, Download, MessageSquare
 } from 'lucide-react';
 import { 
   getVendors, 
@@ -697,6 +697,31 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                       >
                         {copiedLive ? <Check size={14} color="#FFFFFF" /> : <Copy size={14} />}
                         <span>{copiedLive ? 'Copied!' : 'Copy Link'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-success"
+                        onClick={() => {
+                          const vObj = vendors.find(v => (v._id || v.vendor_code || v.vendor_id) === selectedVendor);
+                          const vName = vObj?.name || 'Partner';
+                          const vCode = vObj?.vendor_id || vObj?.vendor_code || selectedVendor;
+                          const sid = survey?.survey_id || survey?.id || surveyId || 'SURVEY_2026';
+                          const msg = `🎯 *VMH GROUP | SMR Survey Allocation Brief*\n` +
+                            `━━━━━━━━━━━━━━━━━━━━\n` +
+                            `🏢 *Vendor:* ${vName} (${vCode})\n` +
+                            `📋 *Project/Survey:* ${sid} — ${survey?.survey_name || survey?.name || 'Live Study'}\n` +
+                            `🌐 *Target Audience:* ${survey?.country || 'United States'} | LOI: ${survey?.loi || 10}m | IR: ${survey?.ir || 50}%\n` +
+                            `💰 *Allocated Rate:* $${Number(vendorCpi).toFixed(2)}\n` +
+                            `🎯 *Quota Cap:* ${quotaLimit} Completes\n\n` +
+                            `🔗 *Live Survey Entry Link:*\n${liveLink}\n\n` +
+                            `_Please pass your unique panelist UID in place of [RESPONDENT_ID]._`;
+                          window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+                        }}
+                        style={{ flexShrink: 0, padding: '8px 14px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 600, background: '#25D366', borderColor: '#25D366', color: '#fff' }}
+                        title="Share Live Entry Link & Allocation Brief directly via WhatsApp"
+                      >
+                        <MessageSquare size={14} />
+                        <span>WhatsApp</span>
                       </button>
                     </div>
 
