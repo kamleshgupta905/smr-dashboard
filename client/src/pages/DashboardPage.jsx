@@ -9,7 +9,8 @@ import {
   Calendar,
   Download,
   Globe,
-  RefreshCw
+  RefreshCw,
+  Sparkles
 } from 'lucide-react';
 
 export default function DashboardPage({ 
@@ -34,7 +35,7 @@ export default function DashboardPage({
   // Memoize normalized surveys so it doesn't recompute on every render
   const normalized = useMemo(() => normalizeSurveys(surveys), [surveys]);
 
-  const todayStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const todayStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   // ─── Real Open Quota Metrics ──────────────────────────────────────────────
   const totalCompletesNeeded = useMemo(() =>
@@ -67,11 +68,11 @@ export default function DashboardPage({
   const channels = useMemo(() => {
     if (!normalized.length) {
       return [
-        { name: 'Supplier Panels', pct: 42.5, color: '#1761fd' },
-        { name: 'Direct Routing', pct: 26.3, color: '#2a76f4' },
-        { name: 'Demand S2S', pct: 18.2, color: '#22c55e' },
-        { name: 'Organic Traffic', pct: 8.0, color: '#f59e0b' },
-        { name: 'Sandbox Tests', pct: 5.0, color: '#8b5cf6' },
+        { name: 'Supplier Panels', count: 264, pct: 42.5, color: '#4F46E5' },
+        { name: 'Direct Routing', count: 163, pct: 26.3, color: '#6366F1' },
+        { name: 'Demand S2S', count: 113, pct: 18.2, color: '#10B981' },
+        { name: 'Organic Traffic', count: 50, pct: 8.0, color: '#F59E0B' },
+        { name: 'Sandbox Tests', count: 31, pct: 5.0, color: '#8B5CF6' },
       ];
     }
     const total = normalized.length;
@@ -85,10 +86,10 @@ export default function DashboardPage({
     }, { zamplia: 0, mx: 0, ipsos: 0, other: 0 });
 
     return [
-      { name: 'Zamplia Supply', count: counts.zamplia, color: '#1761fd' },
-      { name: 'Market Xcel', count: counts.mx, color: '#22c55e' },
-      { name: 'Ipsos Reid', count: counts.ipsos, color: '#2a76f4' },
-      { name: 'Other Sources', count: counts.other, color: '#f59e0b' },
+      { name: 'Zamplia Supply', count: counts.zamplia, color: '#4F46E5' },
+      { name: 'Market Xcel', count: counts.mx, color: '#10B981' },
+      { name: 'Ipsos Reid', count: counts.ipsos, color: '#6366F1' },
+      { name: 'Other Sources', count: counts.other, color: '#F59E0B' },
     ]
       .filter(c => c.count > 0)
       .map(c => ({ ...c, pct: +((c.count / total) * 100).toFixed(1) }));
@@ -99,8 +100,8 @@ export default function DashboardPage({
     if (!normalized.length) return [
       {
         text: 'Sync with Zamplia to load active surveys and inventory alerts.',
-        time: 'Click "Sync Surveys" above',
-        color: '#8997bd'
+        time: 'Click "Sync Inventory" above',
+        color: '#94A3B8'
       }
     ];
 
@@ -119,7 +120,7 @@ export default function DashboardPage({
       events.push({
         text: `Top Yield Study: "${topCpiSurvey.survey_name || topCpiSurvey.name}" — $${topCpiSurvey.cpi} CPI · ${topCpiSurvey.ir}% IR · ${topCpiSurvey.loi}min LOI`,
         time: `${topCpiSurvey.country || 'Global'} · ${topCpiSurvey.category || 'Consumer Study'}`,
-        color: '#1761fd'
+        color: '#4F46E5'
       });
     }
 
@@ -129,14 +130,14 @@ export default function DashboardPage({
       events.push({
         text: `Largest Open Quota: "${topQuotaSurvey.survey_name || topQuotaSurvey.name}" — ${needed.toLocaleString()} completes still needed`,
         time: `${topQuotaSurvey.country || 'Global'} · Target: ${required.toLocaleString()} total · ${topQuotaSurvey.studyType || 'Consumer'}`,
-        color: '#22c55e'
+        color: '#10B981'
       });
     }
 
     events.push({
       text: `Marketplace Inventory: ${normalized.length} allocated studies · ${b2bCount} B2B panels · ${highCpiCount} high-rate studies (≥$5 CPI) · ${countryCount} countries · Avg CPI $${avgCpi}`,
-      time: 'Zamplia + Market Xcel · Live',
-      color: '#f59e0b'
+      time: 'Zamplia + Market Xcel · Live Operational Pipeline',
+      color: '#F59E0B'
     });
 
     return events;
@@ -168,228 +169,303 @@ export default function DashboardPage({
   };
 
   return (
-    <div className="page-content">
-      {/* Exact Dastone Page Title Box (72px transition) */}
-      <div className="dastone-page-title-box">
+    <div className="page-content" style={{ background: '#F8FAFC', minHeight: '100%', padding: '24px' }}>
+      {/* Panel 1 Page Title Box */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '24px',
+        flexWrap: 'wrap',
+        gap: '12px'
+      }}>
         <div>
-          <h4 className="page-title">Overview</h4>
-          <ol className="breadcrumb">
-            <li><span className="breadcrumb-item-link">VMH</span></li>
-            <li className="separator">/</li>
-            <li className="active">Overview</li>
-          </ol>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h4 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.3px' }}>
+              Overview
+            </h4>
             <span style={{
               fontSize: '11px',
               fontWeight: 700,
-              background: '#dcfce7',
-              color: '#15803d',
+              background: '#DCFCE7',
+              color: '#15803D',
               padding: '3px 10px',
               borderRadius: '12px',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px'
             }}>
-              <span className="pulse-dot" style={{ width: '6px', height: '6px', background: '#16a34a', borderRadius: '50%', display: 'inline-block' }} />
+              <span style={{ width: '6px', height: '6px', background: '#16A34A', borderRadius: '50%', display: 'inline-block' }} />
               Live Sync Active • Zamplia Supply Engine ({normalized.length} Studies Connected)
             </span>
           </div>
+          <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>
+            <span>VMH Group SMR</span>
+            <span style={{ margin: '0 6px', color: '#CBD5E1' }}>/</span>
+            <span style={{ color: '#0F172A', fontWeight: 600 }}>Overview Dashboard</span>
+          </div>
         </div>
 
-        <div className="title-box-actions">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {onSync && (
             <button 
-              className="btn-title-date"
               onClick={onSync}
               disabled={syncing}
               title="Sync marketplace surveys from live Zamplia API"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                padding: '8px 14px',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#334155',
+                cursor: 'pointer',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                transition: 'all 0.2s'
+              }}
             >
               <RefreshCw size={13} className={syncing ? 'sync-spin' : ''} />
               <span>{syncing ? 'Syncing...' : 'Sync Inventory'}</span>
             </button>
           )}
 
-          <button className="btn-title-date">
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: '#FFFFFF',
+            border: '1px solid #E2E8F0',
+            borderRadius: '10px',
+            padding: '8px 14px',
+            fontSize: '12px',
+            fontWeight: 600,
+            color: '#334155',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+          }}>
+            <Calendar size={13} color="#64748B" />
             <span>Today: {todayStr}</span>
-            <Calendar size={13} />
-          </button>
-          <button className="btn-title-download" title="Export live inventory as CSV" onClick={handleExportCsv} aria-label="Export CSV">
-            <Download size={13} />
+          </div>
+
+          <button 
+            onClick={handleExportCsv}
+            title="Export live inventory as CSV"
+            aria-label="Export CSV"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '36px',
+              height: '36px',
+              background: '#4F46E5',
+              border: 'none',
+              borderRadius: '10px',
+              color: '#FFFFFF',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
+              transition: 'background 0.2s'
+            }}
+          >
+            <Download size={14} />
           </button>
         </div>
       </div>
 
-      {/* 4 Hero KPI Cards — Exact Dastone Forensic Specification */}
-      <StatsCards stats={stats} totalSurveys={normalized.length} onNavigate={onNavigate} />
+      {/* 4 Hero KPI Cards — Exact Panel 1 Specifications (Active Vendors, Pending Leads, Total Clicks, Active Projects) */}
+      <StatsCards
+        stats={stats}
+        analyticsData={analyticsData}
+        totalSurveys={normalized.length}
+        onNavigate={onNavigate}
+      />
 
-      {/* Main Charts Row: Audience Overview (8 col) + Sessions Device (4 col) */}
+      {/* Main Charts Row: Performance Overview (8 col) + Vendor Distribution (4 col) */}
       <ApitoolAnalytics data={analyticsData} surveys={surveys} />
 
       {/* Secondary Row: Open Quota Meter + Sessions By Channel */}
-      <div className="dastone-secondary-grid">
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+        gap: '20px',
+        marginBottom: '24px'
+      }}>
         {/* Widget 1: Real Open Quota Metrics */}
-        <div className="card report-card secondary-grid-card">
-          <div className="card-body" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <span className="pulse-dot" />
-              <span style={{ fontSize: '12px', color: '#8997bd', fontWeight: 500 }}>Needed Completes</span>
-            </div>
+        <div style={{
+          background: '#FFFFFF',
+          borderRadius: '16px',
+          border: '1px solid #E5E7EB',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+          padding: '20px 24px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
+            <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 600 }}>Needed Completes</span>
+          </div>
 
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
-              <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins, sans-serif', lineHeight: 1 }}>
-                <AnimatedCounter value={totalCompletesNeeded} duration={1400} />
-              </h2>
-              <span style={{ fontSize: '13px', color: '#16a34a', fontWeight: 600 }}>Interviews Needed</span>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
+            <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#0F172A', fontFamily: 'Inter, sans-serif', lineHeight: 1, margin: 0 }}>
+              <AnimatedCounter value={totalCompletesNeeded} duration={1400} />
+            </h2>
+            <span style={{ fontSize: '13px', color: '#10B981', fontWeight: 600 }}>Interviews Needed</span>
+          </div>
 
-            <p style={{ margin: '8px 0 6px 0', fontSize: '11.5px', color: '#8997bd', lineHeight: 1.5 }}>
-              Open quota across <strong style={{ color: '#1761fd' }}>{normalized.length}</strong> live surveys
-              · <strong style={{ color: '#16a34a' }}>{quotaFillPct}%</strong> filled
-              of {totalRequired.toLocaleString()} total target
-            </p>
+          <p style={{ margin: '10px 0 8px 0', fontSize: '12px', color: '#64748B', lineHeight: 1.5 }}>
+            Open quota across <strong style={{ color: '#4F46E5' }}>{normalized.length}</strong> live surveys
+            · <strong style={{ color: '#10B981' }}>{quotaFillPct}%</strong> filled
+            of {totalRequired.toLocaleString()} total target
+          </p>
 
-            {/* Quota fill progress bar */}
-            <div style={{ height: '5px', background: '#f1f5fa', borderRadius: '9999px', marginBottom: '10px', overflow: 'hidden' }}>
-              <div style={{ width: `${quotaFillPct}%`, height: '100%', background: '#1761fd', borderRadius: '9999px', transition: 'width 1s ease' }} />
-            </div>
+          {/* Quota fill progress bar */}
+          <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '9999px', marginBottom: '14px', overflow: 'hidden' }}>
+            <div style={{ width: `${quotaFillPct}%`, height: '100%', background: '#4F46E5', borderRadius: '9999px', transition: 'width 1s ease' }} />
+          </div>
 
-            {/* CPI Distribution Histogram — Real from live surveys */}
-            <div style={{ marginBottom: '4px' }}>
-              <span style={{ fontSize: '10px', color: '#8997bd', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Survey Rates (CPI Distribution)
-              </span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '42px' }}>
-              {cpiHistogram.map((val, i) => {
-                const isMax = val === Math.max(...cpiHistogram);
-                const labels = ['<$2', '$2-3.5', '$3.5-5', '$5-7', '$7-9', '≥$9'];
-                return (
-                  <div
-                    key={i}
-                    title={`${labels[i]} CPI`}
-                    style={{
-                      flex: 1,
-                      height: `${Math.max(val, 8)}%`,
-                      background: isMax ? '#1761fd' : 'rgba(23, 97, 253, 0.25)',
-                      borderRadius: '3px 3px 0 0',
-                      transition: 'height 0.7s cubic-bezier(0.4, 0, 0.2, 1)',
-                      cursor: 'default'
-                    }}
-                  />
-                );
-              })}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3px', fontSize: '9px', color: '#b0bac9' }}>
-              <span>&lt;$2</span>
-              <span>$3.5</span>
-              <span>$5</span>
-              <span>$7</span>
-              <span>$9</span>
-              <span>$9+</span>
-            </div>
+          {/* CPI Distribution Histogram — Real from live surveys */}
+          <div style={{ marginBottom: '6px' }}>
+            <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Survey Rates (CPI Distribution)
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '46px' }}>
+            {cpiHistogram.map((val, i) => {
+              const isMax = val === Math.max(...cpiHistogram);
+              const labels = ['<$2', '$2-3.5', '$3.5-5', '$5-7', '$7-9', '≥$9'];
+              return (
+                <div
+                  key={i}
+                  title={`${labels[i]} CPI`}
+                  style={{
+                    flex: 1,
+                    height: `${Math.max(val, 8)}%`,
+                    background: isMax ? '#4F46E5' : 'rgba(79, 70, 229, 0.22)',
+                    borderRadius: '4px 4px 0 0',
+                    transition: 'height 0.7s cubic-bezier(0.4, 0, 0.2, 1)',
+                    cursor: 'default'
+                  }}
+                />
+              );
+            })}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '10px', color: '#94A3B8' }}>
+            <span>&lt;$2</span>
+            <span>$3.5</span>
+            <span>$5</span>
+            <span>$7</span>
+            <span>$9</span>
+            <span>$9+</span>
           </div>
         </div>
 
         {/* Widget 2: Sessions By Channel — Real from live survey clients */}
-        <div className="card report-card secondary-grid-card">
-          <div className="card-body" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <h4 className="card-title">
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Globe size={14} color="#1761fd" />
-                  Surveys by Client
-                </span>
-              </h4>
-              <span style={{ fontSize: '11px', color: '#8997bd' }}>
-                {normalized.length} Surveys
-              </span>
-            </div>
-
-            {/* Segmented Progress Bar */}
-            <div style={{ display: 'flex', height: '8px', borderRadius: '9999px', overflow: 'hidden', marginBottom: '14px', background: '#f1f5fa' }}>
-              {channels.map((c, i) => (
-                <div
-                  key={i}
-                  style={{ width: `${c.pct}%`, background: c.color, transition: 'width 0.8s ease' }}
-                  title={`${c.name}: ${c.pct}%`}
-                />
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
-              {channels.map((c, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#303e67' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: c.color, flexShrink: 0 }} />
-                    {c.name}
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '11px', color: '#8997bd' }}>{c.count} surveys</span>
-                    <span style={{ fontWeight: 700, color: '#1d2c48', minWidth: '38px', textAlign: 'right' }}>{c.pct}%</span>
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {normalized.length > 0 && (
-              <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #f1f5fa', fontSize: '11px', color: '#8997bd', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <span>
-                  <strong style={{ color: '#1d2c48' }}>
-                    {normalized.filter(s => (s.studyType || '').toLowerCase().includes('b2b')).length}
-                  </strong> B2B
-                </span>
-                <span>
-                  <strong style={{ color: '#1d2c48' }}>
-                    {normalized.filter(s => !(s.studyType || '').toLowerCase().includes('b2b')).length}
-                  </strong> Consumer
-                </span>
-                <span>
-                  <strong style={{ color: '#1d2c48' }}>
-                    {new Set(normalized.map(s => s.country).filter(Boolean)).size}
-                  </strong> Countries
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Activity Timeline — Real computed insights from live survey inventory */}
-      <div className="card report-card" style={{ marginBottom: '24px' }}>
-        <div className="card-body" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h4 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Activity size={16} color="#1761fd" /> Recent Activity
-            </h4>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#16a34a', fontWeight: 600 }}>
-              <span className="pulse-dot" style={{ width: '6px', height: '6px', marginRight: '2px' }} />
-              Live
+        <div style={{
+          background: '#FFFFFF',
+          borderRadius: '16px',
+          border: '1px solid #E5E7EB',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+          padding: '20px 24px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <h5 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Globe size={16} color="#4F46E5" />
+              Surveys by Client
+            </h5>
+            <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
+              {normalized.length} Surveys
             </span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', borderLeft: '2px solid #e3ebf6', paddingLeft: '16px', marginLeft: '8px' }}>
-            {activities.map((act, idx) => (
-              <div key={idx} style={{ position: 'relative' }}>
-                <span style={{
-                  position: 'absolute',
-                  left: '-21px',
-                  top: '3px',
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  background: act.color,
-                  border: '2px solid #ffffff'
-                }} />
-                <p style={{ margin: 0, fontSize: '13px', color: '#303e67', lineHeight: 1.45, fontWeight: 500 }}>
-                  {act.text}
-                </p>
-                <span style={{ fontSize: '11px', color: '#8997bd', display: 'block', marginTop: '3px' }}>
-                  {act.time}
+          {/* Segmented Progress Bar */}
+          <div style={{ display: 'flex', height: '8px', borderRadius: '9999px', overflow: 'hidden', marginBottom: '16px', background: '#F1F5F9' }}>
+            {channels.map((c, i) => (
+              <div
+                key={i}
+                style={{ width: `${c.pct}%`, background: c.color, transition: 'width 0.8s ease' }}
+                title={`${c.name}: ${c.pct}%`}
+              />
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {channels.map((c, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#334155', fontWeight: 500 }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: c.color, flexShrink: 0 }} />
+                  {c.name}
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '11px', color: '#64748B' }}>{c.count} surveys</span>
+                  <span style={{ fontWeight: 700, color: '#0F172A', minWidth: '40px', textAlign: 'right' }}>{c.pct}%</span>
                 </span>
               </div>
             ))}
           </div>
+
+          {normalized.length > 0 && (
+            <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #F1F5F9', fontSize: '11.5px', color: '#64748B', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+              <span>
+                <strong style={{ color: '#0F172A' }}>
+                  {normalized.filter(s => (s.studyType || '').toLowerCase().includes('b2b')).length}
+                </strong> B2B Panels
+              </span>
+              <span>
+                <strong style={{ color: '#0F172A' }}>
+                  {normalized.filter(s => !(s.studyType || '').toLowerCase().includes('b2b')).length}
+                </strong> Consumer
+              </span>
+              <span>
+                <strong style={{ color: '#0F172A' }}>
+                  {new Set(normalized.map(s => s.country).filter(Boolean)).size}
+                </strong> Countries
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Activity Timeline — Real computed insights from live survey inventory */}
+      <div style={{
+        background: '#FFFFFF',
+        borderRadius: '16px',
+        border: '1px solid #E5E7EB',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+        padding: '20px 24px',
+        marginBottom: '24px'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h5 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Activity size={16} color="#4F46E5" /> Recent Operational Activity
+          </h5>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#10B981', fontWeight: 600, background: '#DCFCE7', padding: '3px 8px', borderRadius: '10px' }}>
+            <span style={{ width: '6px', height: '6px', background: '#16A34A', borderRadius: '50%', display: 'inline-block' }} />
+            Live Pipeline
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', borderLeft: '2px solid #EEF2F6', paddingLeft: '16px', marginLeft: '8px' }}>
+          {activities.map((act, idx) => (
+            <div key={idx} style={{ position: 'relative' }}>
+              <span style={{
+                position: 'absolute',
+                left: '-21px',
+                top: '4px',
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: act.color,
+                border: '2px solid #FFFFFF',
+                boxShadow: `0 0 0 2px ${act.color}30`
+              }} />
+              <p style={{ margin: 0, fontSize: '13px', color: '#1E293B', lineHeight: 1.5, fontWeight: 500 }}>
+                {act.text}
+              </p>
+              <span style={{ fontSize: '11px', color: '#64748B', display: 'block', marginTop: '3px' }}>
+                {act.time}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

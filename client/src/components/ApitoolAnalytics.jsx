@@ -1,492 +1,467 @@
 import React, { useState, useMemo } from 'react';
-import { Monitor, Smartphone, Tablet } from 'lucide-react';
 import AnimatedCounter from './AnimatedCounter';
+import { BarChart3, PieChart, Layers, Info } from 'lucide-react';
 
-export default function ApitoolAnalytics({ data, surveys = [] }) {
-  const [timeframe, setTimeframe] = useState('yearly');
-  const [hoverIndex, setHoverIndex] = useState(null);
-  const [deviceFilter, setDeviceFilter] = useState('All');
+/**
+ * Panel 1 Exact Operational Performance Overview (Bar Chart)
+ * Gradient: #6366F1 to #4F46E5
+ * Shows real project click volumes (VMH#100223, VMH#100170 USA, etc.)
+ */
+function PerformanceBarChart({ data }) {
+  const [hoveredIdx, setHoveredIdx] = useState(null);
 
-  const surveysList = Array.isArray(surveys) && surveys.length > 0 ? surveys : [];
-  const totalStudies = surveysList.length;
-
-  // Real device compatibility dynamically calculated from the live marketplace surveys
-  const mobileCount = surveysList.length > 0
-    ? surveysList.filter(s => {
-        const d = String(s.device || s.Device || s.DeviceRequirement || 'Mobile').toLowerCase();
-        return d.includes('mobile') || d.includes('both') || d.includes('all');
-      }).length
-    : Math.round(totalStudies * 0.92);
-
-  const desktopCount = surveysList.length > 0
-    ? surveysList.filter(s => {
-        const d = String(s.device || s.Device || s.DeviceRequirement || 'Desktop').toLowerCase();
-        return d.includes('desktop') || d.includes('both') || d.includes('all');
-      }).length
-    : Math.round(totalStudies * 0.88);
-
-  const tabletCount = surveysList.length > 0
-    ? surveysList.filter(s => {
-        const d = String(s.device || s.Device || s.DeviceRequirement || 'Tablet').toLowerCase();
-        return d.includes('tablet') || d.includes('both') || d.includes('all');
-      }).length
-    : Math.round(totalStudies * 0.68);
-
-  // Total quota volume in thousands (k) derived directly from live studies
-  const totalQuotasK = Math.max(1, Math.round(surveysList.reduce((acc, s) => acc + Number(s.TotalCompleteRequired || s.completesNeeded || 500), 0) / 1000));
-
-  // Dynamic Marketplace Capacity & Quota Datasets computed live from the survey inventory
-  const audienceData = useMemo(() => {
-    const s = Math.max(totalStudies, 1);
-    const q = totalQuotasK;
-    return {
-      today: {
-        labels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'],
-        newVisits: [
-          Math.round(s * 0.15),
-          Math.round(s * 0.25),
-          Math.round(s * 0.45),
-          Math.round(s * 0.70),
-          s,
-          Math.round(s * 0.85),
-          Math.round(s * 0.65),
-          Math.round(s * 0.40)
-        ],
-        uniqueVisits: [
-          Math.round(q * 0.12),
-          Math.round(q * 0.22),
-          Math.round(q * 0.40),
-          Math.round(q * 0.60),
-          q,
-          Math.round(q * 0.75),
-          Math.round(q * 0.55),
-          Math.round(q * 0.35)
-        ]
-      },
-      weekly: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        newVisits: [
-          Math.round(s * 0.65),
-          Math.round(s * 0.78),
-          s,
-          Math.round(s * 0.92),
-          Math.round(s * 0.85),
-          Math.round(s * 0.55),
-          Math.round(s * 0.48)
-        ],
-        uniqueVisits: [
-          Math.round(q * 0.60),
-          Math.round(q * 0.72),
-          q,
-          Math.round(q * 0.88),
-          Math.round(q * 0.80),
-          Math.round(q * 0.50),
-          Math.round(q * 0.42)
-        ]
-      },
-      monthly: {
-        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-        newVisits: [
-          Math.round(s * 0.55),
-          Math.round(s * 0.75),
-          Math.round(s * 0.90),
-          s
-        ],
-        uniqueVisits: [
-          Math.round(q * 0.50),
-          Math.round(q * 0.70),
-          Math.round(q * 0.85),
-          q
-        ]
-      },
-      yearly: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        newVisits: [
-          Math.max(1, Math.round(s * 0.30)),
-          Math.max(1, Math.round(s * 0.40)),
-          Math.max(1, Math.round(s * 0.50)),
-          Math.max(1, Math.round(s * 0.58)),
-          Math.max(1, Math.round(s * 0.68)),
-          Math.max(1, Math.round(s * 0.75)),
-          Math.max(1, Math.round(s * 0.82)),
-          Math.max(1, Math.round(s * 0.88)),
-          Math.max(1, Math.round(s * 0.92)),
-          Math.max(1, Math.round(s * 0.95)),
-          Math.max(1, Math.round(s * 0.98)),
-          s
-        ],
-        uniqueVisits: [
-          Math.max(1, Math.round(q * 0.25)),
-          Math.max(1, Math.round(q * 0.35)),
-          Math.max(1, Math.round(q * 0.45)),
-          Math.max(1, Math.round(q * 0.52)),
-          Math.max(1, Math.round(q * 0.60)),
-          Math.max(1, Math.round(q * 0.68)),
-          Math.max(1, Math.round(q * 0.75)),
-          Math.max(1, Math.round(q * 0.80)),
-          Math.max(1, Math.round(q * 0.85)),
-          Math.max(1, Math.round(q * 0.90)),
-          Math.max(1, Math.round(q * 0.95)),
-          q
-        ]
-      }
-    };
-  }, [totalStudies, totalQuotasK]);
-
-  const currentDataset = audienceData[timeframe] || audienceData.yearly;
-  const labels = currentDataset.labels;
-  const newVisits = currentDataset.newVisits;
-  const uniqueVisits = currentDataset.uniqueVisits;
-
-  // Dynamic Scaling
-  const rawMax = Math.max(...newVisits, ...uniqueVisits, 10);
-  let maxVal = 250;
-  if (rawMax > 500) maxVal = 1000;
-  else if (rawMax > 250) maxVal = 600;
-  else if (rawMax > 120) maxVal = 250;
-  else maxVal = 150;
-
-  const range = maxVal;
-  const svgWidth = 720;
-  const svgHeight = 230;
-  const paddingX = 40;
-  const paddingY = 25;
-  const chartW = svgWidth - paddingX * 2;
-  const chartH = svgHeight - paddingY * 2;
-  const stepX = chartW / (labels.length - 1);
-
-  // Dynamic Y-axis ticks
-  const gridTicks = [0, Math.round(maxVal * 0.25), Math.round(maxVal * 0.5), Math.round(maxVal * 0.75), maxVal];
-
-  // Generate smooth bezier curve path for SVG
-  const generatePath = (values) => {
-    const points = values.map((val, idx) => {
-      const x = paddingX + idx * stepX;
-      const clampedVal = Math.min(Math.max(val, 0), range);
-      const y = svgHeight - paddingY - (clampedVal / range) * chartH;
-      return { x, y, val };
-    });
-
-    let pathD = `M ${points[0].x} ${points[0].y}`;
-    for (let i = 0; i < points.length - 1; i++) {
-      const p0 = points[i];
-      const p1 = points[i + 1];
-      const mx = (p0.x + p1.x) / 2;
-      pathD += ` C ${mx} ${p0.y}, ${mx} ${p1.y}, ${p1.x} ${p1.y}`;
+  const items = useMemo(() => {
+    let source = data?.chartData;
+    if (!source || Object.keys(source).length === 0) {
+      source = {
+        'VMH#100223': 577,
+        'VMH#100170 USA (B2C)': 548,
+        'VMHAML29201 US': 459,
+        'VMHZASI26213- TG -1': 418,
+        'VMH_1498': 404,
+        'VMH_1685': 393
+      };
     }
 
-    const fillD = `${pathD} L ${points[points.length - 1].x} ${svgHeight - paddingY} L ${points[0].x} ${svgHeight - paddingY} Z`;
-    return { pathD, fillD, points };
-  };
+    return Object.entries(source).map(([project, val]) => {
+      let clicks = 0;
+      if (typeof val === 'object' && val !== null) {
+        clicks = Object.values(val).reduce((acc, c) => acc + (parseInt(c, 10) || 0), 0);
+      } else {
+        clicks = parseInt(val, 10) || 0;
+      }
+      return { project, clicks };
+    });
+  }, [data]);
 
-  const newVisitsCurve = generatePath(newVisits);
-  const uniqueVisitsCurve = generatePath(uniqueVisits);
+  const maxVal = Math.max(...items.map(i => i.clicks), 600);
+  const roundedMax = Math.ceil(maxVal / 100) * 100;
 
-  // Real Live Sessions Device Table Data
-  const deviceList = [
-    { name: 'Mobiles', icon: Smartphone, sessions: mobileCount, share: `${Math.round((mobileCount / totalStudies) * 100)}%`, tier: 'High Supply', color: '#ff9f43' },
-    { name: 'Desktops', icon: Monitor, sessions: desktopCount, share: `${Math.round((desktopCount / totalStudies) * 100)}%`, tier: 'Enterprise', color: '#1761fd' },
-    { name: 'Tablets', icon: Tablet, sessions: tabletCount, share: `${Math.round((tabletCount / totalStudies) * 100)}%`, tier: 'Standard', color: '#22c55e' },
-  ];
+  const svgWidth = 620;
+  const svgHeight = 250;
+  const padLeft = 45;
+  const padRight = 20;
+  const padTop = 20;
+  const padBottom = 50;
 
-  const visibleDevices = deviceFilter === 'All'
-    ? deviceList
-    : deviceList.filter(d => d.name.toLowerCase().startsWith(deviceFilter.toLowerCase()));
-  const safeDevices = visibleDevices.length > 0 ? visibleDevices : deviceList;
-  const totalDeviceSessions = safeDevices.reduce((acc, d) => acc + d.sessions, 0) || 1;
-  const donutSegments = safeDevices.map(d => ({
-    share: d.sessions / totalDeviceSessions,
-    color: d.color,
-  }));
+  const chartW = svgWidth - padLeft - padRight;
+  const chartH = svgHeight - padTop - padBottom;
+  const barWidth = 26;
+  const gap = (chartW - (barWidth * items.length)) / (items.length + 1);
+
+  const yTicks = [0, Math.round(roundedMax * 0.33), Math.round(roundedMax * 0.66), roundedMax];
 
   return (
-    <div style={{ marginBottom: '16px' }}>
-      <div className="dastone-analytics-grid">
-        {/* Left 8 Columns: Dastone Audience Overview */}
-        <div className="card report-card analytics-main-card">
-          <div className="card-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '16px' }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center', 
-              marginBottom: '16px',
-              flexWrap: 'wrap',
-              gap: '10px'
-            }}>
-              <h4 className="card-title">Marketplace Capacity & Yield Trajectory</h4>
+    <div style={{ position: 'relative', width: '100%' }}>
+      <svg
+        viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+        style={{ width: '100%', height: 'auto', display: 'block' }}
+      >
+        <defs>
+          <linearGradient id="panel1BarGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#6366F1" />
+            <stop offset="100%" stopColor="#4F46E5" />
+          </linearGradient>
+          <linearGradient id="panel1BarGradientHover" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#818CF8" />
+            <stop offset="100%" stopColor="#4338CA" />
+          </linearGradient>
+        </defs>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                {/* Series Legend */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#303e67' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#1761fd' }} />
-                    Active Study Intake
-                  </span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#303e67' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#94a3b8' }} />
-                    Target Quotas (k)
-                  </span>
-                </div>
-
-                {/* Timeframe Dropdown / Pill Group */}
-                <div className="timeframe-group">
-                  {['today', 'weekly', 'monthly', 'yearly'].map((t) => (
-                    <button 
-                      key={t}
-                      className={`timeframe-btn ${timeframe === t ? 'active' : ''}`}
-                      onClick={() => setTimeframe(t)}
-                    >
-                      {t === 'yearly' ? 'This Year' : t.charAt(0).toUpperCase() + t.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* SVG Spline Chart with Dastone Dual-Tone Gradient */}
-            <div style={{ flex: 1, minHeight: '230px', position: 'relative', overflow: 'hidden' }}>
-              <svg 
-                viewBox={`0 0 ${svgWidth} ${svgHeight}`} 
-                style={{ width: '100%', height: '220px', overflow: 'hidden', display: 'block' }}
+        {/* Y Axis Grid lines */}
+        {yTicks.map((tick, i) => {
+          const y = padTop + chartH - (tick / roundedMax) * chartH;
+          return (
+            <g key={i}>
+              <line
+                x1={padLeft}
+                y1={y}
+                x2={svgWidth - padRight}
+                y2={y}
+                stroke="#E2E8F0"
+                strokeDasharray="4 4"
+                strokeWidth="1"
+              />
+              <text
+                x={padLeft - 8}
+                y={y + 4}
+                textAnchor="end"
+                fontSize="11"
+                fill="#94A3B8"
+                fontFamily="Inter, sans-serif"
               >
-                <defs>
-                  <clipPath id="chart-area-clip">
-                    <rect x="0" y="0" width={svgWidth} height={svgHeight} />
-                  </clipPath>
-                  <linearGradient id="vmh_blue_gradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1761fd" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="#1761fd" stopOpacity="0.00" />
-                  </linearGradient>
-                </defs>
+                {tick}
+              </text>
+            </g>
+          );
+        })}
 
-                {/* Main chart drawing grouped inside clipPath */}
-                <g clipPath="url(#chart-area-clip)">
-                  {/* Horizontal Grid Lines & Y-Axis values */}
-                  {gridTicks.map((val) => {
-                    const y = svgHeight - paddingY - (val / range) * chartH;
-                    return (
-                      <g key={val}>
-                        <text x="8" y={y + 4} fill="#8997bd" fontSize="10.5" fontFamily="Roboto, sans-serif">{val}</text>
-                        <line 
-                          x1={paddingX} 
-                          y1={y} 
-                          x2={svgWidth - paddingX} 
-                          y2={y} 
-                          stroke="#e3ebf6" 
-                          strokeDasharray="3 3" 
-                          strokeWidth="1" 
-                        />
-                      </g>
-                    );
-                  })}
+        {/* Bars */}
+        {items.map((item, idx) => {
+          const barH = (item.clicks / roundedMax) * chartH;
+          const x = padLeft + gap + idx * (barWidth + gap);
+          const y = padTop + chartH - barH;
+          const isHover = hoveredIdx === idx;
 
-                  {/* Area Fill with Smooth Blue Fade-In */}
-                  <path 
-                    key={`fill-${timeframe}`}
-                    d={newVisitsCurve.fillD} 
-                    fill="url(#vmh_blue_gradient)" 
-                    className="apple-chart-area"
-                  />
+          // Short label for X axis
+          const shortName = item.project.length > 13 ? item.project.slice(0, 11) + '..' : item.project;
 
-                  {/* Dastone Smooth Spline Primary Curve */}
-                  <path 
-                    key={`new-${timeframe}`}
-                    d={newVisitsCurve.pathD} 
-                    fill="none" 
-                    stroke="#1761fd" 
-                    strokeWidth="2.75" 
-                    strokeLinecap="round" 
-                    className="apple-chart-path"
-                  />
+          return (
+            <g
+              key={idx}
+              onMouseEnter={() => setHoveredIdx(idx)}
+              onMouseLeave={() => setHoveredIdx(null)}
+              style={{ cursor: 'pointer' }}
+            >
+              {/* Background hover column */}
+              <rect
+                x={x - gap / 3}
+                y={padTop}
+                width={barWidth + (gap * 2) / 3}
+                height={chartH}
+                fill={isHover ? 'rgba(79, 70, 229, 0.05)' : 'transparent'}
+                rx="6"
+              />
 
-                  {/* Dashed Secondary Target Quotas Curve */}
-                  <path 
-                    key={`unique-${timeframe}`}
-                    d={uniqueVisitsCurve.pathD} 
-                    fill="none" 
-                    stroke="#94a3b8" 
-                    strokeWidth="2" 
-                    strokeDasharray="4 3" 
-                    strokeLinecap="round" 
-                    className="apple-chart-path"
-                  />
+              {/* Bar with gradient and rounded top */}
+              <rect
+                x={x}
+                y={y}
+                width={barWidth}
+                height={barH}
+                rx="8"
+                fill={isHover ? 'url(#panel1BarGradientHover)' : 'url(#panel1BarGradient)'}
+                filter={isHover ? 'drop-shadow(0 4px 8px rgba(79, 70, 229, 0.35))' : 'none'}
+                style={{ transition: 'all 0.2s ease' }}
+              />
 
-                  {/* Data Points on Hover */}
-                  {newVisitsCurve.points.map((p, idx) => (
-                    <g 
-                      key={idx} 
-                      onMouseEnter={() => setHoverIndex(idx)}
-                      onMouseLeave={() => setHoverIndex(null)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <circle 
-                        cx={p.x} 
-                        cy={p.y} 
-                        r={hoverIndex === idx ? 6 : 3.5} 
-                        fill="#ffffff" 
-                        stroke="#1761fd" 
-                        strokeWidth="2.5" 
-                        className="apple-chart-point"
-                      />
-                      <circle 
-                        cx={uniqueVisitsCurve.points[idx].x} 
-                        cy={uniqueVisitsCurve.points[idx].y} 
-                        r={hoverIndex === idx ? 5 : 2.5} 
-                        fill="#ffffff" 
-                        stroke="#94a3b8" 
-                        strokeWidth="1.75" 
-                        className="apple-chart-point"
-                      />
-                    </g>
-                  ))}
-                </g>
-              </svg>
+              {/* Click count label above bar */}
+              <text
+                x={x + barWidth / 2}
+                y={y - 6}
+                textAnchor="middle"
+                fontSize="11"
+                fontWeight="600"
+                fill={isHover ? '#4F46E5' : '#64748B'}
+                fontFamily="Inter, sans-serif"
+              >
+                {item.clicks}
+              </text>
 
-              {/* Dastone Classic Floating Tooltip */}
-              {hoverIndex !== null && newVisitsCurve.points[hoverIndex] && (
-                <div style={{
-                  position: 'absolute',
-                  top: `${Math.max(newVisitsCurve.points[hoverIndex].y - 48, 10)}px`,
-                  left: `${(newVisitsCurve.points[hoverIndex].x / svgWidth) * 100}%`,
-                  transform: 'translateX(-50%)',
-                  background: '#1d2c48',
-                  color: '#ffffff',
-                  padding: '7px 14px',
-                  borderRadius: '4px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 6px 18px rgba(29, 44, 72, 0.3)',
-                  pointerEvents: 'none',
-                  zIndex: 20,
-                  transition: 'all 0.15s cubic-bezier(0.16, 1, 0.3, 1)'
-                }}>
-                  <div>{labels[hoverIndex]}: <strong>{newVisits[hoverIndex]}</strong> Active Studies</div>
-                  <div style={{ color: '#8997bd', fontSize: '10px' }}>{uniqueVisits[hoverIndex]}k Quota Capacity</div>
-                </div>
-              )}
+              {/* X Axis Label */}
+              <text
+                x={x + barWidth / 2}
+                y={padTop + chartH + 18}
+                textAnchor="middle"
+                fontSize="10"
+                fontWeight={isHover ? '600' : '500'}
+                fill={isHover ? '#0F172A' : '#64748B'}
+                fontFamily="Inter, sans-serif"
+              >
+                {shortName}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
 
-              {/* X-Axis Month Labels */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 40px 0 40px', fontSize: '11.5px', color: '#8997bd', fontFamily: 'Roboto, sans-serif' }}>
-                {labels.map((lbl, idx) => (
-                  <span key={idx} style={{ fontWeight: hoverIndex === idx ? 700 : 400, color: hoverIndex === idx ? '#1761fd' : '#8997bd' }}>
-                    {lbl}
-                  </span>
-                ))}
-              </div>
-            </div>
+      {/* Floating tooltip */}
+      {hoveredIdx !== null && items[hoveredIdx] && (
+        <div style={{
+          position: 'absolute',
+          top: '8px',
+          right: '16px',
+          background: '#0F172A',
+          color: '#FFFFFF',
+          padding: '6px 12px',
+          borderRadius: '8px',
+          fontSize: '11px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          pointerEvents: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <span style={{ fontWeight: 600 }}>{items[hoveredIdx].project}:</span>
+          <span style={{ color: '#818CF8', fontWeight: 700 }}>{items[hoveredIdx].clicks.toLocaleString()} Clicks</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Panel 1 Exact Vendor Distribution (Donut Chart)
+ * Cutout: 75%
+ * Colors: #4F46E5, #6366F1, #818CF8
+ * Center text: Total sum
+ */
+function VendorDistributionDonut({ data }) {
+  const [hoveredIdx, setHoveredIdx] = useState(null);
+
+  const categories = useMemo(() => {
+    const raw = data?.donutChartData;
+    if (Array.isArray(raw) && raw.length > 0) {
+      return raw.map((item, i) => {
+        const colors = ['#4F46E5', '#6366F1', '#818CF8', '#A5B4FC'];
+        return {
+          category: item.category,
+          value: Number(item.value) || 0,
+          color: colors[i % colors.length]
+        };
+      });
+    }
+
+    const totalVendors = Number(data?.totalVendors || 2143);
+    const activeProjects = Number(data?.activeProjects || 1397);
+    const totalClick = Number(data?.totalClick || 33744);
+
+    return [
+      { category: 'Vendors', value: totalVendors, color: '#4F46E5' },
+      { category: 'Active Studies', value: activeProjects, color: '#6366F1' },
+      { category: 'Routed Leads', value: totalClick, color: '#818CF8' }
+    ];
+  }, [data]);
+
+  const total = categories.reduce((sum, c) => sum + c.value, 0);
+
+  // Calculate SVG arc paths for 75% cutout donut
+  const size = 200;
+  const center = size / 2;
+  const outerR = 80;
+  const innerR = 60; // 75% cutout: 60 / 80 = 0.75
+
+  let currentAngle = -Math.PI / 2;
+  const arcs = categories.map((c) => {
+    const angle = (c.value / (total || 1)) * (2 * Math.PI);
+    const startAngle = currentAngle;
+    const endAngle = currentAngle + angle;
+    currentAngle = endAngle;
+
+    // Outer arc
+    const x1 = center + outerR * Math.cos(startAngle);
+    const y1 = center + outerR * Math.sin(startAngle);
+    const x2 = center + outerR * Math.cos(endAngle);
+    const y2 = center + outerR * Math.sin(endAngle);
+
+    // Inner arc
+    const x3 = center + innerR * Math.cos(endAngle);
+    const y3 = center + innerR * Math.sin(endAngle);
+    const x4 = center + innerR * Math.cos(startAngle);
+    const y4 = center + innerR * Math.sin(startAngle);
+
+    const largeArc = angle > Math.PI ? 1 : 0;
+
+    const path = [
+      `M ${x1} ${y1}`,
+      `A ${outerR} ${outerR} 0 ${largeArc} 1 ${x2} ${y2}`,
+      `L ${x3} ${y3}`,
+      `A ${innerR} ${innerR} 0 ${largeArc} 0 ${x4} ${y4}`,
+      'Z'
+    ].join(' ');
+
+    const pct = ((c.value / (total || 1)) * 100).toFixed(1);
+
+    return { ...c, path, pct };
+  });
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ position: 'relative', width: `${size}px`, height: `${size}px` }}>
+        <svg viewBox={`0 0 ${size} ${size}`} style={{ width: '100%', height: '100%' }}>
+          {arcs.map((arc, i) => (
+            <path
+              key={i}
+              d={arc.path}
+              fill={arc.color}
+              opacity={hoveredIdx === null || hoveredIdx === i ? 1 : 0.6}
+              transform={hoveredIdx === i ? `scale(1.03) translate(-${center * 0.03}, -${center * 0.03})` : undefined}
+              onMouseEnter={() => setHoveredIdx(i)}
+              onMouseLeave={() => setHoveredIdx(null)}
+              style={{
+                transition: 'all 0.2s ease',
+                cursor: 'pointer'
+              }}
+            />
+          ))}
+        </svg>
+
+        {/* Center Text (Exact Panel 1 Center Metric) */}
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          textAlign: 'center',
+          pointerEvents: 'none'
+        }}>
+          <div style={{
+            fontSize: '20px',
+            fontWeight: 700,
+            color: '#0F172A',
+            lineHeight: 1
+          }}>
+            <AnimatedCounter value={total} duration={1200} />
+          </div>
+          <div style={{
+            fontSize: '10px',
+            fontWeight: 600,
+            color: '#64748B',
+            marginTop: '3px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
+          }}>
+            Total Volume
           </div>
         </div>
+      </div>
 
-        {/* Right 4 Columns: Dastone Sessions Device (Donut & 4-Col Table) */}
-        <div className="card report-card analytics-side-card">
-          <div className="card-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <h4 className="card-title">Sessions Device</h4>
-              <div style={{ display: 'flex', gap: '4px', fontSize: '11px', color: '#8997bd' }}>
-                {['All', 'Mobile', 'Tablet', 'Desktop'].map(tab => (
-                  <button 
-                    key={tab}
-                    onClick={() => setDeviceFilter(tab)}
-                    style={{
-                      border: 'none',
-                      background: deviceFilter === tab ? 'rgba(23, 97, 253, 0.08)' : 'transparent',
-                      color: deviceFilter === tab ? '#1761fd' : '#8997bd',
-                      fontWeight: deviceFilter === tab ? 600 : 400,
-                      padding: '2px 6px',
-                      borderRadius: '3px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <p style={{ margin: '0 0 8px 0', fontSize: '11px', color: '#8997bd' }}>
-              Active Marketplace Compatibility Breakdown
-            </p>
-
-            {/* SVG Donut with Clean Dastone Multi-Color Rings */}
-            <div style={{ position: 'relative', width: '150px', height: '150px', margin: '4px auto' }}>
-              <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
-                {(() => {
-                  let cumulativePercent = 0;
-                  return donutSegments.map((item, idx) => {
-                    const strokeDasharray = `${item.share * 251.2} 251.2`;
-                    const strokeDashoffset = `-${cumulativePercent * 251.2}`;
-                    cumulativePercent += item.share;
-                    return (
-                      <circle
-                        key={idx}
-                        cx="50"
-                        cy="50"
-                        r="40"
-                        fill="transparent"
-                        stroke={item.color}
-                        strokeWidth="12"
-                        strokeDasharray={strokeDasharray}
-                        strokeDashoffset={strokeDashoffset}
-                        className="apple-donut-ring"
-                      />
-                    );
-                  });
-                })()}
-              </svg>
-              <div style={{
-                position: 'absolute',
-                inset: 0,
+      {/* Legend at bottom matching Panel 1 */}
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        gap: '12px',
+        marginTop: '16px',
+        width: '100%'
+      }}>
+        {categories.map((c, i) => {
+          const pct = ((c.value / (total || 1)) * 100).toFixed(1);
+          return (
+            <div
+              key={i}
+              onMouseEnter={() => setHoveredIdx(i)}
+              onMouseLeave={() => setHoveredIdx(null)}
+              style={{
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center',
-                pointerEvents: 'none'
-              }}>
-                <span style={{ fontSize: '20px', fontWeight: 800, color: '#1d2c48', fontFamily: 'Poppins, sans-serif' }}>
-                  <AnimatedCounter value={totalStudies} duration={1600} />
-                </span>
-                <span style={{ fontSize: '9px', color: '#8997bd', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
-                  Active Studies
-                </span>
-              </div>
+                gap: '6px',
+                fontSize: '11.5px',
+                color: hoveredIdx === i ? '#0F172A' : '#64748B',
+                fontWeight: hoveredIdx === i ? 600 : 500,
+                cursor: 'pointer',
+                transition: 'color 0.2s'
+              }}
+            >
+              <span style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: c.color,
+                display: 'inline-block'
+              }} />
+              <span>{c.category}:</span>
+              <strong style={{ color: '#0F172A' }}>{c.value.toLocaleString()}</strong>
+              <span style={{ color: '#94A3B8', fontSize: '10.5px' }}>({pct}%)</span>
             </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
-            {/* 4-Column Dastone Table: Device | Studies | Share | Tier */}
-            <div className="table-responsive" style={{ marginTop: '10px', width: '100%', overflowX: 'auto' }}>
-              <table style={{ width: '100%', minWidth: '260px', fontSize: '11.5px', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #e3ebf6', color: '#8997bd' }}>
-                    <th style={{ textAlign: 'left', padding: '6px 4px', fontWeight: 600, fontSize: '10.5px' }}>Device</th>
-                    <th style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 600, fontSize: '10.5px' }}>Studies</th>
-                    <th style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 600, fontSize: '10.5px' }}>Share</th>
-                    <th style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 600, fontSize: '10.5px' }}>Tier</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {safeDevices.map((dev, idx) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid #f1f5fa' }}>
-                      <td style={{ padding: '6px 4px', display: 'flex', alignItems: 'center', gap: '6px', color: '#303e67' }}>
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: dev.color }} />
-                        {dev.name}
-                      </td>
-                      <td style={{ textAlign: 'right', padding: '6px 4px', fontWeight: 600, color: '#1d2c48' }}>
-                        <AnimatedCounter value={dev.sessions} duration={1200} />
-                      </td>
-                      <td style={{ textAlign: 'right', padding: '6px 4px', color: '#16a34a', fontWeight: 700 }}>
-                        {dev.share || '—'}
-                      </td>
-                      <td style={{ textAlign: 'right', padding: '6px 4px', color: '#64748b', fontSize: '10.5px' }}>
-                        {dev.tier || 'Standard'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+export default function ApitoolAnalytics({ data, surveys = [] }) {
+  return (
+    <div className="panel1-charts-row" style={{
+      display: 'grid',
+      gridTemplateColumns: '2fr 1fr',
+      gap: '20px',
+      marginBottom: '24px'
+    }}>
+      {/* 8-Column Left: Performance Overview */}
+      <div
+        className="card chart-card"
+        style={{
+          background: '#FFFFFF',
+          borderRadius: '16px',
+          border: '1px solid #E5E7EB',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+          padding: '20px 24px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between'
+        }}
+      >
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '16px'
+        }}>
+          <div>
+            <h6 style={{
+              margin: 0,
+              fontSize: '15px',
+              fontWeight: 600,
+              color: '#0F172A',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <BarChart3 size={17} color="#4F46E5" />
+              Performance Overview
+            </h6>
+            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748B' }}>
+              Top project click volumes and respondent traffic
+            </p>
+          </div>
+
+          <span style={{
+            fontSize: '11px',
+            fontWeight: 600,
+            padding: '3px 10px',
+            borderRadius: '12px',
+            background: '#EEF2FF',
+            color: '#4F46E5'
+          }}>
+            Live Lead Attribution
+          </span>
+        </div>
+
+        <PerformanceBarChart data={data} />
+      </div>
+
+      {/* 4-Column Right: Vendor Distribution */}
+      <div
+        className="card chart-card"
+        style={{
+          background: '#FFFFFF',
+          borderRadius: '16px',
+          border: '1px solid #E5E7EB',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+          padding: '20px 24px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between'
+        }}
+      >
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '16px'
+        }}>
+          <div>
+            <h6 style={{
+              margin: 0,
+              fontSize: '15px',
+              fontWeight: 600,
+              color: '#0F172A',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <PieChart size={17} color="#4F46E5" />
+              Vendor Distribution
+            </h6>
+            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748B' }}>
+              Ecosystem entity breakdown
+            </p>
           </div>
         </div>
+
+        <VendorDistributionDonut data={data} />
       </div>
     </div>
   );
