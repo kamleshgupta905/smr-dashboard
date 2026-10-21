@@ -61,7 +61,7 @@ export default function Sidebar({
       setAppsOpen(true);
     } else if (activeTab === 'reconciliation') {
       setReportsOpen(true);
-    } else if (['security', 'reference'].includes(activeTab)) {
+    } else if (['security'].includes(activeTab)) {
       setSecurityOpen(true);
     } else if (['developer-center', 'users'].includes(activeTab)) {
       setDeveloperOpen(true);
@@ -151,6 +151,7 @@ export default function Sidebar({
                         <span>Overview</span>
                       </button>
                     )}
+                    
                     {isPermitted(7) && (
                       <button
                         className={`submenu-item ${activeTab === 'surveys' ? 'active' : ''}`}
@@ -238,12 +239,12 @@ export default function Sidebar({
               {(!currentUser || currentUser.role_id === 1 || isPermitted(4)) && (
                 <div className="sidebar-nav-group">
                   <button 
-                    className={`sidebar-nav-heading ${['security', 'reference'].includes(activeTab) ? 'active' : ''}`}
+                    className={`sidebar-nav-heading ${['security'].includes(activeTab) ? 'active' : ''}`}
                     onClick={() => setSecurityOpen(prev => !prev)}
                   >
                     <div className="nav-heading-left">
                       <ShieldCheck size={16} className="nav-icon" />
-                      <span>Security & Reference</span>
+                      <span>Security & Fraud Controls</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span className={`dropdown-chevron ${securityOpen ? 'rotated' : ''}`}>
@@ -261,13 +262,7 @@ export default function Sidebar({
                         <span className="bullet-circle" />
                         <span>Security & Fraud Gate</span>
                       </button>
-                      <button
-                        className={`submenu-item ${activeTab === 'reference' ? 'active' : ''}`}
-                        onClick={() => handleNav('reference')}
-                      >
-                        <span className="bullet-circle" />
-                        <span>Categories & Reference Data</span>
-                      </button>
+
                     </div>
                   </div>
                 </div>

@@ -12,6 +12,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
   const [copiedKey, setCopiedKey] = useState(null);
   const [syncingId, setSyncingId] = useState(null);
   const [testResult, setTestResult] = useState(null);
+  const [expandedUrls, setExpandedUrls] = useState({});
 
   // Dedicated Frame 006: Cryptographic Anti-Tamper Security & Signing Modal State
   const [securityModalClient, setSecurityModalClient] = useState(null);
@@ -449,7 +450,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
               {/* Client Top Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#1d2c48', margin: 0 }}>
                       {client.client_name}
                     </h2>
@@ -461,33 +462,42 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
                     }}>
                       Code: {clientCode}
                     </span>
+                    {client.country && (
+                      <span className="badge-soft-success" style={{
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: 700
+                      }}>
+                        {client.country} {client.currency ? `(${client.currency})` : ''}
+                      </span>
+                    )}
                     <span className="badge-soft-success" style={{
                       padding: '2px 8px',
                       borderRadius: '4px',
                       fontSize: '11px',
                       fontWeight: 700
                     }}>
-                      {client.country} ({client.currency})
+                      {client.status || 'Active'}
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '16px', marginTop: '8px', fontSize: '12px', color: '#7081b9' }}>
-                    <span>API Standard: <strong style={{ color: '#1d2c48' }}>{client.apiType?.toUpperCase()}</strong></span>
-                    <span>Hashing Spec: <strong style={{ color: '#1761fd' }}>{client.hashAlgorithm?.toUpperCase()}</strong></span>
-                    <span>S2S Callback: <strong style={{ color: '#03d87f' }}>Active (updateRespondentStatus)</strong></span>
+                  <div style={{ display: 'flex', gap: '16px', marginTop: '6px', fontSize: '12px', color: '#7081b9', flexWrap: 'wrap' }}>
+                    {client.email && <span>Email: <strong style={{ color: '#1d2c48' }}>{client.email}</strong></span>}
+                    {client.phone && <span>Phone: <strong style={{ color: '#1d2c48' }}>{client.phone}</strong></span>}
+                    <span>Traffic Router: <strong style={{ color: '#1761fd' }}>S2S Active</strong></span>
                   </div>
                 </div>
 
-                {/* Top Action Buttons (Frame 004 & Frame 006) */}
+                {/* Top Action Buttons */}
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   <button
-                    className="btn btn-soft-secondary btn-sm"
-                    onClick={() => handleSync(clientCode)}
-                    disabled={syncingId === clientCode}
-                    style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', borderRadius: '4px' }}
+                    className={`btn ${expandedUrls[clientCode] ? 'btn-primary' : 'btn-soft-primary'} btn-sm`}
+                    onClick={() => setExpandedUrls(prev => ({ ...prev, [clientCode]: !prev[clientCode] }))}
+                    style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11.5px', borderRadius: '4px', fontWeight: 600 }}
                   >
-                    <RefreshCw size={12} className={syncingId === clientCode ? 'spinner' : ''} />
-                    Sync Projects
+                    <Copy size={12} />
+                    {expandedUrls[clientCode] ? 'Hide Redirect URLs' : '📋 View Redirect URLs'}
                   </button>
 
                   <button
@@ -518,6 +528,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
               </div>
 
               {/* Platform Redirect URLs Handover Block (Frame 004) */}
+              {expandedUrls[clientCode] && (
               <div style={{
                 marginTop: '16px',
                 padding: '14px 16px',
@@ -595,6 +606,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '' }) {
                   </div>
                 </div>
               </div>
+              )}
             </div>
           );
         })}

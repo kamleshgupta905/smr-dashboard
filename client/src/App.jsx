@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import DashboardPage from './pages/DashboardPage';
 import SurveysPage from './pages/SurveysPage';
+
 import VendorsPage from './pages/VendorsPage';
 import ReconciliationPage from './pages/ReconciliationPage';
 import ReferenceDataPage from './pages/ReferenceDataPage';
@@ -240,6 +241,7 @@ export default function App() {
     clients: 'Clients',
     vendors: 'Vendors',
     surveys: 'Surveys',
+    
     'developer-center': 'API & Integrations',
     security: 'Security Settings',
     reconciliation: 'Reports & Reconciliation',
@@ -345,6 +347,7 @@ export default function App() {
             />
           )}
 
+          
           {activeTab === 'users' && <UserManagementPage currentUser={currentUser} />}
           {activeTab === 'clients' && <ClientsPage onNavigate={handleTabChange} globalSearch={globalSearch} />}
           {activeTab === 'security' && <SecurityFraudPage onLaunchPreScreener={(data) => openTestPreScreener(data)} />}
@@ -368,7 +371,7 @@ export default function App() {
 
           {activeTab === 'vendors' && <VendorsPage onNavigate={handleTabChange} globalSearch={globalSearch} />}
           {activeTab === 'reconciliation' && <ReconciliationPage initialTab={reconciliationTab} />}
-          {activeTab === 'reference' && <ReferenceDataPage />}
+          
 
           {/* VMH Enterprise Footer */}
           <footer style={{
