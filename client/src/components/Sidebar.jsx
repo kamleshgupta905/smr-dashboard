@@ -5,6 +5,7 @@ import {
   ShieldCheck,
   Terminal,
     Briefcase,
+  Database,
   ChevronDown,
   ChevronRight,
   X
@@ -63,7 +64,7 @@ export default function Sidebar({
       setSecurityOpen(true);
     } else if (['bids', 'payments'].includes(activeTab)) {
       setOpsOpen(true);
-    } else if (['developer-center', 'users', 'team'].includes(activeTab)) {
+    } else if (['developer-center', 'users', 'team', 'reference'].includes(activeTab)) {
       setDeveloperOpen(true);
     }
   }, [activeTab]);
@@ -294,7 +295,7 @@ export default function Sidebar({
               {(isPermitted(2) || isPermitted(3) || isPermitted(4) || (!currentUser || currentUser.role_id === 1)) && (
                 <div className="sidebar-nav-group">
                   <button 
-                    className={`sidebar-nav-heading ${['developer-center', 'users', 'team'].includes(activeTab) ? 'active' : ''}`}
+                    className={`sidebar-nav-heading ${['developer-center', 'users', 'team', 'reference'].includes(activeTab) ? 'active' : ''}`}
                     onClick={() => setDeveloperOpen(prev => !prev)}
                   >
                     <div className="nav-heading-left">
@@ -332,6 +333,13 @@ export default function Sidebar({
                           >
                             <span className="bullet-circle" />
                             <span>Team Directory</span>
+                          </button>
+                          <button
+                            className={`submenu-item ${activeTab === 'reference' ? 'active' : ''}`}
+                            onClick={() => handleNav('reference')}
+                          >
+                            <span className="bullet-circle" />
+                            <span>Reference Data</span>
                           </button>
                         </>
                       )}

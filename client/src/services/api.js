@@ -1431,3 +1431,35 @@ export const updateTeamMemberStatus = (id, status) =>
 export const deleteTeamMember = (id) => 
   api.delete('/team/delete', { data: { id } })
     .then(res => res.data);
+
+// =============================================================
+// Bid Conversion & Multi-Contacts API (Laravel Replicate)
+// =============================================================
+export const convertBidToProject = (id) =>
+  api.post('/bids/convert', { id })
+    .then(res => res.data);
+
+export const getClientContacts = (clientId) =>
+  api.get('/client-contacts', { params: { client_id: clientId } })
+    .then(res => res.data);
+
+export const addClientContact = (data) =>
+  api.post('/client-contacts', data)
+    .then(res => res.data);
+
+export const deleteClientContact = (id) =>
+  api.delete('/client-contacts', { data: { id } })
+    .then(res => res.data);
+
+export const getVendorContacts = (vendorId) =>
+  api.get('/vendor-contacts', { params: { vendor_id: vendorId } })
+    .then(res => res.data);
+
+export const addVendorContact = (data) =>
+  api.post('/vendor-contacts', data)
+    .then(res => res.data);
+
+export const deleteVendorContact = (id) =>
+  api.delete('/vendor-contacts', { data: { id } })
+    .then(res => res.data);
+

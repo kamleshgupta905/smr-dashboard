@@ -22,7 +22,7 @@ import LoginPage from './components/LoginPage';
 import { normalizeSurveys } from './utils/normalize';
 import { CheckCircle2, AlertTriangle, X } from 'lucide-react';
 
-import { getSurveys, syncSurveys, DEFAULT_SURVEYS, GoogleSheetAPI } from './services/api';
+import { getSurveys, syncSurveys, DEFAULT_SURVEYS, GoogleSheetAPI, getClients } from './services/api';
 
 // URL Hash Parser for Seamless Refresh Persistence
 const parseHashRoute = () => {
@@ -68,6 +68,7 @@ export default function App() {
   });
 
   const [surveys, setSurveys] = useState([]);
+  const [clientsCount, setClientsCount] = useState(2);
   const [globalSearch, setGlobalSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -158,14 +159,22 @@ export default function App() {
 
   const loadData = async () => {
     try {
-      const surveysRes = await getSurveys();
-      if (surveysRes) {
-        const raw = Array.isArray(surveysRes.data)
-          ? surveysRes.data
-          : (Array.isArray(surveysRes) ? surveysRes : []);
+      const [surveysRes, clientsRes] = await Promise.allSettled([
+        getSurveys(),
+        getClients()
+      ]);
+
+      if (surveysRes.status === 'fulfilled' && surveysRes.value) {
+        const raw = Array.isArray(surveysRes.value.data)
+          ? surveysRes.value.data
+          : (Array.isArray(surveysRes.value) ? surveysRes.value : []);
         setSurveys(raw.length > 0 ? raw : DEFAULT_SURVEYS);
       } else {
         setSurveys(DEFAULT_SURVEYS);
+      }
+
+      if (clientsRes.status === 'fulfilled' && Array.isArray(clientsRes.value)) {
+        setClientsCount(clientsRes.value.length || 2);
       }
     } catch (err) {
       console.error('Error loading data:', err);
@@ -208,14 +217,13 @@ export default function App() {
     const avgCpi = total > 0
       ? Number((list.reduce((acc, s) => acc + (s.cpi || 0), 0) / total).toFixed(2))
       : 0;
-    const demandSources = 3; // 3 Active Connected Demand Clients: Market Xcel, Zamplia Demand Global, Ipsos Reid
     return {
       totalSurveys: total,
       activeSurveys: active,
       avgCpi,
-      activeVendors: demandSources
+      activeVendors: clientsCount
     };
-  }, [surveys]);
+  }, [surveys, clientsCount]);
 
   // Global search filters the marketplace across every page
   const filteredSurveys = useMemo(() => {
@@ -367,6 +375,7 @@ export default function App() {
           {activeTab === 'bids' && <BidsPage />}
           {activeTab === 'payments' && <PaymentsPage />}
           {activeTab === 'team' && <TeamPage />}
+          {activeTab === 'reference' && <ReferenceDataPage />}
           
 
           {/* VMH Enterprise Footer */}

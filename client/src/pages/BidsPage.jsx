@@ -7,7 +7,8 @@ import {
   CheckCircle2, 
   Clock, 
   XCircle, 
-  Trash2, 
+  Trash2,
+  Rocket, 
   Briefcase, 
   TrendingUp, 
   X, 
@@ -15,7 +16,7 @@ import {
   Building2,
   Users
 } from 'lucide-react';
-import { getBids, createBid, updateBidStatus, deleteBid, getClients } from '../services/api';
+import { getBids, createBid, updateBidStatus, deleteBid, getClients, convertBidToProject } from '../services/api';
 import ModalPortal from '../components/ModalPortal';
 
 export default function BidsPage() {
@@ -97,6 +98,22 @@ export default function BidsPage() {
       loadData();
     } catch (err) {
       console.error('Failed to update bid status:', err);
+    }
+  };
+
+  const handleConvertToProject = async (b) => {
+    if (!window.confirm(`Convert Bid "${b.bid_name || b.name}" into a live Project / Study?`)) return;
+    try {
+      const res = await convertBidToProject(b.id);
+      if (res && res.success) {
+        alert(res.message || 'Bid successfully converted into live Study / Project!');
+        await loadData();
+      } else {
+        alert(res?.message || 'Failed to convert bid');
+      }
+    } catch (err) {
+      console.error('Error converting bid to project:', err);
+      alert('Error converting bid to project');
     }
   };
 
@@ -287,14 +304,36 @@ export default function BidsPage() {
                         </select>
                       </td>
                       <td style={{ padding: '14px 18px', textAlign: 'right' }}>
-                        <button
-                          onClick={() => handleDelete(b.id)}
-                          className="btn btn-soft-danger btn-sm"
-                          style={{ padding: '4px 8px', borderRadius: '4px' }}
-                          title="Delete Bid"
-                        >
-                          <Trash2 size={13} />
-                        </button>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
+                          <button
+                            onClick={() => handleConvertToProject(b)}
+                            style={{ 
+                              padding: '4px 10px', 
+                              borderRadius: '6px', 
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              background: '#eff6ff',
+                              border: '1px solid #bfdbfe',
+                              color: '#1d4ed8',
+                              cursor: 'pointer'
+                            }}
+                            title="Convert Bid to Project / Study (Laravel replicate)"
+                          >
+                            <Rocket size={12} />
+                            <span>Convert to Project</span>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(b.id)}
+                            className="btn btn-soft-danger btn-sm"
+                            style={{ padding: '4px 8px', borderRadius: '4px' }}
+                            title="Delete Bid"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
