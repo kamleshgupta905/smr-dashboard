@@ -752,6 +752,21 @@ export const createClient = async (data) => {
   }
 };
 
+export const updateClient = async (id, data) => {
+  try {
+    const res = await api.put(`/clients/${id}`, { id, ...data });
+    return res.data;
+  } catch (err) {
+    try {
+      const res = await api.post('/clients', { id, ...data });
+      return res.data;
+    } catch (err2) {
+      console.error('API updateClient error:', err2);
+      throw err2;
+    }
+  }
+};
+
 export const toggleClientSecurity = async (clientId, securityEnabled) => {
   try {
     const res = await api.post('/clients/toggle-security', {
@@ -1401,6 +1416,7 @@ export const ManagementAPI = {
   deleteVendor,
   getClients,
   createClient,
+  updateClient,
   deleteClient,
   getUsers,
   createUser,

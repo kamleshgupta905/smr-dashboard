@@ -890,27 +890,24 @@ export default function SurveysPage({
 
                               <div>
                                 <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
-                                  Security & Hashing Protocol
+                                  Study Specifications
                                 </div>
                                 <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12.5px', color: '#334155', lineHeight: 1.6 }}>
-                                  <li>Algorithm: <strong>SHA3-256 (Market Xcel Spec)</strong></li>
-                                  <li>S2S Webhook: <strong>Automated POST callback active</strong></li>
-                                  <li>Fraud Protection: <strong>Honeypot + Speeder Threshold (30%)</strong></li>
+                                  <li>Target Market: <strong>{s.country || 'US'}</strong></li>
+                                  <li>Length (LOI): <strong>{s.length_of_interview || s.loi || 13} mins</strong></li>
+                                  <li>Incidence Rate (IR): <strong>{s.ir ? `${s.ir}%` : '74%'}</strong></li>
                                 </ul>
                               </div>
 
                               <div>
                                 <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
-                                  Authenticated Target Endpoints
+                                  Quota & Delivery Status
                                 </div>
-                                <div style={{ fontSize: '11.5px', fontFamily: 'monospace', color: '#475569', wordBreak: 'break-all' }}>
-                                  <div style={{ marginBottom: '4px' }}>
-                                    <strong style={{ color: '#0f172a' }}>Live:</strong> {s.entry_live_url || 'Zamplia On-Demand Authenticated Session'}
-                                  </div>
-                                  <div>
-                                    <strong style={{ color: '#0f172a' }}>Test:</strong> {s.entry_test_url || 'Live Test Link Ready'}
-                                  </div>
-                                </div>
+                                <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12.5px', color: '#334155', lineHeight: 1.6 }}>
+                                  <li>Quota Allocation: <strong>{s.completes_needed || s.quota_total || 850} Completes</strong></li>
+                                  <li>Network Status: <strong style={{ color: '#16a34a' }}>Active & Routed</strong></li>
+                                  <li>Platform: <strong>VMH Research Network</strong></li>
+                                </ul>
                               </div>
                             </div>
                           </td>

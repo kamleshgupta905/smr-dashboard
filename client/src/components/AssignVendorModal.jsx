@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { 
   X, Link2, Copy, Check, Share2, Play, ShieldAlert, CheckCircle2, 
   AlertTriangle, Info, ExternalLink, ShieldCheck, DollarSign, Target, 
-  Trash2, FileText, CheckCheck, RefreshCw, Zap, Download, MessageSquare
+  Trash2, FileText, CheckCheck, RefreshCw, Zap, Download, MessageSquare, ChevronDown
 } from 'lucide-react';
 import { 
   getVendors, 
@@ -37,6 +37,18 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
   const [allotments, setAllotments] = useState([]);
   const [vendorSearch, setVendorSearch] = useState('');
   const [searchingVendors, setSearchingVendors] = useState(false);
+  const [vendorDropdownOpen, setVendorDropdownOpen] = useState(false);
+  const vendorDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (vendorDropdownRef.current && !vendorDropdownRef.current.contains(event.target)) {
+        setVendorDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Simulator State
   const [simulating, setSimulating] = useState(false);
@@ -431,8 +443,8 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: '14px', marginBottom: '14px' }}>
-                  {/* Multi-Vendor Selection Box */}
-                  <div>
+                  {/* Multi-Vendor Selection Dropdown with Checkboxes */}
+                  <div ref={vendorDropdownRef} style={{ position: 'relative' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
                       <label style={{ fontSize: '12px', fontWeight: 700, margin: 0, color: '#0F172A' }}>
                         Select Supply Vendors:
@@ -455,74 +467,162 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                       </div>
                     </div>
 
-                    {/* Live Search input across all vendors */}
-                    <div style={{ position: 'relative', marginBottom: '6px' }}>
-                      <input
-                        type="text"
-                        className="input-field"
-                        placeholder="Search vendor by name or ID (e.g. VI0103)..."
-                        value={vendorSearch}
-                        onChange={(e) => setVendorSearch(e.target.value)}
-                        style={{ width: '100%', fontSize: '11.5px', padding: '5px 8px', borderColor: '#CBD5E1', borderRadius: '6px' }}
+                    {/* Trigger Dropdown Button */}
+                    <button
+                      type="button"
+                      onClick={() => setVendorDropdownOpen(prev => !prev)}
+                      style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        background: '#FFFFFF',
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        fontSize: '12px',
+                        color: selectedVendorIds.length > 0 ? '#0F172A' : '#64748B',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+                      }}
+                    >
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '88%', fontWeight: selectedVendorIds.length > 0 ? 600 : 400 }}>
+                        {selectedVendorIds.length === 0
+                          ? 'Choose vendors from dropdown...'
+                          : `${selectedVendorIds.length} Vendor${selectedVendorIds.length > 1 ? 's' : ''} Selected (${
+                              vendors.filter(v => selectedVendorIds.includes(v.vendor_code || v.vendor_id || v.vendorUid || v._id || v.id)).map(v => v.name || v.vendor_id).slice(0, 2).join(', ')
+                            }${selectedVendorIds.length > 2 ? '...' : ''})`
+                        }
+                      </span>
+                      <ChevronDown
+                        size={15}
+                        color="#64748B"
+                        style={{
+                          transform: vendorDropdownOpen ? 'rotate(180deg)' : 'none',
+                          transition: 'transform 0.2s ease',
+                          flexShrink: 0
+                        }}
                       />
-                      {searchingVendors && (
-                        <span style={{ position: 'absolute', right: '8px', top: '7px', fontSize: '10px', color: '#64748B' }}>
-                          Searching...
-                        </span>
-                      )}
-                    </div>
+                    </button>
 
-                    {/* Scrollable Checkbox Multi-Select Container */}
-                    <div style={{
-                      maxHeight: '140px',
-                      overflowY: 'auto',
-                      border: '1px solid #CBD5E1',
-                      borderRadius: '6px',
-                      background: '#F8FAFC',
-                      padding: '4px'
-                    }}>
-                      {filteredVendorsList.length === 0 ? (
-                        <div style={{ padding: '10px', textAlign: 'center', fontSize: '11.5px', color: '#64748B' }}>
-                          No vendors match query
+                    {/* Floating Dropdown Menu with Checkboxes */}
+                    {vendorDropdownOpen && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '100%',
+                          left: 0,
+                          right: 0,
+                          marginTop: '4px',
+                          background: '#FFFFFF',
+                          border: '1px solid #CBD5E1',
+                          borderRadius: '8px',
+                          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                          zIndex: 200,
+                          padding: '8px'
+                        }}
+                      >
+                        {/* Live Search inside dropdown */}
+                        <div style={{ position: 'relative', marginBottom: '8px' }}>
+                          <input
+                            type="text"
+                            className="input-field"
+                            placeholder="Search vendor by name or ID (e.g. VI0103)..."
+                            value={vendorSearch}
+                            onChange={(e) => setVendorSearch(e.target.value)}
+                            style={{
+                              width: '100%',
+                              fontSize: '11.5px',
+                              padding: '6px 10px',
+                              borderColor: '#CBD5E1',
+                              borderRadius: '6px',
+                              boxSizing: 'border-box'
+                            }}
+                            autoFocus
+                          />
+                          {searchingVendors && (
+                            <span style={{ position: 'absolute', right: '8px', top: '7px', fontSize: '10px', color: '#64748B' }}>
+                              Searching...
+                            </span>
+                          )}
                         </div>
-                      ) : (
-                        filteredVendorsList.map((v) => {
-                          const code = v.vendor_code || v.vendor_id || v.vendorUid || v._id || v.id;
-                          const isChecked = selectedVendorIds.includes(code);
-                          return (
-                            <div
-                              key={code}
-                              onClick={() => toggleVendorSelection(code)}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                padding: '5px 8px',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                background: isChecked ? '#E2E8F0' : '#FFFFFF',
-                                border: `1px solid ${isChecked ? '#94A3B8' : '#F1F5F9'}`,
-                                marginBottom: '3px',
-                                fontSize: '11.5px'
-                              }}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                onChange={() => {}}
-                                style={{ cursor: 'pointer' }}
-                              />
-                              <span style={{ fontWeight: isChecked ? 700 : 500, color: '#0F172A', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {v.name || code}
-                              </span>
-                              <span style={{ fontSize: '10.5px', color: '#64748B', fontFamily: 'monospace' }}>
-                                {code}
-                              </span>
+
+                        {/* Scrollable Checkbox List */}
+                        <div style={{
+                          maxHeight: '180px',
+                          overflowY: 'auto',
+                          background: '#F8FAFC',
+                          border: '1px solid #E2E8F0',
+                          borderRadius: '6px',
+                          padding: '4px'
+                        }}>
+                          {filteredVendorsList.length === 0 ? (
+                            <div style={{ padding: '12px', textAlign: 'center', fontSize: '11.5px', color: '#64748B' }}>
+                              No vendors match query
                             </div>
-                          );
-                        })
-                      )}
-                    </div>
+                          ) : (
+                            filteredVendorsList.map((v) => {
+                              const code = v.vendor_code || v.vendor_id || v.vendorUid || v._id || v.id;
+                              const isChecked = selectedVendorIds.includes(code);
+                              return (
+                                <div
+                                  key={code}
+                                  onClick={() => toggleVendorSelection(code)}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    padding: '6px 8px',
+                                    borderRadius: '5px',
+                                    cursor: 'pointer',
+                                    background: isChecked ? '#E2E8F0' : '#FFFFFF',
+                                    border: `1px solid ${isChecked ? '#94A3B8' : '#F1F5F9'}`,
+                                    marginBottom: '3px',
+                                    fontSize: '11.5px',
+                                    transition: 'background 0.1s'
+                                  }}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => {}}
+                                    style={{ cursor: 'pointer', accentColor: '#0F172A' }}
+                                  />
+                                  <span style={{ fontWeight: isChecked ? 700 : 500, color: '#0F172A', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {v.name || code}
+                                  </span>
+                                  <span style={{ fontSize: '10.5px', color: '#64748B', fontFamily: 'monospace' }}>
+                                    {code}
+                                  </span>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+
+                        {/* Footer Status inside dropdown */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', padding: '2px 4px', fontSize: '10.5px', color: '#64748B' }}>
+                          <span>{selectedVendorIds.length} of {filteredVendorsList.length} selected</span>
+                          <button
+                            type="button"
+                            onClick={() => setVendorDropdownOpen(false)}
+                            style={{
+                              background: '#0F172A',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              borderRadius: '4px',
+                              padding: '2px 8px',
+                              fontSize: '10.5px',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Done
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Dual Synced Rate Inputs (Percentage % & Fixed CPI $) */}

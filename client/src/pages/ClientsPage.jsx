@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  getClients, createClient, toggleClientSecurity, deleteClient, syncClientInventory, 
+  getClients, createClient, updateClient, toggleClientSecurity, deleteClient, syncClientInventory, 
   testS2sCallback, testHashing, testClientHandshake,
   getClientContacts, addClientContact, deleteClientContact 
 } from '../services/api';
 import { 
   Building2, Plus, Search, CheckCircle2, XCircle, Trash2, Globe, ShieldCheck, 
   X, Copy, Check, RefreshCw, Send, Key, Code, ExternalLink, Lock, Users, 
-  Mail, Phone, UserPlus, Zap, ArrowRight, ShieldAlert, Cpu, Sparkles
+  Mail, Phone, UserPlus, Zap, ArrowRight, ShieldAlert, Cpu, Sparkles, Edit2
 } from 'lucide-react';
 import ModalPortal from '../components/ModalPortal';
 import { sha3_256 } from 'js-sha3';
@@ -23,6 +23,77 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast }
   const [testResult, setTestResult] = useState(null);
   const [testingHandshake, setTestingHandshake] = useState(false);
   const [expandedUrls, setExpandedUrls] = useState({});
+
+  // Frame 007: Admin Client Edit Modal State
+  const [editModalClient, setEditModalClient] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    client_name: '',
+    client_code: '',
+    email: '',
+    phone: '',
+    country: 'United States',
+    currency: 'USD',
+    apiType: 'marketxcel',
+    feed_api_url: '',
+    s2s_callback_url: '',
+    master_data_url: '',
+    secret_key: '',
+    api_token: '',
+    hash_algorithm: 'sha3-256',
+    security_enabled: 1,
+    status: 'Active'
+  });
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const handleOpenEditModal = (client) => {
+    setEditModalClient(client);
+    setEditFormData({
+      id: client.id || client._id,
+      client_name: client.client_name || '',
+      client_code: client.client_code || client.client_name?.replace(/\s+/g, '_').toUpperCase() || '',
+      email: client.email || '',
+      phone: client.phone || '',
+      country: client.country || 'United States',
+      currency: client.currency || 'USD',
+      apiType: client.api_type || client.apiType || 'marketxcel',
+      feed_api_url: client.feed_api_url || client.apiUrl || '',
+      s2s_callback_url: client.s2s_callback_url || client.s2sEndpoint || '',
+      master_data_url: client.master_data_url || '',
+      secret_key: client.secret_key || client.secretKey || '',
+      api_token: client.api_token || client.apiToken || '',
+      hash_algorithm: client.hash_algorithm || client.hashAlgorithm || 'sha3-256',
+      security_enabled: client.security_enabled !== undefined ? Number(client.security_enabled) : 1,
+      status: client.status || 'Active'
+    });
+  };
+
+  const handleSaveEditClient = async (e) => {
+    e.preventDefault();
+    if (!editFormData.client_name?.trim()) {
+      if (showToast) showToast('Client Name is required', 'error');
+      return;
+    }
+    setSavingEdit(true);
+    try {
+      const clientId = editModalClient.id || editModalClient._id;
+      const res = await updateClient(clientId, editFormData);
+      if (res?.success || res?.data) {
+        setClients(prev => prev.map(c => {
+          const match = (c.id && c.id === clientId) || (c._id && c._id === clientId) || (c.client_code && c.client_code === editModalClient.client_code);
+          return match ? { ...c, ...editFormData, ...(res.data || {}) } : c;
+        }));
+        if (showToast) showToast('Client details updated successfully!', 'success');
+        setEditModalClient(null);
+      } else {
+        if (showToast) showToast(res?.message || 'Failed to update client', 'error');
+      }
+    } catch (err) {
+      console.error('Save client edit error:', err);
+      if (showToast) showToast('Error saving client changes', 'error');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   // Frame 006: Cryptographic Anti-Tamper Security & Signing Modal State
   const [securityModalClient, setSecurityModalClient] = useState(null);
@@ -764,6 +835,29 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast }
                   </button>
 
                   <button
+                    type="button"
+                    onClick={() => handleOpenEditModal(client)}
+                    style={{
+                      background: '#0F172A',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '20px',
+                      padding: '5px 14px',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 6px rgba(15, 23, 42, 0.15)'
+                    }}
+                    title="Edit Client details, endpoints and security settings"
+                  >
+                    <Edit2 size={12} color="#ffffff" />
+                    <span>Edit Client</span>
+                  </button>
+
+                  <button
                     onClick={() => handleDelete(client._id || client.id)}
                     style={{
                       background: '#ffffff',
@@ -1303,6 +1397,295 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast }
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+      {/* Edit Client Modal (Admin editable) */}
+      {editModalClient && (
+        <ModalPortal isOpen={!!editModalClient} onClose={() => setEditModalClient(null)}>
+          <div className="modal-overlay" onClick={() => setEditModalClient(null)}>
+            <div 
+              className="modal-content" 
+              onClick={e => e.stopPropagation()} 
+              style={{ maxWidth: '680px', width: '94%', maxHeight: '90vh', overflowY: 'auto', background: '#ffffff', borderRadius: '14px', padding: '24px' }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '14px', marginBottom: '18px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ background: '#0F172A', padding: '8px', borderRadius: '8px', color: '#ffffff' }}>
+                    <Edit2 size={20} />
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16.5px', fontWeight: 800, color: '#0F172A' }}>
+                      Edit Client: {editModalClient.client_name}
+                    </h3>
+                    <p style={{ margin: 0, fontSize: '11.5px', color: '#64748B' }}>
+                      Update client credentials, API architecture, endpoints, and security gate
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => setEditModalClient(null)} 
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8' }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEditClient}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {/* Basic Client Details */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                        Client Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        className="input-control"
+                        value={editFormData.client_name}
+                        onChange={e => setEditFormData({ ...editFormData, client_name: e.target.value })}
+                        style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '7px 10px', fontSize: '12.5px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                        Client Code / Identifier
+                      </label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        value={editFormData.client_code}
+                        onChange={e => setEditFormData({ ...editFormData, client_code: e.target.value })}
+                        style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '7px 10px', fontSize: '12.5px' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                        Contact Email
+                      </label>
+                      <input
+                        type="email"
+                        className="input-control"
+                        placeholder="client@enterprise.com"
+                        value={editFormData.email}
+                        onChange={e => setEditFormData({ ...editFormData, email: e.target.value })}
+                        style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '7px 10px', fontSize: '12.5px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                        Contact Phone
+                      </label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        placeholder="+1-800-..."
+                        value={editFormData.phone}
+                        onChange={e => setEditFormData({ ...editFormData, phone: e.target.value })}
+                        style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '7px 10px', fontSize: '12.5px' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                        Market Country
+                      </label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        value={editFormData.country}
+                        onChange={e => setEditFormData({ ...editFormData, country: e.target.value })}
+                        style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '7px 10px', fontSize: '12.5px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                        Currency
+                      </label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        value={editFormData.currency}
+                        onChange={e => setEditFormData({ ...editFormData, currency: e.target.value })}
+                        style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '7px 10px', fontSize: '12.5px' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Architecture & Hashing */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                        API Architecture
+                      </label>
+                      <select
+                        className="input-control"
+                        value={editFormData.apiType}
+                        onChange={e => setEditFormData({ ...editFormData, apiType: e.target.value })}
+                        style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '7px 10px', fontSize: '12.5px' }}
+                      >
+                        <option value="marketxcel">Market Xcel Demand API</option>
+                        <option value="zamplia">Zamplia Supply API</option>
+                        <option value="custom">German Client / Custom REST</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                        Hashing Algorithm
+                      </label>
+                      <select
+                        className="input-control"
+                        value={editFormData.hash_algorithm}
+                        onChange={e => setEditFormData({ ...editFormData, hash_algorithm: e.target.value })}
+                        style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '7px 10px', fontSize: '12.5px' }}
+                      >
+                        <option value="sha3-256">SHA3-256 (Market Xcel / SMR Enterprise)</option>
+                        <option value="hmac-sha256">HMAC-SHA256 (Zamplia)</option>
+                        <option value="sha256">SHA-256 Standard</option>
+                        <option value="none">None / Direct Pass</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Security Key & Token */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                        Signing Secret Key / Salt
+                      </label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        value={editFormData.secret_key}
+                        onChange={e => setEditFormData({ ...editFormData, secret_key: e.target.value })}
+                        style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '7px 10px', fontSize: '12.5px', fontFamily: 'monospace' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                        API Token / Bearer Key
+                      </label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        value={editFormData.api_token}
+                        onChange={e => setEditFormData({ ...editFormData, api_token: e.target.value })}
+                        style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '7px 10px', fontSize: '12.5px', fontFamily: 'monospace' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Endpoints */}
+                  <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
+                      Endpoints Configuration
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '3px' }}>
+                          Feed API URL (Survey Inbound Feed)
+                        </label>
+                        <input
+                          type="text"
+                          className="input-control"
+                          value={editFormData.feed_api_url}
+                          onChange={e => setEditFormData({ ...editFormData, feed_api_url: e.target.value })}
+                          style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '6px 8px', fontSize: '11.5px', fontFamily: 'monospace' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '3px' }}>
+                          S2S Callback URL (Real-time Status Postback)
+                        </label>
+                        <input
+                          type="text"
+                          className="input-control"
+                          value={editFormData.s2s_callback_url}
+                          onChange={e => setEditFormData({ ...editFormData, s2s_callback_url: e.target.value })}
+                          style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '6px 8px', fontSize: '11.5px', fontFamily: 'monospace' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Operational Settings */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                        Security Gate
+                      </label>
+                      <select
+                        className="input-control"
+                        value={editFormData.security_enabled}
+                        onChange={e => setEditFormData({ ...editFormData, security_enabled: Number(e.target.value) })}
+                        style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '7px 10px', fontSize: '12.5px' }}
+                      >
+                        <option value={1}>ACTIVE (Speeder & Fraud Protection Enabled)</option>
+                        <option value={0}>BYPASS (Security Gate Disabled / Testing Mode)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                        Client Status
+                      </label>
+                      <select
+                        className="input-control"
+                        value={editFormData.status}
+                        onChange={e => setEditFormData({ ...editFormData, status: e.target.value })}
+                        style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '7px 10px', fontSize: '12.5px' }}
+                      >
+                        <option value="Active">Active (Accepting Traffic)</option>
+                        <option value="Inactive">Inactive (Paused)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Modal Action Buttons */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px', borderTop: '1px solid #F1F5F9', paddingTop: '14px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setEditModalClient(null)}
+                      style={{
+                        padding: '8px 18px',
+                        borderRadius: '20px',
+                        border: '1px solid #CBD5E1',
+                        background: '#FFFFFF',
+                        color: '#475569',
+                        fontSize: '12.5px',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingEdit}
+                      style={{
+                        padding: '8px 22px',
+                        borderRadius: '20px',
+                        border: 'none',
+                        background: '#0F172A',
+                        color: '#FFFFFF',
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(15, 23, 42, 0.2)'
+                      }}
+                    >
+                      {savingEdit ? 'Saving Changes...' : 'Save Changes'}
+                    </button>
+                  </div>
+                </div>
+              </form>
             </div>
           </div>
         </ModalPortal>

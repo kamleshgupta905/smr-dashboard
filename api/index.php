@@ -3545,7 +3545,12 @@ if ($normalizedRoute === 'clients' || str_starts_with($normalizedRoute, 'clients
             exit;
         }
 
-        // Onboard / Create or Update Client
+        // Onboard / Create or Update Client (Admin editable)
+        $routeClientId = 0;
+        if (preg_match('#clients/([0-9]+)#', $normalizedRoute, $rcm)) {
+            $routeClientId = (int)$rcm[1];
+        }
+        $clientId = $routeClientId ?: (int)($body['id'] ?? $body['_id'] ?? 0);
         $cName = trim($body['client_name'] ?? '');
         $cCode = trim($body['client_code'] ?? '');
         if (empty($cCode) && !empty($cName)) {
@@ -3560,6 +3565,9 @@ if ($normalizedRoute === 'clients' || str_starts_with($normalizedRoute, 'clients
         $token = trim($body['apiToken'] ?? $body['api_token'] ?? '');
         $secKey = trim($body['secretKey'] ?? $body['secret_key'] ?? '');
         $hashAlg = trim($body['hashAlgorithm'] ?? $body['hash_algorithm'] ?? 'sha3-256');
+        $secEnabled = isset($body['security_enabled']) ? (int)$body['security_enabled'] : 1;
+        $statusVal = trim($body['status'] ?? 'Active');
+        $isActive = ($statusVal === 'Inactive' || $statusVal === 'N') ? 'N' : 'Y';
 
         $origin = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'api.vmhgroupsmr.com');
         $rc = "{$origin}/redirects/c/{$cCode}/complete?rid=[identifier]&hash=[hash]";
@@ -3568,28 +3576,41 @@ if ($normalizedRoute === 'clients' || str_starts_with($normalizedRoute, 'clients
         $rs = "{$origin}/redirects/c/{$cCode}/quality_terminate?rid=[identifier]&hash=[hash]";
 
         $savedClient = null;
-        if ($db && !empty($cName)) {
+        if ($db && (!empty($cName) || $clientId > 0)) {
             try {
-                $chk = $db->prepare("SELECT id FROM client WHERE client_code = ? OR client_name = ? LIMIT 1");
-                $chk->execute([$cCode, $cName]);
-                $existingId = $chk->fetchColumn();
+                $existingId = null;
+                if ($clientId > 0) {
+                    $chk = $db->prepare("SELECT id FROM client WHERE id = ? LIMIT 1");
+                    $chk->execute([$clientId]);
+                    $existingId = $chk->fetchColumn();
+                }
+                if (!$existingId && !empty($cCode)) {
+                    $chk = $db->prepare("SELECT id FROM client WHERE client_code = ? LIMIT 1");
+                    $chk->execute([$cCode]);
+                    $existingId = $chk->fetchColumn();
+                }
+                if (!$existingId && !empty($cName)) {
+                    $chk = $db->prepare("SELECT id FROM client WHERE client_name = ? LIMIT 1");
+                    $chk->execute([$cName]);
+                    $existingId = $chk->fetchColumn();
+                }
 
                 if ($existingId) {
                     $uStmt = $db->prepare("
                         UPDATE client 
-                        SET client_name = ?, email = ?, phone = ?, api_type = ?, feed_api_url = ?, s2s_callback_url = ?, master_data_url = ?, api_token = ?, secret_key = ?, hash_algorithm = ?, complete_redirect = ?, terminate_redirect = ?, overquota_redirect = ?, security_redirect = ?, updated_at = NOW()
+                        SET client_name = ?, client_code = ?, email = ?, phone = ?, api_type = ?, feed_api_url = ?, s2s_callback_url = ?, master_data_url = ?, api_token = ?, secret_key = ?, hash_algorithm = ?, complete_redirect = ?, terminate_redirect = ?, overquota_redirect = ?, security_redirect = ?, security_enabled = ?, is_active = ?, updated_at = NOW()
                         WHERE id = ?
                     ");
-                    $uStmt->execute([$cName, $cEmail, $cPhone, $apiType, $feedUrl, $s2sUrl, $masterUrl, $token, $secKey, $hashAlg, $rc, $rt, $ro, $rs, $existingId]);
-                    $savedClient = array_merge($body, ['id' => $existingId, '_id' => $existingId, 'client_code' => $cCode]);
+                    $uStmt->execute([$cName, $cCode, $cEmail, $cPhone, $apiType, $feedUrl, $s2sUrl, $masterUrl, $token, $secKey, $hashAlg, $rc, $rt, $ro, $rs, $secEnabled, $isActive, $existingId]);
+                    $savedClient = array_merge($body, ['id' => $existingId, '_id' => $existingId, 'client_code' => $cCode, 'client_name' => $cName, 'security_enabled' => $secEnabled, 'status' => $statusVal]);
                 } else {
                     $iStmt = $db->prepare("
-                        INSERT INTO client (client_name, client_code, email, phone, status, is_active, api_type, feed_api_url, s2s_callback_url, master_data_url, api_token, secret_key, hash_algorithm, complete_redirect, terminate_redirect, overquota_redirect, security_redirect, created_at, updated_at)
-                        VALUES (?, ?, ?, ?, 'Active', 'Y', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+                        INSERT INTO client (client_name, client_code, email, phone, status, is_active, api_type, feed_api_url, s2s_callback_url, master_data_url, api_token, secret_key, hash_algorithm, complete_redirect, terminate_redirect, overquota_redirect, security_redirect, security_enabled, created_at, updated_at)
+                        VALUES (?, ?, ?, ?, 'Active', 'Y', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
                     ");
-                    $iStmt->execute([$cName, $cCode, $cEmail, $cPhone, $apiType, $feedUrl, $s2sUrl, $masterUrl, $token, $secKey, $hashAlg, $rc, $rt, $ro, $rs]);
+                    $iStmt->execute([$cName, $cCode, $cEmail, $cPhone, $apiType, $feedUrl, $s2sUrl, $masterUrl, $token, $secKey, $hashAlg, $rc, $rt, $ro, $rs, $secEnabled]);
                     $newId = (int)$db->lastInsertId();
-                    $savedClient = array_merge($body, ['id' => $newId, '_id' => $newId, 'client_code' => $cCode]);
+                    $savedClient = array_merge($body, ['id' => $newId, '_id' => $newId, 'client_code' => $cCode, 'client_name' => $cName, 'security_enabled' => $secEnabled, 'status' => 'Active']);
                 }
             } catch (Throwable $e) {}
         }
@@ -3599,7 +3620,17 @@ if ($normalizedRoute === 'clients' || str_starts_with($normalizedRoute, 'clients
         if (!$savedClient) {
             $savedClient = array_merge($body, ['_id' => 'client_' . time(), 'client_code' => $cCode]);
         }
-        $cList[] = $savedClient;
+        $updatedInJson = false;
+        foreach ($cList as &$item) {
+            if (($item['id'] ?? $item['_id'] ?? $item['client_code'] ?? '') == ($savedClient['id'] ?? $savedClient['_id'] ?? $savedClient['client_code'] ?? '')) {
+                $item = array_merge($item, $savedClient);
+                $updatedInJson = true;
+                break;
+            }
+        }
+        if (!$updatedInJson) {
+            $cList[] = $savedClient;
+        }
         file_put_contents($clientsFile, json_encode($cList, JSON_PRETTY_PRINT));
         echo json_encode(['success' => true, 'data' => $savedClient]);
         exit;
@@ -4000,15 +4031,30 @@ if ($normalizedRoute === 'leads' || str_starts_with($normalizedRoute, 'leads') |
             // List leads with filters
             $statusFilter = $_GET['status'] ?? '';
             $search = trim($_GET['search'] ?? '');
+            $vendorIdFilter = trim($_GET['vendor_id'] ?? '');
             $limit = min(500, max(10, (int)($_GET['limit'] ?? 50)));
             $offset = max(0, (int)($_GET['offset'] ?? 0));
 
             $where = [];
             $params = [];
 
-            if ($statusFilter && $statusFilter !== 'ALL') {
-                $where[] = "l.status = ?";
-                $params[] = $statusFilter;
+            if ($statusFilter && $statusFilter !== 'ALL' && $statusFilter !== 'Clicks' && $statusFilter !== 'clicks') {
+                if ($statusFilter === 'Terminates' || $statusFilter === 'Terminated' || $statusFilter === 'terminates') {
+                    $where[] = "(l.status = 'Terminates' OR l.status = 'Terminated' OR l.status = 'Screenout')";
+                } else if ($statusFilter === 'Complete' || $statusFilter === 'Completes' || $statusFilter === 'completes') {
+                    $where[] = "(l.status = 'Complete' OR l.status = 'Completes')";
+                } else {
+                    $where[] = "l.status = ?";
+                    $params[] = $statusFilter;
+                }
+            }
+
+            if ($vendorIdFilter !== '') {
+                $where[] = "(l.vendor_id = ? OR l.vendor_id COLLATE utf8mb4_general_ci = ? OR vl.vendor_id COLLATE utf8mb4_general_ci = ? OR v.vendor_id = ?)";
+                $params[] = $vendorIdFilter;
+                $params[] = $vendorIdFilter;
+                $params[] = $vendorIdFilter;
+                $params[] = $vendorIdFilter;
             }
 
             if ($search !== '') {
