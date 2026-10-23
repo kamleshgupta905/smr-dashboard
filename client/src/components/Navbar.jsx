@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, RefreshCw, Search, Bell, User, Settings, LogOut, CheckCircle2, Zap, ShieldAlert } from 'lucide-react';
+import { Menu, RefreshCw, Search, Bell, User, Settings, LogOut, CheckCircle2, Zap, ShieldAlert, X } from 'lucide-react';
 
 export default function Navbar({
   onToggleSidebar,
@@ -118,7 +118,7 @@ export default function Navbar({
                 style={{
                   width: '260px',
                   height: '36px',
-                  paddingLeft: '36px',
+                  paddingLeft: '38px',
                   paddingRight: globalSearch ? '28px' : '12px',
                   border: '1px solid #1761fd',
                   borderRadius: '8px',
@@ -153,7 +153,7 @@ export default function Navbar({
                     padding: '2px',
                   }}
                 >
-                  ✕
+                  <X size={13} color="#64748b" />
                 </button>
               )}
             </div>

@@ -3,7 +3,7 @@ import {
   Search, PieChart, UserCheck, Share2, AlertCircle, ChevronLeft, ChevronRight, 
   DollarSign, Clock, ArrowUpDown, Filter, Monitor, Smartphone, Tablet, 
   ShieldCheck, RefreshCw, ExternalLink, ChevronDown, ChevronUp, Layers, CheckCircle2,
-  Download, Copy, Link as LinkIcon, Check
+  Download, Copy, Link as LinkIcon, Check, Globe, Sparkles, X
 } from 'lucide-react';
 import { normalizeSurveys } from '../utils/normalize';
 import DemandProjectModal from '../components/DemandProjectModal';
@@ -11,7 +11,20 @@ import DuplicateProjectModal from '../components/DuplicateProjectModal';
 import BulkAssignModal from '../components/BulkAssignModal';
 import { exportSurveysInventoryToExcel } from '../utils/excelExport';
 
-export default function SurveysPage({ surveys = [], globalSearch = '', loading, onRefresh, onAddSurvey, onOpenQuotas, onOpenQuals, onOpenAssign }) {
+export default function SurveysPage({ 
+  surveys = [], 
+  globalSearch = '', 
+  loading, 
+  onRefresh, 
+  onAddSurvey, 
+  onOpenQuotas, 
+  onOpenQuals, 
+  onOpenAssign,
+  currentUser,
+  showToast
+}) {
+  const isVendor = currentUser?.role_name === "Vendor" || currentUser?.role === "Vendor";
+  const vendorId = currentUser?.vendor_id || currentUser?.username || "VND-DYN-01";
   const [demandModalOpen, setDemandModalOpen] = useState(false);
   const [duplicateModalProject, setDuplicateModalProject] = useState(null);
   const [selectedSurveyIds, setSelectedSurveyIds] = useState(new Set());
@@ -20,7 +33,9 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
 
   const handleCopyLink = (s) => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://api.vmhgroupsmr.com';
-    const link = s.entry_live_url || `${origin}/redirect?pid=${s.survey_id}&uid=[RESPONDENT_ID]`;
+    const link = isVendor
+      ? `https://api.vmhgroupsmr.com/vendor/auth/${vendorId}/project/${s.survey_id}?uid=[RESPONDENT_ID]`
+      : (s.entry_live_url || `${origin}/redirect?pid=${s.survey_id}&uid=[RESPONDENT_ID]`);
     try {
       navigator.clipboard.writeText(link);
       setCopiedId(s.survey_id);
@@ -30,8 +45,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
     }
   };
 
-
-  // Modal openers that push browser history so Back button closes modal
+  // Browser History & Modal Back-Button Support
   const openDemandModal = () => {
     window.history.pushState({ modal: 'demand' }, '');
     setDemandModalOpen(true);
@@ -45,7 +59,6 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
     setShowBulkModal(true);
   };
 
-  // Browser Back Button Interceptor for Modals
   useEffect(() => {
     const handlePopState = () => {
       if (demandModalOpen) setDemandModalOpen(false);
@@ -55,6 +68,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [demandModalOpen, duplicateModalProject, showBulkModal]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('ALL');
   const [selectedChannel, setSelectedChannel] = useState('ALL');
@@ -78,14 +92,14 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
 
   const filtered = useMemo(() => {
     let list = normalized.filter((s) => {
-      // 1. Country Filter (case-insensitive)
+      // 1. Country Filter
       if (selectedCountry !== 'ALL') {
         const sCountry = (s.country || '').trim().toUpperCase();
         const selCountry = selectedCountry.trim().toUpperCase();
         if (sCountry !== selCountry) return false;
       }
 
-      // 2. Channel / Demand Source Filter
+      // 2. Channel Filter
       if (selectedChannel !== 'ALL') {
         const clientStr = (s.client || '').toLowerCase();
         const idStr = String(s.survey_id || '').toLowerCase();
@@ -98,7 +112,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
         }
       }
 
-      // 3. CPI Payout Range Filter
+      // 3. CPI Range Filter
       if (selectedCpiRange !== 'ALL') {
         const cpiVal = Number(s.cpi || s.CPI || 0);
         if (selectedCpiRange === 'under-1' && cpiVal >= 1.00) return false;
@@ -108,7 +122,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
         if (selectedCpiRange === '5-plus' && cpiVal < 5.00) return false;
       }
 
-      // 4. Search Filter (Multi-field fuzzy search)
+      // 4. Search Filter
       if (!effectiveSearch) return true;
       const term = effectiveSearch;
       return (
@@ -178,202 +192,438 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
   const getDeviceBadges = (deviceStr) => {
     const d = (deviceStr || 'Desktop,Mobile,Tablet').toLowerCase();
     return (
-      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-        {d.includes('desktop') && <span title="Desktop Allowed" style={{ color: '#0284C7' }}><Monitor size={14} /></span>}
-        {d.includes('mobile') && <span title="Mobile Allowed" style={{ color: '#16A34A' }}><Smartphone size={14} /></span>}
-        {d.includes('tablet') && <span title="Tablet Allowed" style={{ color: '#9333EA' }}><Tablet size={14} /></span>}
+      <div style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '4px',
+        padding: '3px 6px',
+        background: '#f8fafc',
+        border: '1px solid #e2e8f0',
+        borderRadius: '6px'
+      }}>
+        {d.includes('desktop') && <span title="Desktop Allowed" style={{ color: '#0284c7', display: 'flex' }}><Monitor size={13} /></span>}
+        {d.includes('mobile') && <span title="Mobile Allowed" style={{ color: '#059669', display: 'flex' }}><Smartphone size={13} /></span>}
+        {d.includes('tablet') && <span title="Tablet Allowed" style={{ color: '#7c3aed', display: 'flex' }}><Tablet size={13} /></span>}
       </div>
     );
   };
 
+  const hasActiveFilters = selectedChannel !== 'ALL' || selectedCountry !== 'ALL' || selectedCpiRange !== 'ALL' || searchTerm.length > 0;
+
   return (
-    <div>
-      {/* Dastone Authentic Page Title Box */}
-      <div className="page-title-box">
+    <div style={{ paddingBottom: '40px' }}>
+      {/* 1. Executive Linear/Stripe Page Header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '16px',
+        marginBottom: '20px'
+      }}>
         <div>
-          <div className="breadcrumb-trail">
-            <span className="link">VMH</span>
-            <span className="separator">/</span>
-            <span className="link">Platform</span>
-            <span className="separator">/</span>
-            <span className="current">Surveys</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
+            <span>VMH Platform</span>
+            <span>/</span>
+            <span style={{ color: '#0f172a' }}>Surveys Inventory</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h4 className="page-title">
-              Surveys
-            </h4>
-            <span className="badge-soft-success" style={{
-              padding: '2px 8px',
-              borderRadius: '20px',
-              fontSize: '11px',
-              fontWeight: 700,
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <h1 style={{
+              fontSize: '24px',
+              fontWeight: 800,
+              color: '#0f172a',
+              margin: 0,
+              letterSpacing: '-0.025em',
+              fontFamily: "'Plus Jakarta Sans', sans-serif"
+            }}>
+              {isVendor ? "My Allocated Surveys" : "Surveys"}
+            </h1>
+            <span style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '5px'
+              gap: '6px',
+              padding: '3px 10px',
+              borderRadius: '999px',
+              background: '#ecfdf5',
+              border: '1px solid #a7f3d0',
+              fontSize: '11.5px',
+              fontWeight: 700,
+              color: '#059669'
             }}>
-              <span className="pulse-dot" />
-              Live Surveys
+              <span className="pulse-dot" style={{ width: '6px', height: '6px' }} />
+              {filtered.length} Live Studies
             </span>
           </div>
+          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+            {isVendor ? "Live surveys allocated to your panel with agreed CPI and real-time quota tracking" : "Real-time allocated survey traffic synced across Zamplia and Market Xcel supply channels"}
+          </p>
         </div>
 
-        <div className="title-box-actions">
+        {/* Action Buttons Toolbar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           {selectedSurveyIds.size > 0 && (
             <button
-              className="btn btn-primary"
               onClick={openBulkModal}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, padding: '7px 14px', background: '#4361EE' }}
+              className="btn btn-primary"
+              style={{
+                background: 'linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%)',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                padding: '8px 14px',
+                borderRadius: '8px',
+                boxShadow: '0 2px 8px rgba(37, 99, 235, 0.35)'
+              }}
             >
-              <Share2 size={13} /> Bulk Assign ({selectedSurveyIds.size} Selected)
+              <Share2 size={13} />
+              <span>Bulk Assign ({selectedSurveyIds.size})</span>
             </button>
           )}
+
           <button
-            className="btn btn-primary"
-            onClick={openDemandModal}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px' }}
-          >
-            <Layers size={14} /> + Add Survey
-          </button>
-          <button
-            className="btn btn-soft-success"
             onClick={() => exportSurveysInventoryToExcel(filtered)}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px' }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: '#ffffff',
+              border: '1px solid #e2e8f0',
+              color: '#0f172a',
+              borderRadius: '8px',
+              padding: '8px 14px',
+              fontSize: '12.5px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
+              transition: 'all 0.15s ease'
+            }}
             title="Export filtered surveys inventory to Excel (.xlsx)"
           >
-            <Download size={13} /> Export Excel (.xlsx)
+            <Download size={14} color="#059669" />
+            <span>Export (.xlsx)</span>
           </button>
+
           {onRefresh && (
             <button
-              className="btn btn-soft-primary"
               onClick={onRefresh}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px' }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                color: '#0f172a',
+                borderRadius: '8px',
+                padding: '8px 14px',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
+                transition: 'all 0.15s ease'
+              }}
+              title="Sync live inventory from Zamplia"
             >
-              <RefreshCw size={13} /> Sync Surveys
+              <RefreshCw size={13} color="#2563eb" className={loading ? 'sync-spin' : ''} />
+              <span>Sync Surveys</span>
             </button>
           )}
+
+          <button
+            onClick={openDemandModal}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%)',
+              border: '1px solid #1d4ed8',
+              color: '#ffffff',
+              borderRadius: '8px',
+              padding: '8px 16px',
+              fontSize: '12.5px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(37, 99, 235, 0.35)',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <Layers size={14} />
+            <span>+ Add Survey</span>
+          </button>
         </div>
       </div>
 
-      {/* Filter & Channel Switcher Bar (Dastone Report Card) */}
-      <div className="report-card" style={{ padding: '10px 14px', marginBottom: '14px' }}>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
-          flexWrap: 'wrap', 
-          gap: '12px' 
+      {/* 2. Refined Filter Bar (Mobbin Segmented Control, Zero Emojis) */}
+      <div style={{
+        background: '#ffffff',
+        border: '1px solid #e2e8f0',
+        borderRadius: '12px',
+        padding: '12px 16px',
+        marginBottom: '16px',
+        boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '12px'
+      }}>
+        {/* Demand Channel Switcher Pills */}
+        <div style={{
+          display: 'inline-flex',
+          background: '#f1f5f9',
+          padding: '3px',
+          borderRadius: '9px',
+          border: '1px solid #e2e8f0',
+          gap: '2px'
         }}>
-          {/* Demand Source Tabs (Dastone Timeframe Group Style) */}
-          <div className="timeframe-group">
-            {channels.map(c => (
+          {channels.map(c => {
+            const isActive = selectedChannel === c;
+            return (
               <button
                 key={c}
+                type="button"
                 onClick={() => { setSelectedChannel(c); setPage(1); }}
-                className={`timeframe-btn ${selectedChannel === c ? 'active' : ''}`}
-                style={{ padding: '5px 14px', fontSize: '12px' }}
+                style={{
+                  padding: '5px 14px',
+                  fontSize: '12px',
+                  fontWeight: isActive ? 700 : 500,
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: isActive ? '#ffffff' : 'transparent',
+                  color: isActive ? '#2563eb' : '#64748b',
+                  boxShadow: isActive ? '0 1px 3px rgba(15, 23, 42, 0.08)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
               >
                 {c === 'ALL' ? 'All Clients' : c}
               </button>
+            );
+          })}
+        </div>
+
+        {/* Search, Country & Filter Selectors */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {/* Search Box */}
+          <div style={{ position: 'relative' }}>
+            <Search
+              size={14}
+              style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}
+            />
+            <input
+              type="text"
+              value={searchTerm || globalSearch}
+              onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+              className="search-box-input"
+              placeholder="Search title, PID, category..."
+              style={{
+                paddingLeft: '38px',
+                paddingRight: '12px',
+                width: '240px',
+                height: '36px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                fontSize: '12.5px',
+                color: '#0f172a',
+                background: '#ffffff',
+                outline: 'none',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+
+          {/* Country Filter */}
+          <select 
+            value={selectedCountry}
+            onChange={(e) => { setSelectedCountry(e.target.value); setPage(1); }}
+            style={{
+              height: '36px',
+              padding: '0 12px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              fontSize: '12px',
+              fontWeight: 500,
+              color: '#334155',
+              background: '#ffffff',
+              cursor: 'pointer'
+            }}
+          >
+            {countries.map(c => (
+              <option key={c} value={c}>{c === 'ALL' ? 'All Markets' : `Market: ${c}`}</option>
             ))}
-          </div>
+          </select>
 
-          {/* Search, Country & Sort Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <div style={{ position: 'relative' }}>
-              <Search
-                size={14}
-                style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#8997bd' }}
-              />
-              <input
-                type="text"
-                className="input-control"
-                style={{ paddingLeft: '32px', width: '220px', height: '34px', fontSize: '12px' }}
-                placeholder="Search by name, ID, category..."
-                value={searchTerm || globalSearch}
-                onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
-              />
-            </div>
+          {/* CPI Range Filter */}
+          <select
+            value={selectedCpiRange}
+            onChange={(e) => { setSelectedCpiRange(e.target.value); setPage(1); }}
+            style={{
+              height: '36px',
+              padding: '0 12px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              fontSize: '12px',
+              fontWeight: 600,
+              color: '#059669',
+              background: '#ffffff',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="ALL">All Rates (CPI)</option>
+            <option value="under-1">Below $1.00</option>
+            <option value="1-to-2">$1.00 - $2.00</option>
+            <option value="2-to-3">$2.00 - $3.00</option>
+            <option value="3-to-5">$3.00 - $5.00</option>
+            <option value="5-plus">$5.00+ High Rate</option>
+          </select>
 
-            <select 
-              className="input-control"
-              value={selectedCountry}
-              onChange={(e) => { setSelectedCountry(e.target.value); setPage(1); }}
-              style={{ width: 'auto', height: '34px', fontSize: '12px' }}
+          {/* Sort Filter */}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            style={{
+              height: '36px',
+              padding: '0 12px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              fontSize: '12px',
+              fontWeight: 500,
+              color: '#334155',
+              background: '#ffffff',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="cpi-desc">Sort: Highest Rate ($)</option>
+            <option value="cpi-asc">Sort: Lowest Rate ($)</option>
+            <option value="loi-asc">Sort: Shortest Length (LOI)</option>
+            <option value="ir-desc">Sort: Highest Match (IR)</option>
+          </select>
+
+          {/* Reset Filters Quick Button */}
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedChannel('ALL');
+                setSelectedCountry('ALL');
+                setSelectedCpiRange('ALL');
+                setSearchTerm('');
+                setPage(1);
+              }}
+              style={{
+                height: '36px',
+                padding: '0 10px',
+                background: '#f1f5f9',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                fontSize: '11.5px',
+                fontWeight: 600,
+                color: '#64748b',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+              title="Reset all filters"
             >
-              {countries.map(c => (
-                <option key={c} value={c}>{c === 'ALL' ? '🌍 All Countries' : c}</option>
-              ))}
-            </select>
-
-            <select
-              className="input-control"
-              value={selectedCpiRange}
-              onChange={(e) => { setSelectedCpiRange(e.target.value); setPage(1); }}
-              style={{ width: 'auto', height: '34px', fontSize: '12px', fontWeight: 600, color: '#15803D' }}
-            >
-              <option value="ALL">💵 All Rates (CPI)</option>
-              <option value="under-1">Below $1.00 ($0 - $0.99)</option>
-              <option value="1-to-2">$1.00 - $2.00</option>
-              <option value="2-to-3">$2.00 - $3.00</option>
-              <option value="3-to-5">$3.00 - $5.00</option>
-              <option value="5-plus">$5.00+ High Rate</option>
-            </select>
-
-            <select
-              className="input-control"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              style={{ width: 'auto', height: '34px', fontSize: '12px' }}
-            >
-              <option value="cpi-desc">💰 Highest Rate ($)</option>
-              <option value="cpi-asc">Lowest Rate ($)</option>
-              <option value="loi-asc">⚡ Shortest Time (LOI)</option>
-              <option value="ir-desc">🎯 Highest Match (IR)</option>
-            </select>
-          </div>
+              <X size={13} /> Clear
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Main Data Table (Dastone Report Card) */}
-      <div className="report-card card" style={{ padding: 0, overflow: 'hidden', marginBottom: '24px' }}>
-        <div className="report-card-header" style={{ padding: '10px 14px' }}>
-          <h4 className="report-card-title">
-            <Layers size={15} color="#1761fd" /> Active Surveys ({filtered.length})
-          </h4>
-          <span className="badge-soft-primary" style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
-            Page {page} of {totalPages}
-          </span>
+      {/* 3. Flush Senior Staff Table Card */}
+      <div className="table-flush-card">
+        {/* Table Card Sub-Header */}
+        <div className="table-flush-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>Active Surveys Directory</span>
+            <span style={{
+              background: '#f1f5f9',
+              color: '#475569',
+              padding: '2px 8px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: 700
+            }}>
+              {filtered.length} total
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748b' }}>
+            <span>Page {page} of {totalPages}</span>
+            <div style={{ display: 'inline-flex', gap: '4px' }}>
+              <button
+                type="button"
+                disabled={page === 1}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                style={{
+                  width: '26px',
+                  height: '26px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  cursor: page === 1 ? 'not-allowed' : 'pointer',
+                  opacity: page === 1 ? 0.5 : 1
+                }}
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <button
+                type="button"
+                disabled={page >= totalPages}
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                style={{
+                  width: '26px',
+                  height: '26px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  cursor: page >= totalPages ? 'not-allowed' : 'pointer',
+                  opacity: page >= totalPages ? 0.5 : 1
+                }}
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="table-wrapper table-container" style={{ margin: 0, border: 'none', borderRadius: 0, width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', display: 'block' }}>
-          <table className="custom-table compact-table" style={{ width: '100%', tableLayout: 'auto' }}>
-            <thead className="thead-light">
+
+        {/* Clean Data Table */}
+        <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <table className="custom-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead>
               <tr>
-                <th className="col-checkbox" style={{ width: '28px', textAlign: 'center', padding: '6px 2px' }}>
+                <th style={{ width: '36px', textAlign: 'center', padding: '12px 6px' }}>
                   <input
                     type="checkbox"
                     checked={isAllPageSelected}
                     ref={el => { if (el) el.indeterminate = isSomePageSelected; }}
                     onChange={handleToggleSelectAllPage}
                     title="Select all surveys on this page"
-                    style={{ cursor: 'pointer', width: '14px', height: '14px', accentColor: '#4361EE' }}
+                    style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#2563eb' }}
                   />
                 </th>
-                <th className="col-index" style={{ width: '26px', textAlign: 'center', padding: '6px 2px' }}>#</th>
-                <th style={{ width: '220px', minWidth: '180px', padding: '6px 6px' }}>Survey Name & ID</th>
-                <th style={{ width: '90px', padding: '6px 4px' }}>Client</th>
-                <th style={{ width: '45px', textAlign: 'center', padding: '6px 2px' }}>Country</th>
-                <th style={{ width: '55px', textAlign: 'center', padding: '6px 2px' }}>Devices</th>
-                <th style={{ width: '68px', padding: '6px 4px' }}>Rate (CPI)</th>
-                <th style={{ width: '68px', padding: '6px 4px' }}>Length (LOI)</th>
-                <th style={{ minWidth: '140px', padding: '6px 6px' }}>Quota / Completes</th>
-                <th style={{ width: '55px', textAlign: 'center', padding: '6px 2px' }}>Status</th>
-                <th className="col-sticky-action" style={{ textAlign: 'center', width: '180px', padding: '6px 4px' }}>Actions</th>
+                <th style={{ width: '40px', textAlign: 'center', padding: '12px 6px' }}>#</th>
+                <th style={{ minWidth: '220px' }}>Survey Name & ID</th>
+                <th style={{ width: '110px' }}>Client</th>
+                <th style={{ width: '70px', textAlign: 'center' }}>Market</th>
+                <th style={{ width: '85px', textAlign: 'center' }}>Devices</th>
+                <th style={{ width: '95px' }}>Rate (CPI)</th>
+                <th style={{ width: '100px' }}>Length (LOI)</th>
+                <th style={{ minWidth: '150px' }}>Quota Progress</th>
+                <th style={{ width: '75px', textAlign: 'center' }}>Status</th>
+                <th style={{ width: '170px', textAlign: 'center' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="11" style={{ textAlign: 'center', padding: '60px 20px', color: '#64748B' }}>
+                  <td colSpan="11" style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
                     <div className="spinner" style={{ margin: '0 auto 12px auto' }}></div>
                     Synchronizing live inventory from Zamplia & Market Xcel...
                   </td>
@@ -384,226 +634,282 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                   const isExpanded = expandedId === s.survey_id;
                   const isMarketXcel = (s.client || '').toLowerCase().includes('market xcel') || String(s.survey_id).startsWith('MX');
                   const clientName = isMarketXcel ? 'Market Xcel' : 'Zamplia';
-                  const quotaTarget = s.complete_needed || s.target_completes || 200;
-                  const quotaFilled = s.live_click_quota || Math.round(quotaTarget * 0.65);
-                  const fillPercent = Math.min(100, Math.round((quotaFilled / quotaTarget) * 100));
+                  const quotaTarget = Number(s.complete_needed || s.target_completes || s.max_limit || 200);
+                  const quotaFilled = Number(s.completes !== undefined ? s.completes : (s.total_complete || 0));
+                  const fillPercent = quotaTarget > 0 ? Math.min(100, Math.round((quotaFilled / quotaTarget) * 100)) : 0;
 
                   return (
                     <React.Fragment key={s.survey_id || idx}>
-                      <tr 
-                        style={{ 
-                          borderBottom: isExpanded ? 'none' : '1px solid #E2E8F0',
-                          background: isExpanded ? '#F8FAFC' : selectedSurveyIds.has(s.survey_id) ? 'rgba(67, 97, 238, 0.04)' : 'transparent',
-                          transition: 'background 0.15s'
-                        }}
-                      >
-                        <td className="col-checkbox" style={{ textAlign: 'center', padding: '6px 2px' }}>
+                      <tr style={{
+                        background: isExpanded ? '#f8fafc' : selectedSurveyIds.has(s.survey_id) ? 'rgba(37, 99, 235, 0.04)' : '#ffffff',
+                        borderBottom: isExpanded ? 'none' : '1px solid #f1f5f9'
+                      }}>
+                        {/* Checkbox */}
+                        <td style={{ textAlign: 'center', padding: '12px 6px' }}>
                           <input
                             type="checkbox"
                             checked={selectedSurveyIds.has(s.survey_id)}
                             onChange={() => handleToggleSelect(s.survey_id)}
                             title={`Select survey ${s.survey_id}`}
-                            style={{ cursor: 'pointer', width: '14px', height: '14px', accentColor: '#4361EE' }}
+                            style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#2563eb' }}
                           />
                         </td>
-                        <td className="col-index" style={{ textAlign: 'center', color: '#94A3B8', fontSize: '11px', padding: '6px 2px' }}>
-                          {globalIdx}
+
+                        {/* Muted Row Index (NO blue box!) */}
+                        <td style={{ textAlign: 'center', padding: '12px 6px' }}>
+                          <span className="row-index-subtle">{globalIdx}</span>
                         </td>
-                        <td style={{ width: '220px', minWidth: '180px', padding: '6px 6px' }}>
-                          <div 
-                            style={{ fontWeight: 800, color: '#0F172A', fontSize: '12.5px', cursor: 'pointer', lineHeight: 1.25, wordBreak: 'break-word', whiteSpace: 'normal' }}
+
+                        {/* Survey Name & PID */}
+                        <td>
+                          <div
                             onClick={() => toggleExpand(s.survey_id)}
+                            style={{
+                              fontWeight: 700,
+                              color: '#0f172a',
+                              fontSize: '13px',
+                              cursor: 'pointer',
+                              lineHeight: 1.35,
+                              transition: 'color 0.15s ease'
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.color = '#2563eb'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.color = '#0f172a'; }}
                           >
                             {s.survey_name}
                           </div>
-                          <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '2px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '10px', color: '#475569', fontFamily: 'monospace', fontWeight: 700 }}>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '3px', flexWrap: 'wrap' }}>
+                            <span style={{
+                              fontSize: '10.5px',
+                              color: '#475569',
+                              fontFamily: 'monospace',
+                              fontWeight: 600,
+                              background: '#f1f5f9',
+                              padding: '1px 6px',
+                              borderRadius: '4px'
+                            }}>
                               PID: {s.survey_id}
                             </span>
                             {s.category && (
-                              <span style={{ fontSize: '9.5px', color: '#64748B', background: '#F1F5F9', padding: '1px 4px', borderRadius: '3px' }}>
+                              <span style={{
+                                fontSize: '10.5px',
+                                color: '#64748b',
+                                background: '#f8fafc',
+                                border: '1px solid #e2e8f0',
+                                padding: '1px 6px',
+                                borderRadius: '4px'
+                              }}>
                                 {s.category}
                               </span>
                             )}
                           </div>
                         </td>
-                        <td style={{ width: '90px', padding: '6px 4px' }}>
+
+                        {/* Client / Demand Source */}
+                        <td>
                           <span style={{
-                            padding: '2px 5px',
-                            borderRadius: '4px',
-                            fontSize: '10px',
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            fontSize: '11px',
                             fontWeight: 700,
-                            background: clientName === 'Market Xcel' ? '#FFF7ED' : '#EFF6FF',
-                            color: clientName === 'Market Xcel' ? '#C2410C' : '#1D4ED8',
-                            border: `1px solid ${clientName === 'Market Xcel' ? '#FFEDD5' : '#DBEAFE'}`,
+                            background: clientName === 'Market Xcel' ? '#fff7ed' : '#eff6ff',
+                            color: clientName === 'Market Xcel' ? '#c2410c' : '#1d4ed8',
+                            border: `1px solid ${clientName === 'Market Xcel' ? '#ffedd5' : '#dbeafe'}`,
                             display: 'inline-block',
                             whiteSpace: 'nowrap'
                           }}>
                             {clientName}
                           </span>
                         </td>
-                        <td style={{ textAlign: 'center', padding: '6px 2px' }}>
-                          <span className="badge badge-info" style={{ fontSize: '10.5px', fontWeight: 600, padding: '2px 4px' }}>
+
+                        {/* Country Market */}
+                        <td style={{ textAlign: 'center' }}>
+                          <span style={{
+                            padding: '3px 7px',
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            background: '#f1f5f9',
+                            color: '#334155',
+                            border: '1px solid #e2e8f0',
+                            display: 'inline-block'
+                          }}>
                             {s.country}
                           </span>
                         </td>
-                        <td style={{ textAlign: 'center', padding: '6px 2px' }}>
+
+                        {/* Devices Allowed */}
+                        <td style={{ textAlign: 'center' }}>
                           {getDeviceBadges(s.device_type)}
                         </td>
-                        <td style={{ padding: '6px 4px' }}>
-                          <div style={{ fontWeight: 800, color: '#15803D', fontSize: '12px' }}>
+
+                        {/* Payout Rate (CPI) */}
+                        <td>
+                          <div style={{ fontWeight: 800, color: '#059669', fontSize: '13.5px', fontVariantNumeric: 'tabular-nums' }}>
                             ${Number(s.cpi).toFixed(2)}
                           </div>
-                          <div style={{ fontSize: '9.5px', color: '#64748B' }}>per complete</div>
+                          <div style={{ fontSize: '10.5px', color: '#94a3b8' }}>per complete</div>
                         </td>
-                        <td style={{ padding: '6px 4px' }}>
-                          <div style={{ fontSize: '11px', color: '#0F172A', fontWeight: 600 }}>
-                            <Clock size={10} style={{ display: 'inline', marginRight: '2px', verticalAlign: 'middle', color: '#64748B' }} />
+
+                        {/* Length & Match (LOI & IR) */}
+                        <td>
+                          <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 600 }}>
+                            <Clock size={11} style={{ display: 'inline', marginRight: '3px', verticalAlign: 'middle', color: '#64748b' }} />
                             {s.loi}m
                           </div>
-                          <div style={{ fontSize: '10px', color: '#64748B' }}>
+                          <div style={{ fontSize: '11px', color: '#64748b' }}>
                             IR: <strong>{s.ir}%</strong>
                           </div>
                         </td>
-                        <td style={{ minWidth: '140px', padding: '6px 6px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginBottom: '2px' }}>
-                            <span style={{ fontWeight: 700, color: '#0F172A' }}>{quotaFilled} / {quotaTarget}</span>
-                            <span style={{ color: '#64748B' }}>{fillPercent}%</span>
+
+                        {/* Quota Progress & Real Pacing */}
+                        <td style={{ minWidth: '150px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '3px' }}>
+                            <span style={{ fontWeight: 700, color: '#0f172a' }}>{quotaFilled} / {quotaTarget} <span style={{ color: '#64748b', fontWeight: 500 }}>({s.routed_leads || 0} clk)</span></span>
+                            <span style={{ fontWeight: 700, color: fillPercent >= 100 ? '#059669' : (fillPercent > 50 ? '#2563eb' : '#64748b') }}>{fillPercent}%</span>
                           </div>
-                          <div style={{ width: '100%', height: '4px', background: '#E2E8F0', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: '100%', height: '6px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
                             <div style={{
-                              width: `${fillPercent}%`,
+                              width: `${Math.min(100, fillPercent)}%`,
                               height: '100%',
-                              background: fillPercent > 85 ? '#EA580C' : '#10B981',
-                              borderRadius: '3px'
+                              background: fillPercent >= 100 ? '#059669' : (fillPercent > 75 ? '#2563eb' : '#3b82f6'),
+                              borderRadius: '999px',
+                              transition: 'width 0.3s ease'
                             }} />
                           </div>
                         </td>
-                        <td style={{ textAlign: 'center', padding: '6px 2px' }}>
-                          <span className="badge-soft-success" style={{
-                            padding: '2px 5px',
-                            borderRadius: '20px',
-                            fontSize: '10px',
+
+                        {/* Status */}
+                        <td style={{ textAlign: 'center' }}>
+                          <span style={{
+                            padding: '3px 8px',
+                            borderRadius: '999px',
+                            fontSize: '11px',
                             fontWeight: 700,
+                            background: '#ecfdf5',
+                            border: '1px solid #a7f3d0',
+                            color: '#059669',
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '3px'
+                            gap: '4px'
                           }}>
                             <span className="pulse-dot" style={{ width: '5px', height: '5px' }} />
                             {s.status || 'Live'}
                           </span>
                         </td>
-                        <td className="col-sticky-action" style={{ textAlign: 'center', padding: '6px 4px' }}>
-                          <div style={{ display: 'inline-flex', gap: '3px', alignItems: 'center', justifyContent: 'center' }}>
-                            <button
-                              className="btn btn-primary btn-sm"
-                              style={{ padding: '3px 7px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '3px', borderRadius: '4px', fontWeight: 600, whiteSpace: 'nowrap' }}
-                              onClick={() => onOpenAssign(s)}
-                              title="Assign survey to vendor"
-                            >
-                              <Share2 size={11} /> Assign
-                            </button>
+
+                        {/* Action Suite (Uncluttered, No Clipped Clone Button) */}
+                        <td style={{ textAlign: 'center' }}>
+                          <div className="action-suite">
+                            {!isVendor && (
+                              <button
+                                type="button"
+                                className="action-suite-btn primary"
+                                onClick={() => onOpenAssign(s)}
+                                title="Assign survey to vendor"
+                              >
+                                <Share2 size={12} />
+                                <span>Assign</span>
+                              </button>
+                            )}
+
+                            {!isVendor && (
+                              <button
+                                type="button"
+                                className="action-suite-btn"
+                                onClick={() => openDuplicateModal(s)}
+                                title="Clone Study & Modify Parameters"
+                                style={{ background: '#f1f5f9', color: '#0f172a' }}
+                              >
+                                <Copy size={12} color="#0f172a" />
+                                <span>Clone</span>
+                              </button>
+                            )}
 
                             <button
-                              className="btn btn-sm"
-                              style={{ 
-                                padding: '3px 6px', 
-                                fontSize: '11px', 
-                                display: 'inline-flex', 
-                                alignItems: 'center', 
-                                gap: '3px', 
-                                borderRadius: '4px', 
-                                background: copiedId === s.survey_id ? '#dcfce7' : '#f8fafc',
-                                color: copiedId === s.survey_id ? '#15803d' : '#475569',
-                                border: '1px solid #cbd5e1',
-                                fontWeight: 600, 
-                                whiteSpace: 'nowrap' 
-                              }}
+                              type="button"
+                              className={`action-suite-btn ${copiedId === s.survey_id ? 'copied' : ''}`}
                               onClick={() => handleCopyLink(s)}
-                              title={copiedId === s.survey_id ? "Copied to clipboard!" : "1-Click Fast Copy Live/Test Link"}
+                              title={copiedId === s.survey_id ? "Copied!" : "Copy Entry Link"}
                             >
-                              {copiedId === s.survey_id ? <Check size={11} /> : <LinkIcon size={11} />}
-                              {copiedId === s.survey_id ? 'Copied' : 'Link'}
-                            </button>
-                            <button
-                              className="btn btn-soft-info btn-sm"
-                              style={{ padding: '3px 6px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '2px', borderRadius: '4px', background: 'rgba(6, 182, 212, 0.1)', color: '#0891b2', border: '1px solid rgba(6, 182, 212, 0.2)', fontWeight: 600, whiteSpace: 'nowrap' }}
-                              onClick={() => openDuplicateModal(s)}
-                              title="1-Click Clone / Duplicate Project"
-                            >
-                              <Copy size={11} /> Clone
+                              {copiedId === s.survey_id ? <Check size={12} color="#059669" /> : <LinkIcon size={12} />}
+                              <span>{copiedId === s.survey_id ? 'Copied' : 'Link'}</span>
                             </button>
 
                             <button
-                              className="btn btn-soft-secondary btn-sm"
-                              style={{ padding: '3px 5px', fontSize: '11px', borderRadius: '4px' }}
+                              type="button"
+                              className="action-suite-btn icon-only"
                               onClick={() => onOpenQuotas(s.survey_id)}
                               title="View Quotas"
                             >
-                              <PieChart size={11} />
+                              <PieChart size={12} color="#64748b" />
                             </button>
 
                             <button
-                              className="btn btn-soft-secondary btn-sm"
-                              style={{ padding: '3px 5px', fontSize: '11px', borderRadius: '4px' }}
+                              type="button"
+                              className="action-suite-btn icon-only"
                               onClick={() => onOpenQuals(s.survey_id)}
                               title="View Criteria & Qualifications"
                             >
-                              <UserCheck size={11} />
+                              <UserCheck size={12} color="#64748b" />
                             </button>
 
                             <button
-                              className="btn btn-soft-secondary btn-sm"
-                              style={{ padding: '3px 4px', borderRadius: '4px', color: '#7081b9' }}
+                              type="button"
+                              className="action-suite-btn icon-only"
                               onClick={() => toggleExpand(s.survey_id)}
                               title="Toggle Survey Details"
                             >
-                              {isExpanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                              {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                             </button>
                           </div>
                         </td>
                       </tr>
 
-                      {/* Expandable Deep Specification View */}
+                      {/* Expandable Specifications Drawer */}
                       {isExpanded && (
-                        <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #CBD5E1' }}>
-                          <td colSpan="11" style={{ padding: '16px 24px' }}>
+                        <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                          <td colSpan="11" style={{ padding: '16px 20px' }}>
                             <div style={{
-                              background: '#FFFFFF',
-                              borderRadius: '8px',
-                              padding: '16px',
-                              border: '1px solid #E2E8F0',
+                              background: '#ffffff',
+                              borderRadius: '10px',
+                              padding: '16px 20px',
+                              border: '1px solid #e2e8f0',
                               display: 'grid',
                               gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                              gap: '16px'
+                              gap: '16px',
+                              boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)'
                             }}>
                               <div>
-                                <h4 style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#64748B', textTransform: 'uppercase' }}>
+                                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
                                   Study Description & Audience
-                                </h4>
-                                <p style={{ margin: 0, fontSize: '12.5px', color: '#0F172A', lineHeight: 1.5 }}>
+                                </div>
+                                <p style={{ margin: 0, fontSize: '13px', color: '#0f172a', lineHeight: 1.5 }}>
                                   {s.survey_description || 'General population survey with demographic quota constraints and quality speeder filters.'}
                                 </p>
                               </div>
 
                               <div>
-                                <h4 style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#64748B', textTransform: 'uppercase' }}>
-                                  Security & Hashing Specifications
-                                </h4>
-                                <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12px', color: '#334155' }}>
-                                  <li>Hashing Algorithm: <strong>SHA3-256 (Market Xcel Spec)</strong></li>
+                                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
+                                  Security & Hashing Protocol
+                                </div>
+                                <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12.5px', color: '#334155', lineHeight: 1.6 }}>
+                                  <li>Algorithm: <strong>SHA3-256 (Market Xcel Spec)</strong></li>
                                   <li>S2S Webhook: <strong>Automated POST callback active</strong></li>
                                   <li>Fraud Protection: <strong>Honeypot + Speeder Threshold (30%)</strong></li>
                                 </ul>
                               </div>
 
                               <div>
-                                <h4 style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#64748B', textTransform: 'uppercase' }}>
-                                  Live Target URLs
-                                </h4>
-                                <div style={{ fontSize: '11px', fontFamily: 'monospace', color: '#64748B', wordBreak: 'break-all' }}>
-                                  <div><strong>Live:</strong> {s.entry_live_url || 'Zamplia On-Demand Authenticated Session'}</div>
-                                  <div style={{ marginTop: '4px' }}><strong>Test:</strong> {s.entry_test_url || 'Live Test Link Ready'}</div>
+                                <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
+                                  Authenticated Target Endpoints
+                                </div>
+                                <div style={{ fontSize: '11.5px', fontFamily: 'monospace', color: '#475569', wordBreak: 'break-all' }}>
+                                  <div style={{ marginBottom: '4px' }}>
+                                    <strong style={{ color: '#0f172a' }}>Live:</strong> {s.entry_live_url || 'Zamplia On-Demand Authenticated Session'}
+                                  </div>
+                                  <div>
+                                    <strong style={{ color: '#0f172a' }}>Test:</strong> {s.entry_test_url || 'Live Test Link Ready'}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -615,12 +921,12 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                 })
               ) : (
                 <tr>
-                  <td colSpan="11" style={{ textAlign: 'center', padding: '50px 20px', color: '#64748B' }}>
-                    <AlertCircle size={32} style={{ margin: '0 auto 8px auto', display: 'block', opacity: 0.5, color: '#EA580C' }} />
-                    <div style={{ fontWeight: 700, color: '#0F172A', marginBottom: '4px', fontSize: '14px' }}>
+                  <td colSpan="11" style={{ textAlign: 'center', padding: '50px 20px', color: '#64748b' }}>
+                    <AlertCircle size={32} style={{ margin: '0 auto 8px auto', display: 'block', opacity: 0.5, color: '#ea580c' }} />
+                    <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px', fontSize: '14px' }}>
                       No allocated surveys match your filter criteria.
                     </div>
-                    <div style={{ fontSize: '12px', color: '#64748B', marginBottom: '14px' }}>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '14px' }}>
                       Try clearing your search term, changing country, or switching demand channels.
                     </div>
                     <button
@@ -628,6 +934,7 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                       onClick={() => {
                         setSelectedChannel('ALL');
                         setSelectedCountry('ALL');
+                        setSelectedCpiRange('ALL');
                         setSearchTerm('');
                         setPage(1);
                       }}
@@ -642,33 +949,45 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
           </table>
         </div>
 
-        {/* Pagination Footer */}
+        {/* 4. Table Pagination Footer */}
         <div style={{
-          padding: '12px 24px',
-          borderTop: '1px solid #E2E8F0',
+          padding: '12px 20px',
+          borderTop: '1px solid #e2e8f0',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: '#F8FAFC',
+          background: '#f8fafc',
           flexWrap: 'wrap',
           gap: '12px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '12.5px', color: '#64748B' }}>
+            <span style={{ fontSize: '12.5px', color: '#64748b' }}>
               Showing <strong>{filtered.length === 0 ? 0 : (page - 1) * pageSize + 1}</strong> to <strong>{Math.min(page * pageSize, filtered.length)}</strong> of <strong>{filtered.length}</strong> live studies
             </span>
 
             {/* Page Size Selector */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748B' }}>
-              <span>Show:</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#475569' }}>
+              <span style={{ fontWeight: 600 }}>Show:</span>
               <select
                 value={pageSize}
                 onChange={(e) => {
                   setPageSize(Number(e.target.value));
                   setPage(1);
                 }}
-                className="input-control"
-                style={{ width: 'auto', height: '28px', padding: '2px 8px', fontSize: '12px' }}
+                style={{
+                  height: '34px',
+                  minWidth: '135px',
+                  padding: '4px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                  color: '#0f172a',
+                  background: '#ffffff',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
               >
                 <option value={15}>15 per page</option>
                 <option value={25}>25 per page</option>
@@ -680,37 +999,104 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
 
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
             <button
-              className="btn btn-secondary btn-sm"
               disabled={page === 1}
               onClick={() => setPage(1)}
-              title="First Page"
-              style={{ padding: '4px 8px', fontSize: '11px' }}
+              style={{
+                height: '34px',
+                padding: '0 12px',
+                fontSize: '12px',
+                fontWeight: 600,
+                background: '#ffffff',
+                color: page === 1 ? '#94a3b8' : '#0f172a',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                cursor: page === 1 ? 'not-allowed' : 'pointer',
+                opacity: page === 1 ? 0.6 : 1,
+                display: 'inline-flex',
+                alignItems: 'center',
+                boxSizing: 'border-box'
+              }}
             >
               First
             </button>
             <button
-              className="btn btn-secondary btn-sm"
               disabled={page === 1}
               onClick={() => setPage(p => Math.max(1, p - 1))}
+              style={{
+                height: '34px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '0 12px',
+                fontSize: '12px',
+                fontWeight: 600,
+                background: '#ffffff',
+                color: page === 1 ? '#94a3b8' : '#0f172a',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                cursor: page === 1 ? 'not-allowed' : 'pointer',
+                opacity: page === 1 ? 0.6 : 1,
+                boxSizing: 'border-box'
+              }}
             >
-              <ChevronLeft size={14} /> Previous
+              <ChevronLeft size={13} /> Previous
             </button>
-            <span style={{ display: 'flex', alignItems: 'center', padding: '0 10px', fontSize: '12px', fontWeight: 700, color: '#0F172A', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '4px', height: '30px' }}>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '0 12px',
+              fontSize: '12px',
+              fontWeight: 700,
+              color: '#0f172a',
+              background: '#f8fafc',
+              border: '1px solid #cbd5e1',
+              borderRadius: '6px',
+              height: '34px',
+              boxSizing: 'border-box',
+              whiteSpace: 'nowrap'
+            }}>
               Page {page} of {totalPages}
             </span>
             <button
-              className="btn btn-secondary btn-sm"
               disabled={page >= totalPages}
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              style={{
+                height: '34px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '0 12px',
+                fontSize: '12px',
+                fontWeight: 600,
+                background: '#ffffff',
+                color: page >= totalPages ? '#94a3b8' : '#0f172a',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                cursor: page >= totalPages ? 'not-allowed' : 'pointer',
+                opacity: page >= totalPages ? 0.6 : 1,
+                boxSizing: 'border-box'
+              }}
             >
-              Next <ChevronRight size={14} />
+              Next <ChevronRight size={13} />
             </button>
             <button
-              className="btn btn-secondary btn-sm"
               disabled={page >= totalPages}
               onClick={() => setPage(totalPages)}
-              title="Last Page"
-              style={{ padding: '4px 8px', fontSize: '11px' }}
+              style={{
+                height: '34px',
+                padding: '0 12px',
+                fontSize: '12px',
+                fontWeight: 600,
+                background: '#ffffff',
+                color: page >= totalPages ? '#94a3b8' : '#0f172a',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                cursor: page >= totalPages ? 'not-allowed' : 'pointer',
+                opacity: page >= totalPages ? 0.6 : 1,
+                display: 'inline-flex',
+                alignItems: 'center',
+                boxSizing: 'border-box'
+              }}
             >
               Last
             </button>
@@ -746,32 +1132,8 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
             };
             onAddSurvey(newStudy);
           }
-          if (onRefresh) onRefresh();
-        }}
-      />
-
-      {/* 1-Click Project Cloner Modal */}
-      <DuplicateProjectModal
-        isOpen={Boolean(duplicateModalProject)}
-        project={duplicateModalProject}
-        onClose={() => setDuplicateModalProject(null)}
-        onSuccess={(cloned) => {
-          if (cloned && onAddSurvey) {
-            onAddSurvey({
-              surveyId: cloned.id || cloned.project_id,
-              name: cloned.name || cloned.project_name,
-              cpi: Number(cloned.cpi || cloned.cost_per_complete),
-              loi: Number(cloned.loi),
-              ir: Number(cloned.ir),
-              client: 'Market Xcel',
-              clientCode: 'MX_DEMAND',
-              status: cloned.status || 'Pause',
-              totalRequired: Number(cloned.target_completes || cloned.max_limit || 500),
-              completesNeeded: Number(cloned.target_completes || cloned.max_limit || 500),
-              country: cloned.country || 'United States',
-              category: 'Market Research',
-              studyType: 'Consumer'
-            });
+          if (showToast) {
+            showToast(`✓ Study added to marketplace!`);
           }
           if (onRefresh) onRefresh();
         }}
@@ -779,57 +1141,38 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
 
       {/* Floating Bulk Action Bar */}
       {selectedSurveyIds.size > 0 && (
-        <div style={{
-          position: 'fixed',
-          bottom: '24px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 9999,
-          background: '#0F172A',
-          color: '#FFFFFF',
-          padding: '10px 20px',
-          borderRadius: '50px',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.1)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '14px',
-          backdropFilter: 'blur(10px)'
-        }}>
+        <div className="floating-pill-bar">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600 }}>
             <span style={{
-              background: '#4361EE',
-              color: '#FFFFFF',
-              borderRadius: '50%',
-              width: '24px',
-              height: '24px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '11.5px',
+              background: '#2563eb',
+              color: '#ffffff',
+              borderRadius: '999px',
+              padding: '2px 8px',
+              fontSize: '11px',
               fontWeight: 800
             }}>
               {selectedSurveyIds.size}
             </span>
-            <span>surveys selected</span>
+            <span style={{ color: '#e2e8f0' }}>surveys selected</span>
           </div>
 
-          <div style={{ height: '20px', width: '1px', background: 'rgba(255,255,255,0.2)' }} />
+          <div style={{ height: '18px', width: '1px', background: 'rgba(255,255,255,0.18)' }} />
 
           <button
             onClick={openBulkModal}
             style={{
-              background: '#4361EE',
-              color: '#FFFFFF',
+              background: 'linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%)',
+              color: '#ffffff',
               border: 'none',
-              borderRadius: '30px',
-              padding: '7px 18px',
-              fontSize: '13px',
-              fontWeight: 700,
+              borderRadius: '999px',
+              padding: '7px 16px',
+              fontSize: '12.5px',
+              fontWeight: 600,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              boxShadow: '0 2px 8px rgba(67, 97, 238, 0.4)'
+              boxShadow: '0 2px 8px rgba(37, 99, 235, 0.4)'
             }}
           >
             <Share2 size={13} /> Bulk Assign to Vendor
@@ -842,12 +1185,13 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
                 setSelectedSurveyIds(all);
               }}
               style={{
-                background: 'rgba(255,255,255,0.1)',
-                color: '#E2E8F0',
-                border: 'none',
-                borderRadius: '30px',
-                padding: '6px 12px',
-                fontSize: '11.5px',
+                background: 'rgba(255,255,255,0.08)',
+                color: '#e2e8f0',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: '999px',
+                padding: '6px 14px',
+                fontSize: '12px',
+                fontWeight: 500,
                 cursor: 'pointer'
               }}
             >
@@ -859,11 +1203,11 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
             onClick={handleClearSelection}
             style={{
               background: 'transparent',
-              color: '#94A3B8',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '30px',
-              padding: '6px 12px',
-              fontSize: '11.5px',
+              color: '#94a3b8',
+              border: 'none',
+              borderRadius: '999px',
+              padding: '6px 10px',
+              fontSize: '12px',
               cursor: 'pointer'
             }}
           >
@@ -871,6 +1215,37 @@ export default function SurveysPage({ surveys = [], globalSearch = '', loading, 
           </button>
         </div>
       )}
+
+      {/* 1-Click Project Cloner / Duplicator Modal */}
+      <DuplicateProjectModal
+        isOpen={!!duplicateModalProject}
+        project={duplicateModalProject}
+        onClose={() => setDuplicateModalProject(null)}
+        onSuccess={(cloned) => {
+          setDuplicateModalProject(null);
+          if (cloned && onAddSurvey) {
+            onAddSurvey({
+              surveyId: cloned.id || cloned.project_id,
+              name: cloned.name || cloned.project_name,
+              cpi: Number(cloned.cpi || cloned.cost_per_complete),
+              loi: Number(cloned.loi),
+              ir: Number(cloned.ir),
+              client: "VMH GROUP'S",
+              clientCode: 'VMH_DEMAND',
+              status: cloned.status || 'Live',
+              totalRequired: Number(cloned.target_completes || cloned.max_limit || 500),
+              completesNeeded: Number(cloned.target_completes || cloned.max_limit || 500),
+              country: cloned.country || 'United States',
+              category: 'Market Research',
+              studyType: 'Consumer'
+            });
+          }
+          if (showToast) {
+            showToast(`✓ Study cloned successfully: ${cloned.name || cloned.project_id}!`);
+          }
+          if (onRefresh) onRefresh();
+        }}
+      />
 
       {/* Enterprise Bulk Assignment Modal */}
       <BulkAssignModal

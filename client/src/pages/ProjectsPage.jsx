@@ -12,7 +12,7 @@ import {
   Clock, 
   ExternalLink,
   Trash2
-} from 'lucide-react';
+} , X } from 'lucide-react';
 import { getProjects, createProject, deleteProject } from '../services/api';
 import ModalPortal from '../components/ModalPortal';
 
@@ -217,7 +217,7 @@ export default function ProjectsPage() {
               placeholder="Search projects by name, PID, client..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              style={{ paddingLeft: '34px', width: '100%', height: '34px', fontSize: '12px' }}
+              style={{ paddingLeft: '38px', width: '100%', height: '34px', fontSize: '12px' }}
             />
           </div>
 
@@ -358,7 +358,7 @@ export default function ProjectsPage() {
                 onClick={() => setShowModal(false)}
                 style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '18px' }}
               >
-                ✕
+                <X size={14} />
               </button>
             </div>
 

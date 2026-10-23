@@ -654,7 +654,7 @@ export default function ApiDeveloperCenterPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
               width: '100%',
-              paddingLeft: '34px',
+              paddingLeft: '38px',
               height: '34px',
               fontSize: '12px'
             }}

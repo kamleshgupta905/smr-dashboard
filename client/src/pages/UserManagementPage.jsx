@@ -1048,7 +1048,7 @@ export default function UserManagementPage({ currentUser }) {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="input-control"
-                style={{ paddingLeft: '34px', width: '100%', height: '34px', fontSize: '12px' }}
+                style={{ paddingLeft: '38px', width: '100%', height: '34px', fontSize: '12px' }}
               />
             </div>
 
@@ -1289,7 +1289,7 @@ export default function UserManagementPage({ currentUser }) {
                   value={auditSearch}
                   onChange={e => { setAuditSearch(e.target.value); setAuditPage(1); }}
                   className="input-control"
-                  style={{ paddingLeft: '28px', height: '32px', fontSize: '11.5px', width: '180px' }}
+                  style={{ paddingLeft: '34px', height: '32px', fontSize: '11.5px', width: '180px' }}
                 />
               </div>
 

@@ -3,7 +3,9 @@ import pymysql
 import base64
 import time
 
-dist_dir = r"c:\Users\shri hari computer\Downloads\smr1\client\dist"
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+dist_dir = os.path.join(project_root, "client", "dist")
 target_base = "/home/u839355029/domains/vmhgroupsmr.com/public_html/apitool"
 
 files_to_deploy = {}
@@ -16,7 +18,7 @@ for root, dirs, files in os.walk(dist_dir):
             remote_path = f"{target_base}/{rel_path}"
             files_to_deploy[remote_path] = full_path
 
-api_php = r"c:\Users\shri hari computer\Downloads\smr1\api\index.php"
+api_php = os.path.join(project_root, "api", "index.php")
 if os.path.exists(api_php):
     files_to_deploy[f"{target_base}/api/index.php"] = api_php
 
@@ -24,11 +26,16 @@ print(f"Staging {len(files_to_deploy)} files to deploy directly to {target_base}
 for r, l in files_to_deploy.items():
     print(f"  {r} <- {os.path.basename(l)} ({os.path.getsize(l):,} bytes)")
 
+db_host = os.environ.get("DB_HOST", "srv2215.hstgr.io")
+db_user = os.environ.get("DB_USER", "u839355029_vmhgropu")
+db_pass = os.environ.get("DB_PASS", "U839355029_vmhgroup")
+db_name = os.environ.get("DB_NAME", "u839355029_vmh_group")
+
 conn = pymysql.connect(
-    host="srv2215.hstgr.io",
-    user="u839355029_vmhgropu",
-    password="U839355029_vmhgroup",
-    database="u839355029_vmh_group",
+    host=db_host,
+    user=db_user,
+    password=db_pass,
+    database=db_name,
     autocommit=True
 )
 cur = conn.cursor()
@@ -78,8 +85,19 @@ $router = '<?php
 $uri = $_SERVER["REQUEST_URI"] ?? "/";
 $path = parse_url($uri, PHP_URL_PATH);
 
-// 1. Route API, Health, Callbacks to SMR PHP Engine
-if (str_starts_with($path, "/api") || $path === "/api" || $path === "/health" || str_starts_with($path, "/redirects") || str_starts_with($path, "/router")) {
+// 1. Route API, Health, Callbacks, Vendor Entry, Survey Endpages to SMR PHP Engine
+if (
+    str_starts_with($path, "/api") || 
+    $path === "/api" || 
+    $path === "/health" || 
+    str_starts_with($path, "/redirects") || 
+    str_starts_with($path, "/router") ||
+    str_starts_with($path, "/traffic") ||
+    str_starts_with($path, "/vendor") ||
+    str_starts_with($path, "/survey") ||
+    str_starts_with($path, "/marketxcel") ||
+    str_starts_with($path, "/clients")
+) {
     require __DIR__ . "/api/index.php";
     exit;
 }
@@ -91,33 +109,42 @@ if ($path !== "/" && is_file($file)) {
     $mimes = [
         "css"  => "text/css; charset=utf-8",
         "js"   => "application/javascript; charset=utf-8",
-        "svg"  => "image/svg+xml",
+        "json" => "application/json",
         "png"  => "image/png",
         "jpg"  => "image/jpeg",
         "jpeg" => "image/jpeg",
+        "gif"  => "image/gif",
+        "svg"  => "image/svg+xml",
         "ico"  => "image/x-icon",
-        "json" => "application/json",
         "woff" => "font/woff",
         "woff2"=> "font/woff2",
         "ttf"  => "font/ttf",
+        "webp" => "image/webp"
     ];
     if (isset($mimes[$ext])) {
         header("Content-Type: " . $mimes[$ext]);
     }
+    header("Access-Control-Allow-Origin: *");
+    header("Cache-Control: public, max-age=86400");
     readfile($file);
     exit;
 }
 
-// 3. Serve SMR Single Page App
+// 3. SPA Fallback: Serve SMR React Frontend index.html
 if (file_exists(__DIR__ . "/index.html")) {
     header("Content-Type: text/html; charset=utf-8");
+    header("Access-Control-Allow-Origin: *");
+    header("Cache-Control: no-cache, no-store, must-revalidate");
     readfile(__DIR__ . "/index.html");
     exit;
 }
+
+// Fallback to API if index.html is missing
+require __DIR__ . "/api/index.php";
 ';
 
 file_put_contents("$base/index.php", $router);
-$log .= "WROTE: Universal Router to $base/index.php\n";
+$log .= "WROTE: Gateway Router to $base/index.php\n";
 
 // 4. Write optimized .htaccess
 $ht = '<IfModule mod_dir.c>
@@ -128,10 +155,16 @@ $ht = '<IfModule mod_dir.c>
     RewriteEngine On
     RewriteBase /
 
-    # Route API
+    # Route API and Router Engine
     RewriteRule ^api/(.*)$ api/index.php?route=$1 [QSA,L]
     RewriteRule ^api$ api/index.php?route=api [QSA,L]
     RewriteRule ^health$ api/index.php?route=health [QSA,L]
+    RewriteRule ^vendor/(.*)$ api/index.php?route=vendor/$1 [QSA,L]
+    RewriteRule ^survey/(.*)$ api/index.php?route=survey/$1 [QSA,L]
+    RewriteRule ^traffic/(.*)$ api/index.php?route=traffic/$1 [QSA,L]
+    RewriteRule ^router/(.*)$ api/index.php?route=router/$1 [QSA,L]
+    RewriteRule ^redirects(.*)$ api/index.php?route=redirects$1 [QSA,L]
+    RewriteRule ^marketxcel/(.*)$ api/index.php?route=marketxcel/$1 [QSA,L]
 
     # Static files
     RewriteCond %{REQUEST_FILENAME} -f [OR]
@@ -166,14 +199,17 @@ $stmt->execute([$log]);
 cur.execute("REPLACE INTO _tmp (id, c, out_log) VALUES (1, %s, %s);", (php_runner, 'WAITING_FOR_CRON'))
 print("\nStaging complete! Waiting for Hostinger cron to execute...")
 
-for i in range(15):
-    time.sleep(5)
-    cur.execute("SELECT out_log FROM _tmp WHERE id = 1")
-    out = cur.fetchone()[0]
-    if out != 'WAITING_FOR_CRON':
-        print("\n================ DEPLOYMENT EXECUTION LOG ================")
+for attempt in range(25):
+    time.sleep(3)
+    cur.execute("SELECT out_log FROM _tmp WHERE id = 1;")
+    res = cur.fetchone()
+    out = res[0] if res else ""
+    if out and out != "WAITING_FOR_CRON":
+        print("\n--- Execution Log from Server ---")
         print(out)
-        print("==========================================================")
         break
+    print(f"Waiting... ({attempt+1}/25)")
 
+cur.execute("DROP TABLE IF EXISTS _deploy_tmp;")
+cur.close()
 conn.close()

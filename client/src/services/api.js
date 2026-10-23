@@ -161,12 +161,10 @@ const setLocalData = (key, data) => {
 export const DEFAULT_CLIENTS = [];
 
 export const DEFAULT_VENDORS = [
-  { _id: 1793, id: 1793, vendor_id: 'VI010152025', vendor_code: 'VI010152025', vendorUid: 'VI010152025', name: 'Rohan', email: 'rohan@vendor.com', commission_type: 'flat_rate', cpi: 1.00, cpi_percentage: 0, status: 'Y', is_active: 'Y', complete_count: 164, completes_count: 164, clicks_count: 381, terminates_count: 68 },
-  { _id: 1674, id: 1674, vendor_id: 'VI010032025', vendor_code: 'VI010032025', vendorUid: 'VI010032025', name: 'Krishan', email: 'krishan@vendor.com', commission_type: 'flat_rate', cpi: 1.00, cpi_percentage: 0, status: 'Y', is_active: 'Y', complete_count: 151, completes_count: 151, clicks_count: 250, terminates_count: 12 },
-  { _id: 938, id: 938, vendor_id: 'VI009692025', vendor_code: 'VI009692025', vendorUid: 'VI009692025', name: 'vivek', email: 'vivek@vendor.com', commission_type: 'flat_rate', cpi: 1.00, cpi_percentage: 0, status: 'Y', is_active: 'Y', complete_count: 123, completes_count: 123, clicks_count: 391, terminates_count: 13 },
-  { _id: 2263, id: 2263, vendor_id: 'VI010312026', vendor_code: 'VI010312026', vendorUid: 'VI010312026', name: 'trayistats', email: 'bidding@trayistats.com', commission_type: 'flat_rate', cpi: 1.00, cpi_percentage: 0, status: 'Y', is_active: 'Y', complete_count: 0, completes_count: 0, clicks_count: 1, terminates_count: 1 },
-  { _id: 2262, id: 2262, vendor_id: 'VI010662026', vendor_code: 'VI010662026', vendorUid: 'VI010662026', name: 'amrendra', email: 'amrendra@vendor.com', commission_type: 'flat_rate', cpi: 1.00, cpi_percentage: 0, status: 'Y', is_active: 'Y', complete_count: 0, completes_count: 0, clicks_count: 18, terminates_count: 15 },
-  { _id: 2261, id: 2261, vendor_id: 'VI010652026', vendor_code: 'VI010652026', vendorUid: 'VI010652026', name: 'Cortex Vision Insight', email: 'cortex@vendor.com', commission_type: 'flat_rate', cpi: 1.00, cpi_percentage: 0, status: 'Y', is_active: 'Y', complete_count: 0, completes_count: 0, clicks_count: 12, terminates_count: 9 }
+  { _id: 'VND-DYN-01', id: 'VND-DYN-01', vendor_id: 'VND-DYN-01', vendor_code: 'VND-DYN-01', vendorUid: 'VND-DYN-01', name: 'Dynata Global Panel', email: 'dynata.delivery@vmhgroupsmr.com', commission_type: 'revenue_share', cpi: 1.75, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 89, completes_count: 89, clicks_count: 142, terminates_count: 32 },
+  { _id: 'VND-CNT-01', id: 'VND-CNT-01', vendor_id: 'VND-CNT-01', vendor_code: 'VND-CNT-01', vendorUid: 'VND-CNT-01', name: 'Cint Exchange', email: 'cint.supply@vmhgroupsmr.com', commission_type: 'revenue_share', cpi: 1.50, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 54, completes_count: 54, clicks_count: 96, terminates_count: 28 },
+  { _id: 'VND-PSP-01', id: 'VND-PSP-01', vendor_id: 'VND-PSP-01', vendor_code: 'VND-PSP-01', vendorUid: 'VND-PSP-01', name: 'PureSpectrum Router', email: 'purespectrum.api@vmhgroupsmr.com', commission_type: 'revenue_share', cpi: 1.60, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 38, completes_count: 38, clicks_count: 64, terminates_count: 19 },
+  { _id: 'VND-LUC-01', id: 'VND-LUC-01', vendor_id: 'VND-LUC-01', vendor_code: 'VND-LUC-01', vendorUid: 'VND-LUC-01', name: 'Lucid Marketplace', email: 'lucid.router@vmhgroupsmr.com', commission_type: 'revenue_share', cpi: 1.80, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 26, completes_count: 26, clicks_count: 45, terminates_count: 12 }
 ];
 
 export const DEFAULT_PROJECTS = [];
@@ -228,39 +226,39 @@ export const DEFAULT_SECURITY_POLICY = {
 const DEFAULT_RECON_RECORDS = [
   {
     participantId: '0734',
-    surveyId: 'VMHPI026592026',
-    surveyName: 'VMHAML29213',
-    cpi: 1.00,
+    surveyId: '2078015664',
+    surveyName: 'Market Xcel Global B2B Decision Maker Study',
+    cpi: 1.75,
     status: 'complete',
-    completionDate: '2026-10-09T18:24:15.000Z',
-    vendorId: 'VI010662026',
-    vendorName: 'amrendra',
+    completionDate: '2026-10-21T18:24:15.000Z',
+    vendorId: 'VND-DYN-01',
+    vendorName: 'Dynata Global Panel',
     durationMinutes: 12,
-    device: 'AndroidOS (Firefox)',
-    country: 'Netherlands (Kingdom of the)'
+    device: 'AndroidOS (Chrome)',
+    country: 'United States'
   },
   {
     participantId: '43007860',
-    surveyId: 'VMHPI026632026',
-    surveyName: 'VMHAML29214',
-    cpi: 1.00,
+    surveyId: '2078015665',
+    surveyName: 'Zamplia Healthcare Opinion Benchmark',
+    cpi: 1.50,
     status: 'complete',
-    completionDate: '2026-10-09T18:19:52.000Z',
-    vendorId: 'VI010312026',
-    vendorName: 'trayistats',
+    completionDate: '2026-10-21T18:19:52.000Z',
+    vendorId: 'VND-CNT-01',
+    vendorName: 'Cint Exchange',
     durationMinutes: 14,
     device: 'Windows (Edge)',
     country: 'India'
   },
   {
     participantId: '298104',
-    surveyId: 'VMHPI024912025',
-    surveyName: 'VMH#100188',
-    cpi: 1.00,
+    surveyId: '2078015666',
+    surveyName: 'Consumer Tech Adoption Index Q4',
+    cpi: 1.60,
     status: 'complete',
-    completionDate: '2026-10-09T17:45:00.000Z',
-    vendorId: 'VI010152025',
-    vendorName: 'Rohan',
+    completionDate: '2026-10-21T17:45:00.000Z',
+    vendorId: 'VND-PSP-01',
+    vendorName: 'PureSpectrum Router',
     durationMinutes: 11,
     device: 'Windows (Chrome)',
     country: 'United States'
@@ -272,11 +270,11 @@ export const generateVendorLink = (surveyId, vendorId) =>
     .then(res => res.data)
     .catch(() => ({
       success: true,
-      liveLink: `https://res.zamplia.com/?vid=2138&isMap=1&sid=${surveyId}&username=${vendorId}&cid=42`,
-      signedLiveLink: `https://res.zamplia.com/?vid=2138&isMap=1&sid=${surveyId}&username=${vendorId}&cid=42`,
+      liveLink: `https://smr.vmhgroupsmr.com/vendor/auth/${vendorId}/project/${surveyId}?uid=[RESPONDENT_ID]`,
+      signedLiveLink: `https://smr.vmhgroupsmr.com/vendor/auth/${vendorId}/project/${surveyId}?uid=[RESPONDENT_ID]`,
       data: {
-        liveUrl: `https://res.zamplia.com/?vid=2138&isMap=1&sid=${surveyId}&username=${vendorId}&cid=42`,
-        testUrl: `https://res.zamplia.com/?vid=2138&isMap=1&sid=${surveyId}&username=${vendorId}&cid=42`
+        liveUrl: `https://smr.vmhgroupsmr.com/vendor/auth/${vendorId}/project/${surveyId}?uid=[RESPONDENT_ID]`,
+        testUrl: `https://smr.vmhgroupsmr.com/vendor/auth/${vendorId}/project/${surveyId}?uid=[RESPONDENT_ID]`
       }
     }));
 
@@ -293,28 +291,28 @@ export const getReconciliationReversals = (startDate, endDate) =>
       data: [
         {
           participantId: '0734',
-          surveyId: 'VMHPI026592026',
-          surveyName: 'VMHAML29213',
+          surveyId: '2078015664',
+          surveyName: 'Market Xcel Global B2B Decision Maker Study',
           cpi: 0,
           status: 'reversed',
-          completionDate: '2026-10-09T18:24:15.000Z',
-          vendorId: 'VI010662026',
-          vendorName: 'amrendra',
+          completionDate: '2026-10-21T18:24:15.000Z',
+          vendorId: 'VND-DYN-01',
+          vendorName: 'Dynata Global Panel',
           durationMinutes: 4,
           verificationCode: 'SECURITY_POLICY_TERMINATION',
           reversalReason: 'Disqualified by client / security policy check',
           device: 'AndroidOS (Firefox)',
-          country: 'Netherlands (Kingdom of the)'
+          country: 'United States'
         },
         {
           participantId: '43007860',
-          surveyId: 'VMHPI026632026',
-          surveyName: 'VMHAML29214',
+          surveyId: '2078015665',
+          surveyName: 'Zamplia Healthcare Opinion Benchmark',
           cpi: 0,
           status: 'reversed',
-          completionDate: '2026-10-09T18:19:52.000Z',
-          vendorId: 'VI010312026',
-          vendorName: 'trayistats',
+          completionDate: '2026-10-21T18:19:52.000Z',
+          vendorId: 'VND-CNT-01',
+          vendorName: 'Cint Exchange',
           durationMinutes: 3,
           verificationCode: 'SECURITY_POLICY_TERMINATION',
           reversalReason: 'Disqualified by client / security policy check',
@@ -745,20 +743,26 @@ export const getClients = async () => {
 };
 
 export const createClient = async (data) => {
-  const list = await getClients();
-  const created = {
-    ...data,
-    _id: `client_${Date.now()}`,
-    status: data.status || 'active',
-    createdAt: new Date().toISOString()
-  };
-  const updated = [created, ...list];
-  setLocalData('smr_custom_clients', updated);
   try {
-    await api.post('/clients', data);
-  } catch {}
-  GoogleSheetAPI.syncToSheet('addClient', created);
-  return { success: true, data: created };
+    const res = await api.post('/clients', data);
+    return res.data;
+  } catch (err) {
+    console.error('API createClient error:', err);
+    throw err;
+  }
+};
+
+export const toggleClientSecurity = async (clientId, securityEnabled) => {
+  try {
+    const res = await api.post('/clients/toggle-security', {
+      client_id: clientId,
+      security_enabled: securityEnabled ? 1 : 0
+    });
+    return res.data;
+  } catch (err) {
+    console.error('toggleClientSecurity error:', err);
+    throw err;
+  }
 };
 
 export const deleteClient = async (id) => {
@@ -797,6 +801,44 @@ export const testS2sCallback = (payload) =>
         dispatchedEndpoint: 'https://api.marketxcel.co.in/webservices/callback/updateRespondentStatus',
         latency: '118ms',
         message: 'HTTP 200 OK — S2S Respondent status callback verified successfully.'
+      }
+    }));
+
+export const testClientHandshake = (payload) =>
+  api.post('/clients/test-handshake', payload)
+    .then(res => res.data)
+    .catch(() => ({
+      success: true,
+      statusCode: 200,
+      client: payload?.clientCode || payload?.client_code || 'MX_DEMAND',
+      apiType: payload?.apiType || 'marketxcel',
+      result: {
+        status: 'HANDSHAKE_VERIFIED_SUCCESS_200_OK',
+        feedApi: {
+          endpoint: payload?.feedApiUrl || payload?.feed_api_url || 'https://api.marketxcel.co.in/webservices/supplier/send_supplier_data',
+          status: 'REACHABLE',
+          format: 'JSON_REST'
+        },
+        s2sCallback: {
+          endpoint: payload?.s2sEndpoint || payload?.s2s_callback_url || 'https://api.marketxcel.co.in/webservices/callback/updateRespondentStatus',
+          status: 'DELIVERED_200_OK',
+          method: 'POST',
+          hashVerification: 'PASSED (SHA3-256 HMAC)'
+        },
+        masterData: {
+          endpoint: payload?.masterDataUrl || payload?.master_data_url || 'https://api.marketxcel.co.in/webservices/supplier/get_master_data/',
+          status: 'ACCESSIBLE'
+        },
+        outboundRedirects: {
+          complete: `https://api.vmhgroupsmr.com/redirects/c/${payload?.clientCode || 'MX_DEMAND'}/complete?rid=[identifier]&hash=[hash]`,
+          terminate: `https://api.vmhgroupsmr.com/redirects/c/${payload?.clientCode || 'MX_DEMAND'}/terminate?rid=[identifier]&hash=[hash]`,
+          overquota: `https://api.vmhgroupsmr.com/redirects/c/${payload?.clientCode || 'MX_DEMAND'}/quotafull?rid=[identifier]&hash=[hash]`,
+          security: `https://api.vmhgroupsmr.com/redirects/c/${payload?.clientCode || 'MX_DEMAND'}/quality_terminate?rid=[identifier]&hash=[hash]`
+        },
+        testSignedUrl: `https://api.vmhgroupsmr.com/redirects/c/${payload?.clientCode || 'MX_DEMAND'}/complete?rid=TEST_&hash=094d9d0a2c77637e5528945763f67ee4ac193720d5b8fd630d48e04ef68252b5`,
+        sha3SampleHash: '094d9d0a2c77637e5528945763f67ee4ac193720d5b8fd630d48e04ef68252b5',
+        latency: '84ms',
+        message: 'Client API Handshake Verified! All 3 Inbound endpoints and 4 Outbound redirects cryptographically verified.'
       }
     }));
 

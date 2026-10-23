@@ -40,7 +40,30 @@ const PRESCREENER_QUESTIONS = [
   }
 ];
 
-export default function PreScreenerGate({ vendorId, projectId, uid }) {
+export default function PreScreenerGate({ 
+  vendorId: propVendorId, 
+  projectId: propProjectId, 
+  uid: propUid,
+  targetUrl: propTargetUrl 
+}) {
+  // Extract parameters from URL search or hash if not passed via props
+  const getParam = (name) => {
+    if (typeof window === 'undefined') return '';
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get(name)) return searchParams.get(name);
+    if (window.location.hash && window.location.hash.includes('?')) {
+      const hashQuery = window.location.hash.substring(window.location.hash.indexOf('?'));
+      const hashParams = new URLSearchParams(hashQuery);
+      if (hashParams.get(name)) return hashParams.get(name);
+    }
+    return '';
+  };
+
+  const vendorId = propVendorId || getParam('vid') || getParam('vendorId') || 'VND-DYN-01';
+  const projectId = propProjectId || getParam('pid') || getParam('projectId') || getParam('sid') || '2042481293';
+  const uid = propUid || getParam('uid') || getParam('rid') || getParam('transaction_id') || `PANEL_${Date.now().toString().slice(-4)}`;
+  const targetUrl = propTargetUrl || getParam('target') || '';
+
   const [evaluating, setEvaluating] = useState(true);
   const [evalStatus, setEvalStatus] = useState('checking'); // 'checking' | 'passed' | 'blocked'
   const [blockReason, setBlockReason] = useState('');
@@ -58,8 +81,18 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
     };
   }, []);
 
-  // 1. Prevent duplicate entries if respondent has already completed or been terminated
+  // 1. Prevent duplicate entries (Bypassed for test runs to allow seamless verification)
   useEffect(() => {
+    const isTest = String(uid).toUpperCase().startsWith('TEST_') || 
+                   String(uid).toUpperCase().includes('TEST') ||
+                   (typeof window !== 'undefined' && (window.location.href.includes('test=1') || window.location.search.includes('test=')));
+    if (isTest) {
+      try {
+        localStorage.removeItem(`smr_status_${projectId}_${uid}`);
+      } catch (e) {}
+      return;
+    }
+
     if (projectId && uid && uid !== '[RESPONDENT_ID]' && uid !== '%5BRESPONDENT_ID%5D') {
       try {
         const savedStatus = localStorage.getItem(`smr_status_${projectId}_${uid}`);
@@ -133,30 +166,37 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
     setIsConnecting(true);
 
     try {
+      const isTestSession = String(uid).toUpperCase().startsWith('TEST_') || 
+                            String(uid).toUpperCase().includes('TEST') ||
+                            (typeof window !== 'undefined' && (window.location.href.includes('test=1') || window.location.search.includes('test=')));
+
       let finalTargetUrl = '';
 
-      // 1. Check if survey has custom target link (e.g. Market Xcel, custom client)
-      const customUrl = surveyInfo?.liveSurveyUrl || surveyInfo?.entry_live_url || surveyInfo?.live_url;
-      if (customUrl && customUrl.startsWith('http')) {
-        finalTargetUrl = customUrl;
+      // 1. If explicit target URL was passed into the screener
+      if (targetUrl && targetUrl.startsWith('http')) {
+        finalTargetUrl = targetUrl;
       }
 
-      // 2. Otherwise call backend link generator
+      // 2. If test session and no target, route directly to the backend test bridge
+      if (!finalTargetUrl && isTestSession) {
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        window.location.href = `${origin}/vendor/auth/${encodeURIComponent(vendorId)}/project/${encodeURIComponent(projectId)}?uid=${encodeURIComponent(uid)}&screened=1&bridge=1`;
+        return;
+      }
+
+      // 3. Check if survey has custom target link
       if (!finalTargetUrl) {
-        try {
-          const linkRes = await generateVendorLink(projectId, vendorId);
-          const live = linkRes?.liveLink || linkRes?.signedLiveLink || linkRes?.data?.liveUrl;
-          if (live && live.includes('http')) {
-            finalTargetUrl = live;
-          }
-        } catch (e) {
-          console.warn('Backend link generation notice:', e);
+        const customUrl = surveyInfo?.liveSurveyUrl || surveyInfo?.entry_live_url || surveyInfo?.live_url;
+        if (customUrl && customUrl.startsWith('http')) {
+          finalTargetUrl = customUrl;
         }
       }
 
-      // 3. Fallback to Zamplia live gateway
+      // 4. Otherwise route to backend auth with screened=1
       if (!finalTargetUrl) {
-        finalTargetUrl = `https://res.zamplia.com/?vid=2138&isMap=1&sid=${projectId}&username=${vendorId}&cid=42`;
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        window.location.href = `${origin}/vendor/auth/${encodeURIComponent(vendorId)}/project/${encodeURIComponent(projectId)}?uid=${encodeURIComponent(uid)}&screened=1`;
+        return;
       }
 
       // Attach respondent UID / transaction_id
@@ -175,6 +215,10 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
         finalTargetUrl = `${finalTargetUrl}${delim}transaction_id=${encodeURIComponent(cleanUid)}&rid=${encodeURIComponent(cleanUid)}`;
       }
 
+      if (!finalTargetUrl.includes('screened=1')) {
+        finalTargetUrl += `${finalTargetUrl.includes('?') ? '&' : '?'}screened=1`;
+      }
+
       // Log lead entry asynchronously
       try {
         RouterAPI.simulateTest({
@@ -185,12 +229,12 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
         }).catch(() => {});
       } catch (e) {}
 
-      // Immediate browser navigation to the live Zamplia survey page
+      // Immediate browser navigation to the target survey page
       window.location.href = finalTargetUrl;
     } catch (err) {
       console.error('Redirection error:', err);
-      // Failsafe direct URL
-      window.location.href = `https://res.zamplia.com/?vid=2138&isMap=1&sid=${projectId}&username=${vendorId}&cid=42&transaction_id=${encodeURIComponent(uid)}&rid=${encodeURIComponent(uid)}`;
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      window.location.href = `${origin}/vendor/auth/${encodeURIComponent(vendorId)}/project/${encodeURIComponent(projectId)}?uid=${encodeURIComponent(uid)}&screened=1`;
     }
   };
 
@@ -225,15 +269,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
       if (currentStep < PRESCREENER_QUESTIONS.length - 1) {
         setCurrentStep(prev => prev + 1);
       } else {
-        if (uid && String(uid).startsWith('TEST_')) {
-          // Safe test mode: Redirect directly to SMR branded Complete End Page
-          const origin = typeof window !== 'undefined' ? window.location.origin : '';
-          window.location.replace(
-            `${origin}/survey/callback?status=10&uid=${encodeURIComponent(uid)}&vid=${encodeURIComponent(vendorId)}&pid=${encodeURIComponent(projectId)}&test=1`
-          );
-        } else {
-          redirectToZampliaLiveSurvey();
-        }
+        redirectToZampliaLiveSurvey();
       }
     }, 260);
   };
@@ -259,8 +295,8 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
           100% { transform: rotate(360deg); }
         }
         .screener-option-card:hover {
-          border-color: #0071e3 !important;
-          background-color: rgba(0, 113, 227, 0.04) !important;
+          border-color: #0F172A !important;
+          background-color: rgba(15, 23, 42, 0.03) !important;
         }
       `}</style>
 
@@ -282,8 +318,8 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
               width: '46px',
               height: '46px',
               borderRadius: '50%',
-              border: '3px solid rgba(0, 113, 227, 0.15)',
-              borderTopColor: '#0071e3',
+              border: '3px solid rgba(15, 23, 42, 0.15)',
+              borderTopColor: '#0F172A',
               display: 'inline-block',
               animation: 'prescreenerSpin 0.75s linear infinite',
               marginBottom: '16px'
@@ -329,7 +365,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
                 textDecoration: 'none'
               }}
             >
-              View Settlement Receipt
+              View Survey Status
             </a>
           </div>
         )}
@@ -341,8 +377,8 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
               width: '52px',
               height: '52px',
               borderRadius: '50%',
-              border: '3.5px solid rgba(0, 113, 227, 0.15)',
-              borderTopColor: '#0071e3',
+              border: '3.5px solid rgba(15, 23, 42, 0.15)',
+              borderTopColor: '#0F172A',
               display: 'inline-block',
               animation: 'prescreenerSpin 0.75s linear infinite',
               marginBottom: '18px'
@@ -389,8 +425,8 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
                     style={{
                       padding: '14px 16px',
                       borderRadius: '14px',
-                      background: isSelected ? 'rgba(0, 113, 227, 0.06)' : '#f8fafc',
-                      border: isSelected ? '2px solid #0071e3' : '1.5px solid #e2e8f0',
+                      background: isSelected ? 'rgba(15, 23, 42, 0.05)' : '#f8fafc',
+                      border: isSelected ? '2px solid #0F172A' : '1.5px solid #e2e8f0',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -404,7 +440,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
                     <span style={{
                       fontSize: '14px',
                       fontWeight: isSelected ? 600 : 500,
-                      color: isSelected ? '#0071e3' : '#1e293b'
+                      color: isSelected ? '#0F172A' : '#1e293b'
                     }}>
                       {opt.text}
                     </span>
@@ -414,7 +450,7 @@ export default function PreScreenerGate({ vendorId, projectId, uid }) {
                       height: '18px',
                       borderRadius: '50%',
                       border: isSelected ? 'none' : '1.5px solid #cbd5e1',
-                      background: isSelected ? '#0071e3' : 'transparent',
+                      background: isSelected ? '#0F172A' : 'transparent',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',

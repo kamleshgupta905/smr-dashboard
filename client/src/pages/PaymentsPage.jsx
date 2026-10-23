@@ -20,7 +20,9 @@ import {
 import { getPayments, createPayment, updatePaymentStatus, deletePayment, getVendors } from '../services/api';
 import ModalPortal from '../components/ModalPortal';
 
-export default function PaymentsPage() {
+export default function PaymentsPage({ currentUser, showToast }) {
+  const isVendor = currentUser?.role_name === "Vendor" || currentUser?.role === "Vendor";
+  const vendorId = currentUser?.vendor_id || currentUser?.username;
   const [payments, setPayments] = useState([]);
   const [summary, setSummary] = useState({
     total_count: 0,
@@ -58,9 +60,9 @@ export default function PaymentsPage() {
     remarks: ''
   });
 
-  const loadData = async () => {
+  const loadData = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const [payRes, venRes] = await Promise.all([
         getPayments(),
         getVendors()
@@ -82,18 +84,24 @@ export default function PaymentsPage() {
     } catch (err) {
       console.error('Failed to load payments data:', err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    loadData(false);
+    // Real-time pulse every 15s to keep reconciliation statements synced
+    const interval = setInterval(() => {
+      loadData(true);
+    }, 15000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!createForm.amount || Number(createForm.amount) <= 0) {
-      alert('Please enter a valid payout amount.');
+      if (showToast) showToast('Please enter a valid payout amount.', 'error');
+      else alert('Please enter a valid payout amount.');
       return;
     }
     setSubmitting(true);
@@ -114,10 +122,12 @@ export default function PaymentsPage() {
         status: 'Pending',
         remarks: ''
       });
-      await loadData();
+      if (showToast) showToast('✓ Payment voucher recorded successfully!');
+      await loadData(false);
     } catch (err) {
       console.error('Failed to create payment:', err);
-      alert('Failed to record payout. Please try again.');
+      if (showToast) showToast('Failed to record payout. Please try again.', 'error');
+      else alert('Failed to record payout. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -135,10 +145,12 @@ export default function PaymentsPage() {
         remarks: editForm.remarks
       });
       setShowEditModal(false);
-      await loadData();
+      if (showToast) showToast('✓ Payment record updated successfully!');
+      await loadData(false);
     } catch (err) {
       console.error('Failed to update payment:', err);
-      alert('Failed to update payment record.');
+      if (showToast) showToast('Failed to update payment record.', 'error');
+      else alert('Failed to update payment record.');
     } finally {
       setSubmitting(false);
     }
@@ -152,9 +164,11 @@ export default function PaymentsPage() {
         remarks: payment.remarks
       });
       setPayments(prev => prev.map(p => p.id === payment.id ? { ...p, status: newStatus } : p));
-      loadData();
+      if (showToast) showToast(`✓ Payout #${payment.payment_id || payment.id} marked as ${newStatus}!`);
+      loadData(true);
     } catch (err) {
       console.error('Failed to quick update status:', err);
+      if (showToast) showToast('Could not update status.', 'error');
     }
   };
 
@@ -224,19 +238,19 @@ export default function PaymentsPage() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ 
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 
+              background: '#2a2d8c', 
               color: '#fff', 
               padding: '10px', 
               borderRadius: '10px', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)'
+              boxShadow: '0 4px 12px rgba(42, 45, 140, 0.25)'
             }}>
               <CreditCard size={22} />
             </div>
             <div>
-              <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#1e293b', margin: 0, letterSpacing: '-0.02em' }}>
+              <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#1d2c48', margin: 0, letterSpacing: '-0.02em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 Vendor Payments & Disbursements
               </h1>
               <p style={{ fontSize: '13px', color: '#64748b', margin: '3px 0 0 0' }}>
@@ -248,41 +262,69 @@ export default function PaymentsPage() {
 
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <button 
-            onClick={loadData} 
-            className="btn btn-outline-secondary"
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '8px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-            title="Refresh Ledger"
-          >
-            <RefreshCw size={14} className={loading ? 'fa-spin' : ''} />
-            Refresh
-          </button>
-          <button 
-            onClick={exportCSV} 
-            className="btn btn-outline-secondary"
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '8px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-            title="Export CSV"
-          >
-            <Download size={14} />
-            Export CSV
-          </button>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="btn btn-primary"
+            onClick={() => loadData(false)} 
             style={{ 
               display: 'flex', 
               alignItems: 'center', 
               gap: '6px', 
               fontSize: '13px', 
-              fontWeight: 600, 
-              padding: '8px 18px', 
-              borderRadius: '8px', 
-              background: '#10b981', 
-              borderColor: '#10b981',
-              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+              fontWeight: 600,
+              padding: '7px 16px', 
+              borderRadius: '20px', 
+              background: '#ffffff',
+              color: '#2a2d8c',
+              border: '1px solid #d5d9ea',
+              boxShadow: '0 1px 3px rgba(42, 45, 140, 0.08)',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+            title="Refresh Ledger"
+          >
+            <RefreshCw size={13} className={loading ? 'fa-spin' : ''} />
+            Refresh
+          </button>
+          <button 
+            onClick={exportCSV} 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px', 
+              fontSize: '13px', 
+              fontWeight: 600,
+              padding: '7px 16px', 
+              borderRadius: '20px', 
+              background: '#ffffff',
+              color: '#2a2d8c',
+              border: '1px solid #d5d9ea',
+              boxShadow: '0 1px 3px rgba(42, 45, 140, 0.08)',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+            title="Export CSV"
+          >
+            <Download size={13} />
+            Export CSV
+          </button>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px', 
+              fontSize: '13px', 
+              fontWeight: 700, 
+              padding: '7px 20px', 
+              borderRadius: '20px', 
+              background: '#2a2d8c', 
+              border: 'none',
+              color: '#ffffff',
+              boxShadow: '0 3px 10px rgba(42, 45, 140, 0.3)',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
             }}
           >
-            <Plus size={16} />
-            Record Payout
+            <Plus size={15} />
+            + Record Payout
           </button>
         </div>
       </div>
@@ -374,14 +416,15 @@ export default function PaymentsPage() {
                 style={{
                   border: 'none',
                   outline: 'none',
-                  padding: '6px 14px',
-                  borderRadius: '6px',
+                  padding: '6px 16px',
+                  borderRadius: '20px',
                   fontSize: '12px',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
-                  background: statusFilter === st ? '#0f172a' : '#f8fafc',
-                  color: statusFilter === st ? '#ffffff' : '#64748b',
+                  background: statusFilter === st ? '#2a2d8c' : '#f1f4fb',
+                  color: statusFilter === st ? '#ffffff' : '#475569',
+                  boxShadow: statusFilter === st ? '0 2px 6px rgba(42, 45, 140, 0.25)' : 'none'
                 }}
               >
                 {st === 'ALL' ? 'All Payments' : st}
@@ -398,7 +441,7 @@ export default function PaymentsPage() {
               onChange={(e) => setSearch(e.target.value)}
               style={{
                 width: '100%',
-                padding: '7px 12px 7px 34px',
+                padding: '7px 12px 7px 38px', paddingLeft: '38px',
                 fontSize: '12px',
                 border: '1px solid #e2e8f0',
                 borderRadius: '8px',
@@ -413,15 +456,15 @@ export default function PaymentsPage() {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
-              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <th style={{ padding: '12px 18px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Payment ID</th>
-                <th style={{ padding: '12px 18px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Project / Study</th>
-                <th style={{ padding: '12px 18px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Vendor Partner</th>
-                <th style={{ padding: '12px 18px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Disbursed Amount</th>
-                <th style={{ padding: '12px 18px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
-                <th style={{ padding: '12px 18px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date / Time</th>
-                <th style={{ padding: '12px 18px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Remarks</th>
-                <th style={{ padding: '12px 18px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
+              <tr style={{ background: '#e9ebf8', borderBottom: '1px solid #d6d9ef' }}>
+                <th style={{ padding: '12px 18px', fontSize: '12px', fontWeight: 700, color: '#2a2d8c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Payment ID</th>
+                <th style={{ padding: '12px 18px', fontSize: '12px', fontWeight: 700, color: '#2a2d8c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Project / Study</th>
+                <th style={{ padding: '12px 18px', fontSize: '12px', fontWeight: 700, color: '#2a2d8c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Vendor Partner</th>
+                <th style={{ padding: '12px 18px', fontSize: '12px', fontWeight: 700, color: '#2a2d8c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Disbursed Amount</th>
+                <th style={{ padding: '12px 18px', fontSize: '12px', fontWeight: 700, color: '#2a2d8c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</th>
+                <th style={{ padding: '12px 18px', fontSize: '12px', fontWeight: 700, color: '#2a2d8c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date / Time</th>
+                <th style={{ padding: '12px 18px', fontSize: '12px', fontWeight: 700, color: '#2a2d8c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Remarks</th>
+                <th style={{ padding: '12px 18px', fontSize: '12px', fontWeight: 700, color: '#2a2d8c', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -499,16 +542,37 @@ export default function PaymentsPage() {
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
                           <button
                             onClick={() => openEditModal(p)}
-                            className="btn btn-outline-secondary btn-sm"
-                            style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                            style={{ 
+                              width: '28px', 
+                              height: '28px', 
+                              borderRadius: '4px', 
+                              background: '#2a2d8c', 
+                              color: '#ffffff', 
+                              border: 'none', 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center', 
+                              cursor: 'pointer',
+                              boxShadow: '0 1px 3px rgba(42, 45, 140, 0.2)'
+                            }}
                             title="Edit / Add Remarks"
                           >
                             <Edit2 size={13} />
                           </button>
                           <button
                             onClick={() => handleDelete(p.id, p.payment_id)}
-                            className="btn btn-soft-danger btn-sm"
-                            style={{ padding: '4px 8px', borderRadius: '4px', background: '#fee2e2', color: '#dc2626', border: 'none' }}
+                            style={{ 
+                              width: '28px', 
+                              height: '28px', 
+                              borderRadius: '4px', 
+                              background: '#fee2e2', 
+                              color: '#dc2626', 
+                              border: 'none', 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center', 
+                              cursor: 'pointer' 
+                            }}
                             title="Delete Record"
                           >
                             <Trash2 size={13} />

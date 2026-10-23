@@ -12,7 +12,7 @@ export default function BulkAssignModal({ selectedSurveys = [], isOpen, onClose,
   const [loadingVendors, setLoadingVendors] = useState(true);
   const [selectedVendorId, setSelectedVendorId] = useState('');
   const [cpiMode, setCpiMode] = useState('rev_share'); // 'rev_share' | 'custom_cpi' | 'default'
-  const [customRevShare, setCustomRevShare] = useState(70);
+  const [customRevShare, setCustomRevShare] = useState(30);
   const [customFlatCpi, setCustomFlatCpi] = useState(1.50);
   const [quotaLimit, setQuotaLimit] = useState(100);
   const [submitting, setSubmitting] = useState(false);
@@ -267,7 +267,7 @@ export default function BulkAssignModal({ selectedSurveys = [], isOpen, onClose,
                   >
                     {filteredVendors.map(v => (
                       <option key={v.vendor_id || v.vendor_code || v._id} value={v.vendor_code || v.vendor_id || v._id}>
-                        {v.name} ({v.vendor_id}) &bull; {v.cpi_percentage || 70}% RevShare &bull; {v.email || 'No email'}
+                        {v.name} ({v.vendor_id}) &bull; {v.cpi_percentage || 30}% RevShare &bull; {v.email || 'No email'}
                       </option>
                     ))}
                   </select>
@@ -295,7 +295,7 @@ export default function BulkAssignModal({ selectedSurveys = [], isOpen, onClose,
                         color: '#1d4ed8',
                         fontWeight: 700
                       }}>
-                        Current Baseline: {activeVendor.cpi_percentage || 70}% RevShare
+                        Current Baseline: {activeVendor.cpi_percentage || 30}% RevShare
                       </span>
                     </div>
                   )}
@@ -453,7 +453,7 @@ export default function BulkAssignModal({ selectedSurveys = [], isOpen, onClose,
                           const clientCpi = Number(s.cpi || s.CPI || s.cost_per_complete || 1.00);
                           const vendorCpi = cpiMode === 'custom_cpi'
                             ? Number(customFlatCpi)
-                            : Number(((clientCpi * Number(customRevShare || 70)) / 100).toFixed(2));
+                            : Number(((clientCpi * Number(customRevShare || 30)) / 100).toFixed(2));
 
                           return (
                             <tr key={sid || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>

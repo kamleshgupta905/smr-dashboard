@@ -821,7 +821,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                 placeholder={`Search ${reportTab}...`}
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                style={{ paddingLeft: '30px', width: '200px', height: '34px', fontSize: '11.5px' }}
+                style={{ paddingLeft: '38px', width: '200px', height: '34px', fontSize: '11.5px' }}
               />
             </div>
           </div>
@@ -1616,7 +1616,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                                       style={{ padding: '3px 8px', fontSize: '10.5px', borderRadius: '4px' }}
                                       title="Reject / Dispute invoice"
                                     >
-                                      ✕ Reject
+                                      <X size={14} /> Reject
                                     </button>
                                   )}
                                   <button
@@ -1934,7 +1934,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                     placeholder="Search studies by name or PID..."
                     value={vendorStudySearch}
                     onChange={e => setVendorStudySearch(e.target.value)}
-                    style={{ paddingLeft: '30px', width: '250px', height: '32px', fontSize: '11.5px' }}
+                    style={{ paddingLeft: '38px', width: '250px', height: '32px', fontSize: '11.5px' }}
                   />
                 </div>
               </div>
@@ -2383,7 +2383,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                     placeholder="Search vendors..."
                     value={projectVendorSearch}
                     onChange={e => setProjectVendorSearch(e.target.value)}
-                    style={{ paddingLeft: '30px', width: '220px', height: '32px', fontSize: '11.5px' }}
+                    style={{ paddingLeft: '38px', width: '220px', height: '32px', fontSize: '11.5px' }}
                   />
                 </div>
               </div>

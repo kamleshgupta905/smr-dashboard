@@ -205,7 +205,7 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
     <div style={{ marginBottom: '16px' }}>
       <div className="dastone-analytics-grid">
         {/* Left 8 Columns on Desktop, Full Width on Laptops/Tablets: Dastone Audience Overview */}
-        <div className="card report-card analytics-main-card">
+        <div className="card report-card analytics-main-card" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)', overflow: 'hidden' }}>
           <div className="card-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '16px' }}>
             <div style={{ 
               display: 'flex', 
@@ -231,7 +231,7 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
                 </div>
 
                 {/* Timeframe Dropdown / Pill Group */}
-                <div className="timeframe-group">
+                <div className="timeframe-group" style={{ display: 'flex', gap: '3px', background: '#f8fafc', padding: '3px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                   {['today', 'weekly', 'monthly', 'yearly'].map((t) => (
                     <button 
                       key={t}
@@ -379,11 +379,11 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
         </div>
 
         {/* Right 4 Columns on Desktop, Full Width on Laptops/Tablets: Dastone Sessions Device (Donut & 4-Col Table) */}
-        <div className="card report-card analytics-side-card">
+        <div className="card report-card analytics-side-card" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)', overflow: 'hidden' }}>
           <div className="card-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <h4 className="card-title">Sessions Device</h4>
-              <div style={{ display: 'flex', gap: '4px', fontSize: '11px', color: '#8997bd' }}>
+              <div style={{ display: 'flex', gap: '3px', background: '#f8fafc', padding: '2px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                 {['All', 'Mobile', 'Tablet', 'Desktop'].map(tab => (
                   <button 
                     key={tab}

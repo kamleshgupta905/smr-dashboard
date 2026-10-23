@@ -20,7 +20,9 @@ import {
 import { getLeads, createLead, getVendors } from '../services/api';
 import ModalPortal from '../components/ModalPortal';
 
-export default function LeadsPage() {
+export default function LeadsPage({ currentUser, showToast }) {
+  const isVendor = currentUser?.role_name === "Vendor" || currentUser?.role === "Vendor";
+  const vendorId = currentUser?.vendor_id || currentUser?.username;
   const [leads, setLeads] = useState([]);
   const [summary, setSummary] = useState({
     total_clicks: 0,
@@ -31,6 +33,8 @@ export default function LeadsPage() {
   });
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [autoSync, setAutoSync] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [copiedUid, setCopiedUid] = useState(null);
@@ -43,9 +47,10 @@ export default function LeadsPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  const loadData = async () => {
+  const loadData = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
+      setSyncing(true);
       const [leadsRes, venRes] = await Promise.all([
         getLeads({ search, status: statusFilter !== 'ALL' ? statusFilter : '' }),
         getVendors()
@@ -64,17 +69,27 @@ export default function LeadsPage() {
     } catch (err) {
       console.error('Failed to load traffic leads:', err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
+      setSyncing(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    loadData(false);
   }, [statusFilter]);
+
+  // Enterprise Real-Time Stream Pulse: 10s auto-sync
+  useEffect(() => {
+    if (!autoSync) return;
+    const interval = setInterval(() => {
+      loadData(true);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [autoSync, statusFilter, search]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    loadData();
+    loadData(false);
   };
 
   const handleCopy = (text, id) => {
@@ -101,10 +116,17 @@ export default function LeadsPage() {
         username: '',
         status: 'Complete'
       });
-      await loadData();
+      if (showToast) {
+        showToast('✓ Traffic lead registered in real-time audit journal!');
+      }
+      await loadData(false);
     } catch (err) {
       console.error('Simulation error:', err);
-      alert('Failed to register simulated traffic entry.');
+      if (showToast) {
+        showToast('Failed to register simulated traffic entry.', 'error');
+      } else {
+        alert('Failed to register simulated traffic entry.');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -172,19 +194,19 @@ export default function LeadsPage() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ 
-              background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', 
+              background: '#2a2d8c', 
               color: '#fff', 
               padding: '10px', 
               borderRadius: '10px', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(14, 165, 233, 0.25)'
+              boxShadow: '0 4px 12px rgba(42, 45, 140, 0.25)'
             }}>
               <Activity size={22} />
             </div>
             <div>
-              <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+              <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#1d2c48', margin: 0, letterSpacing: '-0.02em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 Live Traffic & Leads Stream
               </h1>
               <p style={{ fontSize: '13px', color: '#64748b', margin: '3px 0 0 0' }}>
@@ -195,42 +217,101 @@ export default function LeadsPage() {
         </div>
 
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <button 
-            onClick={loadData} 
-            className="btn btn-outline-secondary"
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '8px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-            title="Refresh Stream"
-          >
-            <RefreshCw size={14} className={loading ? 'fa-spin' : ''} />
-            Refresh
-          </button>
-          <button 
-            onClick={exportCSV} 
-            className="btn btn-outline-secondary"
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '8px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-            title="Export CSV"
-          >
-            <Download size={14} />
-            Export CSV
-          </button>
+          {/* Live Auto-Pulse Indicator & Toggle */}
           <button
-            onClick={() => setShowSimModal(true)}
-            className="btn btn-primary"
+            type="button"
+            onClick={() => setAutoSync(prev => !prev)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '7px',
+              fontSize: '12px',
+              fontWeight: 700,
+              padding: '7px 14px',
+              borderRadius: '20px',
+              background: autoSync ? '#ecfdf5' : '#f1f5f9',
+              color: autoSync ? '#059669' : '#64748b',
+              border: `1px solid ${autoSync ? '#a7f3d0' : '#cbd5e1'}`,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+            title={autoSync ? "Live 10-second polling active. Click to pause." : "Live polling paused. Click to enable 10-second auto sync."}
+          >
+            <span style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: autoSync ? '#10b981' : '#94a3b8',
+              boxShadow: autoSync ? '0 0 0 3px rgba(16, 185, 129, 0.25)' : 'none'
+            }} />
+            <span>{autoSync ? (syncing ? 'Syncing...' : 'Live Stream: 10s') : 'Live Stream: Paused'}</span>
+          </button>
+
+          <button 
+            onClick={() => loadData(false)} 
             style={{ 
               display: 'flex', 
               alignItems: 'center', 
               gap: '6px', 
               fontSize: '13px', 
-              fontWeight: 600, 
-              padding: '8px 18px', 
-              borderRadius: '8px', 
-              background: '#0284c7', 
-              borderColor: '#0284c7',
-              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)'
+              fontWeight: 600,
+              padding: '7px 16px', 
+              borderRadius: '20px', 
+              background: '#ffffff',
+              color: '#2a2d8c',
+              border: '1px solid #d5d9ea',
+              boxShadow: '0 1px 3px rgba(42, 45, 140, 0.08)',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+            title="Refresh Stream"
+          >
+            <RefreshCw size={13} className={loading || syncing ? 'fa-spin' : ''} />
+            Refresh
+          </button>
+          <button 
+            onClick={exportCSV} 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px', 
+              fontSize: '13px', 
+              fontWeight: 600,
+              padding: '7px 16px', 
+              borderRadius: '20px', 
+              background: '#ffffff',
+              color: '#2a2d8c',
+              border: '1px solid #d5d9ea',
+              boxShadow: '0 1px 3px rgba(42, 45, 140, 0.08)',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+            title="Export CSV"
+          >
+            <Download size={13} />
+            Export CSV
+          </button>
+          <button
+            onClick={() => setShowSimModal(true)}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px', 
+              fontSize: '13px', 
+              fontWeight: 700, 
+              padding: '7px 20px', 
+              borderRadius: '20px', 
+              background: '#2a2d8c', 
+              border: 'none',
+              color: '#ffffff',
+              boxShadow: '0 3px 10px rgba(42, 45, 140, 0.3)',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
             }}
           >
-            <Plus size={16} />
-            Simulate Entry
+            <Plus size={15} />
+            + Simulate Entry
           </button>
         </div>
       </div>
@@ -322,14 +403,15 @@ export default function LeadsPage() {
                 style={{
                   border: 'none',
                   outline: 'none',
-                  padding: '6px 14px',
-                  borderRadius: '6px',
+                  padding: '6px 16px',
+                  borderRadius: '20px',
                   fontSize: '12px',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
-                  background: statusFilter === st ? '#0f172a' : '#f8fafc',
-                  color: statusFilter === st ? '#ffffff' : '#64748b',
+                  background: statusFilter === st ? '#2a2d8c' : '#f1f4fb',
+                  color: statusFilter === st ? '#ffffff' : '#475569',
+                  boxShadow: statusFilter === st ? '0 2px 6px rgba(42, 45, 140, 0.25)' : 'none'
                 }}
               >
                 {st === 'ALL' ? 'All Traffic' : st}
@@ -346,7 +428,7 @@ export default function LeadsPage() {
               onChange={(e) => setSearch(e.target.value)}
               style={{
                 width: '100%',
-                padding: '7px 12px 7px 34px',
+                padding: '7px 12px 7px 38px', paddingLeft: '38px',
                 fontSize: '12px',
                 border: '1px solid #e2e8f0',
                 borderRadius: '8px',
@@ -361,13 +443,13 @@ export default function LeadsPage() {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
-              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <th style={{ padding: '12px 18px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Respondent UID</th>
-                <th style={{ padding: '12px 18px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Project / Study</th>
-                <th style={{ padding: '12px 18px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Vendor Partner</th>
-                <th style={{ padding: '12px 18px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Session Outcome</th>
-                <th style={{ padding: '12px 18px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>IP Address</th>
-                <th style={{ padding: '12px 18px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Timestamp</th>
+              <tr style={{ background: '#e9ebf8', borderBottom: '1px solid #d6d9ef' }}>
+                <th style={{ padding: '12px 18px', fontSize: '12px', fontWeight: 700, color: '#2a2d8c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Respondent UID</th>
+                <th style={{ padding: '12px 18px', fontSize: '12px', fontWeight: 700, color: '#2a2d8c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Project / Study</th>
+                <th style={{ padding: '12px 18px', fontSize: '12px', fontWeight: 700, color: '#2a2d8c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Vendor Partner</th>
+                <th style={{ padding: '12px 18px', fontSize: '12px', fontWeight: 700, color: '#2a2d8c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Session Outcome</th>
+                <th style={{ padding: '12px 18px', fontSize: '12px', fontWeight: 700, color: '#2a2d8c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>IP Address</th>
+                <th style={{ padding: '12px 18px', fontSize: '12px', fontWeight: 700, color: '#2a2d8c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Timestamp</th>
               </tr>
             </thead>
             <tbody>

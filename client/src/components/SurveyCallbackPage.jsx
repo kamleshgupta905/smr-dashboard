@@ -25,7 +25,7 @@ import { GoogleSheetAPI, getVendors } from '../services/api.js';
 
 export default function SurveyCallbackPage() {
   const [copied, setCopied] = useState(false);
-  const [detectedIp, setDetectedIp] = useState('2409:40d4:11e0:33bb:585a:1a12:5815:b7');
+  const [detectedIp, setDetectedIp] = useState('127.0.0.1');
   const [vendorList, setVendorList] = useState([]);
   const [countdown, setCountdown] = useState(5);
   const [isPaused, setIsPaused] = useState(false);
@@ -62,8 +62,8 @@ export default function SurveyCallbackPage() {
   };
 
   const uid = resolveEnteredUid();
-  const vid = params.get('vid') || params.get('vendor') || params.get('vendor_id') || params.get('username') || '713';
-  const pid = params.get('pid') || params.get('sid') || params.get('project') || params.get('projectId') || params.get('project_id') || '2077902648';
+  const vid = params.get('vid') || params.get('vendor') || params.get('vendor_id') || params.get('username') || 'VND-DYN-01';
+  const pid = params.get('pid') || params.get('sid') || params.get('project') || params.get('projectId') || params.get('project_id') || 'VMHPI000052026';
   const hash = params.get('hash') || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
   const reason = params.get('reason') || '';
 
@@ -106,7 +106,7 @@ export default function SurveyCallbackPage() {
         })
         .catch(() => {
           // Fallback realistic IP matching the video
-          setDetectedIp('2409:40d4:11e0:33bb:585a:1a12:5815:b7');
+          setDetectedIp(window.location.hostname || '127.0.0.1');
         });
     }
   }, []);
@@ -169,7 +169,22 @@ export default function SurveyCallbackPage() {
     }).catch(() => {});
   }, []);
 
+  const nextProjectParam = params.get('next');
+
   useEffect(() => {
+    if (nextProjectParam) {
+      const nextSurveyUrl = `/vendor/auth/${encodeURIComponent(vid)}/project/${encodeURIComponent(nextProjectParam)}?uid=${encodeURIComponent(uid)}&waterfall=1`;
+      setTargetVendorUrl(nextSurveyUrl);
+      if (!isComplete) {
+        // Transparent instant re-route on terminate/quota/security (Zero error screen!)
+        window.location.replace(nextSurveyUrl);
+        return;
+      }
+    }
+  }, [nextProjectParam, vid, uid, isComplete]);
+
+  useEffect(() => {
+    if (nextProjectParam) return; // Waterfall next survey takes priority
     const vMatch = vendorList.find(v => (v.vendor_code === vid || v.vendorUid === vid || v._id === vid)) || vendorList[0];
     if (vMatch) {
       let rawUrl = '';

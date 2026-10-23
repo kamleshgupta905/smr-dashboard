@@ -188,7 +188,7 @@ export default function ReferenceDataPage() {
               placeholder="Search reference records..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              style={{ paddingLeft: '34px', width: '100%', height: '34px', fontSize: '12px' }}
+              style={{ paddingLeft: '38px', width: '100%', height: '34px', fontSize: '12px' }}
             />
           </div>
           <span className="badge-soft-primary" style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 600 }}>

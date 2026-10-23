@@ -381,7 +381,7 @@ export default function BidsPage() {
 
                   return (
                     <tr key={b.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '14px 18px', fontSize: '12px', fontFamily: 'monospace', fontWeight: 700, color: '#1761fd' }}>
+                      <td style={{ padding: '14px 18px', fontSize: '12px', fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>
                         {b.bid_id || `BID-#${b.id}`}
                       </td>
                       <td style={{ padding: '14px 18px' }}>
@@ -393,7 +393,7 @@ export default function BidsPage() {
                       <td style={{ padding: '14px 18px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>
                         {b.client_name}
                       </td>
-                      <td style={{ padding: '14px 18px', fontSize: '13px', fontWeight: 700, color: '#03d87f' }}>
+                      <td style={{ padding: '14px 18px', fontSize: '13px', fontWeight: 700, color: '#059669', fontVariantNumeric: 'tabular-nums' }}>
                         ${Number(b.cpi).toFixed(2)}
                       </td>
                       <td style={{ padding: '14px 18px', fontSize: '13px', color: '#1d2c48' }}>

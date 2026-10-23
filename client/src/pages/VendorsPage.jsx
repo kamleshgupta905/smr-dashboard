@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
+  Eye,
+  Edit2,
+  ChevronDown,
+  ChevronUp,
   Users, 
   Plus, 
   CheckCircle2, 
@@ -181,7 +185,7 @@ function CountriesSelector({ selected = [], onChange, countries = [] }) {
             placeholder="Search country by name or code (e.g. India, US, Germany)..."
             value={filter}
             onChange={e => setFilter(e.target.value)}
-            style={{ width: '100%', paddingLeft: '32px', fontSize: '12px' }}
+            style={{ width: '100%', paddingLeft: '38px', fontSize: '12px' }}
           />
         </div>
         <span className="badge-soft-success" style={{ padding: '6px 10px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 700, whiteSpace: 'nowrap' }}>
@@ -460,189 +464,6 @@ function CountriesSelector({ selected = [], onChange, countries = [] }) {
                   </>
                 )}
               </form>
-            </div>
-          </div>
-        </ModalPortal>
-      )}
-
-      {/* 1-Click WhatsApp Direct Brief Dispatch Modal */}
-      {showWhatsAppModal && whatsAppVendor && (
-        <ModalPortal>
-          <div style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 99999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '16px'
-          }}>
-            <div style={{
-              background: '#ffffff',
-              width: '100%',
-              maxWidth: '650px',
-              borderRadius: '12px',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              overflow: 'hidden',
-              border: '1px solid #e2e8f0',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              {/* Header */}
-              <div style={{
-                padding: '16px 20px',
-                background: '#075e54',
-                color: '#ffffff',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ background: '#25D366', padding: '7px', borderRadius: '50%', color: '#ffffff', display: 'flex' }}>
-                    <MessageSquare size={18} />
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: '#ffffff' }}>
-                      1-Click WhatsApp Project Dispatch
-                    </h3>
-                    <p style={{ fontSize: '11.5px', color: '#dcfce7', margin: 0, opacity: 0.9 }}>
-                      Instant survey allocation brief for {whatsAppVendor.name} ({whatsAppVendor.vendor_id || whatsAppVendor.vendor_code})
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowWhatsAppModal(false)}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#ffffff' }}
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              {/* Body */}
-              <div style={{ padding: '20px', overflowY: 'auto', maxHeight: '72vh' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                      Select Study / Project
-                    </label>
-                    <select
-                      value={whatsAppProject}
-                      onChange={(e) => setWhatsAppProject(e.target.value)}
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '6px', background: '#ffffff' }}
-                    >
-                      {projectsList && projectsList.length > 0 ? (
-                        projectsList.slice(0, 30).map(p => (
-                          <option key={p.project_id || p.id} value={p.project_id || p.id}>
-                            {p.project_id || p.id} — {p.name || `Study #${p.id}`}
-                          </option>
-                        ))
-                      ) : (
-                        <option value="VMHP1026542026">VMHP1026542026 — General Population Study</option>
-                      )}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                      Vendor WhatsApp Number (With Country Code)
-                    </label>
-                    <input
-                      type="text"
-                      value={whatsAppPhone}
-                      onChange={(e) => setWhatsAppPhone(e.target.value)}
-                      placeholder="e.g. +919876543210 or +12025550198"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: '10px' }}>
-                  <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Live WhatsApp Message Preview
-                  </label>
-                  <div style={{
-                    background: '#e5ddd5',
-                    padding: '14px',
-                    borderRadius: '8px',
-                    border: '1px solid #d1d5db'
-                  }}>
-                    <pre style={{
-                      margin: 0,
-                      background: '#ffffff',
-                      padding: '14px 16px',
-                      borderRadius: '8px',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                      fontSize: '12px',
-                      lineHeight: '1.5',
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word',
-                      color: '#111827',
-                      maxHeight: '260px',
-                      overflowY: 'auto'
-                    }}>
-                      {getWhatsAppMessageText()}
-                    </pre>
-                  </div>
-                </div>
-
-                <div style={{ fontSize: '11px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <Info size={12} color="#0284c7" />
-                  <span>The live link automatically routes vendor panelists through the SMR Anti-Fraud gate and dynamically maps respondent IDs.</span>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div style={{
-                padding: '12px 20px',
-                background: '#f8fafc',
-                borderTop: '1px solid #e2e8f0',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <button
-                  type="button"
-                  onClick={() => setShowWhatsAppModal(false)}
-                  className="btn btn-light"
-                  style={{ fontSize: '12px', padding: '7px 14px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                >
-                  Close
-                </button>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    type="button"
-                    onClick={handleCopyWhatsAppText}
-                    className="btn btn-soft-primary"
-                    style={{ fontSize: '12px', padding: '7px 14px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
-                  >
-                    {copiedWhatsApp ? <Check size={14} color="#059669" /> : <Copy size={14} />}
-                    <span>{copiedWhatsApp ? 'Copied Brief!' : 'Copy Text'}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleLaunchWhatsApp}
-                    className="btn btn-success"
-                    style={{
-                      fontSize: '12px',
-                      padding: '7px 16px',
-                      borderRadius: '6px',
-                      fontWeight: 600,
-                      background: '#25D366',
-                      borderColor: '#25D366',
-                      color: '#ffffff',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
-                  >
-                    <Send size={14} />
-                    <span>Open in WhatsApp</span>
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </ModalPortal>
@@ -1339,7 +1160,7 @@ function RestrictionsAndContacts({ blockedClients = [], onBlockedChange, contact
   );
 }
 
-export default function VendorsPage({ onNavigate, globalSearch = '' }) {
+export default function VendorsPage({ onNavigate, globalSearch = '', showToast }) {
   const [vendors, setVendors] = useState([]);
   const [totalServerVendors, setTotalServerVendors] = useState(0);
   const [projectsList, setProjectsList] = useState([]);
@@ -1442,90 +1263,11 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
     }
   };
 
-  // WhatsApp Project Dispatch State
-  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
-  const [whatsAppVendor, setWhatsAppVendor] = useState(null);
-  const [whatsAppProject, setWhatsAppProject] = useState('');
-  const [whatsAppPhone, setWhatsAppPhone] = useState('');
-  const [copiedWhatsApp, setCopiedWhatsApp] = useState(false);
-
   // Vendor Payout Reconciliation Statement State
   const [showReconciliationModal, setShowReconciliationModal] = useState(false);
   const [reconciliationVendor, setReconciliationVendor] = useState(null);
   const [reconciliationData, setReconciliationData] = useState(null);
   const [reconciliationLoading, setReconciliationLoading] = useState(false);
-
-  const handleOpenWhatsApp = (vendor) => {
-    const vCode = vendor.vendor_id || vendor.vendor_code || vendor._id;
-    setWhatsAppVendor(vendor);
-    setWhatsAppPhone(vendor.phone || '');
-    const firstProj = (projectsList && projectsList.length > 0) ? (projectsList[0].project_id || projectsList[0].id) : 'VMHP1026542026';
-    setWhatsAppProject(firstProj);
-    setCopiedWhatsApp(false);
-    setShowWhatsAppModal(true);
-  };
-
-  const getWhatsAppMessageText = () => {
-    if (!whatsAppVendor) return '';
-    const vCode = whatsAppVendor.vendor_id || whatsAppVendor.vendor_code || whatsAppVendor._id;
-    const vName = whatsAppVendor.name || 'Partner';
-    const projId = whatsAppProject || 'VMHP1026542026';
-    const cpiStr = Number(whatsAppVendor.cpi) > 0 ? `$${Number(whatsAppVendor.cpi).toFixed(2)}` : `${whatsAppVendor.cpi_percentage || 70}% RevShare`;
-    const entryUrl = `https://api.vmhgroupsmr.com/traffic/router?pid=${projId}&vid=${vCode}&uid=[RESPONDENT_ID]`;
-    
-    return `🎯 *VMH GROUP | SMR Survey Allocation Brief*
-` +
-      `━━━━━━━━━━━━━━━━━━━━
-` +
-      `🏢 *Vendor:* ${vName} (${vCode})
-` +
-      `📋 *Project ID:* ${projId}
-` +
-      `🌐 *Target Market:* United States / Global (Gen Pop)
-` +
-      `⏱️ *LOI:* 10-12 Mins | 📊 *IR:* 50%+
-` +
-      `💰 *Agreed Rate:* ${cpiStr}
-` +
-      `🎯 *Quota Cap:* 250 Completes
-
-` +
-      `🔗 *Survey Router Entry Link:*
-` +
-      `${entryUrl}
-
-` +
-      `📌 *Standard Callbacks:*
-` +
-      `✅ Complete: ${whatsAppVendor.redirect_complete || 'https://smr.vmhgroupsmr.com/survey/callback?status=10'}
-` +
-      `❌ Terminate: ${whatsAppVendor.redirect_terminate || 'https://smr.vmhgroupsmr.com/survey/callback?status=20'}
-` +
-      `⚠️ QuotaFull: ${whatsAppVendor.redirect_overquota || 'https://smr.vmhgroupsmr.com/survey/callback?status=30'}
-
-` +
-      `_Note: Please pass your unique panelist UID in place of [RESPONDENT_ID]._
-` +
-      `━━━━━━━━━━━━━━━━━━━━
-` +
-      `VMH Market Research Operations`;
-  };
-
-  const handleLaunchWhatsApp = () => {
-    const text = getWhatsAppMessageText();
-    const cleanPhone = (whatsAppPhone || '').replace(/[^0-9]/g, '');
-    const url = cleanPhone 
-      ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(text)}`
-      : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
-  };
-
-  const handleCopyWhatsAppText = () => {
-    const text = getWhatsAppMessageText();
-    navigator.clipboard.writeText(text);
-    setCopiedWhatsApp(true);
-    setTimeout(() => setCopiedWhatsApp(false), 2500);
-  };
 
   const handleOpenReconciliation = async (vendor) => {
     const vCode = vendor.vendor_id || vendor.vendor_code || vendor._id;
@@ -1582,7 +1324,23 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
   };
 
   const [vendorPage, setVendorPage] = useState(1);
-  const [vendorPageSize, setVendorPageSize] = useState(25);
+  const [vendorPageSize, setVendorPageSize] = useState(10);
+  const [expandedVendorId, setExpandedVendorId] = useState(null);
+  const [sortField, setSortField] = useState('complete_count');
+  const [sortDirection, setSortDirection] = useState('desc');
+
+  const toggleExpandVendor = (id) => {
+    setExpandedVendorId(prev => prev === id ? null : id);
+  };
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
   const [exportingVendors, setExportingVendors] = useState(false);
 
   // Profiling state
@@ -1726,7 +1484,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
         vendor_code: '',
         commission_type: 'revenue_share',
         cpi: '',
-        cpi_percentage: '70',
+        cpi_percentage: '30',
         status: 'active',
         redirect_complete: '',
         redirect_terminate: '',
@@ -1741,8 +1499,15 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
       setShowAddRedirectsTab(false);
       setAddModalTab('general');
       fetchVendorsList();
+      if (showToast) {
+        showToast(`✓ Vendor created successfully!`);
+      }
     } catch (err) {
-      alert(err.response?.data?.message || err.message || 'Error creating vendor');
+      if (showToast) {
+        showToast(err.response?.data?.message || err.message || 'Error creating vendor', 'error');
+      } else {
+        alert(err.response?.data?.message || err.message || 'Error creating vendor');
+      }
     }
   };
 
@@ -1755,7 +1520,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
     setRedirectForm({
       commission_type: vendor.commission_type || 'revenue_share',
       cpi: vendor.cpi !== undefined && vendor.cpi !== null ? vendor.cpi : '',
-      cpi_percentage: vendor.cpi_percentage !== undefined && vendor.cpi_percentage !== null ? vendor.cpi_percentage : 70,
+      cpi_percentage: vendor.cpi_percentage !== undefined && vendor.cpi_percentage !== null ? vendor.cpi_percentage : 30,
       redirect_complete: !isDummy(vendor.redirect_complete) ? vendor.redirect_complete : `${origin}/survey/callback?status=10&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
       redirect_terminate: !isDummy(vendor.redirect_terminate) ? vendor.redirect_terminate : `${origin}/survey/callback?status=20&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
       redirect_overquota: !isDummy(vendor.redirect_overquota) ? vendor.redirect_overquota : `${origin}/survey/callback?status=30&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
@@ -1795,7 +1560,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
         email: editingVendor.email,
         commission_type: redirectForm.commission_type || 'revenue_share',
         cpi: Number(redirectForm.cpi || 0),
-        cpi_percentage: Number(redirectForm.cpi_percentage !== undefined && redirectForm.cpi_percentage !== '' ? redirectForm.cpi_percentage : 70),
+        cpi_percentage: Number(redirectForm.cpi_percentage !== undefined && redirectForm.cpi_percentage !== '' ? redirectForm.cpi_percentage : 30),
         redirect_complete: redirectForm.redirect_complete,
         redirect_terminate: redirectForm.redirect_terminate,
         redirect_overquota: redirectForm.redirect_overquota,
@@ -1813,9 +1578,16 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
         setSaveSuccess(false);
         setEditingVendor(null);
         fetchVendorsList();
+        if (showToast) {
+          showToast('✓ Vendor settings and routing updated successfully!');
+        }
       }, 1000);
     } catch (err) {
-      alert(err.message || 'Error updating vendor redirects');
+      if (showToast) {
+        showToast(err.message || 'Error updating vendor redirects', 'error');
+      } else {
+        alert(err.message || 'Error updating vendor redirects');
+      }
     } finally {
       setSavingRedirects(false);
     }
@@ -1860,7 +1632,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
 
   const avgCpiNum = vendors.reduce((sum, v) => sum + Number(v.cpi || 0), 0) / (vendors.length || 1);
   const avgCpi = avgCpiNum.toFixed(2);
-  const avgRevShare = Math.round(vendors.reduce((sum, v) => sum + Number(v.cpi_percentage || 70), 0) / (vendors.length || 1));
+  const avgRevShare = Math.round(vendors.reduce((sum, v) => sum + Number(v.cpi_percentage || 30), 0) / (vendors.length || 1));
   const activeCount = vendors.filter(v => v.status === 'active' || v.status === 'Y' || v.is_active === 'Y' || v.isActive !== false).length;
 
   const getQualityBadge = (v) => {
@@ -1946,7 +1718,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
           'Vendor Name': v.name || '',
           'Contact Email': v.email || '',
           'Commission Type': v.commission_type || 'revenue_share',
-          'RevShare (%)': Number(v.cpi_percentage || 70),
+          'RevShare (%)': Number(v.cpi_percentage || 30),
           'Flat CPI ($)': Number(v.cpi || 0).toFixed(2),
           'Hash Algorithm': v.hash_algorithm || 'SHA3-256',
           'Status': (v.status === 'Y' || v.status === 'active' || v.is_active === 'Y') ? 'Active' : 'Inactive',
@@ -1967,8 +1739,40 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
     }
   };
 
-  const totalVendorPages = vendorPageSize === 'all' ? 1 : (Math.ceil(filtered.length / vendorPageSize) || 1);
-  const paginatedVendors = vendorPageSize === 'all' ? filtered : filtered.slice((vendorPage - 1) * vendorPageSize, vendorPage * vendorPageSize);
+  const sortedVendors = useMemo(() => {
+    const list = [...filtered];
+    if (!sortField) return list;
+    list.sort((a, b) => {
+      let aVal = a[sortField];
+      let bVal = b[sortField];
+      if (sortField === 'vendor_id') {
+        aVal = (a.vendor_code || a.vendor_id || a._id || '').toString();
+        bVal = (b.vendor_code || b.vendor_id || b._id || '').toString();
+        return sortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      }
+      if (sortField === 'name' || sortField === 'email') {
+        aVal = (aVal || '').toString().toLowerCase();
+        bVal = (bVal || '').toString().toLowerCase();
+        return sortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      }
+      if (sortField === 'clicks_count' || sortField === 'complete_count' || sortField === 'terminates_count') {
+        const aNum = Number(aVal || 0);
+        const bNum = Number(bVal || 0);
+        return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+      }
+      if (sortField === 'status') {
+        const aStat = (a.status === 'Y' || a.status === 'active' || a.is_active === 'Y') ? 1 : 0;
+        const bStat = (b.status === 'Y' || b.status === 'active' || b.is_active === 'Y') ? 1 : 0;
+        return sortDirection === 'asc' ? aStat - bStat : bStat - aStat;
+      }
+      return 0;
+    });
+    return list;
+  }, [filtered, sortField, sortDirection]);
+
+  const totalVendorPages = vendorPageSize === 'all' ? 1 : (Math.ceil(sortedVendors.length / vendorPageSize) || 1);
+  const paginatedVendors = vendorPageSize === 'all' ? sortedVendors : sortedVendors.slice((vendorPage - 1) * vendorPageSize, vendorPage * vendorPageSize);
+
 
   return (
     <div>
@@ -2050,7 +1854,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
               <Users size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins' }}>{totalServerVendors || vendors.length}</div>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: '#1d2c48', fontFamily: "'Plus Jakarta Sans', sans-serif", fontVariantNumeric: 'tabular-nums' }}>{totalServerVendors || vendors.length}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', fontSize: '11.5px', color: '#16a34a' }}>
             <span className="pulse-dot" /> {totalServerVendors || activeCount} Active Vendors
           </div>
@@ -2063,7 +1867,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
               <DollarSign size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins' }}>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: '#1d2c48', fontFamily: "'Plus Jakarta Sans', sans-serif", fontVariantNumeric: 'tabular-nums' }}>
             {avgCpiNum > 0 ? `$${avgCpi}` : `${avgRevShare}% RevShare`}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '11.5px', color: '#8997bd' }}>
@@ -2078,7 +1882,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
               <ShieldCheck size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '20px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins' }}>SHA3-256 / HMAC</div>
+          <div style={{ fontSize: '20px', fontWeight: 700, color: '#1d2c48', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>SHA3-256 / HMAC</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '11.5px', color: '#16a34a' }}>
             <CheckCircle2 size={12} /> Strict Anti-Tamper Enabled
           </div>
@@ -2091,306 +1895,618 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
               <Link2 size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins' }}>4 / 4 Callbacks</div>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: '#1d2c48', fontFamily: "'Plus Jakarta Sans', sans-serif", fontVariantNumeric: 'tabular-nums' }}>4 / 4 Callbacks</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '11.5px', color: '#1761fd' }}>
             <ArrowUpRight size={12} /> Complete, Term, OQ, Security
           </div>
         </div>
       </div>
 
-      {/* Vendors Table (Dastone Report Card) */}
-      <div className="report-card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div className="report-card-header">
-          <div style={{ position: 'relative', width: '280px' }}>
-            <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#8997bd' }} />
-            <input 
-              type="text" 
-              className="input-control"
-              placeholder="Search vendors by name, code, email..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              style={{ paddingLeft: '34px', width: '100%', height: '34px', fontSize: '12px' }}
-            />
+      {/* VMH Panel Signature Vendor Table Card (Matching panel.vmhgroupsmr.com/admin/vendor) */}
+      <div 
+        style={{
+          background: '#ffffff',
+          borderRadius: '8px',
+          boxShadow: '0 2px 10px rgba(42, 45, 140, 0.08)',
+          border: '1px solid #e5e9f2',
+          overflow: 'hidden',
+          marginBottom: '30px'
+        }}
+      >
+        {/* 1. Exact Signature Deep Navy Blue Header Banner (#2a2d8c) */}
+        <div 
+          style={{
+            background: '#2a2d8c',
+            padding: '14px 22px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h3 
+              style={{
+                margin: 0,
+                fontSize: '16.5px',
+                fontWeight: 700,
+                color: '#ffffff',
+                letterSpacing: '-0.2px',
+                fontFamily: "'Plus Jakarta Sans', sans-serif"
+              }}
+            >
+              Vendor List
+            </h3>
+            <span 
+              style={{
+                background: 'rgba(255, 255, 255, 0.15)',
+                color: '#ffffff',
+                fontSize: '11px',
+                fontWeight: 600,
+                padding: '2px 8px',
+                borderRadius: '999px'
+              }}
+            >
+              {totalServerVendors || filtered.length} Total
+            </span>
           </div>
 
-          <span className="badge-soft-primary" style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 600 }}>
-            {effectiveSearch ? `${filtered.length} Matched Panels` : `${totalServerVendors || filtered.length} Registered Panels`}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            {/* Primary Exact Pill + ADD Button */}
+            <button
+              type="button"
+              onClick={() => setShowModal(true)}
+              id="btn-add-vendor-banner"
+              style={{
+                background: '#ffffff',
+                color: '#2a2d8c',
+                border: 'none',
+                borderRadius: '20px',
+                padding: '6px 18px',
+                fontWeight: 800,
+                fontSize: '12px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                transition: 'transform 0.15s ease'
+              }}
+            >
+              <span>+ ADD</span>
+            </button>
+
+            {/* Auxiliary Tools (Export & Spec) */}
+            <button
+              type="button"
+              onClick={handleExportAllVendorsExcel}
+              disabled={exportingVendors}
+              style={{
+                background: 'rgba(255, 255, 255, 0.14)',
+                color: '#ffffff',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                borderRadius: '20px',
+                padding: '5px 14px',
+                fontWeight: 600,
+                fontSize: '11.5px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+              title="Download master vendor list to Excel (.xlsx)"
+            >
+              <Download size={13} />
+              <span>{exportingVendors ? 'Exporting...' : 'Export (.xlsx)'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowSpecModal(true)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.14)',
+                color: '#ffffff',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                borderRadius: '20px',
+                padding: '5px 14px',
+                fontWeight: 600,
+                fontSize: '11.5px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+              title="Vendor Integration Guide & Webhook Specs"
+            >
+              <FileText size={13} />
+              <span>Integration Spec</span>
+            </button>
+          </div>
         </div>
 
+        {/* 2. Exact Controls Row: Show [ 10 ▾ ] entries & Search: [ _____ ] */}
+        <div 
+          style={{
+            padding: '14px 22px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px',
+            background: '#ffffff',
+            borderBottom: '1px solid #eef1f6'
+          }}
+        >
+          {/* Show [ 10 ▾ ] entries */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#4b5563' }}>
+            <span>Show</span>
+            <select
+              value={vendorPageSize}
+              onChange={(e) => {
+                const val = e.target.value === 'all' ? 'all' : Number(e.target.value);
+                setVendorPageSize(val);
+                setVendorPage(1);
+              }}
+              style={{
+                padding: '4px 8px',
+                borderRadius: '4px',
+                border: '1px solid #d1d5db',
+                fontSize: '13px',
+                color: '#1f2937',
+                background: '#ffffff',
+                cursor: 'pointer',
+                outline: 'none'
+              }}
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value="all">All</option>
+            </select>
+            <span>entries</span>
+          </div>
+
+          {/* Search: [ _________ ] */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#4b5563' }}>
+            <span style={{ fontWeight: 500 }}>Search:</span>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setVendorPage(1);
+              }}
+              placeholder=""
+              style={{
+                border: '1px solid #d1d5db',
+                borderRadius: '4px',
+                height: '32px',
+                padding: '0 10px',
+                fontSize: '13px',
+                color: '#111827',
+                outline: 'none',
+                width: '180px'
+              }}
+            />
+          </div>
+        </div>
+
+        {/* 3. Exact Table Header & Body */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '50px 20px', color: '#8997bd' }}>
+          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
             <div className="spinner" style={{ margin: '0 auto 16px auto' }} />
-            Loading vendors...
+            Synchronizing live suppliers...
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '50px 20px', color: '#8997bd', fontSize: '13px' }}>
-            No vendors configured yet. Click "Add New Vendor" to connect your first sample supplier!
+          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b', fontSize: '13.5px' }}>
+            No vendors matching your filter. Click "+ ADD" to configure a new sample supplier.
           </div>
         ) : (
-          <div className="table-wrapper" style={{ margin: 0, border: 'none', borderRadius: 0 }}>
-            <table className="custom-table compact-table" style={{ width: '100%', minWidth: '100%' }}>
-              <thead className="thead-light">
-                <tr>
-                  <th>Vendor Name / Code</th>
-                  <th>Contact Email</th>
-                  <th>Performance & Scorecard</th>
-                  <th>Base Rate / Payout</th>
-                  <th>Security Hash</th>
-                  <th>Supply Callbacks (4)</th>
-                  <th>Status</th>
-                  <th>Sample Router Entry URL</th>
-                  <th style={{ width: '160px', textAlign: 'center' }}>Actions</th>
+          <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ background: '#e9ebf8', borderBottom: '1px solid #d6d9ef' }}>
+                  <th style={{ padding: '12px 16px', color: '#2a2d8c', fontWeight: 700, fontSize: '12.5px', width: '65px' }}>
+                    Sl No.
+                  </th>
+                  <th 
+                    onClick={() => handleSort('vendor_id')} 
+                    style={{ padding: '12px 14px', color: '#2a2d8c', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', userSelect: 'none' }}
+                  >
+                    Vendor ID <span style={{ color: '#8c92ca', fontSize: '11px', marginLeft: '2px' }}>⇅</span>
+                  </th>
+                  <th 
+                    onClick={() => handleSort('name')} 
+                    style={{ padding: '12px 14px', color: '#2a2d8c', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', userSelect: 'none' }}
+                  >
+                    Name <span style={{ color: '#8c92ca', fontSize: '11px', marginLeft: '2px' }}>⇅</span>
+                  </th>
+                  <th 
+                    onClick={() => handleSort('email')} 
+                    style={{ padding: '12px 14px', color: '#2a2d8c', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', userSelect: 'none' }}
+                  >
+                    Email <span style={{ color: '#8c92ca', fontSize: '11px', marginLeft: '2px' }}>⇅</span>
+                  </th>
+                  <th 
+                    onClick={() => handleSort('clicks_count')} 
+                    style={{ padding: '12px 14px', color: '#2a2d8c', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', userSelect: 'none' }}
+                  >
+                    Clicks <span style={{ color: '#8c92ca', fontSize: '11px', marginLeft: '2px' }}>⇅</span>
+                  </th>
+                  <th 
+                    onClick={() => handleSort('complete_count')} 
+                    style={{ padding: '12px 14px', color: '#2a2d8c', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', userSelect: 'none' }}
+                  >
+                    Complete <span style={{ color: '#8c92ca', fontSize: '11px', marginLeft: '2px' }}>⇅</span>
+                  </th>
+                  <th 
+                    onClick={() => handleSort('terminates_count')} 
+                    style={{ padding: '12px 14px', color: '#2a2d8c', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', userSelect: 'none' }}
+                  >
+                    Terminates <span style={{ color: '#8c92ca', fontSize: '11px', marginLeft: '2px' }}>⇅</span>
+                  </th>
+                  <th 
+                    onClick={() => handleSort('status')} 
+                    style={{ padding: '12px 14px', color: '#2a2d8c', fontWeight: 700, fontSize: '12.5px', textAlign: 'center', cursor: 'pointer', userSelect: 'none', width: '85px' }}
+                  >
+                    Status <span style={{ color: '#8c92ca', fontSize: '11px', marginLeft: '2px' }}>⇅</span>
+                  </th>
+                  <th style={{ padding: '12px 16px', color: '#2a2d8c', fontWeight: 700, fontSize: '12.5px', textAlign: 'center', width: '110px' }}>
+                    Action <span style={{ color: '#8c92ca', fontSize: '11px', marginLeft: '2px' }}>⇅</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {paginatedVendors.map(v => {
-                  const sampleUrl = `${window.location.origin}/vendor/auth/${v.vendor_code || v._id}/project/:project_id?rid=[RESPONDENT_ID]`;
+                {paginatedVendors.map((v, idx) => {
+                  const slNo = (vendorPage - 1) * (vendorPageSize === 'all' ? 1 : vendorPageSize) + idx + 1;
+                  const vendorId = v.vendor_code || v.vendor_id || v._id;
+                  const isActive = v.status === 'active' || v.status === 'Y' || v.is_active === 'Y';
+                  const isExpanded = expandedVendorId === vendorId;
+                  const clicks = Number(v.clicks_count || v.inbound_clicks || 0);
+                  const completes = Number(v.complete_count || v.completes_count || 0);
+                  const terminates = Number(v.terminates_count || (clicks > completes ? clicks - completes : 0));
+                  const sampleUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://api.vmhgroupsmr.com'}/vendor/auth/${vendorId}/project/:project_id?rid=[RESPONDENT_ID]`;
                   const isRevShare = v.commission_type === 'revenue_share' || (!Number(v.cpi) && v.cpi_percentage);
-                  const isActiveVendor = v.status === 'active' || v.status === 'Y' || v.is_active === 'Y';
                   const quality = getQualityBadge(v);
+
                   return (
-                    <tr key={v._id || v.vendor_code}>
-                      <td>
-                        <div style={{ fontWeight: 700, color: '#1d2c48', fontSize: '13.5px' }}>{v.name}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '4px', flexWrap: 'wrap' }}>
-                          <span className="badge-soft-primary" style={{ fontFamily: 'monospace', padding: '1px 6px', borderRadius: '4px', fontSize: '10.5px' }}>
-                            {v.vendor_code || v._id}
-                          </span>
-                          <span style={{
-                            padding: '1px 6px',
-                            borderRadius: '4px',
-                            fontSize: '10px',
-                            fontWeight: 700,
-                            background: quality.bg,
-                            color: quality.color,
-                            border: quality.border,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '3px'
-                          }} title="Real-time Supplier Delivery Quality Score">
-                            <span>{quality.icon}</span>
-                            <span>{quality.label}</span>
-                          </span>
-                          <span className="badge-soft-success" style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '4px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                            <Globe size={10} /> {(v.countries?.length || 0) > 0 ? `${v.countries.length} Markets` : '48 Markets'}
-                          </span>
-                          {(v.contacts?.length || 0) > 0 && (
-                            <span className="badge-soft-info" style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '4px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                              <Users size={10} /> {v.contacts.length} Contacts
-                            </span>
-                          )}
-                          {(v.blocked_clients?.length || 0) > 0 && (
-                            <span className="badge-soft-danger" style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '4px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                              <Ban size={10} /> {v.blocked_clients.length} Blocked
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td style={{ color: '#303e67', fontSize: '12.5px', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={v.email || 'N/A'}>
-                        {v.email || 'N/A'}
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <span style={{
-                              padding: '2px 7px',
-                              borderRadius: '4px',
-                              fontSize: '11px',
-                              fontWeight: 700,
-                              background: quality.bg,
-                              color: quality.color,
-                              border: quality.border,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px'
-                            }} title={`${quality.label} - ${quality.reliability}`}>
-                              <span>{quality.icon}</span>
-                              <span>{quality.label}</span>
-                            </span>
-                            {Number(v.total_projects || 0) > 0 && (
-                              <span className="badge-soft-primary" style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '4px', fontWeight: 600 }}>
-                                {v.total_projects} Studies
-                              </span>
-                            )}
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#475569', marginTop: '2px' }}>
-                            <span title="Total Verified Completes Delivered" style={{ fontWeight: 700, color: '#059669' }}>
-                              ✓ {Number(v.complete_count || v.completes_count || 0).toLocaleString()} Comp
-                            </span>
-                            <span style={{ color: '#cbd5e1' }}>•</span>
-                            <span title="Total Clicks / Starts" style={{ color: '#64748b' }}>
-                              {Number(v.clicks_count || 0).toLocaleString()} Clicks
-                            </span>
-                            <span style={{ color: '#cbd5e1' }}>•</span>
-                            <span title="Conversion Rate %" style={{ fontWeight: 700, color: Number(quality.cr) >= 5 ? '#059669' : '#d97706' }}>
-                              {quality.cr}% CR
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        {isRevShare ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span style={{ fontWeight: 800, color: '#1761fd', fontSize: '14px' }}>
-                              {Number(v.cpi_percentage || 70)}%
-                            </span>
-                            <span className="badge-soft-primary" style={{ fontSize: '10px', padding: '2px 5px', borderRadius: '4px', fontWeight: 700 }}>
-                              RevShare
-                            </span>
-                          </div>
-                        ) : (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span style={{ fontWeight: 800, color: '#03d87f', fontSize: '14px' }}>
-                              ${Number(v.cpi || 0).toFixed(2)}
-                            </span>
-                            <span style={{ fontSize: '11px', color: '#8997bd', fontWeight: 600 }}>
-                              Fixed
-                            </span>
-                          </div>
-                        )}
-                      </td>
-                      <td>
-                        <span className="badge-soft-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 7px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
-                          <ShieldCheck size={12} /> {v.hash_algorithm || 'SHA3-256'}
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() => handleOpenRedirects(v)}
-                          className="btn btn-soft-primary btn-sm"
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            fontSize: '11.5px',
-                            fontWeight: 600,
-                            padding: '4px 9px',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                          }}
-                          title="Configure all 4 Supply Vendor Redirect Callbacks (Complete, Terminate, Overquota, Security)"
-                        >
-                          <Link2 size={13} />
-                          <span>Configure Redirects (4)</span>
-                        </button>
-                        <div style={{ marginTop: '3px', fontSize: '10.5px', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                          <CheckCircle2 size={11} /> 4 Callbacks Active
-                        </div>
-                      </td>
-                      <td>
-                        {isActiveVendor ? (
-                          <span className="badge-soft-success" style={{ padding: '2px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <span className="pulse-dot" /> Active
-                          </span>
-                        ) : (
-                          <span className="badge-soft-danger" style={{ padding: '2px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <span className="pulse-dot pulse-danger" /> Inactive
-                          </span>
-                        )}
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <button
-                              type="button"
-                              className="btn btn-soft-primary btn-sm"
-                              onClick={() => {
-                                setEntryLinkVendor(v);
-                                setSelectedProjectId('VMHP1026542026');
-                                setTestUidParam('wslnkdxldd');
-                                setCopiedEntryLink(false);
-                              }}
+                    <React.Fragment key={vendorId || idx}>
+                      <tr 
+                        style={{
+                          background: isExpanded ? '#f9fafc' : '#ffffff',
+                          borderBottom: '1px solid #eef1f6',
+                          transition: 'background 0.12s ease'
+                        }}
+                      >
+                        {/* Sl No. */}
+                        <td style={{ padding: '13px 16px', color: '#4b5563', fontVariantNumeric: 'tabular-nums' }}>
+                          {slNo}
+                        </td>
+
+                        {/* Vendor ID (Bold text as in panel screenshot) */}
+                        <td style={{ padding: '13px 14px', fontWeight: 700, color: '#111827', fontFamily: "'Plus Jakarta Sans', monospace" }}>
+                          {vendorId}
+                        </td>
+
+                        {/* Name */}
+                        <td style={{ padding: '13px 14px', color: '#374151', fontWeight: 500 }}>
+                          {v.name}
+                        </td>
+
+                        {/* Email */}
+                        <td style={{ padding: '13px 14px', color: '#4b5563' }}>
+                          {v.email || '—'}
+                        </td>
+
+                        {/* Clicks */}
+                        <td style={{ padding: '13px 14px', color: '#111827', fontVariantNumeric: 'tabular-nums' }}>
+                          {clicks}
+                        </td>
+
+                        {/* Complete */}
+                        <td style={{ padding: '13px 14px', color: '#111827', fontVariantNumeric: 'tabular-nums' }}>
+                          {completes}
+                        </td>
+
+                        {/* Terminates */}
+                        <td style={{ padding: '13px 14px', color: '#111827', fontVariantNumeric: 'tabular-nums' }}>
+                          {terminates}
+                        </td>
+
+                        {/* Status (Exact Green Check Circle Icon as in screenshot) */}
+                        <td style={{ padding: '13px 14px', textAlign: 'center' }}>
+                          {isActive ? (
+                            <span 
+                              title="Active Supplier"
                               style={{
+                                width: '18px',
+                                height: '18px',
+                                borderRadius: '50%',
+                                background: '#16a34a',
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: '5px',
-                                fontSize: '11.5px',
-                                fontWeight: 700,
-                                padding: '4px 8px',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
+                                justifyContent: 'center',
+                                color: '#ffffff',
+                                boxShadow: '0 1px 3px rgba(22, 163, 74, 0.3)'
                               }}
-                              title="Open Inbound Router Entry Link Generator (Frame 001)"
                             >
-                              <Share2 size={12} /> Entry Link (Frame 001)
+                              <Check size={11} strokeWidth={3.5} />
+                            </span>
+                          ) : (
+                            <span 
+                              title="Inactive Supplier"
+                              style={{
+                                width: '18px',
+                                height: '18px',
+                                borderRadius: '50%',
+                                background: '#dc2626',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#ffffff'
+                              }}
+                            >
+                              <X size={11} strokeWidth={3.5} />
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Action: Exact Deep Navy Square Buttons (#2a2d8c) */}
+                        <td style={{ padding: '13px 16px', textAlign: 'center' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                            {/* 1. Edit Button (#2a2d8c square) */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenRedirects(v)}
+                              title="Edit Vendor & Redirects"
+                              style={{
+                                width: '30px',
+                                height: '30px',
+                                borderRadius: '6px',
+                                background: '#2a2d8c',
+                                border: 'none',
+                                color: '#ffffff',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                transition: 'opacity 0.15s ease'
+                              }}
+                            >
+                              <Edit2 size={13} color="#ffffff" />
                             </button>
-                            <button 
-                              className="btn btn-soft-secondary btn-sm"
-                              onClick={() => copyToClipboard(sampleUrl, v._id || v.vendor_code)}
-                              title="Copy Raw Entry Format"
-                              style={{ padding: '4px 7px', borderRadius: '4px' }}
+
+                            {/* 2. View / Details Drawer Toggle (#2a2d8c square) */}
+                            <button
+                              type="button"
+                              onClick={() => toggleExpandVendor(vendorId)}
+                              title={isExpanded ? "Hide Details Drawer" : "View Vendor Details, Router Links & Callbacks"}
+                              style={{
+                                width: '30px',
+                                height: '30px',
+                                borderRadius: '6px',
+                                background: isExpanded ? '#1b1d66' : '#2a2d8c',
+                                border: 'none',
+                                color: '#ffffff',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                transition: 'opacity 0.15s ease'
+                              }}
                             >
-                              {copiedId === (v._id || v.vendor_code) ? <Check size={12} color="#03d87f" /> : <Copy size={12} />}
+                              <Eye size={13} color="#ffffff" />
                             </button>
                           </div>
-                          <code style={{ 
-                            fontSize: '10.5px', 
-                            background: '#f8fafc', 
-                            border: '1px solid #e3ebf6',
-                            padding: '3px 6px', 
-                            borderRadius: '4px',
-                            color: '#475569',
-                            maxWidth: '220px',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            {sampleUrl}
-                          </code>
-                        </div>
-                      </td>
-                      <td style={{ textAlign: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                          <button
-                            type="button"
-                            className="btn btn-sm"
-                            onClick={() => handleOpenWhatsApp(v)}
-                            title="1-Click WhatsApp Direct Survey Dispatch"
-                            style={{ padding: '4px 7px', borderRadius: '4px', background: 'rgba(37, 211, 102, 0.15)', color: '#15803d', border: '1px solid rgba(37, 211, 102, 0.3)', cursor: 'pointer' }}
-                          >
-                            <MessageSquare size={13} />
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-sm"
-                            onClick={() => handleOpenReconciliation(v)}
-                            title="Vendor Payment Reconciliation & Delivery Statement (CSV/Print)"
-                            style={{ padding: '4px 7px', borderRadius: '4px', background: 'rgba(99, 102, 241, 0.12)', color: '#4338ca', border: '1px solid rgba(99, 102, 241, 0.3)', cursor: 'pointer' }}
-                          >
-                            <FileText size={13} />
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-soft-success btn-sm"
-                            onClick={() => handleOpenBilling(v)}
-                            title="Vendor Banking, GST/PAN & Financial Compliance (supplier_billing_details)"
-                            style={{ padding: '4px 7px', borderRadius: '4px', background: '#dcfce7', color: '#15803d', border: 'none', cursor: 'pointer' }}
-                          >
-                            <Landmark size={13} />
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-soft-primary btn-sm"
-                            onClick={() => handleOpenRedirects(v)}
-                            title="Configure Redirects & Anti-Tamper Security (Frame 006)"
-                            style={{ padding: '4px 7px', borderRadius: '4px', cursor: 'pointer' }}
-                          >
-                            <Settings size={13} />
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-soft-danger btn-sm"
-                            onClick={() => handleDelete(v._id || v.vendor_code)}
-                            title="Remove Vendor"
-                            style={{ padding: '4px 7px', borderRadius: '4px', cursor: 'pointer' }}
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                        </td>
+                      </tr>
+
+                      {/* Expandable Specifications Drawer (Preserves all deep SMR routing capabilities) */}
+                      {isExpanded && (
+                        <tr style={{ background: '#f8f9fd', borderBottom: '1px solid #d8daf0' }}>
+                          <td colSpan="9" style={{ padding: '18px 24px' }}>
+                            <div 
+                              style={{
+                                background: '#ffffff',
+                                border: '1px solid #e2e8f0',
+                                borderRadius: '10px',
+                                padding: '18px',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '16px'
+                              }}
+                            >
+                              {/* Drawer Header */}
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <span style={{ fontSize: '14px', fontWeight: 800, color: '#2a2d8c' }}>
+                                    {v.name} ({vendorId})
+                                  </span>
+                                  <span style={{
+                                    padding: '2px 8px',
+                                    borderRadius: '6px',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    background: quality.bg,
+                                    color: quality.color,
+                                    border: quality.border
+                                  }}>
+                                    {quality.label} • {quality.cr}% CR
+                                  </span>
+                                  <span style={{
+                                    padding: '2px 8px',
+                                    borderRadius: '6px',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    background: isRevShare ? '#eff6ff' : '#ecfdf5',
+                                    color: isRevShare ? '#1d4ed8' : '#059669',
+                                    border: `1px solid ${isRevShare ? '#dbeafe' : '#a7f3d0'}`
+                                  }}>
+                                    {isRevShare ? `${Number(v.cpi_percentage || 30)}% RevShare` : `$${Number(v.cpi || 0).toFixed(2)} Fixed CPI`}
+                                  </span>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                  
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenReconciliation(v)}
+                                    title="View Statement & Reconciliation Ledger"
+                                    style={{
+                                      padding: '5px 12px',
+                                      borderRadius: '6px',
+                                      background: '#eff6ff',
+                                      color: '#1d4ed8',
+                                      border: '1px solid #bfdbfe',
+                                      cursor: 'pointer',
+                                      fontSize: '11.5px',
+                                      fontWeight: 600,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '5px'
+                                    }}
+                                  >
+                                    <FileText size={13} /> Statement
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenBilling(v)}
+                                    title="Banking, GST & Compliance Details"
+                                    style={{
+                                      padding: '5px 12px',
+                                      borderRadius: '6px',
+                                      background: '#f1f5f9',
+                                      color: '#334155',
+                                      border: '1px solid #cbd5e1',
+                                      cursor: 'pointer',
+                                      fontSize: '11.5px',
+                                      fontWeight: 600,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '5px'
+                                    }}
+                                  >
+                                    <Landmark size={13} /> Bank Compliance
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDelete(vendorId)}
+                                    title="Remove this supplier"
+                                    style={{
+                                      padding: '5px 10px',
+                                      borderRadius: '6px',
+                                      background: '#fef2f2',
+                                      color: '#b91c1c',
+                                      border: '1px solid #fecaca',
+                                      cursor: 'pointer',
+                                      fontSize: '11.5px',
+                                      fontWeight: 600,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px'
+                                    }}
+                                  >
+                                    <Trash2 size={13} /> Remove
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Drawer Content Columns */}
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                                {/* Inbound Router Entry URL */}
+                                <div>
+                                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>
+                                    Inbound Router Entry URL
+                                  </div>
+                                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                    <input
+                                      type="text"
+                                      readOnly
+                                      value={sampleUrl}
+                                      style={{
+                                        width: '100%',
+                                        fontSize: '11px',
+                                        fontFamily: 'monospace',
+                                        padding: '6px 10px',
+                                        background: '#f8fafc',
+                                        border: '1px solid #cbd5e1',
+                                        borderRadius: '6px',
+                                        color: '#334155'
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => copyToClipboard(sampleUrl, vendorId)}
+                                      style={{
+                                        padding: '6px 10px',
+                                        borderRadius: '6px',
+                                        background: copiedId === vendorId ? '#ecfdf5' : '#ffffff',
+                                        border: '1px solid #cbd5e1',
+                                        color: copiedId === vendorId ? '#059669' : '#334155',
+                                        fontSize: '11.5px',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        whiteSpace: 'nowrap'
+                                      }}
+                                    >
+                                      {copiedId === vendorId ? <Check size={12} /> : <Copy size={12} />}
+                                      {copiedId === vendorId ? 'Copied' : 'Copy'}
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Security Hash Protocol */}
+                                <div>
+                                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>
+                                    Anti-Tamper Cryptography
+                                  </div>
+                                  <div style={{ fontSize: '12px', color: '#1e293b', background: '#f8fafc', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                                    <span>Protocol: <strong>{v.hash_algorithm || 'SHA3-256 (Market Xcel / SMR Enterprise)'}</strong></span>
+                                  </div>
+                                </div>
+
+                                {/* Callbacks Quick Access */}
+                                <div>
+                                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>
+                                    Supplier Callback Routing
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenRedirects(v)}
+                                    style={{
+                                      width: '100%',
+                                      padding: '8px 12px',
+                                      borderRadius: '6px',
+                                      background: '#2a2d8c',
+                                      color: '#ffffff',
+                                      border: 'none',
+                                      fontSize: '12px',
+                                      fontWeight: 700,
+                                      cursor: 'pointer',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      gap: '6px'
+                                    }}
+                                  >
+                                    <Settings size={13} /> Configure 4 Return Callbacks
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   );
                 })}
               </tbody>
@@ -2398,86 +2514,90 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
           </div>
         )}
 
-        {/* Vendors Server-Side & Local Pagination Footer */}
-        <div style={{
-          padding: '12px 20px',
-          borderTop: '1px solid #E2E8F0',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          background: '#F8FAFC',
-          flexWrap: 'wrap',
-          gap: '12px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '12.5px', color: '#64748B' }}>
-              Showing <strong>{filtered.length === 0 ? 0 : (vendorPage - 1) * (vendorPageSize === 'all' ? filtered.length : vendorPageSize) + 1}</strong> to <strong>{vendorPageSize === 'all' ? filtered.length : Math.min(vendorPage * vendorPageSize, filtered.length)}</strong> of <strong>{totalServerVendors || filtered.length}</strong> registered vendors
-            </span>
-
-            {/* Page Size Selector */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748B' }}>
-              <span>Show:</span>
-              <select
-                value={vendorPageSize}
-                onChange={(e) => {
-                  const val = e.target.value === 'all' ? 'all' : Number(e.target.value);
-                  setVendorPageSize(val);
-                  setVendorPage(1);
-                }}
-                className="input-control"
-                style={{ width: 'auto', height: '28px', padding: '2px 8px', fontSize: '12px' }}
-              >
-                <option value={15}>15 per page</option>
-                <option value={25}>25 per page</option>
-                <option value={50}>50 per page</option>
-                <option value={100}>100 per page</option>
-                <option value="all">Show All (910)</option>
-              </select>
-            </div>
-          </div>
+        {/* 4. Exact Pagination Footer */}
+        <div 
+          style={{
+            padding: '14px 22px',
+            borderTop: '1px solid #eef1f6',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            background: '#ffffff',
+            flexWrap: 'wrap',
+            gap: '12px'
+          }}
+        >
+          <span style={{ fontSize: '13px', color: '#6b7280' }}>
+            Showing <strong>{filtered.length === 0 ? 0 : (vendorPage - 1) * (vendorPageSize === 'all' ? filtered.length : vendorPageSize) + 1}</strong> to <strong>{vendorPageSize === 'all' ? filtered.length : Math.min(vendorPage * vendorPageSize, filtered.length)}</strong> of <strong>{totalServerVendors || filtered.length}</strong> entries
+          </span>
 
           {vendorPageSize !== 'all' && totalVendorPages > 1 && (
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            <div style={{ display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
               <button
                 type="button"
-                className="btn btn-secondary btn-sm"
-                disabled={vendorPage <= 1}
-                onClick={() => setVendorPage(1)}
-                title="First Page"
-                style={{ padding: '4px 8px', fontSize: '11px' }}
-              >
-                First
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
                 disabled={vendorPage <= 1}
                 onClick={() => setVendorPage(p => Math.max(1, p - 1))}
-                style={{ padding: '4px 8px', fontSize: '11px' }}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '4px',
+                  border: '1px solid #d1d5db',
+                  background: '#ffffff',
+                  color: vendorPage <= 1 ? '#9ca3af' : '#2a2d8c',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                  cursor: vendorPage <= 1 ? 'not-allowed' : 'pointer'
+                }}
               >
-                <ChevronLeft size={13} /> Prev
+                Previous
               </button>
-              <span style={{ display: 'flex', alignItems: 'center', padding: '0 10px', fontSize: '12px', fontWeight: 700, color: '#0F172A', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '4px', height: '28px' }}>
-                Page {vendorPage} of {totalVendorPages}
-              </span>
+
+              {Array.from({ length: Math.min(5, totalVendorPages) }, (_, i) => {
+                let pageNum = i + 1;
+                if (totalVendorPages > 5) {
+                  if (vendorPage > 3) {
+                    pageNum = vendorPage - 2 + i;
+                    if (pageNum > totalVendorPages) pageNum = totalVendorPages - (4 - i);
+                  }
+                }
+                const isCurrent = pageNum === vendorPage;
+                return (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    onClick={() => setVendorPage(pageNum)}
+                    style={{
+                      width: '30px',
+                      height: '30px',
+                      borderRadius: '4px',
+                      border: isCurrent ? '1px solid #2a2d8c' : '1px solid #d1d5db',
+                      background: isCurrent ? '#2a2d8c' : '#ffffff',
+                      color: isCurrent ? '#ffffff' : '#374151',
+                      fontSize: '12.5px',
+                      fontWeight: isCurrent ? 700 : 500,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
               <button
                 type="button"
-                className="btn btn-secondary btn-sm"
                 disabled={vendorPage >= totalVendorPages}
                 onClick={() => setVendorPage(p => Math.min(totalVendorPages, p + 1))}
-                style={{ padding: '4px 8px', fontSize: '11px' }}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '4px',
+                  border: '1px solid #d1d5db',
+                  background: '#ffffff',
+                  color: vendorPage >= totalVendorPages ? '#9ca3af' : '#2a2d8c',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                  cursor: vendorPage >= totalVendorPages ? 'not-allowed' : 'pointer'
+                }}
               >
-                Next <ChevronRight size={13} />
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                disabled={vendorPage >= totalVendorPages}
-                onClick={() => setVendorPage(totalVendorPages)}
-                title="Last Page"
-                style={{ padding: '4px 8px', fontSize: '11px' }}
-              >
-                Last
+                Next
               </button>
             </div>
           )}
@@ -2511,7 +2631,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
                   onClick={() => setEditingVendor(null)}
                   style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '20px', lineHeight: 1 }}
                 >
-                  ✕
+                  <X size={14} />
                 </button>
               </div>
 
@@ -2679,7 +2799,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
                               const val = e.target.value.replace(/[^0-9.]/g, '');
                               setRedirectForm({ ...redirectForm, cpi_percentage: val });
                             }}
-                            placeholder="e.g. 70"
+                            placeholder="e.g. 30"
                           />
                           <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: '#64748b' }}>%</span>
                         </div>
@@ -2986,7 +3106,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
                         color: '#64748B'
                       }}>
                         <ShieldCheck size={28} style={{ color: '#10B981', margin: '0 auto 8px', display: 'block' }} />
-                        <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '13px' }}>Current RevShare Rate: {redirectForm.cpi_percentage || 70}%</div>
+                        <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '13px' }}>Current RevShare Rate: {redirectForm.cpi_percentage || 30}%</div>
                         <div style={{ fontSize: '12px', marginTop: '4px' }}>
                           No historical RevShare modifications recorded for this supplier. All future adjustments are permanently timestamped and logged to MySQL.
                         </div>
@@ -3089,7 +3209,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
                   onClick={() => setShowModal(false)}
                   style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '18px' }}
                 >
-                  ✕
+                  <X size={14} />
                 </button>
               </div>
 
@@ -3281,7 +3401,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
                               inputMode="decimal"
                               className="input-field" 
                               style={{ width: '100%', paddingRight: '28px' }}
-                              placeholder="e.g. 70"
+                              placeholder="e.g. 30"
                               value={formData.cpi_percentage !== undefined && formData.cpi_percentage !== null ? formData.cpi_percentage : ''}
                               onChange={e => {
                                 const val = e.target.value.replace(/[^0-9.]/g, '');
@@ -3553,7 +3673,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '' }) {
                   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
                   const liveEntryUrl = `${origin}/vendor/auth/${vCode}/project/${activePid}?uid=[uid]`;
                   const testEntryUrl = `${origin}/vendor/auth/${vCode}/project/${activePid}?uid=${testUidParam}`;
-                  const directCallbackUrl = `${origin}/survey/callback?status=20&uid=${testUidParam}&pid=${activePid}&vid=${vCode}`;
+                  const directCallbackUrl = `${origin}/survey/terminate?status=20&uid=${testUidParam}&pid=${activePid}&vid=${vCode}&test=1`;
 
                   return (
                     <div>

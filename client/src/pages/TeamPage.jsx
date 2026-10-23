@@ -477,7 +477,7 @@ export default function TeamPage() {
               onChange={(e) => setSearch(e.target.value)}
               style={{
                 width: '100%',
-                padding: '7px 12px 7px 34px',
+                padding: '7px 12px 7px 38px', paddingLeft: '38px',
                 fontSize: '12px',
                 border: '1px solid #e2e8f0',
                 borderRadius: '8px',

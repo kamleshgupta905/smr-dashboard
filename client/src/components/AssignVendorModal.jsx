@@ -20,6 +20,8 @@ import VendorIntegrationDocModal from './VendorIntegrationDocModal';
 export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPreScreener }) {
   const [vendors, setVendors] = useState([]);
   const [selectedVendor, setSelectedVendor] = useState('');
+  const [selectedVendorIds, setSelectedVendorIds] = useState([]);
+  const [vendorPercent, setVendorPercent] = useState(30);
   const [vendorCpi, setVendorCpi] = useState(1.50);
   const [quotaLimit, setQuotaLimit] = useState(100);
   const [loading, setLoading] = useState(false);
@@ -43,10 +45,54 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
 
   const resolvedSurvey = (survey && typeof survey === 'object') ? survey : (surveyId && typeof surveyId === 'object' ? surveyId : null);
   const currentId = resolvedSurvey?.survey_id || resolvedSurvey?.SurveyId || resolvedSurvey?.surveyId || resolvedSurvey?.id || resolvedSurvey?._id || resolvedSurvey?.project_id || (typeof surveyId !== 'object' ? surveyId : '2042481293') || '2042481293';
-  const currentName = resolvedSurvey?.survey_name || resolvedSurvey?.Name || resolvedSurvey?.name || `Survey #${currentId}`;
+  const rawOriginalName = resolvedSurvey?.survey_name || resolvedSurvey?.Name || resolvedSurvey?.name || `Study #${currentId}`;
+  // White-label: Vendors must NEVER see 3rd party demand names (Zamplia / Market Xcel)
+  const sanitizedName = String(rawOriginalName).replace(/Zamplia\s*Global|Zamplia|Market\s*Xcel|MarketXcel/gi, 'VMH Research');
+  const currentName = sanitizedName.startsWith('VMH') ? sanitizedName : `VMH Research Study #${currentId}`;
   const currentCpi = resolvedSurvey?.cpi || resolvedSurvey?.CPI || resolvedSurvey?.cost_per_interview || 2.70;
   const currentLoi = resolvedSurvey?.loi || resolvedSurvey?.LOI || resolvedSurvey?.length_of_interview || 10;
-  const currentClient = resolvedSurvey?.client || resolvedSurvey?.client_name || (String(currentId).startsWith('MX') ? 'Market Xcel' : 'Zamplia Global');
+  const currentIr = resolvedSurvey?.ir || resolvedSurvey?.IR || resolvedSurvey?.incidence_rate || 80;
+  const currentClient = "VMH GROUP'S";
+
+  // Rate dual-synchronization handlers
+  const handlePercentChange = (val) => {
+    const clean = val.replace(/[^0-9.]/g, '');
+    setVendorPercent(clean);
+    const p = parseFloat(clean);
+    if (!isNaN(p) && Number(currentCpi) > 0) {
+      setVendorCpi(Number(((Number(currentCpi) * p) / 100).toFixed(2)));
+    }
+  };
+
+  const handleCpiChange = (val) => {
+    const clean = val.replace(/[^0-9.]/g, '');
+    setVendorCpi(clean);
+    const c = parseFloat(clean);
+    if (!isNaN(c) && Number(currentCpi) > 0) {
+      setVendorPercent(Number(((c / Number(currentCpi)) * 100).toFixed(1)));
+    }
+  };
+
+  // Multi-vendor selection handlers
+  const toggleVendorSelection = (code) => {
+    setSelectedVendorIds(prev => {
+      const exists = prev.includes(code);
+      const updated = exists ? prev.filter(c => c !== code) : [...prev, code];
+      if (updated.length > 0 && (!selectedVendor || !updated.includes(selectedVendor))) {
+        setSelectedVendor(updated[0]);
+      }
+      return updated;
+    });
+  };
+
+  const handleSelectAllFiltered = (filteredList) => {
+    const codes = filteredList.map(v => v.vendor_code || v.vendor_id || v.vendorUid || v._id || v.id).filter(Boolean);
+    setSelectedVendorIds(Array.from(new Set([...selectedVendorIds, ...codes])));
+  };
+
+  const handleClearSelection = () => {
+    setSelectedVendorIds([]);
+  };
 
   // Load vendors list from persistent storage
   useEffect(() => {
@@ -58,10 +104,10 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
           const firstCode = list[0].vendor_code || list[0].vendorUid || list[0]._id;
           if (firstCode) {
             setSelectedVendor(firstCode);
-            const p = Number(list[0].cpi_percentage) || 0;
-            const initCpi = (list[0].commission_type === 'flat_rate' && list[0].cpi && Number(list[0].cpi) <= Number(currentCpi))
-              ? Number(list[0].cpi)
-              : (p > 0 ? Number(((Number(currentCpi) * p) / 100).toFixed(2)) : Number(currentCpi));
+            setSelectedVendorIds([firstCode]);
+            const p = 30; // standard 30%
+            setVendorPercent(p);
+            const initCpi = Number(((Number(currentCpi) * p) / 100).toFixed(2));
             setVendorCpi(initCpi);
           }
         }
@@ -182,46 +228,56 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
     setTestLink(`${host}/vendor/auth/${v}/project/${id}?uid=TEST_${v}_VERIFY`);
   }, [selectedVendor, currentId]);
 
-  // Handle Save Allotment & Generate Link
+  // Handle Save Allotment & Generate Link (Batch / Multi-Vendor Allotment Enabled)
   const handleSaveAndGenerate = async (e) => {
     if (e) e.preventDefault();
+    const targetCodes = selectedVendorIds.length > 0 ? selectedVendorIds : (selectedVendor ? [selectedVendor] : []);
+    if (targetCodes.length === 0) {
+      alert('Please select at least one vendor panel to allot.');
+      return;
+    }
+
     setSavingAllotment(true);
     setAllotSuccess(false);
 
     const host = window.location.origin.replace(':3000', ':5000');
-    const v = selectedVendor || 'VND-DYN-01';
-    const vObj = vendors.find(vend => (vend.vendor_code === v || vend.vendorUid === v || vend._id === v));
-    const generatedLive = `${host}/vendor/auth/${v}/project/${currentId}?uid=[RESPONDENT_ID]`;
-    const generatedTest = `${host}/vendor/auth/${v}/project/${currentId}?uid=TEST_${v}_VERIFY`;
+    const primaryVendor = targetCodes[0];
+    const generatedLive = `${host}/vendor/auth/${primaryVendor}/project/${currentId}?uid=[RESPONDENT_ID]`;
+    const generatedTest = `${host}/vendor/auth/${primaryVendor}/project/${currentId}?uid=TEST_${primaryVendor}_VERIFY`;
 
     setLiveLink(generatedLive);
     setTestLink(generatedTest);
 
     try {
-      const allotmentPayload = {
-        project_id: String(currentId),
-        vendor_id: v,
-        vendor_name: vObj?.name || v,
-        vendor_cpi: Number(vendorCpi) || 1.50,
-        quota_limit: parseInt(quotaLimit, 10) || 100,
-        entry_link: generatedLive,
-        status: 'active'
-      };
-
-      await saveVendorAllotment(allotmentPayload);
-      try {
-        await sendVendorAssignmentEmail({
-          vendor_id: v,
+      for (const v of targetCodes) {
+        const vObj = vendors.find(vend => (vend.vendor_code === v || vend.vendor_id === v || vend.vendorUid === v || vend._id === v || vend.id === v));
+        const vLive = `${host}/vendor/auth/${v}/project/${currentId}?uid=[RESPONDENT_ID]`;
+        const allotmentPayload = {
           project_id: String(currentId),
-          cpi: Number(vendorCpi) || 1.50,
-          entry_link: generatedLive
-        });
-      } catch (me) {}
+          vendor_id: v,
+          vendor_name: vObj?.name || v,
+          vendor_cpi: Number(vendorCpi) || 1.50,
+          quota_limit: parseInt(quotaLimit, 10) || 100,
+          entry_link: vLive,
+          status: 'active'
+        };
+
+        await saveVendorAllotment(allotmentPayload);
+        try {
+          await sendVendorAssignmentEmail({
+            vendor_id: v,
+            project_id: String(currentId),
+            cpi: Number(vendorCpi) || 1.50,
+            entry_link: vLive
+          });
+        } catch (me) {}
+      }
+
       setAllotSuccess(true);
       await loadAllotments();
       setTimeout(() => setAllotSuccess(false), 3500);
     } catch (err) {
-      console.error('Failed to save allotment:', err);
+      console.error('Failed to save allotments:', err);
     } finally {
       setSavingAllotment(false);
     }
@@ -271,11 +327,19 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
     }
   };
 
+  const filteredVendorsList = vendors.filter(v => {
+    if (!vendorSearch || vendorSearch.trim().length === 0) return true;
+    const term = vendorSearch.toLowerCase().trim();
+    const name = String(v.name || v.vendor_name || '').toLowerCase();
+    const code = String(v.vendor_code || v.vendor_id || v.vendorUid || v._id || v.id || '').toLowerCase();
+    return name.includes(term) || code.includes(term);
+  });
+
   return (
     <>
       <ModalPortal isOpen={true} onClose={onClose}>
         <div className="modal-overlay" onClick={onClose}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '860px', width: '96%', maxHeight: '92vh', display: 'flex', flexDirection: 'column', borderRadius: '12px', overflow: 'hidden' }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '860px', width: '96%', maxHeight: '92vh', display: 'flex', flexDirection: 'column', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)', border: '1px solid #E2E8F0', background: '#FFFFFF' }}>
             {/* Header */}
             <div className="modal-header" style={{ borderBottom: '1px solid #E2E8F0', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -304,9 +368,8 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button
                   type="button"
-                  className="btn btn-soft-primary btn-sm"
                   onClick={() => setShowDocModal(true)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11.5px', padding: '5px 10px', borderRadius: '5px' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '6px 12px', borderRadius: '8px', background: '#F8FAFC', border: '1px solid #E2E8F0', color: '#0F172A', fontWeight: 600, cursor: 'pointer' }}
                   title="Open Vendor Integration Guide"
                 >
                   <FileText size={13} />
@@ -335,10 +398,10 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                     Target Study ({currentClient})
                   </span>
                   <span style={{
-                    background: '#E0F2FE',
-                    color: '#0369A1',
-                    padding: '2px 8px',
-                    borderRadius: '6px',
+                    background: '#0F172A',
+                    color: '#FFFFFF',
+                    padding: '3px 10px',
+                    borderRadius: '999px',
                     fontSize: '11px',
                     fontWeight: 700
                   }}>
@@ -350,129 +413,171 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                 </div>
                 <div style={{ display: 'flex', gap: '16px', marginTop: '8px', fontSize: '12.5px' }}>
                   <span>Buyer Revenue CPI: <strong style={{ color: '#16A34A' }}>${Number(currentCpi).toFixed(2)}</strong></span>
-                  <span>LOI: <strong style={{ color: '#0F172A' }}>{currentLoi} min</strong></span>
-                  <span>Security: <strong style={{ color: '#2563EB' }}>SHA3-256 + S2S</strong></span>
+                  <span>IR: <strong style={{ color: '#0F172A' }}>{currentIr}%</strong></span>
+                  <span>Security: <strong style={{ color: '#0F172A' }}>SHA3-256 + S2S</strong></span>
                 </div>
               </div>
 
-              {/* Vendor Allotment Form (Vendor + Custom CPI + Quota Limit) */}
+              {/* Vendor Allotment Form (Multi-Vendor Selection + Dual Synced Rate + Quota Limit) */}
               <form onSubmit={handleSaveAndGenerate} style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '16px', marginBottom: '18px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Target size={15} color="#1761FD" />
-                  <span>Configure Vendor Allocation & Quota</span>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Target size={15} color="#0F172A" />
+                    <span>Configure Vendor Allocation & Quota</span>
+                  </div>
+                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                    {selectedVendorIds.length} Vendor{selectedVendorIds.length === 1 ? '' : 's'} Selected
+                  </span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+                  {/* Multi-Vendor Selection Box */}
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
                       <label style={{ fontSize: '12px', fontWeight: 700, margin: 0, color: '#0F172A' }}>
-                        Select Supply Vendor:
+                        Select Supply Vendors:
                       </label>
-                      <span style={{ fontSize: '10.5px', color: '#16A34A', fontWeight: 600 }}>
-                        ● 2,137 Global Suppliers
-                      </span>
+                      <div style={{ display: 'flex', gap: '5px' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectAllFiltered(filteredVendorsList)}
+                          style={{ background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: '4px', padding: '1px 6px', fontSize: '10px', fontWeight: 600, color: '#0F172A', cursor: 'pointer' }}
+                        >
+                          Select All
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleClearSelection}
+                          style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '4px', padding: '1px 6px', fontSize: '10px', fontWeight: 600, color: '#64748B', cursor: 'pointer' }}
+                        >
+                          Clear
+                        </button>
+                      </div>
                     </div>
 
-                    {/* Live Search input across all 2,137 vendors */}
+                    {/* Live Search input across all vendors */}
                     <div style={{ position: 'relative', marginBottom: '6px' }}>
                       <input
                         type="text"
                         className="input-field"
-                        placeholder="🔍 Type name or ID (e.g. VI0103, amrendra)..."
+                        placeholder="Search vendor by name or ID (e.g. VI0103)..."
                         value={vendorSearch}
                         onChange={(e) => setVendorSearch(e.target.value)}
                         style={{ width: '100%', fontSize: '11.5px', padding: '5px 8px', borderColor: '#CBD5E1', borderRadius: '6px' }}
                       />
                       {searchingVendors && (
                         <span style={{ position: 'absolute', right: '8px', top: '7px', fontSize: '10px', color: '#64748B' }}>
-                          Searching 2,137 DB...
+                          Searching...
                         </span>
                       )}
                     </div>
 
-                    <select
-                      className="input-field"
-                      style={{ width: '100%', fontSize: '12.5px' }}
-                      value={selectedVendor}
-                      onChange={(e) => setSelectedVendor(e.target.value)}
-                    >
-                      {vendors.length === 0 ? (
-                        <>
-                          <option value="VND-DYN-01">Dynata Global Panel (VND-DYN-01)</option>
-                          <option value="VND-CNT-02">Cint Audience Exchange (VND-CNT-02)</option>
-                        </>
+                    {/* Scrollable Checkbox Multi-Select Container */}
+                    <div style={{
+                      maxHeight: '140px',
+                      overflowY: 'auto',
+                      border: '1px solid #CBD5E1',
+                      borderRadius: '6px',
+                      background: '#F8FAFC',
+                      padding: '4px'
+                    }}>
+                      {filteredVendorsList.length === 0 ? (
+                        <div style={{ padding: '10px', textAlign: 'center', fontSize: '11.5px', color: '#64748B' }}>
+                          No vendors match query
+                        </div>
                       ) : (
-                        vendors.map((v) => {
-                          const isRev = v.commission_type === 'revenue_share' || (!v.cpi && v.cpi_percentage);
-                          const rateLabel = isRev ? `${v.cpi_percentage || 0}% RevShare` : `$${Number(v.cpi || 0).toFixed(2)}`;
+                        filteredVendorsList.map((v) => {
                           const code = v.vendor_code || v.vendor_id || v.vendorUid || v._id || v.id;
+                          const isChecked = selectedVendorIds.includes(code);
                           return (
-                            <option key={v._id || v.vendor_code || v.id} value={code}>
-                              {v.name} ({code}) — {rateLabel}
-                            </option>
+                            <div
+                              key={code}
+                              onClick={() => toggleVendorSelection(code)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '5px 8px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                background: isChecked ? '#E2E8F0' : '#FFFFFF',
+                                border: `1px solid ${isChecked ? '#94A3B8' : '#F1F5F9'}`,
+                                marginBottom: '3px',
+                                fontSize: '11.5px'
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => {}}
+                                style={{ cursor: 'pointer' }}
+                              />
+                              <span style={{ fontWeight: isChecked ? 700 : 500, color: '#0F172A', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {v.name || code}
+                              </span>
+                              <span style={{ fontSize: '10.5px', color: '#64748B', fontFamily: 'monospace' }}>
+                                {code}
+                              </span>
+                            </div>
                           );
                         })
                       )}
-                    </select>
+                    </div>
                   </div>
 
+                  {/* Dual Synced Rate Inputs (Percentage % & Fixed CPI $) */}
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '5px', color: '#0F172A' }}>
-                      Allotted Vendor CPI ($):
-                      {(() => {
-                        const curV = vendors.find(vend => (vend.vendor_code === selectedVendor || vend.vendorUid === selectedVendor || vend._id === selectedVendor));
-                        const pct = Number(curV?.cpi_percentage) || 0;
-                        return pct > 0 ? (
-                          <span style={{ marginLeft: '5px', fontSize: '10.5px', color: '#1761FD', fontWeight: 600 }}>
-                            (Auto {pct}% of ${Number(currentCpi).toFixed(2)})
-                          </span>
-                        ) : null;
-                      })()}
+                      Allotted Vendor Rate:
                     </label>
-                    <div style={{ position: 'relative' }}>
-                      <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#16A34A', fontWeight: 700 }}>$</span>
-                      <input 
-                        type="text" 
-                        inputMode="decimal"
-                        required
-                        className="input-field"
-                        style={{ width: '100%', paddingLeft: '24px', fontSize: '12.5px', fontWeight: 600 }}
-                        value={vendorCpi !== undefined && vendorCpi !== null ? vendorCpi : ''}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/[^0-9.]/g, '');
-                          setVendorCpi(val);
-                        }}
-                      />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                      {/* Percentage Input */}
+                      <div>
+                        <span style={{ display: 'block', fontSize: '10.5px', color: '#64748B', marginBottom: '3px' }}>
+                          Rate (%):
+                        </span>
+                        <div style={{ position: 'relative' }}>
+                          <input 
+                            type="number"
+                            step="1"
+                            min="1"
+                            max="100"
+                            required
+                            className="input-field"
+                            style={{ width: '100%', paddingRight: '22px', fontSize: '12.5px', fontWeight: 600 }}
+                            value={vendorPercent !== undefined && vendorPercent !== null ? vendorPercent : ''}
+                            onChange={(e) => handlePercentChange(e.target.value)}
+                            placeholder="30"
+                          />
+                          <span style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontWeight: 700, fontSize: '11.5px' }}>%</span>
+                        </div>
+                      </div>
+
+                      {/* CPI Input */}
+                      <div>
+                        <span style={{ display: 'block', fontSize: '10.5px', color: '#64748B', marginBottom: '3px' }}>
+                          CPI ($):
+                        </span>
+                        <div style={{ position: 'relative' }}>
+                          <span style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: '#16A34A', fontWeight: 700, fontSize: '11.5px' }}>$</span>
+                          <input 
+                            type="text" 
+                            inputMode="decimal"
+                            required
+                            className="input-field"
+                            style={{ width: '100%', paddingLeft: '20px', fontSize: '12.5px', fontWeight: 600 }}
+                            value={vendorCpi !== undefined && vendorCpi !== null ? vendorCpi : ''}
+                            onChange={(e) => handleCpiChange(e.target.value)}
+                          />
+                        </div>
+                      </div>
                     </div>
-                    {/* 1-Click RevShare Quick Presets (70%, 75%, 80%) */}
-                    <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
-                      <button
-                        type="button"
-                        onClick={() => setVendorCpi(Number(((currentCpi * 0.70)).toFixed(2)))}
-                        style={{ fontSize: '10.5px', padding: '3px 7px', borderRadius: '4px', border: '1px solid #BFDBFE', background: vendorCpi === Number(((currentCpi * 0.70)).toFixed(2)) ? '#DBEAFE' : '#FFFFFF', color: '#1E40AF', cursor: 'pointer', fontWeight: 700 }}
-                        title="Set vendor CPI to 70% of study payout"
-                      >
-                        ⚡ 70% (${(currentCpi * 0.70).toFixed(2)})
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setVendorCpi(Number(((currentCpi * 0.75)).toFixed(2)))}
-                        style={{ fontSize: '10.5px', padding: '3px 7px', borderRadius: '4px', border: '1px solid #BFDBFE', background: vendorCpi === Number(((currentCpi * 0.75)).toFixed(2)) ? '#DBEAFE' : '#FFFFFF', color: '#1E40AF', cursor: 'pointer', fontWeight: 700 }}
-                        title="Set vendor CPI to 75% of study payout"
-                      >
-                        75% (${(currentCpi * 0.75).toFixed(2)})
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setVendorCpi(Number(((currentCpi * 0.80)).toFixed(2)))}
-                        style={{ fontSize: '10.5px', padding: '3px 7px', borderRadius: '4px', border: '1px solid #BFDBFE', background: vendorCpi === Number(((currentCpi * 0.80)).toFixed(2)) ? '#DBEAFE' : '#FFFFFF', color: '#1E40AF', cursor: 'pointer', fontWeight: 700 }}
-                        title="Set vendor CPI to 80% of study payout"
-                      >
-                        80% (${(currentCpi * 0.80).toFixed(2)})
-                      </button>
-                    </div>
+                    <small style={{ fontSize: '11px', color: '#64748B' }}>
+                      Vendor receives fixed payout of <strong>${Number(vendorCpi || 0).toFixed(2)}</strong> per complete
+                    </small>
                   </div>
 
+                  {/* Quota Limit Input */}
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '5px', color: '#0F172A' }}>
                       Quota Limit (Completes):
@@ -482,20 +587,23 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                       step="1"
                       min="1"
                       required
-                      className="input-field"
+                      className="input-field" 
                       style={{ width: '100%', fontSize: '12.5px', fontWeight: 600 }}
                       value={quotaLimit}
                       onChange={(e) => setQuotaLimit(parseInt(e.target.value, 10) || 1)}
                     />
+                    <small style={{ display: 'block', fontSize: '11px', color: '#64748B', marginTop: '6px' }}>
+                      Cap on maximum verified completes per allotted vendor
+                    </small>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ fontSize: '11.5px', color: '#64748B' }}>
-                    {vendorCpi > currentCpi ? (
-                      <span style={{ color: '#DC2626', fontWeight: 700 }}>⚠️ Vendor CPI exceeds buyer payout (${currentCpi})</span>
-                    ) : (
-                      <span>Gross Margin: <strong style={{ color: '#16A34A' }}>+${(currentCpi - vendorCpi).toFixed(2)} / complete ({Math.round(((currentCpi - vendorCpi) / (currentCpi || 1)) * 100)}% Profit)</strong></span>
+                    {vendorCpi > currentCpi && (
+                      <span style={{ color: '#DC2626', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <AlertTriangle size={13} /> Vendor CPI exceeds buyer payout (${currentCpi})
+                      </span>
                     )}
                   </div>
 
@@ -507,23 +615,46 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                     )}
                     <button
                       type="button"
-                      className="btn btn-soft-primary"
                       disabled={savingAllotment || allottingAll}
                       onClick={handleAllotAllVendors}
-                      style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, padding: '7px 12px' }}
-                      title="Automatically allot all connected supply panels at standard 70% Revenue Share"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        padding: '8px 14px',
+                        background: '#F1F5F9',
+                        color: '#0F172A',
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '6px',
+                        cursor: 'pointer'
+                      }}
+                      title="Automatically allot all connected supply panels"
                     >
-                      <Zap size={14} color="#1761FD" />
-                      {allottingAll ? 'Allotting All...' : '⚡ Allot All Vendors (70% RevShare)'}
+                      <Zap size={14} color="#0F172A" />
+                      {allottingAll ? 'Allotting All...' : 'Allot All Panels'}
                     </button>
                     <button
                       type="submit"
-                      className="btn btn-primary"
                       disabled={savingAllotment || allottingAll}
-                      style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, padding: '7px 14px' }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        padding: '8px 16px',
+                        background: '#0F172A',
+                        color: '#FFFFFF',
+                        border: '1px solid #0F172A',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.08)'
+                      }}
                     >
                       <Link2 size={15} /> 
-                      {savingAllotment ? 'Saving...' : 'Allot & Generate Link'}
+                      {savingAllotment ? 'Saving Allotments...' : `Allot Selected (${selectedVendorIds.length || 1})`}
                     </button>
                   </div>
                 </div>
@@ -534,7 +665,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                 <div style={{ marginBottom: '18px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '14px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                     <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Share2 size={14} color="#1761FD" />
+                      <Share2 size={14} color="#0F172A" />
                       <span>Allotted Vendors on Study #{currentId} ({allotments.length})</span>
                     </span>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -608,7 +739,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                               <td style={{ minWidth: '130px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', marginBottom: '2px' }}>
                                   <span>{completes} / {limit} completes</span>
-                                  <span style={{ fontWeight: 700, color: pct >= 100 ? '#DC2626' : '#1761FD' }}>{pct}%</span>
+                                  <span style={{ fontWeight: 700, color: pct >= 100 ? '#DC2626' : '#0F172A' }}>{pct}%</span>
                                 </div>
                                 <div style={{ width: '100%', height: '4px', background: '#E2E8F0', borderRadius: '2px', overflow: 'hidden' }}>
                                   <div style={{ width: `${pct}%`, height: '100%', background: pct >= 100 ? '#DC2626' : '#10B981' }} />
@@ -690,39 +821,14 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                       />
                       <button
                         type="button"
-                        className="btn btn-primary"
                         onClick={() => copyToClipboard(liveLink, 'live')}
-                        style={{ flexShrink: 0, padding: '8px 14px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 600 }}
+                        style={{ flexShrink: 0, padding: '8px 16px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700, background: '#0F172A', color: '#FFFFFF', border: '1px solid #0F172A', borderRadius: '8px', cursor: 'pointer' }}
                         title="Copy Live Production Link"
                       >
                         {copiedLive ? <Check size={14} color="#FFFFFF" /> : <Copy size={14} />}
                         <span>{copiedLive ? 'Copied!' : 'Copy Link'}</span>
                       </button>
-                      <button
-                        type="button"
-                        className="btn btn-success"
-                        onClick={() => {
-                          const vObj = vendors.find(v => (v._id || v.vendor_code || v.vendor_id) === selectedVendor);
-                          const vName = vObj?.name || 'Partner';
-                          const vCode = vObj?.vendor_id || vObj?.vendor_code || selectedVendor;
-                          const sid = survey?.survey_id || survey?.id || surveyId || 'SURVEY_2026';
-                          const msg = `🎯 *VMH GROUP | SMR Survey Allocation Brief*\n` +
-                            `━━━━━━━━━━━━━━━━━━━━\n` +
-                            `🏢 *Vendor:* ${vName} (${vCode})\n` +
-                            `📋 *Project/Survey:* ${sid} — ${survey?.survey_name || survey?.name || 'Live Study'}\n` +
-                            `🌐 *Target Audience:* ${survey?.country || 'United States'} | LOI: ${survey?.loi || 10}m | IR: ${survey?.ir || 50}%\n` +
-                            `💰 *Allocated Rate:* $${Number(vendorCpi).toFixed(2)}\n` +
-                            `🎯 *Quota Cap:* ${quotaLimit} Completes\n\n` +
-                            `🔗 *Live Survey Entry Link:*\n${liveLink}\n\n` +
-                            `_Please pass your unique panelist UID in place of [RESPONDENT_ID]._`;
-                          window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
-                        }}
-                        style={{ flexShrink: 0, padding: '8px 14px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 600, background: '#25D366', borderColor: '#25D366', color: '#fff' }}
-                        title="Share Live Entry Link & Allocation Brief directly via WhatsApp"
-                      >
-                        <MessageSquare size={14} />
-                        <span>WhatsApp</span>
-                      </button>
+                      
                     </div>
 
                     <p style={{ margin: '8px 0 0 0', fontSize: '11.5px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -741,7 +847,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
                       <label style={{ fontSize: '12.5px', fontWeight: 800, color: '#1E40AF', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ background: '#2563EB', color: '#FFFFFF', width: '18px', height: '18px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800 }}>2</span>
+                        <span style={{ background: '#0F172A', color: '#FFFFFF', width: '18px', height: '18px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800 }}>2</span>
                         <span>Test Survey Link (Safe Sandbox):</span>
                       </label>
                       <span style={{ fontSize: '11px', color: '#1D4ED8', background: '#DBEAFE', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
@@ -768,9 +874,8 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                       />
                       <button
                         type="button"
-                        className="btn btn-secondary"
                         onClick={() => copyToClipboard(testLink, 'test')}
-                        style={{ flexShrink: 0, padding: '8px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                        style={{ flexShrink: 0, padding: '8px 14px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600, background: '#FFFFFF', color: '#0F172A', border: '1px solid #CBD5E1', borderRadius: '8px', cursor: 'pointer' }}
                         title="Copy Sandbox Link"
                       >
                         {copiedTest ? <Check size={14} color="#16A34A" /> : <Copy size={14} />}
@@ -778,16 +883,29 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                       </button>
                       <button
                         type="button"
-                        className="btn btn-primary"
                         onClick={() => {
-                          if (onOpenPreScreener) {
-                            onOpenPreScreener({ vendorId: selectedVendor, projectId: currentId, uid: `TEST_${selectedVendor}_VERIFY` });
-                          } else {
-                            window.open(testLink, '_blank');
-                          }
+                          const freshUid = `TEST_${selectedVendor || 'VND'}_${Date.now().toString().slice(-4)}`;
+                          const host = window.location.origin.replace(':3000', ':5000');
+                          const screenerTestUrl = `${host}/#/prescreener?vid=${encodeURIComponent(selectedVendor || 'VND-DYN-01')}&pid=${encodeURIComponent(currentId)}&uid=${encodeURIComponent(freshUid)}&test=1`;
+                          window.open(screenerTestUrl, '_blank');
                         }}
-                        style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '12px', padding: '8px 12px', whiteSpace: 'nowrap', fontWeight: 600 }}
-                        title="Launch Pre-Screener & Fraud Gate Test"
+                        style={{
+                          flexShrink: 0,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '12px',
+                          padding: '8px 16px',
+                          whiteSpace: 'nowrap',
+                          fontWeight: 700,
+                          background: '#0F172A',
+                          color: '#FFFFFF',
+                          border: '1px solid #0F172A',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          boxShadow: '0 1px 2px rgba(15,23,42,0.1)'
+                        }}
+                        title="Launch Pre-Screener in a new browser tab"
                       >
                         <ExternalLink size={13} />
                         <span>Test Pre-Screener</span>
@@ -835,8 +953,8 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                       }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '6px' }}>
                           <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#1E293B', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span style={{ background: '#2563EB', color: '#FFFFFF', width: '18px', height: '18px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800 }}>3</span>
-                            <Link2 size={14} color="#2563EB" /> 
+                            <span style={{ background: '#0F172A', color: '#FFFFFF', width: '18px', height: '18px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800 }}>3</span>
+                            <Link2 size={14} color="#0F172A" /> 
                             <span>Supply Vendor Return Callbacks ({vendorObj?.name || selectedVendor}):</span>
                           </span>
                           <span className="badge-soft-success" style={{ fontSize: '10.5px', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
@@ -926,7 +1044,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ background: '#0F172A', color: '#FFFFFF', width: '18px', height: '18px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800 }}>4</span>
-                        <Play size={15} color="#2563EB" />
+                        <Play size={15} color="#0F172A" />
                         <strong style={{ fontSize: '13px', color: '#0F172A' }}>
                           Test SMR Branded End Pages (1-Click Live Preview)
                         </strong>

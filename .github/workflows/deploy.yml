@@ -1,4 +1,4 @@
-name: Deploy SMR to Hostinger
+name: Auto Deploy to Hostinger
 
 on:
   push:
@@ -7,36 +7,42 @@ on:
 
 jobs:
   build-and-deploy:
+    name: Build & Deploy to api.vmhgroupsmr.com
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: 🟢 Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
 
-      - name: Ensure Backend Engine is in Public Distribution
+      - name: 📦 Install Frontend Dependencies
         run: |
-          mkdir -p client/public/api
-          cp api/index.php client/public/api/index.php || true
+          cd client
+          npm ci || npm install
 
-      - name: Install Client Dependencies
-        working-directory: ./client
-        run: npm ci || npm install
+      - name: ⚡ Build Vite Production Bundle
+        run: |
+          cd client
+          npm run build
 
-      - name: Build Production Bundle
-        working-directory: ./client
-        run: npm run build
-
-      - name: Deploy to Hostinger via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: 🐍 Setup Python 3.11
+        uses: actions/setup-python@v5
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: ${{ secrets.FTP_SERVER_DIR || 'domains/vmhgroupsmr.com/public_html/smr_v2/' }}
-          local-dir: ./client/dist/
-          dangerous-clean-slate: false
+          python-version: '3.11'
+
+      - name: 📦 Install Python MySQL Driver
+        run: pip install pymysql cryptography
+
+      - name: 🚀 Deploy to Hostinger apitool Root
+        env:
+          DB_HOST: ${{ secrets.HOSTINGER_DB_HOST || 'srv2215.hstgr.io' }}
+          DB_USER: ${{ secrets.HOSTINGER_DB_USER || 'u839355029_vmhgropu' }}
+          DB_PASS: ${{ secrets.HOSTINGER_DB_PASS || 'U839355029_vmhgroup' }}
+          DB_NAME: ${{ secrets.HOSTINGER_DB_NAME || 'u839355029_vmh_group' }}
+        run: python scripts/deploy_to_apitool_root.py

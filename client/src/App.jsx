@@ -41,15 +41,9 @@ export default function App() {
   useEffect(() => {
     localStorage.removeItem('smr_custom_clients');
     localStorage.removeItem('smr_custom_projects');
+    localStorage.removeItem('smr_custom_vendors');
   }, []);
 
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('smr_auth_token') === 'authenticated_vmhgroup';
-  });
-
-  const initialRoute = parseHashRoute();
-  const [activeTab, setActiveTab] = useState(initialRoute.tab);
-  
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const u = localStorage.getItem('smr_auth_user_data');
@@ -67,6 +61,20 @@ export default function App() {
       return [];
     }
   });
+
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('smr_auth_token') === 'authenticated_vmhgroup';
+  });
+
+  const initialRoute = parseHashRoute();
+  const [activeTab, setActiveTab] = useState(initialRoute.tab);
+
+  useEffect(() => {
+    const isVendor = currentUser?.role_name === 'Vendor' || currentUser?.role === 'Vendor';
+    if (isVendor && !['dashboard', 'surveys', 'leads', 'payments'].includes(activeTab)) {
+      setActiveTab('surveys');
+    }
+  }, [currentUser, activeTab]);
 
   const [surveys, setSurveys] = useState([]);
   const [clientsCount, setClientsCount] = useState(2);
@@ -158,8 +166,9 @@ export default function App() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const loadData = async () => {
+  const loadData = async (silent = false) => {
     try {
+      if (!silent) setLoading(true);
       const [surveysRes, clientsRes] = await Promise.allSettled([
         getSurveys(),
         getClients()
@@ -181,17 +190,23 @@ export default function App() {
       console.error('Error loading data:', err);
       setSurveys(DEFAULT_SURVEYS);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     if (isAuthenticated) {
-      loadData();
+      loadData(false);
       // Silent background sync with Google Sheet — completely invisible in UI
       try {
         GoogleSheetAPI.syncAllData().catch(() => {});
       } catch (e) {}
+
+      // Enterprise Real-Time Pulse: auto-refresh surveys & click counters every 15s
+      const pulseInterval = setInterval(() => {
+        loadData(true);
+      }, 15000);
+      return () => clearInterval(pulseInterval);
     }
   }, [isAuthenticated]);
 
@@ -266,19 +281,42 @@ export default function App() {
 
   // 1. Direct Inbound Vendor Router & Pre-Screener Gate (Public, No Login Required)
   const currentPath = window.location.pathname;
-  if (currentPath.includes('/vendor/auth/')) {
-    const parts = currentPath.split('/');
-    const authIdx = parts.indexOf('auth');
-    const vendorId = authIdx !== -1 && parts[authIdx + 1] ? parts[authIdx + 1] : 'VND-DYN-01';
-    const projIdx = parts.indexOf('project');
-    const projectId = projIdx !== -1 && parts[projIdx + 1] ? parts[projIdx + 1] : '2042481293';
-    const params = new URLSearchParams(window.location.search);
-    const uid = params.get('uid') || params.get('rid') || params.get('transaction_id') || `PANEL_${Date.now().toString().slice(-4)}`;
-    return <PreScreenerGate vendorId={vendorId} projectId={projectId} uid={uid} />;
+  const currentHash = window.location.hash || '';
+
+  const isPreScreener = 
+    currentPath.includes('/vendor/auth/') || 
+    currentPath.includes('/prescreener') || 
+    currentHash.includes('prescreener');
+
+  if (isPreScreener) {
+    let vendorId = '';
+    let projectId = '';
+    let uid = '';
+    let target = '';
+
+    const searchParams = new URLSearchParams(window.location.search);
+    const hashParams = currentHash.includes('?') 
+      ? new URLSearchParams(currentHash.substring(currentHash.indexOf('?'))) 
+      : new URLSearchParams();
+
+    if (currentPath.includes('/vendor/auth/')) {
+      const parts = currentPath.split('/');
+      const authIdx = parts.indexOf('auth');
+      if (authIdx !== -1 && parts[authIdx + 1]) vendorId = parts[authIdx + 1];
+      const projIdx = parts.indexOf('project');
+      if (projIdx !== -1 && parts[projIdx + 1]) projectId = parts[projIdx + 1];
+    }
+
+    vendorId = vendorId || hashParams.get('vid') || hashParams.get('vendorId') || searchParams.get('vid') || searchParams.get('vendorId') || 'VND-DYN-01';
+    projectId = projectId || hashParams.get('pid') || hashParams.get('projectId') || hashParams.get('sid') || searchParams.get('pid') || searchParams.get('projectId') || searchParams.get('sid') || '2042481293';
+    uid = hashParams.get('uid') || hashParams.get('rid') || hashParams.get('transaction_id') || searchParams.get('uid') || searchParams.get('rid') || searchParams.get('transaction_id') || `PANEL_${Date.now().toString().slice(-4)}`;
+    target = hashParams.get('target') || searchParams.get('target') || '';
+
+    return <PreScreenerGate vendorId={vendorId} projectId={projectId} uid={uid} targetUrl={target} />;
   }
 
   // 2. Direct SMR Router Settlement Hub & Callback Receipt (Public, No Login Required)
-  if (
+  const isCallbackRoute = 
     currentPath.includes('/survey/callback') || 
     currentPath.includes('/survey/complete') || 
     currentPath.includes('/survey/terminate') || 
@@ -290,8 +328,12 @@ export default function App() {
     currentPath.startsWith('/return') ||
     currentPath.includes('/return') ||
     currentPath.startsWith('/redirects') ||
-    currentPath.includes('/redirects')
-  ) {
+    currentPath.includes('/redirects') ||
+    currentHash.includes('callback') ||
+    currentHash.includes('survey/terminate') ||
+    currentHash.includes('survey/complete');
+
+  if (isCallbackRoute) {
     return <SurveyCallbackPage />;
   }
 
@@ -348,17 +390,19 @@ export default function App() {
               onOpenQuotas={openQuotas}
               onOpenQuals={openQuals}
               onOpenAssign={openAssign}
+              showToast={showToast}
             />
           )}
 
           
           {activeTab === 'users' && <UserManagementPage currentUser={currentUser} />}
-          {activeTab === 'clients' && <ClientsPage onNavigate={handleTabChange} globalSearch={globalSearch} />}
+          {activeTab === 'clients' && <ClientsPage onNavigate={handleTabChange} globalSearch={globalSearch} showToast={showToast} />}
           {activeTab === 'security' && <SecurityFraudPage onLaunchPreScreener={(data) => openTestPreScreener(data)} />}
-          {activeTab === 'developer-center' && <DashboardPage />}
+          {activeTab === 'developer-center' && <DashboardPage showToast={showToast} />}
 
           {activeTab === 'surveys' && (
             <SurveysPage 
+              currentUser={currentUser}
               surveys={filteredSurveys}
               globalSearch={globalSearch}
               loading={loading}
@@ -370,14 +414,15 @@ export default function App() {
               onOpenQuotas={openQuotas}
               onOpenQuals={openQuals}
               onOpenAssign={openAssign}
+              showToast={showToast}
             />
           )}
 
-          {activeTab === 'vendors' && <VendorsPage onNavigate={handleTabChange} globalSearch={globalSearch} />}
+          {activeTab === 'vendors' && <VendorsPage onNavigate={handleTabChange} globalSearch={globalSearch} showToast={showToast} />}
           {activeTab === 'bids' && <BidsPage />}
-          {activeTab === 'payments' && <PaymentsPage />}
+          {activeTab === 'payments' && <PaymentsPage currentUser={currentUser} showToast={showToast} />}
           {activeTab === 'team' && <TeamPage />}
-          {activeTab === 'leads' && <LeadsPage />}
+          {activeTab === 'leads' && <LeadsPage currentUser={currentUser} showToast={showToast} />}
           {activeTab === 'reference' && <ReferenceDataPage />}
           
 
