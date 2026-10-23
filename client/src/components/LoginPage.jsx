@@ -173,7 +173,7 @@ export default function LoginPage({ onLogin }) {
                 }}
                 onFocus={(e) => {
                   e.target.style.background = '#e1ecf9';
-                  e.target.style.borderColor = '#93c5fd';
+                  e.target.style.borderColor = '#CBD5E1';
                 }}
                 onBlur={(e) => {
                   e.target.style.background = '#eaf1fb';
@@ -210,7 +210,7 @@ export default function LoginPage({ onLogin }) {
                 }}
                 onFocus={(e) => {
                   e.target.style.background = '#e1ecf9';
-                  e.target.style.borderColor = '#93c5fd';
+                  e.target.style.borderColor = '#CBD5E1';
                 }}
                 onBlur={(e) => {
                   e.target.style.background = '#eaf1fb';

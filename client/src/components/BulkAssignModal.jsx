@@ -291,7 +291,7 @@ export default function BulkAssignModal({ selectedSurveys = [], isOpen, onClose,
                       <span style={{
                         padding: '2px 8px',
                         borderRadius: '4px',
-                        background: '#dbeafe',
+                        background: '#E2E8F0',
                         color: '#1d4ed8',
                         fontWeight: 700
                       }}>

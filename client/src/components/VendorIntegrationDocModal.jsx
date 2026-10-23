@@ -145,7 +145,7 @@ Expected Response: HTTP 200 OK within 3000ms.
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#38BDF8'
+                color: '#94A3B8'
               }}>
                 <FileText size={20} />
               </div>
@@ -241,7 +241,7 @@ Expected Response: HTTP 200 OK within 3000ms.
           <div style={{ padding: '20px 22px', overflowY: 'auto', flex: 1, fontSize: '13px' }}>
             {activeTab === 'overview' && (
               <div>
-                <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '8px', padding: '14px', marginBottom: '18px' }}>
+                <div style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '14px', marginBottom: '18px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1E40AF', fontWeight: 700, marginBottom: '6px' }}>
                     <ShieldCheck size={16} />
                     <span>Survey Routing Architecture</span>
@@ -254,7 +254,7 @@ Expected Response: HTTP 200 OK within 3000ms.
                 <h4 style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
                   Standard Vendor Entry URL Template:
                 </h4>
-                <div style={{ background: '#0F172A', color: '#38BDF8', padding: '12px 14px', borderRadius: '6px', fontFamily: 'monospace', fontSize: '12px', wordBreak: 'break-all', marginBottom: '14px' }}>
+                <div style={{ background: '#0F172A', color: '#94A3B8', padding: '12px 14px', borderRadius: '6px', fontFamily: 'monospace', fontSize: '12px', wordBreak: 'break-all', marginBottom: '14px' }}>
                   https://smr.vmhgroupsmr.com/vendor/auth/<span style={{ color: '#FDE047' }}>{'{VENDOR_ID}'}</span>/project/<span style={{ color: '#4ADE80' }}>{'{PROJECT_ID}'}</span>?uid=<span style={{ color: '#F472B6' }}>[RESPONDENT_ID]</span>
                 </div>
 
@@ -403,7 +403,7 @@ if (hash_equals($expectedHash, $incomingHash)) {
                 </p>
 
                 <div style={{ background: '#0F172A', padding: '14px', borderRadius: '8px', color: '#F8FAFC', marginBottom: '14px' }}>
-                  <div style={{ color: '#38BDF8', fontWeight: 700, fontSize: '12px', marginBottom: '8px' }}>
+                  <div style={{ color: '#94A3B8', fontWeight: 700, fontSize: '12px', marginBottom: '8px' }}>
                     HTTP POST Webhook Payload:
                   </div>
                   <pre style={{ margin: 0, fontSize: '11.5px', color: '#E2E8F0', fontFamily: 'monospace' }}>

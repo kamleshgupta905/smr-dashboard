@@ -380,8 +380,8 @@ export default function SurveyCallbackPage() {
           <div style={{
             maxWidth: '740px',
             margin: '0 auto 24px auto',
-            backgroundColor: '#EFF6FF',
-            border: '1px solid #BFDBFE',
+            backgroundColor: '#F8FAFC',
+            border: '1px solid #CBD5E1',
             borderRadius: '8px',
             padding: '12px 18px',
             display: 'flex',

@@ -491,7 +491,7 @@ export default function PaymentsPage({ currentUser, showToast }) {
 
                   return (
                     <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '14px 18px', fontSize: '12px', fontFamily: 'monospace', fontWeight: 700, color: '#0284c7' }}>
+                      <td style={{ padding: '14px 18px', fontSize: '12px', fontFamily: 'monospace', fontWeight: 700, color: '#0F172A' }}>
                         {p.payment_id || `PAY#${p.id}`}
                       </td>
                       <td style={{ padding: '14px 18px' }}>

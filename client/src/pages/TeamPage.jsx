@@ -420,12 +420,12 @@ export default function TeamPage() {
         <div className="card" style={{ border: '1px solid #e2e8f0', borderRadius: '12px', background: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <div className="card-body" style={{ padding: '18px 20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#0284c7', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Managers & Ops</span>
-              <div style={{ background: '#e0f2fe', padding: '8px', borderRadius: '8px', color: '#0284c7' }}>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Managers & Ops</span>
+              <div style={{ background: '#F8FAFC', padding: '8px', borderRadius: '8px', color: '#0F172A' }}>
                 <Briefcase size={16} />
               </div>
             </div>
-            <div style={{ fontSize: '24px', fontWeight: 800, color: '#0284c7' }}>
+            <div style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A' }}>
               {pmCount}
             </div>
             <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
@@ -534,8 +534,8 @@ export default function TeamPage() {
                     roleBadgeBg = '#f3e8ff';
                     roleBadgeColor = '#7c3aed';
                   } else if (Number(m.role_id) === 2) {
-                    roleBadgeBg = '#e0f2fe';
-                    roleBadgeColor = '#0284c7';
+                    roleBadgeBg = '#F8FAFC';
+                    roleBadgeColor = '#0F172A';
                   } else if (Number(m.role_id) === 3) {
                     roleBadgeBg = '#fef3c7';
                     roleBadgeColor = '#b45309';

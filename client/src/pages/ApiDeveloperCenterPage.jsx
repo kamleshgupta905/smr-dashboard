@@ -694,8 +694,8 @@ export default function ApiDeveloperCenterPage() {
                     borderRadius: '8px',
                     marginBottom: '4px',
                     cursor: 'pointer',
-                    background: isSelected ? '#EFF6FF' : 'transparent',
-                    border: isSelected ? '1px solid #BFDBFE' : '1px solid transparent',
+                    background: isSelected ? '#F8FAFC' : 'transparent',
+                    border: isSelected ? '1px solid #CBD5E1' : '1px solid transparent',
                     transition: 'all 0.12s ease'
                   }}
                 >
@@ -705,9 +705,9 @@ export default function ApiDeveloperCenterPage() {
                       fontWeight: 800,
                       padding: '2px 6px',
                       borderRadius: '4px',
-                      background: isPost ? '#ECFDF5' : '#EFF6FF',
+                      background: isPost ? '#ECFDF5' : '#F8FAFC',
                       color: isPost ? '#059669' : '#2563EB',
-                      border: `1px solid ${isPost ? '#A7F3D0' : '#BFDBFE'}`
+                      border: `1px solid ${isPost ? '#A7F3D0' : '#CBD5E1'}`
                     }}>
                       {api.method}
                     </span>
@@ -892,7 +892,7 @@ export default function ApiDeveloperCenterPage() {
             <div className="custom-scrollbar-dark" style={{ padding: '16px', background: '#0F172A', color: '#F8FAFC', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Terminal size={15} color="#38BDF8" />
+                  <Terminal size={15} color="#94A3B8" />
                   <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#94A3B8' }}>
                     Live Response Console
                   </span>
@@ -913,7 +913,7 @@ export default function ApiDeveloperCenterPage() {
                     </span>
                     <span style={{
                       fontSize: '11px',
-                      color: '#38BDF8',
+                      color: '#94A3B8',
                       background: 'rgba(56, 189, 248, 0.1)',
                       padding: '2px 8px',
                       borderRadius: '4px',

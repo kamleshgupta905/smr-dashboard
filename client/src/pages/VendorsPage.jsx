@@ -824,8 +824,8 @@ function CountriesSelector({ selected = [], onChange, countries = [] }) {
                       padding: '6px 14px',
                       borderRadius: '6px',
                       border: 'none',
-                      background: trafficModalData.type === 'clicks' ? '#EFF6FF' : 'transparent',
-                      color: trafficModalData.type === 'clicks' ? '#1D4ED8' : '#64748B',
+                      background: trafficModalData.type === 'clicks' ? '#0F172A' : 'transparent',
+                      color: trafficModalData.type === 'clicks' ? '#FFFFFF' : '#64748B',
                       fontWeight: 700,
                       fontSize: '12px',
                       cursor: 'pointer',
@@ -836,7 +836,7 @@ function CountriesSelector({ selected = [], onChange, countries = [] }) {
                     }}
                   >
                     <span>All Clicks</span>
-                    <span style={{ background: trafficModalData.type === 'clicks' ? '#DBEAFE' : '#E2E8F0', padding: '1px 6px', borderRadius: '10px', fontSize: '10.5px' }}>
+                    <span style={{ background: trafficModalData.type === 'clicks' ? '#334155' : '#E2E8F0', padding: '1px 6px', borderRadius: '10px', fontSize: '10.5px' }}>
                       {trafficModalData.allTypesData?.clicks?.length || Number(trafficModalData.vendor?.clicks_count || 0)}
                     </span>
                   </button>
@@ -956,9 +956,9 @@ function CountriesSelector({ selected = [], onChange, countries = [] }) {
                                   borderRadius: '4px',
                                   fontSize: '11px',
                                   fontWeight: 700,
-                                  background: isTerm ? '#FEF2F2' : (isComp ? '#ECFDF5' : '#EFF6FF'),
-                                  color: isTerm ? '#B91C1C' : (isComp ? '#15803D' : '#1D4ED8'),
-                                  border: `1px solid ${isTerm ? '#FECACA' : (isComp ? '#A7F3D0' : '#BFDBFE')}`
+                                  background: isTerm ? '#FEF2F2' : (isComp ? '#ECFDF5' : '#F1F5F9'),
+                                  color: isTerm ? '#B91C1C' : (isComp ? '#15803D' : '#0F172A'),
+                                  border: `1px solid ${isTerm ? '#FECACA' : (isComp ? '#A7F3D0' : '#CBD5E1')}`
                                 }}>
                                   {r.status}
                                 </span>
@@ -981,7 +981,7 @@ function CountriesSelector({ selected = [], onChange, countries = [] }) {
               {/* Modal Footer */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #F1F5F9' }}>
                 <span style={{ fontSize: '12px', color: '#64748B' }}>
-                  Showing <strong>{trafficModalData.records?.length || 0}</strong> {trafficModalData.type} records for {trafficModalData.vendor?.name}
+                  Showing <strong>{trafficModalData.records?.length || 0}</strong> real database records for {trafficModalData.vendor?.name}
                 </span>
                 <button
                   type="button"
@@ -1531,8 +1531,8 @@ function RestrictionsAndContacts({ blockedClients = [], onBlockedChange, contact
                       padding: '6px 14px',
                       borderRadius: '6px',
                       border: 'none',
-                      background: trafficModalData.type === 'clicks' ? '#EFF6FF' : 'transparent',
-                      color: trafficModalData.type === 'clicks' ? '#1D4ED8' : '#64748B',
+                      background: trafficModalData.type === 'clicks' ? '#0F172A' : 'transparent',
+                      color: trafficModalData.type === 'clicks' ? '#FFFFFF' : '#64748B',
                       fontWeight: 700,
                       fontSize: '12px',
                       cursor: 'pointer',
@@ -1543,7 +1543,7 @@ function RestrictionsAndContacts({ blockedClients = [], onBlockedChange, contact
                     }}
                   >
                     <span>All Clicks</span>
-                    <span style={{ background: trafficModalData.type === 'clicks' ? '#DBEAFE' : '#E2E8F0', padding: '1px 6px', borderRadius: '10px', fontSize: '10.5px' }}>
+                    <span style={{ background: trafficModalData.type === 'clicks' ? '#334155' : '#E2E8F0', padding: '1px 6px', borderRadius: '10px', fontSize: '10.5px' }}>
                       {trafficModalData.allTypesData?.clicks?.length || Number(trafficModalData.vendor?.clicks_count || 0)}
                     </span>
                   </button>
@@ -1663,9 +1663,9 @@ function RestrictionsAndContacts({ blockedClients = [], onBlockedChange, contact
                                   borderRadius: '4px',
                                   fontSize: '11px',
                                   fontWeight: 700,
-                                  background: isTerm ? '#FEF2F2' : (isComp ? '#ECFDF5' : '#EFF6FF'),
-                                  color: isTerm ? '#B91C1C' : (isComp ? '#15803D' : '#1D4ED8'),
-                                  border: `1px solid ${isTerm ? '#FECACA' : (isComp ? '#A7F3D0' : '#BFDBFE')}`
+                                  background: isTerm ? '#FEF2F2' : (isComp ? '#ECFDF5' : '#F1F5F9'),
+                                  color: isTerm ? '#B91C1C' : (isComp ? '#15803D' : '#0F172A'),
+                                  border: `1px solid ${isTerm ? '#FECACA' : (isComp ? '#A7F3D0' : '#CBD5E1')}`
                                 }}>
                                   {r.status}
                                 </span>
@@ -1688,7 +1688,7 @@ function RestrictionsAndContacts({ blockedClients = [], onBlockedChange, contact
               {/* Modal Footer */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #F1F5F9' }}>
                 <span style={{ fontSize: '12px', color: '#64748B' }}>
-                  Showing <strong>{trafficModalData.records?.length || 0}</strong> {trafficModalData.type} records for {trafficModalData.vendor?.name}
+                  Showing <strong>{trafficModalData.records?.length || 0}</strong> real database records for {trafficModalData.vendor?.name}
                 </span>
                 <button
                   type="button"
@@ -1983,46 +1983,24 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
       const projects = Array.isArray(reconRes?.projects) ? reconRes.projects : [];
 
       const buildRecordsForType = (reqType) => {
-        let targetCount = reqType === 'terminates' ? terminatesCount : (reqType === 'completes' ? completesCount : clicksCount);
         let filtered = rawLeads.filter(l => {
           const st = (l.status || '').toLowerCase();
           if (reqType === 'terminates') return st.includes('term') || st.includes('screen') || st.includes('quota');
           if (reqType === 'completes') return st.includes('comp');
-          return true;
+          return true; // clicks includes all
         });
 
-        const result = filtered.map((l, i) => ({
+        // 100% REAL records directly from MySQL database logs - ZERO dummy generation
+        return filtered.map((l, i) => ({
           id: l.id || `lead_${i+1}`,
-          uid: l.uid || l.username || `RESP_${vid.replace(/[^A-Za-z0-9]/g, '')}_${1000 + i}`,
-          project_id: l.project_id || (projects[0]?.project_id ? `PID: ${projects[0].project_id}` : 'PID: 2131429174'),
-          status: l.status || (reqType === 'terminates' ? 'Terminated' : (reqType === 'completes' ? 'Complete' : 'Inbound Click')),
-          ip_address: l.ip_address || `103.212.${10 + (i % 80)}.${15 + (i % 200)}`,
-          country: l.country || 'US',
-          created_at: l.created_at || new Date(Date.now() - (i * 3600000 * 2)).toISOString().replace('T', ' ').substring(0, 19),
-          reason: reqType === 'terminates' ? (i % 2 === 0 ? 'Demographic Quota Full / Screenout' : 'Speeder / Quality Filter Reject') : (reqType === 'completes' ? 'Client Verified Complete' : 'Inbound Traffic Session')
+          uid: l.uid || l.username || `UID-${l.id || (i + 1)}`,
+          project_id: l.project_id ? (String(l.project_id).startsWith('PID:') || String(l.project_id).startsWith('PRJ-') || String(l.project_id).startsWith('VMH') ? l.project_id : `PID: ${l.project_id}`) : (projects[0]?.project_id ? `PID: ${projects[0].project_id}` : 'Direct Router'),
+          status: l.status || (reqType === 'terminates' ? 'Terminated' : (reqType === 'completes' ? 'Complete' : 'Inbound Session')),
+          ip_address: l.ip_address || '—',
+          country: l.country || 'Global',
+          created_at: l.created_at || l.updated_at || 'Recorded via Router',
+          reason: l.reason || (reqType === 'terminates' ? 'Terminated by survey logic' : (reqType === 'completes' ? 'Client verified complete' : 'Inbound entry logged'))
         }));
-
-        if (result.length < targetCount) {
-          const needed = targetCount - result.length;
-          const sampleProject = projects[0]?.project_id || '2131429174';
-          const now = Date.now();
-          for (let j = 0; j < needed; j++) {
-            const idx = result.length + 1;
-            const timeAgo = (j + 1) * 3600000 * 3;
-            result.push({
-              id: `gen_${reqType}_${idx}`,
-              uid: `RESP_${(vid.replace(/[^A-Za-z0-9]/g, '') || 'VND')}_${84200 + idx}`,
-              project_id: `PID: ${sampleProject}`,
-              status: reqType === 'terminates' ? 'Terminated' : (reqType === 'completes' ? 'Complete' : 'Inbound Click'),
-              ip_address: `103.212.${12 + (idx % 50)}.${24 + (idx % 180)}`,
-              country: 'US',
-              created_at: new Date(now - timeAgo).toISOString().replace('T', ' ').substring(0, 19),
-              reason: reqType === 'terminates' ? (idx % 3 === 0 ? 'Demographic Quota Full (100% Filled)' : (idx % 3 === 1 ? 'Age/Gender Filter Screenout' : 'Client Quality Gate Reject')) : (reqType === 'completes' ? 'Verified Client Complete (Payout $0.36)' : 'Inbound Router Entry')
-            });
-          }
-        }
-
-        return result.slice(0, Math.max(targetCount, result.length));
       };
 
       const termRecords = buildRecordsForType('terminates');
@@ -2891,9 +2869,9 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                             type="button"
                             onClick={() => handleOpenTrafficDrilldown(v, 'clicks')}
                             style={{
-                              background: '#EFF6FF',
-                              color: '#1D4ED8',
-                              border: '1px solid #BFDBFE',
+                              background: '#F1F5F9',
+                              color: '#0F172A',
+                              border: '1px solid #CBD5E1',
                               borderRadius: '6px',
                               padding: '2px 9px',
                               fontWeight: 700,
@@ -3089,9 +3067,9 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                                     borderRadius: '6px',
                                     fontSize: '11px',
                                     fontWeight: 700,
-                                    background: isRevShare ? '#eff6ff' : '#ecfdf5',
+                                    background: isRevShare ? '#F8FAFC' : '#ecfdf5',
                                     color: isRevShare ? '#1d4ed8' : '#059669',
-                                    border: `1px solid ${isRevShare ? '#dbeafe' : '#a7f3d0'}`
+                                    border: `1px solid ${isRevShare ? '#E2E8F0' : '#a7f3d0'}`
                                   }}>
                                     {isRevShare ? `${Number(v.cpi_percentage || 30)}% RevShare` : `$${Number(v.cpi || 0).toFixed(2)} Fixed CPI`}
                                   </span>
@@ -3107,9 +3085,9 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                                     style={{
                                       padding: '5px 12px',
                                       borderRadius: '6px',
-                                      background: '#eff6ff',
+                                      background: '#F8FAFC',
                                       color: '#1d4ed8',
-                                      border: '1px solid #bfdbfe',
+                                      border: '1px solid #CBD5E1',
                                       cursor: 'pointer',
                                       fontSize: '11.5px',
                                       fontWeight: 600,
@@ -4446,7 +4424,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                         }}>
                           <code style={{ 
                             fontSize: '12px', 
-                            color: '#38bdf8', 
+                            color: '#94A3B8', 
                             fontFamily: 'monospace', 
                             wordBreak: 'break-all',
                             lineHeight: '1.4'
@@ -4555,8 +4533,8 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
 
                       {/* Video Reference Architecture Notes */}
                       <div style={{ 
-                        background: '#eff6ff', 
-                        border: '1px solid #bfdbfe', 
+                        background: '#F8FAFC', 
+                        border: '1px solid #CBD5E1', 
                         borderRadius: '6px', 
                         padding: '12px 14px' 
                       }}>
@@ -4917,8 +4895,8 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                       padding: '6px 14px',
                       borderRadius: '6px',
                       border: 'none',
-                      background: trafficModalData.type === 'clicks' ? '#EFF6FF' : 'transparent',
-                      color: trafficModalData.type === 'clicks' ? '#1D4ED8' : '#64748B',
+                      background: trafficModalData.type === 'clicks' ? '#0F172A' : 'transparent',
+                      color: trafficModalData.type === 'clicks' ? '#FFFFFF' : '#64748B',
                       fontWeight: 700,
                       fontSize: '12px',
                       cursor: 'pointer',
@@ -4929,7 +4907,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                     }}
                   >
                     <span>All Clicks</span>
-                    <span style={{ background: trafficModalData.type === 'clicks' ? '#DBEAFE' : '#E2E8F0', padding: '1px 6px', borderRadius: '10px', fontSize: '10.5px' }}>
+                    <span style={{ background: trafficModalData.type === 'clicks' ? '#334155' : '#E2E8F0', padding: '1px 6px', borderRadius: '10px', fontSize: '10.5px' }}>
                       {trafficModalData.allTypesData?.clicks?.length || Number(trafficModalData.vendor?.clicks_count || 0)}
                     </span>
                   </button>
@@ -5049,9 +5027,9 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                                   borderRadius: '4px',
                                   fontSize: '11px',
                                   fontWeight: 700,
-                                  background: isTerm ? '#FEF2F2' : (isComp ? '#ECFDF5' : '#EFF6FF'),
-                                  color: isTerm ? '#B91C1C' : (isComp ? '#15803D' : '#1D4ED8'),
-                                  border: `1px solid ${isTerm ? '#FECACA' : (isComp ? '#A7F3D0' : '#BFDBFE')}`
+                                  background: isTerm ? '#FEF2F2' : (isComp ? '#ECFDF5' : '#F1F5F9'),
+                                  color: isTerm ? '#B91C1C' : (isComp ? '#15803D' : '#0F172A'),
+                                  border: `1px solid ${isTerm ? '#FECACA' : (isComp ? '#A7F3D0' : '#CBD5E1')}`
                                 }}>
                                   {r.status}
                                 </span>
@@ -5074,7 +5052,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
               {/* Modal Footer */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #F1F5F9' }}>
                 <span style={{ fontSize: '12px', color: '#64748B' }}>
-                  Showing <strong>{trafficModalData.records?.length || 0}</strong> {trafficModalData.type} records for {trafficModalData.vendor?.name}
+                  Showing <strong>{trafficModalData.records?.length || 0}</strong> real database records for {trafficModalData.vendor?.name}
                 </span>
                 <button
                   type="button"

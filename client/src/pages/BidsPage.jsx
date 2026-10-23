@@ -427,8 +427,8 @@ export default function BidsPage() {
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '4px',
-                              background: '#eff6ff',
-                              border: '1px solid #bfdbfe',
+                              background: '#F8FAFC',
+                              border: '1px solid #CBD5E1',
                               color: '#1d4ed8',
                               cursor: 'pointer'
                             }}
@@ -808,7 +808,7 @@ export default function BidsPage() {
                 background: '#f8fafc'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ background: '#dbeafe', padding: '6px', borderRadius: '6px', color: '#1d4ed8' }}>
+                  <div style={{ background: '#E2E8F0', padding: '6px', borderRadius: '6px', color: '#1d4ed8' }}>
                     <Rocket size={18} />
                   </div>
                   <div>
@@ -829,7 +829,7 @@ export default function BidsPage() {
               </div>
 
               <form onSubmit={handleConfirmBooking} style={{ padding: '20px' }}>
-                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
+                <div style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
                   <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e3a8a' }}>
                     {bookingBid.bid_name || bookingBid.name}
                   </div>

@@ -323,7 +323,7 @@ export default function LeadsPage({ currentUser, showToast }) {
           <div className="card-body" style={{ padding: '18px 20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Inbound Clicks</span>
-              <div style={{ background: '#f0f9ff', padding: '8px', borderRadius: '8px', color: '#0284c7' }}>
+              <div style={{ background: '#f0f9ff', padding: '8px', borderRadius: '8px', color: '#0F172A' }}>
                 <Activity size={16} />
               </div>
             </div>
@@ -565,7 +565,7 @@ export default function LeadsPage({ currentUser, showToast }) {
                 background: '#f8fafc'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ background: '#e0f2fe', padding: '6px', borderRadius: '6px', color: '#0284c7' }}>
+                  <div style={{ background: '#F8FAFC', padding: '6px', borderRadius: '6px', color: '#0F172A' }}>
                     <Activity size={18} />
                   </div>
                   <div>
@@ -688,8 +688,8 @@ export default function LeadsPage({ currentUser, showToast }) {
                       fontSize: '13px', 
                       padding: '8px 20px', 
                       borderRadius: '8px', 
-                      background: '#0284c7', 
-                      borderColor: '#0284c7',
+                      background: '#0F172A', 
+                      borderColor: '#0F172A',
                       fontWeight: 600 
                     }}
                   >

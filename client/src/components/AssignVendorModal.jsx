@@ -363,7 +363,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#38BDF8'
+                  color: '#94A3B8'
                 }}>
                   <Share2 size={18} />
                 </div>
@@ -939,10 +939,10 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
 
                   {/* 2. Sandbox Test Link */}
                   <div style={{ 
-                    background: '#EFF6FF', 
+                    background: '#F8FAFC', 
                     padding: '14px 16px', 
                     borderRadius: '10px', 
-                    border: '1px solid #BFDBFE',
+                    border: '1px solid #CBD5E1',
                     boxShadow: '0 1px 2px rgba(59,130,246,0.05)'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
@@ -950,7 +950,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                         <span style={{ background: '#0F172A', color: '#FFFFFF', width: '18px', height: '18px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800 }}>2</span>
                         <span>Test Survey Link (Safe Sandbox):</span>
                       </label>
-                      <span style={{ fontSize: '11px', color: '#1D4ED8', background: '#DBEAFE', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                      <span style={{ fontSize: '11px', color: '#1D4ED8', background: '#E2E8F0', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
                         🛡️ Safe Test • No Quota Used
                       </span>
                     </div>
@@ -1297,7 +1297,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                         lineHeight: 1.6,
                         overflowX: 'auto'
                       }}>
-                        <div style={{ color: simResult.success === false ? '#F87171' : '#38BDF8', fontWeight: 700 }}>
+                        <div style={{ color: simResult.success === false ? '#F87171' : '#94A3B8', fontWeight: 700 }}>
                           [Live Test Verification] {simResult.message || 'Live test verified.'}
                         </div>
                         {simResult.statusLabel && (

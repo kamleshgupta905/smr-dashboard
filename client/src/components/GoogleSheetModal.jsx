@@ -619,8 +619,8 @@ export default function GoogleSheetModal({ isOpen, onClose }) {
                 <div style={{ padding: '16px', background: '#FFFFFF', borderTop: '1px solid #E2E8F0' }}>
                   {/* Security Notice Banner */}
                   <div style={{
-                    background: '#EFF6FF',
-                    border: '1px solid #BFDBFE',
+                    background: '#F8FAFC',
+                    border: '1px solid #CBD5E1',
                     borderRadius: '6px',
                     padding: '8px 12px',
                     marginBottom: '12px',
@@ -656,7 +656,7 @@ export default function GoogleSheetModal({ isOpen, onClose }) {
 
                   <pre style={{
                     background: '#0F172A',
-                    color: '#38BDF8',
+                    color: '#94A3B8',
                     padding: '12px',
                     borderRadius: '6px',
                     fontSize: '11px',

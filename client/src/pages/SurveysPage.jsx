@@ -45,29 +45,13 @@ export default function SurveysPage({
     }
   };
 
-  // Browser History & Modal Back-Button Support
-  const openDemandModal = () => {
-    window.history.pushState({ modal: 'demand' }, '');
-    setDemandModalOpen(true);
-  };
-  const openDuplicateModal = (project) => {
-    window.history.pushState({ modal: 'duplicate' }, '');
-    setDuplicateModalProject(project);
-  };
-  const openBulkModal = () => {
-    window.history.pushState({ modal: 'bulk' }, '');
-    setShowBulkModal(true);
-  };
+  const [linkModalSurvey, setLinkModalSurvey] = useState(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
-  useEffect(() => {
-    const handlePopState = () => {
-      if (demandModalOpen) setDemandModalOpen(false);
-      if (duplicateModalProject) setDuplicateModalProject(null);
-      if (showBulkModal) setShowBulkModal(false);
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [demandModalOpen, duplicateModalProject, showBulkModal]);
+  // Reliable Modal Triggers without fragile history popstate conflicts
+  const openDemandModal = () => setDemandModalOpen(true);
+  const openDuplicateModal = (project) => setDuplicateModalProject(project);
+  const openBulkModal = () => setShowBulkModal(true);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('ALL');
@@ -201,7 +185,7 @@ export default function SurveysPage({
         border: '1px solid #e2e8f0',
         borderRadius: '6px'
       }}>
-        {d.includes('desktop') && <span title="Desktop Allowed" style={{ color: '#0284c7', display: 'flex' }}><Monitor size={13} /></span>}
+        {d.includes('desktop') && <span title="Desktop Allowed" style={{ color: '#0F172A', display: 'flex' }}><Monitor size={13} /></span>}
         {d.includes('mobile') && <span title="Mobile Allowed" style={{ color: '#059669', display: 'flex' }}><Smartphone size={13} /></span>}
         {d.includes('tablet') && <span title="Tablet Allowed" style={{ color: '#7c3aed', display: 'flex' }}><Tablet size={13} /></span>}
       </div>
@@ -711,9 +695,9 @@ export default function SurveysPage({
                             borderRadius: '6px',
                             fontSize: '11px',
                             fontWeight: 700,
-                            background: clientName === 'Market Xcel' ? '#fff7ed' : '#eff6ff',
+                            background: clientName === 'Market Xcel' ? '#fff7ed' : '#F8FAFC',
                             color: clientName === 'Market Xcel' ? '#c2410c' : '#1d4ed8',
-                            border: `1px solid ${clientName === 'Market Xcel' ? '#ffedd5' : '#dbeafe'}`,
+                            border: `1px solid ${clientName === 'Market Xcel' ? '#ffedd5' : '#E2E8F0'}`,
                             display: 'inline-block',
                             whiteSpace: 'nowrap'
                           }}>
@@ -827,12 +811,13 @@ export default function SurveysPage({
 
                             <button
                               type="button"
-                              className={`action-suite-btn ${copiedId === s.survey_id ? 'copied' : ''}`}
-                              onClick={() => handleCopyLink(s)}
-                              title={copiedId === s.survey_id ? "Copied!" : "Copy Entry Link"}
+                              className="action-suite-btn"
+                              onClick={() => setLinkModalSurvey(s)}
+                              title="View & Test Survey Entry Link"
+                              style={{ background: '#F1F5F9', color: '#0F172A' }}
                             >
-                              {copiedId === s.survey_id ? <Check size={12} color="#059669" /> : <LinkIcon size={12} />}
-                              <span>{copiedId === s.survey_id ? 'Copied' : 'Link'}</span>
+                              <LinkIcon size={12} color="#0F172A" />
+                              <span>Link</span>
                             </button>
 
                             <button
@@ -1255,6 +1240,153 @@ export default function SurveysPage({
           if (onRefresh) onRefresh();
         }}
       />
+      {/* Dedicated Survey Link & Test Router Modal */}
+      {linkModalSurvey && (
+        <ModalPortal isOpen={!!linkModalSurvey} onClose={() => { setLinkModalSurvey(null); setLinkCopied(false); }}>
+          <div className="modal-overlay" onClick={() => { setLinkModalSurvey(null); setLinkCopied(false); }}>
+            <div 
+              className="modal-content" 
+              onClick={e => e.stopPropagation()} 
+              style={{ maxWidth: '640px', width: '92%', background: '#FFFFFF', borderRadius: '14px', padding: '24px', boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.2)' }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #F1F5F9', paddingBottom: '14px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ background: '#0F172A', color: '#FFFFFF', padding: '8px', borderRadius: '8px' }}>
+                    <LinkIcon size={18} />
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
+                      Survey Router & Entry Link
+                    </h3>
+                    <p style={{ margin: 0, fontSize: '11.5px', color: '#64748B' }}>
+                      PID: #{linkModalSurvey.survey_id} — {linkModalSurvey.survey_name || linkModalSurvey.name}
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => { setLinkModalSurvey(null); setLinkCopied(false); }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8' }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {/* Router Link Box */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '6px' }}>
+                    Live Router Inbound Link (Send to Vendors / Partners):
+                  </label>
+                  <div style={{
+                    background: '#F8FAFC',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: '8px',
+                    padding: '10px 12px',
+                    fontSize: '12px',
+                    fontFamily: 'monospace',
+                    color: '#0F172A',
+                    wordBreak: 'break-all',
+                    lineHeight: 1.5
+                  }}>
+                    {`https://api.vmhgroupsmr.com/router?pid=${linkModalSurvey.survey_id}&vid=VND-DYN-01&uid=[RESPONDENT_ID]`}
+                  </div>
+                </div>
+
+                {/* Direct Vendor Auth Link */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '6px' }}>
+                    Alternative Secure Vendor Entry Link:
+                  </label>
+                  <div style={{
+                    background: '#F8FAFC',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: '8px',
+                    padding: '10px 12px',
+                    fontSize: '12px',
+                    fontFamily: 'monospace',
+                    color: '#0F172A',
+                    wordBreak: 'break-all',
+                    lineHeight: 1.5
+                  }}>
+                    {`https://api.vmhgroupsmr.com/vendor/auth/VND-DYN-01/project/${linkModalSurvey.survey_id}?uid=[RESPONDENT_ID]`}
+                  </div>
+                </div>
+
+                {/* Study Parameters Overview */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', background: '#F1F5F9', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
+                  <div>
+                    <span style={{ fontSize: '11px', color: '#64748B', display: 'block' }}>Buyer CPI</span>
+                    <strong style={{ fontSize: '14px', color: '#16A34A' }}>${Number(linkModalSurvey.cpi || linkModalSurvey.cost_per_complete || 1.20).toFixed(2)}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '11px', color: '#64748B', display: 'block' }}>Length (LOI)</span>
+                    <strong style={{ fontSize: '14px', color: '#0F172A' }}>{linkModalSurvey.loi || 13}m</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '11px', color: '#64748B', display: 'block' }}>Incidence (IR)</span>
+                    <strong style={{ fontSize: '14px', color: '#0F172A' }}>{linkModalSurvey.ir || 74}%</strong>
+                  </div>
+                </div>
+
+                {/* Actions: Copy & Test */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px', borderTop: '1px solid #F1F5F9', paddingTop: '14px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const testUrl = `https://api.vmhgroupsmr.com/router?pid=${linkModalSurvey.survey_id}&vid=VND-DYN-01&uid=TEST_ADMIN_${Date.now()}`;
+                      window.open(testUrl, '_blank');
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      border: '1px solid #0F172A',
+                      background: '#FFFFFF',
+                      color: '#0F172A',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <ExternalLink size={14} />
+                    <span>Test Survey (Open in New Tab)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const linkToCopy = `https://api.vmhgroupsmr.com/router?pid=${linkModalSurvey.survey_id}&vid=VND-DYN-01&uid=[RESPONDENT_ID]`;
+                      navigator.clipboard.writeText(linkToCopy).catch(() => {});
+                      setLinkCopied(true);
+                      setTimeout(() => setLinkCopied(false), 2500);
+                    }}
+                    style={{
+                      padding: '8px 20px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: '#0F172A',
+                      color: '#FFFFFF',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 2px 4px rgba(15, 23, 42, 0.15)'
+                    }}
+                  >
+                    {linkCopied ? <Check size={14} color="#10B981" /> : <Copy size={14} />}
+                    <span>{linkCopied ? 'Link Copied!' : 'Copy Router Link'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
     </div>
   );
 }

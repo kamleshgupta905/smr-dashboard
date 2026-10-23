@@ -30,8 +30,8 @@ export default function StatsCards({ stats, totalSurveys, onNavigate }) {
       hint: `Explore ${totalStudies.toLocaleString()} surveys`,
       onClick: () => onNavigate && onNavigate('surveys'),
       accent: '#2563eb',
-      bgLight: '#eff6ff',
-      borderLight: '#dbeafe',
+      bgLight: '#F8FAFC',
+      borderLight: '#E2E8F0',
       barPct: liveCapacityPct,
     },
     {

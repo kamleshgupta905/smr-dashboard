@@ -57,7 +57,7 @@
   --bs-primary-light: #1e293b;
   --bs-secondary: #64748b;
   --bs-success: #059669;
-  --bs-info: #0284c7;
+  --bs-info: #0F172A;
   --bs-warning: #d97706;
   --bs-danger: #e11d48;
   
@@ -445,14 +445,14 @@ select:disabled {
 }
 
 .topbar-menu-toggle:hover {
-  background: #eff6ff;
-  border-color: #bfdbfe;
+  background: #F8FAFC;
+  border-color: #CBD5E1;
   color: #0f172a;
 }
 
 .topbar-menu-toggle.active {
-  background: #eff6ff;
-  border-color: #93c5fd;
+  background: #F8FAFC;
+  border-color: #CBD5E1;
   color: #0f172a;
 }
 
@@ -520,8 +520,8 @@ select:disabled {
 }
 
 .topbar-bell-btn:hover {
-  background: #eff6ff;
-  border-color: #bfdbfe;
+  background: #F8FAFC;
+  border-color: #CBD5E1;
   color: #0f172a;
   transform: translateY(-1px);
 }
@@ -925,8 +925,8 @@ select:disabled {
 }
 
 .clickable-kpi-card:hover .kpi-icon-bubble {
-  background: #eff6ff !important;
-  border-color: #bfdbfe !important;
+  background: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
   transform: scale(1.08);
 }
 
@@ -2014,9 +2014,9 @@ div > span:first-child + input.input-control {
 }
 
 .badge-soft-primary {
-  background: #eff6ff !important;
+  background: #F8FAFC !important;
   color: #2563eb !important;
-  border: 1px solid #dbeafe !important;
+  border: 1px solid #E2E8F0 !important;
   border-radius: 6px !important;
   font-weight: 600 !important;
 }

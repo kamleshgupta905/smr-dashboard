@@ -165,13 +165,13 @@ export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{
-                  background: '#EFF6FF',
+                  background: '#F8FAFC',
                   color: '#2563EB',
                   padding: '4px 8px',
                   borderRadius: '6px',
                   fontSize: '11px',
                   fontWeight: 800,
-                  border: '1px solid #BFDBFE'
+                  border: '1px solid #CBD5E1'
                 }}>
                   {activeTab === 'custom' ? 'Direct Client Link' : 'Zamplia Demand API'}
                 </span>

@@ -122,7 +122,7 @@ export default function DuplicateProjectModal({ isOpen, project, onClose, onSucc
           {/* Header */}
           <div style={{ borderBottom: '1px solid #F1F5F9', padding: '16px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FFFFFF' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#38BDF8' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>
                 <Copy size={18} />
               </div>
               <div>

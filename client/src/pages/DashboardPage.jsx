@@ -287,9 +287,9 @@ export default function DashboardPage({
                 fontSize: '12px',
                 fontWeight: 600,
                 borderRadius: '8px',
-                background: loading ? '#f1f5f9' : '#eff6ff',
+                background: loading ? '#f1f5f9' : '#F8FAFC',
                 color: loading ? '#94a3b8' : '#2563eb',
-                border: '1px solid #dbeafe',
+                border: '1px solid #E2E8F0',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s ease',
               }}
@@ -352,7 +352,7 @@ export default function DashboardPage({
         }}
       >
         <div style={{ background: '#ffffff', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Layers size={16} color="#2563eb" />
           </div>
           <div>
@@ -427,9 +427,9 @@ export default function DashboardPage({
                   fontWeight: 700,
                   padding: '2px 8px',
                   borderRadius: '6px',
-                  background: '#eff6ff',
+                  background: '#F8FAFC',
                   color: '#2563eb',
-                  border: '1px solid #dbeafe',
+                  border: '1px solid #E2E8F0',
                 }}
               >
                 {quotaFillPct}% Fulfilled
@@ -489,7 +489,7 @@ export default function DashboardPage({
                     height: `${b.heightPct}%`,
                     background: hoveredCpiBucket === i
                       ? '#1d4ed8'
-                      : (b.isMax ? '#2563eb' : '#93c5fd'),
+                      : (b.isMax ? '#2563eb' : '#CBD5E1'),
                     borderRadius: '4px 4px 0 0',
                     transition: 'all 0.25s ease',
                     cursor: 'pointer',
@@ -524,7 +524,7 @@ export default function DashboardPage({
           <div className="card-body" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Globe size={15} color="#2563eb" />
                 </div>
                 <h4 className="card-title" style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
@@ -632,7 +632,7 @@ export default function DashboardPage({
         <div className="card-body" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Activity size={15} color="#2563eb" />
               </div>
               <h4 className="card-title" style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: 0 }}>

@@ -2333,7 +2333,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                           background: pacingPercent >= 100 
                             ? 'linear-gradient(90deg, #10B981 0%, #059669 100%)' 
                             : pacingPercent >= 70 
-                              ? 'linear-gradient(90deg, #1761FD 0%, #0284C7 100%)' 
+                              ? 'linear-gradient(90deg, #1761FD 0%, #0F172A 100%)' 
                               : 'linear-gradient(90deg, #F59E0B 0%, #EA580C 100%)',
                           borderRadius: '5px',
                           transition: 'width 0.4s ease'

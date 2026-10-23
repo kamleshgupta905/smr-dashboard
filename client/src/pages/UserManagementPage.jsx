@@ -1496,7 +1496,7 @@ export default function UserManagementPage({ currentUser }) {
                 </label>
                 <pre style={{
                   background: '#0f172a',
-                  color: '#38bdf8',
+                  color: '#94A3B8',
                   padding: '14px',
                   borderRadius: '6px',
                   fontSize: '12px',

@@ -380,7 +380,7 @@ $isPublic = (
     str_starts_with($normalizedRoute, 'health') ||
     str_starts_with($normalizedRoute, 'auth') ||
     $normalizedRoute === 'login' ||
-    str_starts_with($normalizedRoute, 'redirects') ||
+    str_starts_with($normalizedRoute, 'redirect') ||
     str_starts_with($normalizedRoute, 'callback') ||
     str_starts_with($normalizedRoute, 'router') ||
     str_starts_with($normalizedRoute, 'vendor') ||
@@ -1220,7 +1220,7 @@ if (
     str_starts_with($normalizedRoute, 'vendor/entry') ||
     str_starts_with($normalizedRoute, 'traffic/router') ||
     str_starts_with($normalizedRoute, 'router') ||
-    str_starts_with($normalizedRoute, 'redirects')
+    str_starts_with($normalizedRoute, 'redirect')
 ) {
     $surveyId = $_GET['pid'] ?? $_GET['PID'] ?? $_GET['SurveyId'] ?? $_GET['project_id'] ?? $_GET['project'] ?? '';
     $vendorId = $_GET['vid'] ?? $_GET['vendor'] ?? $_GET['vendor_id'] ?? 'VND-DYN-01';
