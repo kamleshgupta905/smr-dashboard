@@ -323,7 +323,7 @@ export default function LeadsPage({ currentUser, showToast }) {
           <div className="card-body" style={{ padding: '18px 20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Inbound Clicks</span>
-              <div style={{ background: '#f0f9ff', padding: '8px', borderRadius: '8px', color: '#0F172A' }}>
+              <div style={{ background: '#F8FAFC', padding: '8px', borderRadius: '8px', color: '#0F172A' }}>
                 <Activity size={16} />
               </div>
             </div>

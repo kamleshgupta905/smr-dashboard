@@ -29,7 +29,7 @@ export default function StatsCards({ stats, totalSurveys, onNavigate }) {
       clickable: true,
       hint: `Explore ${totalStudies.toLocaleString()} surveys`,
       onClick: () => onNavigate && onNavigate('surveys'),
-      accent: '#2563eb',
+      accent: '#0F172A',
       bgLight: '#F8FAFC',
       borderLight: '#E2E8F0',
       barPct: liveCapacityPct,

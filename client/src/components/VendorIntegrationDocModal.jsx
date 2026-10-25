@@ -218,8 +218,8 @@ Expected Response: HTTP 200 OK within 3000ms.
                   style={{
                     background: 'none',
                     border: 'none',
-                    borderBottom: isActive ? '2px solid #1761FD' : '2px solid transparent',
-                    color: isActive ? '#1761FD' : '#64748B',
+                    borderBottom: isActive ? '2px solid #0F172A' : '2px solid transparent',
+                    color: isActive ? '#0F172A' : '#64748B',
                     fontWeight: isActive ? 700 : 500,
                     fontSize: '12px',
                     padding: '8px 12px',
@@ -242,7 +242,7 @@ Expected Response: HTTP 200 OK within 3000ms.
             {activeTab === 'overview' && (
               <div>
                 <div style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '14px', marginBottom: '18px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1E40AF', fontWeight: 700, marginBottom: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0F172A', fontWeight: 700, marginBottom: '6px' }}>
                     <ShieldCheck size={16} />
                     <span>Survey Routing Architecture</span>
                   </div>
@@ -276,7 +276,7 @@ Expected Response: HTTP 200 OK within 3000ms.
                   <strong style={{ display: 'block', color: '#0F172A', marginBottom: '4px', fontSize: '12.5px' }}>
                     Example Live Link Sent to Dynata (PID: VMHP1026542026):
                   </strong>
-                  <code style={{ fontSize: '11.5px', color: '#2563EB', wordBreak: 'break-all' }}>
+                  <code style={{ fontSize: '11.5px', color: '#0F172A', wordBreak: 'break-all' }}>
                     https://smr.vmhgroupsmr.com/vendor/auth/VND-DYN-01/project/VMHP1026542026?uid=[RESPONDENT_ID]
                   </code>
                 </div>

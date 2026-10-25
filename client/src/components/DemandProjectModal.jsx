@@ -166,7 +166,7 @@ export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{
                   background: '#F8FAFC',
-                  color: '#2563EB',
+                  color: '#0F172A',
                   padding: '4px 8px',
                   borderRadius: '6px',
                   fontSize: '11px',
@@ -200,8 +200,8 @@ export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
                 padding: '12px 18px',
                 border: 'none',
                 background: 'none',
-                borderBottom: activeTab === 'custom' ? '2px solid #2563EB' : '2px solid transparent',
-                color: activeTab === 'custom' ? '#2563EB' : '#64748B',
+                borderBottom: activeTab === 'custom' ? '2px solid #0F172A' : '2px solid transparent',
+                color: activeTab === 'custom' ? '#0F172A' : '#64748B',
                 fontWeight: activeTab === 'custom' ? 700 : 500,
                 fontSize: '13px',
                 cursor: 'pointer',
@@ -219,8 +219,8 @@ export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
                 padding: '12px 18px',
                 border: 'none',
                 background: 'none',
-                borderBottom: activeTab === 'zamplia' ? '2px solid #2563EB' : '2px solid transparent',
-                color: activeTab === 'zamplia' ? '#2563EB' : '#64748B',
+                borderBottom: activeTab === 'zamplia' ? '2px solid #0F172A' : '2px solid transparent',
+                color: activeTab === 'zamplia' ? '#0F172A' : '#64748B',
                 fontWeight: activeTab === 'zamplia' ? 700 : 500,
                 fontSize: '13px',
                 cursor: 'pointer',
@@ -288,7 +288,7 @@ export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
                     <span style={{ color: '#64748B' }}>Client:</span>
-                    <strong style={{ color: '#2563EB' }}>{createdProject.Client || 'Market Xcel'}</strong>
+                    <strong style={{ color: '#0F172A' }}>{createdProject.Client || 'Market Xcel'}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
                     <span style={{ color: '#64748B' }}>Completes Target:</span>

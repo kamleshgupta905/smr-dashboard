@@ -164,7 +164,7 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
         verdict: 'PRE_SCREEN_REQUIRED',
         statusCode: 1,
         reason: 'Pre-screening active: Respondent forwarded to qualifying questions before survey.',
-        color: '#2563EB',
+        color: '#0F172A',
         rule: 'Pre-Screen Gate'
       });
       return;
@@ -206,7 +206,7 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
         <span style={{
           position: 'absolute',
           top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: checked ? '#1761fd' : '#e3ebf6',
+          backgroundColor: checked ? '#0F172A' : '#e3ebf6',
           borderRadius: '20px',
           transition: '.25s ease',
         }}>
@@ -285,7 +285,7 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
         <div className="report-card" style={{ margin: 0, padding: 0 }}>
           <div className="report-card-header">
             <h4 className="report-card-title">
-              <Lock size={14} color="#1761fd" /> Pre-Screener & Callbacks
+              <Lock size={14} color="#0F172A" /> Pre-Screener & Callbacks
             </h4>
           </div>
           <div style={{ padding: '16px 20px' }}>
@@ -349,7 +349,7 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
         <div className="report-card" style={{ margin: 0, padding: 0 }}>
           <div className="report-card-header">
             <h4 className="report-card-title">
-              <Cpu size={14} color="#1761fd" /> Bot & Proxy Protection
+              <Cpu size={14} color="#0F172A" /> Bot & Proxy Protection
             </h4>
           </div>
           <div style={{ padding: '16px 20px' }}>
@@ -633,7 +633,7 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
                       <td style={{ padding: '12px 14px', fontFamily: 'monospace', fontWeight: 600, color: '#0F172A' }}>
                         {log.uid}
                       </td>
-                      <td style={{ padding: '12px 14px', fontFamily: 'monospace', color: '#2563EB' }}>
+                      <td style={{ padding: '12px 14px', fontFamily: 'monospace', color: '#0F172A' }}>
                         #{log.projectId}
                       </td>
                       <td style={{ padding: '12px 14px', color: '#475569' }}>

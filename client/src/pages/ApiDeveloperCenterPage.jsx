@@ -631,7 +631,7 @@ export default function ApiDeveloperCenterPage() {
                   fontSize: '12px'
                 }}
               >
-                <Icon size={13} color={active ? '#1761fd' : '#8997bd'} />
+                <Icon size={13} color={active ? '#0F172A' : '#8997bd'} />
                 {tab.label}
               </button>
             );
@@ -675,7 +675,7 @@ export default function ApiDeveloperCenterPage() {
         }}>
           <div className="report-card-header">
             <h4 className="report-card-title">
-              <Layers size={14} color="#1761fd" /> Endpoint Catalog ({filteredApiKeys.length})
+              <Layers size={14} color="#0F172A" /> Endpoint Catalog ({filteredApiKeys.length})
             </h4>
             <span style={{ fontSize: '11px', color: '#8997bd' }}>Select to test</span>
           </div>
@@ -706,7 +706,7 @@ export default function ApiDeveloperCenterPage() {
                       padding: '2px 6px',
                       borderRadius: '4px',
                       background: isPost ? '#ECFDF5' : '#F8FAFC',
-                      color: isPost ? '#059669' : '#2563EB',
+                      color: isPost ? '#059669' : '#0F172A',
                       border: `1px solid ${isPost ? '#A7F3D0' : '#CBD5E1'}`
                     }}>
                       {api.method}
@@ -715,7 +715,7 @@ export default function ApiDeveloperCenterPage() {
                       {api.provider === 'zamplia_supply' ? 'Supply V2' : api.provider === 'zamplia_demand' ? 'Demand V2' : 'Market Xcel'}
                     </span>
                   </div>
-                  <div style={{ fontSize: '12.5px', fontWeight: isSelected ? 700 : 600, color: isSelected ? '#1D4ED8' : '#1E293B', marginBottom: '2px' }}>
+                  <div style={{ fontSize: '12.5px', fontWeight: isSelected ? 700 : 600, color: isSelected ? '#0F172A' : '#1E293B', marginBottom: '2px' }}>
                     {api.name}
                   </div>
                   <div style={{ fontSize: '11px', color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -800,7 +800,7 @@ export default function ApiDeveloperCenterPage() {
                   fontSize: '12.5px',
                   padding: '8px 20px',
                   borderRadius: '8px',
-                  boxShadow: '0 2px 6px rgba(37, 99, 235, 0.25)'
+                  boxShadow: '0 2px 6px rgba(15, 23, 42, 0.25)'
                 }}
               >
                 {loading ? <RefreshCw size={14} className="spinner" /> : <Play size={14} />}
@@ -863,7 +863,7 @@ export default function ApiDeveloperCenterPage() {
                     </h3>
                     <button
                       onClick={() => setCustomBody(JSON.stringify(currentApi.body || {}, null, 2))}
-                      style={{ border: 'none', background: 'transparent', color: '#2563EB', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
+                      style={{ border: 'none', background: 'transparent', color: '#0F172A', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
                     >
                       Reset Default
                     </button>
@@ -914,7 +914,7 @@ export default function ApiDeveloperCenterPage() {
                     <span style={{
                       fontSize: '11px',
                       color: '#94A3B8',
-                      background: 'rgba(56, 189, 248, 0.1)',
+                      background: 'rgba(15, 23, 42, 0.1)',
                       padding: '2px 8px',
                       borderRadius: '4px',
                       fontFamily: 'monospace'

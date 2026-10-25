@@ -549,7 +549,7 @@ export default function TeamPage() {
                             width: '36px',
                             height: '36px',
                             borderRadius: '50%',
-                            background: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)',
+                            background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
                             color: '#ffffff',
                             display: 'flex',
                             alignItems: 'center',

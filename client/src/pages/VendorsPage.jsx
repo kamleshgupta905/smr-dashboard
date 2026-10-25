@@ -143,7 +143,7 @@ function CountriesSelector({ selected = [], onChange, countries = [] }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
         <div>
           <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Globe size={15} color="#1761FD" /> Operating Countries & Geographies
+            <Globe size={15} color="#0F172A" /> Operating Countries & Geographies
           </span>
           <span style={{ fontSize: '11.5px', color: '#64748B', display: 'block', marginTop: '2px' }}>
             Select respondent markets where this supplier can route survey traffic.
@@ -217,8 +217,8 @@ function CountriesSelector({ selected = [], onChange, countries = [] }) {
                 gap: '8px',
                 padding: '7px 10px',
                 borderRadius: '6px',
-                border: isSel ? '1.5px solid #1761FD' : '1px solid #E2E8F0',
-                background: isSel ? 'rgba(23, 97, 253, 0.08)' : '#FFFFFF',
+                border: isSel ? '1.5px solid #0F172A' : '1px solid #E2E8F0',
+                background: isSel ? 'rgba(15, 23, 42, 0.08)' : '#FFFFFF',
                 cursor: 'pointer',
                 userSelect: 'none',
                 transition: 'all 0.12s ease'
@@ -235,7 +235,7 @@ function CountriesSelector({ selected = [], onChange, countries = [] }) {
                 fontWeight: 800,
                 padding: '1px 5px',
                 borderRadius: '3px',
-                background: isSel ? '#1761FD' : '#E2E8F0',
+                background: isSel ? '#0F172A' : '#E2E8F0',
                 color: isSel ? '#FFFFFF' : '#475569',
                 fontFamily: 'monospace'
               }}>
@@ -603,7 +603,7 @@ function CountriesSelector({ selected = [], onChange, countries = [] }) {
                             {reconciliationData.projects && reconciliationData.projects.length > 0 ? (
                               reconciliationData.projects.map((p, idx) => (
                                 <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#1e40af', fontWeight: 600 }}>
+                                  <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#0F172A', fontWeight: 600 }}>
                                     {p.project_id}
                                   </td>
                                   <td style={{ padding: '8px 12px', color: '#0f172a', fontWeight: 600, maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -670,7 +670,7 @@ function CountriesSelector({ selected = [], onChange, countries = [] }) {
                       </div>
                       <div>
                         <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Net Payout Due</div>
-                        <div style={{ fontSize: '18px', fontWeight: 800, color: '#2563eb' }}>
+                        <div style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>
                           ${Number(reconciliationData.financial_summary?.net_payable || 0).toFixed(2)}
                         </div>
                         <div style={{ fontSize: '10.5px', color: '#059669', fontWeight: 600 }}>Ready for Disbursement</div>
@@ -1238,7 +1238,7 @@ function RestrictionsAndContacts({ blockedClients = [], onBlockedChange, contact
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
           <div>
             <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <UserPlus size={15} color="#1761FD" /> Supplier Contact Persons ({contacts.length})
+              <UserPlus size={15} color="#0F172A" /> Supplier Contact Persons ({contacts.length})
             </span>
             <span style={{ fontSize: '11.5px', color: '#64748B', display: 'block', marginTop: '2px' }}>
               Maintain key account managers, billing, and technical leads for this supplier.
@@ -2464,9 +2464,9 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
         grade: 'B',
         label: 'Grade B (Reliable)',
         sublabel: `${crStr}% CR • 85% Delivery`,
-        bg: 'rgba(37, 99, 235, 0.1)',
-        color: '#2563eb',
-        border: '1px solid rgba(37, 99, 235, 0.25)',
+        bg: 'rgba(15, 23, 42, 0.1)',
+        color: '#0F172A',
+        border: '1px solid rgba(15, 23, 42, 0.25)',
         icon: '🛡️',
         cr: crStr,
         reliability: 'Reliable (85%)'
@@ -2644,7 +2644,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
         <div className="card report-card" style={{ padding: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '12px', fontWeight: 600, color: '#8997bd' }}>Connected Vendors</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(23, 97, 253, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1761fd' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A' }}>
               <Users size={16} />
             </div>
           </div>
@@ -2672,7 +2672,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
         <div className="card report-card" style={{ padding: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '12px', fontWeight: 600, color: '#8997bd' }}>Security & Hash</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(23, 97, 253, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1761fd' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A' }}>
               <ShieldCheck size={16} />
             </div>
           </div>
@@ -2690,7 +2690,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
             </div>
           </div>
           <div style={{ fontSize: '24px', fontWeight: 700, color: '#1d2c48', fontFamily: "'Plus Jakarta Sans', sans-serif", fontVariantNumeric: 'tabular-nums' }}>4 / 4 Callbacks</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '11.5px', color: '#1761fd' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '11.5px', color: '#0F172A' }}>
             <ArrowUpRight size={12} /> Complete, Term, OQ, Security
           </div>
         </div>
@@ -3199,7 +3199,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                                     fontSize: '11px',
                                     fontWeight: 700,
                                     background: isRevShare ? '#F8FAFC' : '#ecfdf5',
-                                    color: isRevShare ? '#1d4ed8' : '#059669',
+                                    color: isRevShare ? '#0F172A' : '#059669',
                                     border: `1px solid ${isRevShare ? '#E2E8F0' : '#a7f3d0'}`
                                   }}>
                                     {isRevShare ? `${Number(v.cpi_percentage || 30)}% RevShare` : `$${Number(v.cpi || 0).toFixed(2)} Fixed CPI`}
@@ -3217,7 +3217,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                                       padding: '5px 12px',
                                       borderRadius: '6px',
                                       background: '#F8FAFC',
-                                      color: '#1d4ed8',
+                                      color: '#0F172A',
                                       border: '1px solid #CBD5E1',
                                       cursor: 'pointer',
                                       fontSize: '11.5px',
@@ -3473,7 +3473,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
               <div className="modal-header" style={{ borderBottom: '1px solid #e2e8f0', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: 'rgba(23, 97, 253, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1761fd' }}>
+                    <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A' }}>
                       <Link2 size={16} />
                     </div>
                     <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
@@ -3501,8 +3501,8 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                     padding: '12px 14px',
                     border: 'none',
                     background: 'none',
-                    borderBottom: editModalTab === 'general' ? '2px solid #1761fd' : '2px solid transparent',
-                    color: editModalTab === 'general' ? '#1761fd' : '#64748b',
+                    borderBottom: editModalTab === 'general' ? '2px solid #0F172A' : '2px solid transparent',
+                    color: editModalTab === 'general' ? '#0F172A' : '#64748b',
                     fontWeight: 700,
                     fontSize: '12.5px',
                     cursor: 'pointer',
@@ -3520,8 +3520,8 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                     padding: '12px 14px',
                     border: 'none',
                     background: 'none',
-                    borderBottom: editModalTab === 'countries' ? '2px solid #1761fd' : '2px solid transparent',
-                    color: editModalTab === 'countries' ? '#1761fd' : '#64748b',
+                    borderBottom: editModalTab === 'countries' ? '2px solid #0F172A' : '2px solid transparent',
+                    color: editModalTab === 'countries' ? '#0F172A' : '#64748b',
                     fontWeight: 700,
                     fontSize: '12.5px',
                     cursor: 'pointer',
@@ -3542,8 +3542,8 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                     padding: '12px 14px',
                     border: 'none',
                     background: 'none',
-                    borderBottom: editModalTab === 'restrictions' ? '2px solid #1761fd' : '2px solid transparent',
-                    color: editModalTab === 'restrictions' ? '#1761fd' : '#64748b',
+                    borderBottom: editModalTab === 'restrictions' ? '2px solid #0F172A' : '2px solid transparent',
+                    color: editModalTab === 'restrictions' ? '#0F172A' : '#64748b',
                     fontWeight: 700,
                     fontSize: '12.5px',
                     cursor: 'pointer',
@@ -3554,7 +3554,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                 >
                   <Ban size={14} /> 3. Blocked Clients & Contacts
                   {((redirectForm.blocked_clients?.length || 0) > 0 || (redirectForm.contacts?.length || 0) > 0) && (
-                    <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '10px', background: '#3b82f6', color: '#fff', fontWeight: 800 }}>
+                    <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '10px', background: '#0F172A', color: '#fff', fontWeight: 800 }}>
                       {(redirectForm.blocked_clients?.length || 0) + (redirectForm.contacts?.length || 0)}
                     </span>
                   )}
@@ -3569,8 +3569,8 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                     padding: '12px 14px',
                     border: 'none',
                     background: 'none',
-                    borderBottom: editModalTab === 'audit' ? '2px solid #1761fd' : '2px solid transparent',
-                    color: editModalTab === 'audit' ? '#1761fd' : '#64748b',
+                    borderBottom: editModalTab === 'audit' ? '2px solid #0F172A' : '2px solid transparent',
+                    color: editModalTab === 'audit' ? '#0F172A' : '#64748b',
                     fontWeight: 700,
                     fontSize: '12.5px',
                     cursor: 'pointer',
@@ -3618,9 +3618,9 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                             fontSize: '11px',
                             fontWeight: 600,
                             cursor: 'pointer',
-                            border: redirectForm.commission_type !== 'revenue_share' ? '1px solid #1761fd' : '1px solid #cbd5e1',
-                            background: redirectForm.commission_type !== 'revenue_share' ? 'rgba(23, 97, 253, 0.1)' : '#fff',
-                            color: redirectForm.commission_type !== 'revenue_share' ? '#1761fd' : '#64748b'
+                            border: redirectForm.commission_type !== 'revenue_share' ? '1px solid #0F172A' : '1px solid #cbd5e1',
+                            background: redirectForm.commission_type !== 'revenue_share' ? 'rgba(15, 23, 42, 0.1)' : '#fff',
+                            color: redirectForm.commission_type !== 'revenue_share' ? '#0F172A' : '#64748b'
                           }}
                         >
                           Fixed CPI ($)
@@ -3634,9 +3634,9 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                             fontSize: '11px',
                             fontWeight: 600,
                             cursor: 'pointer',
-                            border: redirectForm.commission_type === 'revenue_share' ? '1px solid #1761fd' : '1px solid #cbd5e1',
-                            background: redirectForm.commission_type === 'revenue_share' ? 'rgba(23, 97, 253, 0.1)' : '#fff',
-                            color: redirectForm.commission_type === 'revenue_share' ? '#1761fd' : '#64748b'
+                            border: redirectForm.commission_type === 'revenue_share' ? '1px solid #0F172A' : '1px solid #cbd5e1',
+                            background: redirectForm.commission_type === 'revenue_share' ? 'rgba(15, 23, 42, 0.1)' : '#fff',
+                            color: redirectForm.commission_type === 'revenue_share' ? '#0F172A' : '#64748b'
                           }}
                         >
                           Revenue Share (%)
@@ -3874,7 +3874,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                             href={getResolvedUrl(redirectForm.redirect_complete, testUid)} 
                             target="_blank" 
                             rel="noreferrer"
-                            style={{ color: '#1761fd', display: 'flex', alignItems: 'center', gap: '3px', textDecoration: 'none' }}
+                            style={{ color: '#0F172A', display: 'flex', alignItems: 'center', gap: '3px', textDecoration: 'none' }}
                           >
                             Test Open <ExternalLink size={11} />
                           </a>
@@ -3891,7 +3891,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                             href={getResolvedUrl(redirectForm.redirect_terminate, testUid)} 
                             target="_blank" 
                             rel="noreferrer"
-                            style={{ color: '#1761fd', display: 'flex', alignItems: 'center', gap: '3px', textDecoration: 'none' }}
+                            style={{ color: '#0F172A', display: 'flex', alignItems: 'center', gap: '3px', textDecoration: 'none' }}
                           >
                             Test Open <ExternalLink size={11} />
                           </a>
@@ -3950,7 +3950,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
 
                     {loadingAudit ? (
                       <div style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
-                        <RefreshCw size={20} className="animate-spin" style={{ margin: '0 auto 8px', display: 'block', color: '#1761FD' }} />
+                        <RefreshCw size={20} className="animate-spin" style={{ margin: '0 auto 8px', display: 'block', color: '#0F172A' }} />
                         Loading audit logs from MySQL log_table...
                       </div>
                     ) : vendorAuditLogs.length === 0 ? (
@@ -4079,8 +4079,8 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                     padding: '12px 14px',
                     border: 'none',
                     background: 'none',
-                    borderBottom: addModalTab === 'general' ? '2px solid #1761fd' : '2px solid transparent',
-                    color: addModalTab === 'general' ? '#1761fd' : '#64748b',
+                    borderBottom: addModalTab === 'general' ? '2px solid #0F172A' : '2px solid transparent',
+                    color: addModalTab === 'general' ? '#0F172A' : '#64748b',
                     fontWeight: 700,
                     fontSize: '12.5px',
                     cursor: 'pointer',
@@ -4098,8 +4098,8 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                     padding: '12px 14px',
                     border: 'none',
                     background: 'none',
-                    borderBottom: addModalTab === 'countries' ? '2px solid #1761fd' : '2px solid transparent',
-                    color: addModalTab === 'countries' ? '#1761fd' : '#64748b',
+                    borderBottom: addModalTab === 'countries' ? '2px solid #0F172A' : '2px solid transparent',
+                    color: addModalTab === 'countries' ? '#0F172A' : '#64748b',
                     fontWeight: 700,
                     fontSize: '12.5px',
                     cursor: 'pointer',
@@ -4120,8 +4120,8 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                     padding: '12px 14px',
                     border: 'none',
                     background: 'none',
-                    borderBottom: addModalTab === 'restrictions' ? '2px solid #1761fd' : '2px solid transparent',
-                    color: addModalTab === 'restrictions' ? '#1761fd' : '#64748b',
+                    borderBottom: addModalTab === 'restrictions' ? '2px solid #0F172A' : '2px solid transparent',
+                    color: addModalTab === 'restrictions' ? '#0F172A' : '#64748b',
                     fontWeight: 700,
                     fontSize: '12.5px',
                     cursor: 'pointer',
@@ -4132,7 +4132,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                 >
                   <Ban size={14} /> 3. Blocked Clients & Contacts
                   {((formData.blocked_clients?.length || 0) > 0 || (formData.contacts?.length || 0) > 0) && (
-                    <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '10px', background: '#3b82f6', color: '#fff', fontWeight: 800 }}>
+                    <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '10px', background: '#0F172A', color: '#fff', fontWeight: 800 }}>
                       {(formData.blocked_clients?.length || 0) + (formData.contacts?.length || 0)}
                     </span>
                   )}
@@ -4206,9 +4206,9 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                         style={{
                           padding: '8px 12px',
                           borderRadius: '6px',
-                          border: formData.commission_type !== 'revenue_share' ? '2px solid #1761fd' : '1px solid #e2e8f0',
-                          background: formData.commission_type !== 'revenue_share' ? 'rgba(23, 97, 253, 0.08)' : '#fff',
-                          color: formData.commission_type !== 'revenue_share' ? '#1761fd' : '#475569',
+                          border: formData.commission_type !== 'revenue_share' ? '2px solid #0F172A' : '1px solid #e2e8f0',
+                          background: formData.commission_type !== 'revenue_share' ? 'rgba(15, 23, 42, 0.08)' : '#fff',
+                          color: formData.commission_type !== 'revenue_share' ? '#0F172A' : '#475569',
                           fontWeight: 700,
                           fontSize: '12.5px',
                           cursor: 'pointer',
@@ -4227,9 +4227,9 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                         style={{
                           padding: '8px 12px',
                           borderRadius: '6px',
-                          border: formData.commission_type === 'revenue_share' ? '2px solid #1761fd' : '1px solid #e2e8f0',
-                          background: formData.commission_type === 'revenue_share' ? 'rgba(23, 97, 253, 0.08)' : '#fff',
-                          color: formData.commission_type === 'revenue_share' ? '#1761fd' : '#475569',
+                          border: formData.commission_type === 'revenue_share' ? '2px solid #0F172A' : '1px solid #e2e8f0',
+                          background: formData.commission_type === 'revenue_share' ? 'rgba(15, 23, 42, 0.08)' : '#fff',
+                          color: formData.commission_type === 'revenue_share' ? '#0F172A' : '#475569',
                           fontWeight: 700,
                           fontSize: '12.5px',
                           cursor: 'pointer',
@@ -4331,7 +4331,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                         gap: '6px',
                         fontSize: '12.5px',
                         fontWeight: 700,
-                        color: '#1761fd'
+                        color: '#0F172A'
                       }}
                     >
                       <Link2 size={14} />
@@ -4460,7 +4460,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
               <div className="modal-header" style={{ borderBottom: '1px solid #e2e8f0', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(23, 97, 253, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1761fd' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A' }}>
                       <Share2 size={18} />
                     </div>
                     <div>
@@ -4585,7 +4585,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                           </button>
                         </div>
                         <p style={{ margin: '6px 0 0 0', fontSize: '11.5px', color: '#64748b' }}>
-                          Instruct <strong>{entryLinkVendor.name}</strong> to dynamically replace <code style={{ color: '#1761fd', fontWeight: 700 }}>[uid]</code> with their panelist's unique respondent ID for each survey attempt.
+                          Instruct <strong>{entryLinkVendor.name}</strong> to dynamically replace <code style={{ color: '#0F172A', fontWeight: 700 }}>[uid]</code> with their panelist's unique respondent ID for each survey attempt.
                         </p>
                       </div>
 
@@ -4669,7 +4669,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                         borderRadius: '6px', 
                         padding: '12px 14px' 
                       }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', color: '#1e40af', fontSize: '12px', fontWeight: 700 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', color: '#0F172A', fontSize: '12px', fontWeight: 700 }}>
                           <ShieldCheck size={14} />
                           <span>How Inbound Traffic is Protected (Admin Video Guide)</span>
                         </div>

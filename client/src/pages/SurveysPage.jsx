@@ -250,12 +250,12 @@ export default function SurveysPage({
               onClick={openBulkModal}
               className="btn btn-primary"
               style={{
-                background: 'linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%)',
+                background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
                 fontSize: '12.5px',
                 fontWeight: 700,
                 padding: '8px 14px',
                 borderRadius: '8px',
-                boxShadow: '0 2px 8px rgba(37, 99, 235, 0.35)'
+                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.35)'
               }}
             >
               <Share2 size={13} />
@@ -306,7 +306,7 @@ export default function SurveysPage({
               }}
               title="Sync live inventory from Zamplia"
             >
-              <RefreshCw size={13} color="#2563eb" className={loading ? 'sync-spin' : ''} />
+              <RefreshCw size={13} color="#0F172A" className={loading ? 'sync-spin' : ''} />
               <span>Sync Surveys</span>
             </button>
           )}
@@ -317,15 +317,15 @@ export default function SurveysPage({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              background: 'linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%)',
-              border: '1px solid #1d4ed8',
+              background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
+              border: '1px solid #0F172A',
               color: '#ffffff',
               borderRadius: '8px',
               padding: '8px 16px',
               fontSize: '12.5px',
               fontWeight: 700,
               cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(37, 99, 235, 0.35)',
+              boxShadow: '0 2px 8px rgba(15, 23, 42, 0.35)',
               transition: 'all 0.15s ease'
             }}
           >
@@ -372,7 +372,7 @@ export default function SurveysPage({
                   borderRadius: '6px',
                   border: 'none',
                   background: isActive ? '#ffffff' : 'transparent',
-                  color: isActive ? '#2563eb' : '#64748b',
+                  color: isActive ? '#0F172A' : '#64748b',
                   boxShadow: isActive ? '0 1px 3px rgba(15, 23, 42, 0.08)' : 'none',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease'
@@ -589,7 +589,7 @@ export default function SurveysPage({
                     ref={el => { if (el) el.indeterminate = isSomePageSelected; }}
                     onChange={handleToggleSelectAllPage}
                     title="Select all surveys on this page"
-                    style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#2563eb' }}
+                    style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#0F172A' }}
                   />
                 </th>
                 <th style={{ width: '40px', textAlign: 'center', padding: '12px 6px' }}>#</th>
@@ -625,7 +625,7 @@ export default function SurveysPage({
                   return (
                     <React.Fragment key={s.survey_id || idx}>
                       <tr style={{
-                        background: isExpanded ? '#f8fafc' : selectedSurveyIds.has(s.survey_id) ? 'rgba(37, 99, 235, 0.04)' : '#ffffff',
+                        background: isExpanded ? '#f8fafc' : selectedSurveyIds.has(s.survey_id) ? 'rgba(15, 23, 42, 0.04)' : '#ffffff',
                         borderBottom: isExpanded ? 'none' : '1px solid #f1f5f9'
                       }}>
                         {/* Checkbox */}
@@ -635,7 +635,7 @@ export default function SurveysPage({
                             checked={selectedSurveyIds.has(s.survey_id)}
                             onChange={() => handleToggleSelect(s.survey_id)}
                             title={`Select survey ${s.survey_id}`}
-                            style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#2563eb' }}
+                            style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: '#0F172A' }}
                           />
                         </td>
 
@@ -656,7 +656,7 @@ export default function SurveysPage({
                               lineHeight: 1.35,
                               transition: 'color 0.15s ease'
                             }}
-                            onMouseEnter={(e) => { e.currentTarget.style.color = '#2563eb'; }}
+                            onMouseEnter={(e) => { e.currentTarget.style.color = '#0F172A'; }}
                             onMouseLeave={(e) => { e.currentTarget.style.color = '#0f172a'; }}
                           >
                             {s.survey_name}
@@ -696,7 +696,7 @@ export default function SurveysPage({
                             fontSize: '11px',
                             fontWeight: 700,
                             background: clientName === 'Market Xcel' ? '#fff7ed' : '#F8FAFC',
-                            color: clientName === 'Market Xcel' ? '#c2410c' : '#1d4ed8',
+                            color: clientName === 'Market Xcel' ? '#c2410c' : '#0F172A',
                             border: `1px solid ${clientName === 'Market Xcel' ? '#ffedd5' : '#E2E8F0'}`,
                             display: 'inline-block',
                             whiteSpace: 'nowrap'
@@ -749,13 +749,13 @@ export default function SurveysPage({
                         <td style={{ minWidth: '150px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '3px' }}>
                             <span style={{ fontWeight: 700, color: '#0f172a' }}>{quotaFilled} / {quotaTarget} <span style={{ color: '#64748b', fontWeight: 500 }}>({s.routed_leads || 0} clk)</span></span>
-                            <span style={{ fontWeight: 700, color: fillPercent >= 100 ? '#059669' : (fillPercent > 50 ? '#2563eb' : '#64748b') }}>{fillPercent}%</span>
+                            <span style={{ fontWeight: 700, color: fillPercent >= 100 ? '#059669' : (fillPercent > 50 ? '#0F172A' : '#64748b') }}>{fillPercent}%</span>
                           </div>
                           <div style={{ width: '100%', height: '6px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
                             <div style={{
                               width: `${Math.min(100, fillPercent)}%`,
                               height: '100%',
-                              background: fillPercent >= 100 ? '#059669' : (fillPercent > 75 ? '#2563eb' : '#3b82f6'),
+                              background: fillPercent >= 100 ? '#059669' : (fillPercent > 75 ? '#0F172A' : '#0F172A'),
                               borderRadius: '999px',
                               transition: 'width 0.3s ease'
                             }} />
@@ -1126,7 +1126,7 @@ export default function SurveysPage({
         <div className="floating-pill-bar">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600 }}>
             <span style={{
-              background: '#2563eb',
+              background: '#0F172A',
               color: '#ffffff',
               borderRadius: '999px',
               padding: '2px 8px',
@@ -1143,7 +1143,7 @@ export default function SurveysPage({
           <button
             onClick={openBulkModal}
             style={{
-              background: 'linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%)',
+              background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
               color: '#ffffff',
               border: 'none',
               borderRadius: '999px',
@@ -1154,7 +1154,7 @@ export default function SurveysPage({
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              boxShadow: '0 2px 8px rgba(37, 99, 235, 0.4)'
+              boxShadow: '0 2px 8px rgba(15, 23, 42, 0.4)'
             }}
           >
             <Share2 size={13} /> Bulk Assign to Vendor

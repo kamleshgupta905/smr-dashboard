@@ -186,7 +186,7 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
   // Real Live Sessions Device Table Data derived from live studies
   const deviceList = [
     { name: 'Mobiles', icon: Smartphone, sessions: mobileCount, share: `${Math.round((mobileCount / totalStudies) * 100)}%`, tier: 'High Supply', color: '#ff9f43' },
-    { name: 'Desktops', icon: Monitor, sessions: desktopCount, share: `${Math.round((desktopCount / totalStudies) * 100)}%`, tier: 'Enterprise', color: '#0b51b7' },
+    { name: 'Desktops', icon: Monitor, sessions: desktopCount, share: `${Math.round((desktopCount / totalStudies) * 100)}%`, tier: 'Enterprise', color: '#0F172A' },
     { name: 'Tablets', icon: Tablet, sessions: tabletCount, share: `${Math.round((tabletCount / totalStudies) * 100)}%`, tier: 'Standard', color: '#22b783' },
   ];
 
@@ -221,7 +221,7 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
                 {/* Series Legend */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px' }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#303e67' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#1761fd' }} />
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0F172A' }} />
                     Active Study Intake
                   </span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#303e67' }}>
@@ -256,8 +256,8 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
                     <rect x="0" y="0" width={svgWidth} height={svgHeight} />
                   </clipPath>
                   <linearGradient id="vmh_blue_gradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1761fd" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="#1761fd" stopOpacity="0.00" />
+                    <stop offset="0%" stopColor="#0F172A" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="#0F172A" stopOpacity="0.00" />
                   </linearGradient>
                 </defs>
 
@@ -295,7 +295,7 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
                     key={`new-${timeframe}`}
                     d={newVisitsCurve.pathD} 
                     fill="none" 
-                    stroke="#1761fd" 
+                    stroke="#0F172A" 
                     strokeWidth="2.75" 
                     strokeLinecap="round" 
                     className="apple-chart-path"
@@ -324,7 +324,7 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
                         cy={p.y} 
                         r={hoverIndex === idx ? 6 : 3.5} 
                         fill="#ffffff" 
-                        stroke="#1761fd" 
+                        stroke="#0F172A" 
                         strokeWidth="2.5" 
                         className="apple-chart-point"
                       />
@@ -369,7 +369,7 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
               {/* X-Axis Month Labels */}
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 40px 0 40px', fontSize: '11.5px', color: '#8997bd', fontFamily: 'Roboto' }}>
                 {labels.map((lbl, idx) => (
-                  <span key={idx} style={{ fontWeight: hoverIndex === idx ? 700 : 400, color: hoverIndex === idx ? '#1761fd' : '#8997bd' }}>
+                  <span key={idx} style={{ fontWeight: hoverIndex === idx ? 700 : 400, color: hoverIndex === idx ? '#0F172A' : '#8997bd' }}>
                     {lbl}
                   </span>
                 ))}
@@ -390,8 +390,8 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
                     onClick={() => setDeviceFilter(tab)}
                     style={{
                       border: 'none',
-                      background: deviceFilter === tab ? 'rgba(23, 97, 253, 0.08)' : 'transparent',
-                      color: deviceFilter === tab ? '#1761fd' : '#8997bd',
+                      background: deviceFilter === tab ? 'rgba(15, 23, 42, 0.08)' : 'transparent',
+                      color: deviceFilter === tab ? '#0F172A' : '#8997bd',
                       fontWeight: deviceFilter === tab ? 600 : 400,
                       padding: '2px 6px',
                       borderRadius: '3px',

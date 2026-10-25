@@ -273,7 +273,7 @@ export default function BidsPage() {
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '16px', marginBottom: '24px' }}>
         <div className="report-card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(23, 97, 253, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1761fd' }}>
+          <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A' }}>
             <FileText size={20} />
           </div>
           <div>
@@ -303,7 +303,7 @@ export default function BidsPage() {
         </div>
 
         <div className="report-card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(23, 97, 253, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1761fd' }}>
+          <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A' }}>
             <DollarSign size={20} />
           </div>
           <div>
@@ -381,7 +381,7 @@ export default function BidsPage() {
 
                   return (
                     <tr key={b.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '14px 18px', fontSize: '12px', fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>
+                      <td style={{ padding: '14px 18px', fontSize: '12px', fontFamily: 'monospace', fontWeight: 700, color: '#0F172A' }}>
                         {b.bid_id || `BID-#${b.id}`}
                       </td>
                       <td style={{ padding: '14px 18px' }}>
@@ -429,7 +429,7 @@ export default function BidsPage() {
                               gap: '4px',
                               background: '#F8FAFC',
                               border: '1px solid #CBD5E1',
-                              color: '#1d4ed8',
+                              color: '#0F172A',
                               cursor: 'pointer'
                             }}
                             title="Convert Bid to Project / Study (Laravel replicate)"
@@ -479,7 +479,7 @@ export default function BidsPage() {
             }}>
               <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <FileText size={18} color="#1761fd" />
+                  <FileText size={18} color="#0F172A" />
                   <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1d2c48' }}>New Bid Proposal</h3>
                 </div>
                 <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
@@ -808,7 +808,7 @@ export default function BidsPage() {
                 background: '#f8fafc'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ background: '#E2E8F0', padding: '6px', borderRadius: '6px', color: '#1d4ed8' }}>
+                  <div style={{ background: '#E2E8F0', padding: '6px', borderRadius: '6px', color: '#0F172A' }}>
                     <Rocket size={18} />
                   </div>
                   <div>
@@ -833,7 +833,7 @@ export default function BidsPage() {
                   <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e3a8a' }}>
                     {bookingBid.bid_name || bookingBid.name}
                   </div>
-                  <div style={{ fontSize: '11.5px', color: '#3b82f6', marginTop: '3px' }}>
+                  <div style={{ fontSize: '11.5px', color: '#0F172A', marginTop: '3px' }}>
                     Client: {bookingBid.client_name || 'Direct Client'} • CPI: ${bookingBid.cpi} • Sample: {bookingBid.sample_size} N
                   </div>
                 </div>
@@ -881,7 +881,7 @@ export default function BidsPage() {
                     type="submit"
                     disabled={converting}
                     className="btn btn-primary"
-                    style={{ fontSize: '13px', padding: '8px 20px', borderRadius: '8px', fontWeight: 600, background: '#2563eb', borderColor: '#2563eb' }}
+                    style={{ fontSize: '13px', padding: '8px 20px', borderRadius: '8px', fontWeight: 600, background: '#0F172A', borderColor: '#0F172A' }}
                   >
                     {converting ? 'Converting...' : 'Launch Project'}
                   </button>

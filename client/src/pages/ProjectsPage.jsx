@@ -156,7 +156,7 @@ export default function ProjectsPage() {
         <div className="card report-card" style={{ padding: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '12px', fontWeight: 600, color: '#8997bd' }}>Active Campaigns</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(23, 97, 253, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1761fd' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A' }}>
               <Briefcase size={16} />
             </div>
           </div>
@@ -195,12 +195,12 @@ export default function ProjectsPage() {
         <div className="card report-card" style={{ padding: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '12px', fontWeight: 600, color: '#8997bd' }}>Delivered Completes</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(23, 97, 253, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1761fd' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A' }}>
               <CheckCircle2 size={16} />
             </div>
           </div>
           <div style={{ fontSize: '24px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins' }}>{totalDelivered.toLocaleString()}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '11.5px', color: '#1761fd' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '11.5px', color: '#0F172A' }}>
             {Math.round((totalDelivered / (totalQuota || 1)) * 100)}% Overall Pacing
           </div>
         </div>
@@ -283,10 +283,10 @@ export default function ProjectsPage() {
                       <td style={{ minWidth: '130px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '3px' }}>
                           <span style={{ color: '#1d2c48', fontWeight: 600 }}>{delivered} / {target}</span>
-                          <span style={{ color: '#1761fd', fontWeight: 700 }}>{pct}%</span>
+                          <span style={{ color: '#0F172A', fontWeight: 700 }}>{pct}%</span>
                         </div>
                         <div style={{ width: '100%', height: '4px', background: '#f1f5fa', borderRadius: '9999px', overflow: 'hidden' }}>
-                          <div style={{ width: `${pct}%`, height: '100%', background: pct > 80 ? '#16a34a' : '#1761fd', borderRadius: '9999px' }} />
+                          <div style={{ width: `${pct}%`, height: '100%', background: pct > 80 ? '#16a34a' : '#0F172A', borderRadius: '9999px' }} />
                         </div>
                       </td>
                       <td>

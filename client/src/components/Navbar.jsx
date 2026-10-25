@@ -25,7 +25,7 @@ export default function Navbar({
   const activeRole = (typeof localStorage !== 'undefined' && (localStorage.getItem('smr_auth_role') || 'Admin')) || 'Admin';
 
   const notifications = [
-    { id: 1, icon: Zap, color: '#1761fd', title: 'Zamplia Inventory Synced', text: `${surveyCount || 626} live surveys refreshed with fresh quotas.`, time: 'Just now' },
+    { id: 1, icon: Zap, color: '#0F172A', title: 'Zamplia Inventory Synced', text: `${surveyCount || 626} live surveys refreshed with fresh quotas.`, time: 'Just now' },
     { id: 2, icon: CheckCircle2, color: '#16a34a', title: 'Reconciliation Verified', text: 'Billing audit passed — no discrepancies found.', time: '25 min ago' },
     { id: 3, icon: ShieldAlert, color: '#f59e0b', title: 'Fraud Attempt Blocked', text: 'Suspicious VPN/proxy click auto-rejected (Risk: 98).', time: '1 hr ago' },
   ];
@@ -120,13 +120,13 @@ export default function Navbar({
                   height: '36px',
                   paddingLeft: '38px',
                   paddingRight: globalSearch ? '28px' : '12px',
-                  border: '1px solid #1761fd',
+                  border: '1px solid #0F172A',
                   borderRadius: '8px',
                   background: '#ffffff',
                   fontSize: '12.5px',
                   color: '#303e67',
                   outline: 'none',
-                  boxShadow: '0 0 0 3px rgba(23, 97, 253, 0.1)',
+                  boxShadow: '0 0 0 3px rgba(15, 23, 42, 0.1)',
                   boxSizing: 'border-box',
                 }}
                 onBlur={() => {
@@ -219,7 +219,7 @@ export default function Navbar({
                 alignItems: 'center',
               }}>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: '#1d2c48' }}>Notifications</span>
-                <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#1761fd', background: 'rgba(23,97,253,0.08)', padding: '2px 8px', borderRadius: '999px' }}>
+                <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#0F172A', background: 'rgba(15, 23, 42,0.08)', padding: '2px 8px', borderRadius: '999px' }}>
                   {notifications.length} New
                 </span>
               </div>
@@ -279,8 +279,8 @@ export default function Navbar({
                 fontWeight: 800,
                 padding: '1px 6px',
                 borderRadius: '4px',
-                background: activeRole === 'Admin' ? 'rgba(23, 97, 253, 0.12)' : activeRole === 'Developer' ? 'rgba(147, 51, 234, 0.12)' : activeRole === 'Customer' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)',
-                color: activeRole === 'Admin' ? '#1761fd' : activeRole === 'Developer' ? '#9333ea' : activeRole === 'Customer' ? '#d97706' : '#10b981'
+                background: activeRole === 'Admin' ? 'rgba(15, 23, 42, 0.12)' : activeRole === 'Developer' ? 'rgba(147, 51, 234, 0.12)' : activeRole === 'Customer' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+                color: activeRole === 'Admin' ? '#0F172A' : activeRole === 'Developer' ? '#9333ea' : activeRole === 'Customer' ? '#d97706' : '#10b981'
               }}>
                 {activeRole}
               </span>
@@ -304,8 +304,8 @@ export default function Navbar({
                     fontWeight: 700,
                     padding: '2px 7px',
                     borderRadius: '4px',
-                    background: 'rgba(23, 97, 253, 0.1)',
-                    color: '#1761fd'
+                    background: 'rgba(15, 23, 42, 0.1)',
+                    color: '#0F172A'
                   }}>
                     {activeRole}
                   </span>
@@ -320,7 +320,7 @@ export default function Navbar({
                   if (onOpenProfile) onOpenProfile();
                 }}
               >
-                <User size={15} color="#1761fd" />
+                <User size={15} color="#0F172A" />
                 <span>Profile</span>
               </button>
 

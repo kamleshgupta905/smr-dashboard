@@ -292,7 +292,7 @@ export default function BulkAssignModal({ selectedSurveys = [], isOpen, onClose,
                         padding: '2px 8px',
                         borderRadius: '4px',
                         background: '#E2E8F0',
-                        color: '#1d4ed8',
+                        color: '#0F172A',
                         fontWeight: 700
                       }}>
                         Current Baseline: {activeVendor.cpi_percentage || 30}% RevShare

@@ -669,7 +669,7 @@ export default function UserManagementPage({ currentUser }) {
                     <img 
                       src={formData.profile_image} 
                       alt="Profile Preview" 
-                      style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #1761fd' }} 
+                      style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #0F172A' }} 
                     />
                   ) : (
                     <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
@@ -752,7 +752,7 @@ export default function UserManagementPage({ currentUser }) {
                       userSelect: 'none',
                       fontSize: '13.5px',
                       fontWeight: 600,
-                      color: isChecked ? '#1761fd' : '#1e293b',
+                      color: isChecked ? '#0F172A' : '#1e293b',
                       padding: '4px 0'
                     }}>
                       <input 
@@ -763,7 +763,7 @@ export default function UserManagementPage({ currentUser }) {
                           width: '16px',
                           height: '16px',
                           cursor: 'pointer',
-                          accentColor: '#1761fd'
+                          accentColor: '#0F172A'
                         }}
                       />
                       <span>{node.name}</span>
@@ -801,7 +801,7 @@ export default function UserManagementPage({ currentUser }) {
                                 cursor: 'pointer',
                                 userSelect: 'none',
                                 fontSize: '13px',
-                                color: childChecked ? '#1761fd' : '#334155',
+                                color: childChecked ? '#0F172A' : '#334155',
                                 padding: '3px 0'
                               }}>
                                 <input 
@@ -812,7 +812,7 @@ export default function UserManagementPage({ currentUser }) {
                                     width: '15px',
                                     height: '15px',
                                     cursor: 'pointer',
-                                    accentColor: '#1761fd'
+                                    accentColor: '#0F172A'
                                   }}
                                 />
                                 <span>{child.name}</span>
@@ -842,8 +842,8 @@ export default function UserManagementPage({ currentUser }) {
                 alignItems: 'center',
                 gap: '8px',
                 borderRadius: '4px',
-                background: '#1761fd',
-                borderColor: '#1761fd'
+                background: '#0F172A',
+                borderColor: '#0F172A'
               }}
             >
               {submitting ? (
@@ -923,7 +923,7 @@ export default function UserManagementPage({ currentUser }) {
         <div className="card report-card" style={{ padding: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '12px', fontWeight: 600, color: '#8997bd' }}>Total Users</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(23, 97, 253, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1761fd' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A' }}>
               <Users size={16} />
             </div>
           </div>
@@ -967,7 +967,7 @@ export default function UserManagementPage({ currentUser }) {
             </div>
           </div>
           <div style={{ fontSize: '24px', fontWeight: 700, color: '#1d2c48', fontFamily: 'Poppins' }}>Active</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '11.5px', color: '#1761fd' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '11.5px', color: '#0F172A' }}>
             MySQL Live Tables Connected
           </div>
         </div>
@@ -979,7 +979,7 @@ export default function UserManagementPage({ currentUser }) {
           type="button"
           onClick={() => setActiveSubTab('accounts')}
           style={{
-            background: activeSubTab === 'accounts' ? '#1761fd' : 'transparent',
+            background: activeSubTab === 'accounts' ? '#0F172A' : 'transparent',
             color: activeSubTab === 'accounts' ? '#ffffff' : '#64748b',
             border: 'none',
             borderRadius: '6px',
@@ -999,7 +999,7 @@ export default function UserManagementPage({ currentUser }) {
           type="button"
           onClick={() => setActiveSubTab('privileges')}
           style={{
-            background: activeSubTab === 'privileges' ? '#1761fd' : 'transparent',
+            background: activeSubTab === 'privileges' ? '#0F172A' : 'transparent',
             color: activeSubTab === 'privileges' ? '#ffffff' : '#64748b',
             border: 'none',
             borderRadius: '6px',
@@ -1019,7 +1019,7 @@ export default function UserManagementPage({ currentUser }) {
           type="button"
           onClick={() => setActiveSubTab('audit')}
           style={{
-            background: activeSubTab === 'audit' ? '#1761fd' : 'transparent',
+            background: activeSubTab === 'audit' ? '#0F172A' : 'transparent',
             color: activeSubTab === 'audit' ? '#ffffff' : '#64748b',
             border: 'none',
             borderRadius: '6px',
@@ -1120,9 +1120,9 @@ export default function UserManagementPage({ currentUser }) {
                             borderRadius: '4px',
                             fontSize: '11px',
                             fontWeight: 700,
-                            background: role === 'Developer' ? 'rgba(3, 216, 127, 0.12)' : 'rgba(23, 97, 253, 0.1)',
-                            color: role === 'Developer' ? '#03d87f' : '#1761fd',
-                            border: `1px solid ${role === 'Developer' ? 'rgba(3, 216, 127, 0.3)' : 'rgba(23, 97, 253, 0.3)'}`
+                            background: role === 'Developer' ? 'rgba(3, 216, 127, 0.12)' : 'rgba(15, 23, 42, 0.1)',
+                            color: role === 'Developer' ? '#03d87f' : '#0F172A',
+                            border: `1px solid ${role === 'Developer' ? 'rgba(3, 216, 127, 0.3)' : 'rgba(15, 23, 42, 0.3)'}`
                           }}>
                             {role}
                           </span>
@@ -1202,7 +1202,7 @@ export default function UserManagementPage({ currentUser }) {
         <div className="report-card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
             <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <ShieldCheck size={18} color="#1761fd" /> Role-Based Access Control (RBAC) Permissions Matrix
+              <ShieldCheck size={18} color="#0F172A" /> Role-Based Access Control (RBAC) Permissions Matrix
             </h4>
             <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748b' }}>
               Access privileges are isolated per role and customizable via Menu Permissions:
@@ -1216,7 +1216,7 @@ export default function UserManagementPage({ currentUser }) {
                   <th>Platform Capability / Module</th>
                   <th>Permission Scope</th>
                   <th style={{ textAlign: 'center', width: '120px', color: '#16a34a' }}>Developer</th>
-                  <th style={{ textAlign: 'center', width: '120px', color: '#1761fd' }}>Admin</th>
+                  <th style={{ textAlign: 'center', width: '120px', color: '#0F172A' }}>Admin</th>
                   <th style={{ textAlign: 'center', width: '120px' }}>User</th>
                   <th style={{ textAlign: 'center', width: '120px' }}>Customer</th>
                 </tr>
@@ -1273,7 +1273,7 @@ export default function UserManagementPage({ currentUser }) {
           <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div>
               <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Activity size={18} color="#1761fd" /> Live Team Activity Audit Trail & Change Log
+                <Activity size={18} color="#0F172A" /> Live Team Activity Audit Trail & Change Log
               </h4>
               <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
                 Total <strong>{auditTotal.toLocaleString()}</strong> immutable audit logs registered in MySQL database.
@@ -1371,10 +1371,10 @@ export default function UserManagementPage({ currentUser }) {
                 ) : (
                   auditLogs.map(log => {
                     const actColor = log.action === 'Insert' ? '#10b981' :
-                                     log.action === 'Update' ? '#1761fd' :
+                                     log.action === 'Update' ? '#0F172A' :
                                      log.action === 'Duplicate' ? '#9333ea' : '#ef4444';
                     const actBg = log.action === 'Insert' ? 'rgba(16, 185, 129, 0.12)' :
-                                  log.action === 'Update' ? 'rgba(23, 97, 253, 0.12)' :
+                                  log.action === 'Update' ? 'rgba(15, 23, 42, 0.12)' :
                                   log.action === 'Duplicate' ? 'rgba(147, 51, 234, 0.12)' : 'rgba(239, 68, 68, 0.12)';
                     return (
                       <tr key={log.id}>
@@ -1460,7 +1460,7 @@ export default function UserManagementPage({ currentUser }) {
               <div className="modal-header">
                 <div>
                   <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Code size={16} color="#1761fd" /> Audit Log #{selectedAuditPayload.id} Details
+                    <Code size={16} color="#0F172A" /> Audit Log #{selectedAuditPayload.id} Details
                   </h3>
                   <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
                     Action: <strong>{selectedAuditPayload.action}</strong> on <strong>{selectedAuditPayload.table_name}</strong> (Row #{selectedAuditPayload.row_id})

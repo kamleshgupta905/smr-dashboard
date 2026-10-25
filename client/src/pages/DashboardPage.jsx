@@ -100,8 +100,8 @@ export default function DashboardPage({
   const channels = useMemo(() => {
     if (!normalized.length) {
       return [
-        { name: 'Supplier Panels', pct: 42.5, count: 0, color: '#1761fd' },
-        { name: 'Direct Routing', pct: 26.3, count: 0, color: '#2a76f4' },
+        { name: 'Supplier Panels', pct: 42.5, count: 0, color: '#0F172A' },
+        { name: 'Direct Routing', pct: 26.3, count: 0, color: '#1E293B' },
         { name: 'Demand S2S', pct: 18.2, count: 0, color: '#10b981' },
         { name: 'Organic Traffic', pct: 8.0, count: 0, color: '#f59e0b' },
         { name: 'Sandbox Tests', pct: 5.0, count: 0, color: '#8b5cf6' },
@@ -118,7 +118,7 @@ export default function DashboardPage({
     }, { zamplia: 0, mx: 0, ipsos: 0, other: 0 });
 
     return [
-      { name: 'Zamplia Supply Engine', count: counts.zamplia, color: '#2563eb' },
+      { name: 'Zamplia Supply Engine', count: counts.zamplia, color: '#0F172A' },
       { name: 'Market Xcel Global', count: counts.mx, color: '#059669' },
       { name: 'Ipsos Reid Routing', count: counts.ipsos, color: '#6366f1' },
       { name: 'Direct & API Sources', count: counts.other, color: '#f59e0b' },
@@ -153,7 +153,7 @@ export default function DashboardPage({
         title: 'High Yield Allocation',
         text: `Top rate study: "${topCpiSurvey.survey_name || topCpiSurvey.name}" offering $${topCpiSurvey.cpi} CPI (${topCpiSurvey.ir}% IR · ${topCpiSurvey.loi}m LOI)`,
         time: `${topCpiSurvey.country || 'Global'} · ${topCpiSurvey.category || 'Consumer Research'}`,
-        color: '#2563eb'
+        color: '#0F172A'
       });
     }
 
@@ -263,7 +263,7 @@ export default function DashboardPage({
           </div>
 
           <ol className="breadcrumb" style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#64748b' }}>
-            <li><span className="breadcrumb-item-link" style={{ color: '#2563eb', fontWeight: 600 }}>VMH Enterprise</span></li>
+            <li><span className="breadcrumb-item-link" style={{ color: '#0F172A', fontWeight: 600 }}>VMH Enterprise</span></li>
             <li className="separator">/</li>
             <li>Marketplace Intelligence</li>
             <li className="separator">/</li>
@@ -288,7 +288,7 @@ export default function DashboardPage({
                 fontWeight: 600,
                 borderRadius: '8px',
                 background: loading ? '#f1f5f9' : '#F8FAFC',
-                color: loading ? '#94a3b8' : '#2563eb',
+                color: loading ? '#94a3b8' : '#0F172A',
                 border: '1px solid #E2E8F0',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s ease',
@@ -353,7 +353,7 @@ export default function DashboardPage({
       >
         <div style={{ background: '#ffffff', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Layers size={16} color="#2563eb" />
+            <Layers size={16} color="#0F172A" />
           </div>
           <div>
             <span style={{ fontSize: '11px', color: '#64748b', display: 'block', fontWeight: 500 }}>Active Inventory</span>
@@ -428,7 +428,7 @@ export default function DashboardPage({
                   padding: '2px 8px',
                   borderRadius: '6px',
                   background: '#F8FAFC',
-                  color: '#2563eb',
+                  color: '#0F172A',
                   border: '1px solid #E2E8F0',
                 }}
               >
@@ -447,7 +447,7 @@ export default function DashboardPage({
             </div>
 
             <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b', lineHeight: 1.5 }}>
-              Marketplace target across <strong style={{ color: '#2563eb' }}>{normalized.length}</strong> active studies
+              Marketplace target across <strong style={{ color: '#0F172A' }}>{normalized.length}</strong> active studies
               (Goal: <strong style={{ color: '#0f172a' }}>{totalRequired.toLocaleString()}</strong> total interviews)
             </p>
 
@@ -457,7 +457,7 @@ export default function DashboardPage({
                 style={{ 
                   width: `${quotaFillPct}%`, 
                   height: '100%', 
-                  background: 'linear-gradient(90deg, #2563eb, #3b82f6)', 
+                  background: 'linear-gradient(90deg, #0F172A, #0F172A)', 
                   borderRadius: '999px', 
                   transition: 'width 1s cubic-bezier(0.16, 1, 0.3, 1)' 
                 }} 
@@ -470,7 +470,7 @@ export default function DashboardPage({
                 Rate Matrix (CPI Distribution)
               </span>
               {hoveredCpiBucket !== null && (
-                <span style={{ fontSize: '11px', fontWeight: 600, color: '#2563eb' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: '#0F172A' }}>
                   {cpiBucketData[hoveredCpiBucket].label}: {cpiBucketData[hoveredCpiBucket].count} studies ({cpiBucketData[hoveredCpiBucket].pct}%)
                 </span>
               )}
@@ -488,8 +488,8 @@ export default function DashboardPage({
                     flex: 1,
                     height: `${b.heightPct}%`,
                     background: hoveredCpiBucket === i
-                      ? '#1d4ed8'
-                      : (b.isMax ? '#2563eb' : '#CBD5E1'),
+                      ? '#0F172A'
+                      : (b.isMax ? '#0F172A' : '#CBD5E1'),
                     borderRadius: '4px 4px 0 0',
                     transition: 'all 0.25s ease',
                     cursor: 'pointer',
@@ -502,7 +502,7 @@ export default function DashboardPage({
             {/* Bucket Scale Labels */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>
               {cpiBucketData.map((b, i) => (
-                <span key={i} style={{ color: hoveredCpiBucket === i ? '#2563eb' : '#94a3b8' }}>
+                <span key={i} style={{ color: hoveredCpiBucket === i ? '#0F172A' : '#94a3b8' }}>
                   {b.label}
                 </span>
               ))}
@@ -525,7 +525,7 @@ export default function DashboardPage({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Globe size={15} color="#2563eb" />
+                  <Globe size={15} color="#0F172A" />
                 </div>
                 <h4 className="card-title" style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
                   Surveys by Client Source
@@ -633,7 +633,7 @@ export default function DashboardPage({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Activity size={15} color="#2563eb" />
+                <Activity size={15} color="#0F172A" />
               </div>
               <h4 className="card-title" style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
                 Operational & Yield Intelligence

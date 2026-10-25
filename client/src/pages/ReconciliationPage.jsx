@@ -53,7 +53,7 @@ import ModalPortal from '../components/ModalPortal';
 const STATUS_STYLES = {
   Complete: { bg: 'rgba(3, 216, 127, 0.1)', color: '#03a36a', label: 'Verified Complete' },
   Reversed: { bg: 'rgba(245, 50, 92, 0.1)', color: '#e11d48', label: 'Reversed' },
-  Pending: { bg: 'rgba(23, 97, 253, 0.08)', color: '#1761fd', label: 'Pending' },
+  Pending: { bg: 'rgba(15, 23, 42, 0.08)', color: '#0F172A', label: 'Pending' },
   Terminates: { bg: 'rgba(245, 158, 11, 0.12)', color: '#d97706', label: 'Terminated' },
   'Quota Full': { bg: 'rgba(139, 92, 246, 0.1)', color: '#7c3aed', label: 'Quota Full' },
   'Quality Terminate': { bg: 'rgba(220, 38, 38, 0.1)', color: '#dc2626', label: 'Quality Terminated' },
@@ -697,7 +697,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
           icon={Users}
           label="Supply Vendor Payout"
           value={`$${kpis.totalPayout}`}
-          color="#1761fd"
+          color="#0F172A"
           sub="Payable to partner sample suppliers"
         />
         <SummaryCard
@@ -768,9 +768,9 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
               onClick={() => { setReportTab('archive'); setSearchTerm(''); }}
               style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 16px', fontSize: '12px', fontWeight: 700 }}
             >
-              <Database size={14} color="#1761fd" />
+              <Database size={14} color="#0F172A" />
               <span>5. Legacy Database Archive</span>
-              <span style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '4px', background: 'rgba(23, 97, 253, 0.15)', color: '#1761fd', fontWeight: 800 }}>
+              <span style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '4px', background: 'rgba(15, 23, 42, 0.15)', color: '#0F172A', fontWeight: 800 }}>
                 1,554
               </span>
             </button>
@@ -923,9 +923,9 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                             <td>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <div style={{ width: '45px', height: '4px', background: '#e2e8f0', borderRadius: '2px', overflow: 'hidden' }}>
-                                  <div style={{ width: `${cr}%`, height: '100%', background: '#1761fd' }} />
+                                  <div style={{ width: `${cr}%`, height: '100%', background: '#0F172A' }} />
                                 </div>
-                                <span style={{ fontWeight: 700, fontSize: '11.5px', color: '#1761fd' }}>{cr}%</span>
+                                <span style={{ fontWeight: 700, fontSize: '11.5px', color: '#0F172A' }}>{cr}%</span>
                               </div>
                             </td>
                             <td>
@@ -1175,7 +1175,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                         return (
                           <tr key={uid + idx}>
                             <td>
-                              <code style={{ fontSize: '11.5px', color: '#1761fd', fontWeight: 700 }}>
+                              <code style={{ fontSize: '11.5px', color: '#0F172A', fontWeight: 700 }}>
                                 {uid}
                               </code>
                             </td>
@@ -1218,7 +1218,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', padding: '16px 20px', background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
                   <div style={{ background: '#FFFFFF', padding: '12px 14px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
                     <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Legacy Projects</div>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#1761FD', marginTop: '2px' }}>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
                       {Number(legacyStats.totalProjects || 1554).toLocaleString()}
                     </div>
                     <div style={{ fontSize: '10.5px', color: '#10B981', marginTop: '2px' }}>● 100% Preserved Studies</div>
@@ -1360,13 +1360,13 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                                 </span>
                               </td>
                               <td>
-                                <strong style={{ color: '#1761FD', fontSize: '12.5px' }}>
+                                <strong style={{ color: '#0F172A', fontSize: '12.5px' }}>
                                   {comp.toLocaleString()}
                                 </strong>
                               </td>
                               <td style={{ minWidth: '120px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', marginBottom: '2px' }}>
-                                  <span style={{ fontWeight: 700, color: pct >= 100 ? '#DC2626' : '#1761FD' }}>{pct}%</span>
+                                  <span style={{ fontWeight: 700, color: pct >= 100 ? '#DC2626' : '#0F172A' }}>{pct}%</span>
                                   <span style={{ color: '#64748B' }}>{comp} / {limit}</span>
                                 </div>
                                 <div style={{ width: '100%', height: '4px', background: '#E2E8F0', borderRadius: '2px', overflow: 'hidden' }}>
@@ -1528,7 +1528,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                           return (
                             <tr key={pay.id || pay.payment_id}>
                               <td>
-                                <div style={{ fontWeight: 700, fontFamily: 'monospace', color: '#1761fd', fontSize: '12.5px' }}>
+                                <div style={{ fontWeight: 700, fontFamily: 'monospace', color: '#0F172A', fontSize: '12.5px' }}>
                                   {pay.payment_id}
                                 </div>
                                 <span style={{ fontSize: '10.5px', color: '#8997bd' }}>
@@ -1756,11 +1756,11 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                   width: '42px',
                   height: '42px',
                   borderRadius: '10px',
-                  background: 'rgba(23, 97, 253, 0.1)',
+                  background: 'rgba(15, 23, 42, 0.1)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#1761fd'
+                  color: '#0F172A'
                 }}>
                   <Users size={20} />
                 </div>
@@ -1775,8 +1775,8 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                       fontWeight: 700,
                       padding: '2px 8px',
                       borderRadius: '4px',
-                      background: 'rgba(23, 97, 253, 0.1)',
-                      color: '#1761fd'
+                      background: 'rgba(15, 23, 42, 0.1)',
+                      color: '#0F172A'
                     }}>
                       {selectedVendorDetail.vendor_id}
                     </span>
@@ -1875,7 +1875,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                   <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
                     Inbound Traffic
                   </div>
-                  <div style={{ fontSize: '22px', fontWeight: 800, color: '#1761fd', marginTop: '4px' }}>
+                  <div style={{ fontSize: '22px', fontWeight: 800, color: '#0F172A', marginTop: '4px' }}>
                     {Number(vendorDetailData?.vendor?.total_clicks ?? selectedVendorDetail.total_clicks).toLocaleString()}
                   </div>
                   <div style={{ fontSize: '11px', color: '#8997bd', marginTop: '2px' }}>
@@ -1942,7 +1942,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
               {/* Table of Assigned Studies */}
               {vendorDetailLoading ? (
                 <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
-                  <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 10px auto', display: 'block', color: '#1761fd' }} />
+                  <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 10px auto', display: 'block', color: '#0F172A' }} />
                   <div>Loading live study assignments from database...</div>
                 </div>
               ) : (
@@ -2004,7 +2004,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                                 <span style={{ color: '#475569', fontWeight: 600 }}>{s.client_name || 'Market Xcel'}</span>
                               </td>
                               <td>
-                                <strong style={{ color: '#1761fd' }}>${Number(s.cpi).toFixed(2)}</strong>
+                                <strong style={{ color: '#0F172A' }}>${Number(s.cpi).toFixed(2)}</strong>
                               </td>
                               <td>
                                 <span style={{ color: '#334155' }}>
@@ -2025,10 +2025,10 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                               <td style={{ minWidth: '110px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginBottom: '2px' }}>
                                   <span>{completes} {quota > 0 ? `/ ${quota}` : ''}</span>
-                                  <span style={{ fontWeight: 700, color: '#1761fd' }}>{fulfillment}%</span>
+                                  <span style={{ fontWeight: 700, color: '#0F172A' }}>{fulfillment}%</span>
                                 </div>
                                 <div style={{ width: '100%', height: '4px', background: '#e2e8f0', borderRadius: '2px', overflow: 'hidden' }}>
-                                  <div style={{ width: `${fulfillment}%`, height: '100%', background: fulfillment >= 80 ? '#16a34a' : '#1761fd' }} />
+                                  <div style={{ width: `${fulfillment}%`, height: '100%', background: fulfillment >= 80 ? '#16a34a' : '#0F172A' }} />
                                 </div>
                               </td>
                               <td>
@@ -2194,8 +2194,8 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                       fontWeight: 700,
                       padding: '2px 8px',
                       borderRadius: '4px',
-                      background: 'rgba(23, 97, 253, 0.1)',
-                      color: '#1761fd'
+                      background: 'rgba(15, 23, 42, 0.1)',
+                      color: '#0F172A'
                     }}>
                       PID: {selectedProjectDetail.project_id}
                     </span>
@@ -2311,10 +2311,10 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
-                          <Target size={14} color="#1761FD" />
+                          <Target size={14} color="#0F172A" />
                           <span>Dynamic Quota Pacing Meter</span>
                         </div>
-                        <div style={{ fontSize: '12px', fontWeight: 800, color: pacingPercent >= 100 ? '#10B981' : '#1761FD' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 800, color: pacingPercent >= 100 ? '#10B981' : '#0F172A' }}>
                           {pacingPercent}% Full
                         </div>
                       </div>
@@ -2333,7 +2333,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                           background: pacingPercent >= 100 
                             ? 'linear-gradient(90deg, #10B981 0%, #059669 100%)' 
                             : pacingPercent >= 70 
-                              ? 'linear-gradient(90deg, #1761FD 0%, #0F172A 100%)' 
+                              ? 'linear-gradient(90deg, #0F172A 0%, #0F172A 100%)' 
                               : 'linear-gradient(90deg, #F59E0B 0%, #EA580C 100%)',
                           borderRadius: '5px',
                           transition: 'width 0.4s ease'
@@ -2346,7 +2346,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                           Status: {pacingPercent >= 100 ? (
                             <strong style={{ color: '#10B981' }}>🎯 Target Completed</strong>
                           ) : pacingPercent >= 75 ? (
-                            <strong style={{ color: '#1761FD' }}>🚀 Rapid Pacing</strong>
+                            <strong style={{ color: '#0F172A' }}>🚀 Rapid Pacing</strong>
                           ) : (
                             <strong style={{ color: '#D97706' }}>⚡ Active Pacing</strong>
                           )}
@@ -2391,7 +2391,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
               {/* Table of Assigned Vendors */}
               {projectDetailLoading ? (
                 <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
-                  <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 10px auto', display: 'block', color: '#1761fd' }} />
+                  <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 10px auto', display: 'block', color: '#0F172A' }} />
                   <div>Loading assigned vendors from database...</div>
                 </div>
               ) : (
@@ -2448,7 +2448,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                                 </span>
                               </td>
                               <td>
-                                <strong style={{ color: '#1761fd' }}>${Number(v.cpi).toFixed(2)}</strong>
+                                <strong style={{ color: '#0F172A' }}>${Number(v.cpi).toFixed(2)}</strong>
                               </td>
                               <td>
                                 <span style={{ color: '#334155' }}>
@@ -2462,14 +2462,14 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                                 </strong>
                               </td>
                               <td><span style={{ color: '#d97706' }}>{v.terminates_count.toLocaleString()}</span></td>
-                              <td><strong style={{ color: '#1761fd' }}>{v.conversion_rate}%</strong></td>
+                              <td><strong style={{ color: '#0F172A' }}>{v.conversion_rate}%</strong></td>
                               <td style={{ minWidth: '100px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginBottom: '2px' }}>
                                   <span>{completes} {quota > 0 ? `/ ${quota}` : ''}</span>
-                                  <span style={{ fontWeight: 700, color: '#1761fd' }}>{fulfillment}%</span>
+                                  <span style={{ fontWeight: 700, color: '#0F172A' }}>{fulfillment}%</span>
                                 </div>
                                 <div style={{ width: '100%', height: '4px', background: '#e2e8f0', borderRadius: '2px', overflow: 'hidden' }}>
-                                  <div style={{ width: `${fulfillment}%`, height: '100%', background: fulfillment >= 80 ? '#16a34a' : '#1761fd' }} />
+                                  <div style={{ width: `${fulfillment}%`, height: '100%', background: fulfillment >= 80 ? '#16a34a' : '#0F172A' }} />
                                 </div>
                               </td>
                               <td>

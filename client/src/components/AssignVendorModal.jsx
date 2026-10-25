@@ -932,7 +932,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                     </div>
 
                     <p style={{ margin: '8px 0 0 0', fontSize: '11.5px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <Info size={13} color="#3B82F6" style={{ flexShrink: 0 }} />
+                      <Info size={13} color="#0F172A" style={{ flexShrink: 0 }} />
                       <span>Vendor must dynamically replace <code>[RESPONDENT_ID]</code> with their unique respondent ID.</span>
                     </p>
                   </div>
@@ -943,14 +943,14 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                     padding: '14px 16px', 
                     borderRadius: '10px', 
                     border: '1px solid #CBD5E1',
-                    boxShadow: '0 1px 2px rgba(59,130,246,0.05)'
+                    boxShadow: '0 1px 2px rgba(15, 23, 42,0.05)'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-                      <label style={{ fontSize: '12.5px', fontWeight: 800, color: '#1E40AF', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <label style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ background: '#0F172A', color: '#FFFFFF', width: '18px', height: '18px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800 }}>2</span>
                         <span>Test Survey Link (Safe Sandbox):</span>
                       </label>
-                      <span style={{ fontSize: '11px', color: '#1D4ED8', background: '#E2E8F0', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                      <span style={{ fontSize: '11px', color: '#0F172A', background: '#E2E8F0', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
                         🛡️ Safe Test • No Quota Used
                       </span>
                     </div>
@@ -967,7 +967,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                           fontSize: '11.5px',
                           padding: '8px 12px',
                           borderRadius: '6px',
-                          border: '1px solid #93C5FD',
+                          border: '1px solid #CBD5E1',
                           background: '#FFFFFF',
                           color: '#1E3A8A'
                         }}
@@ -1012,7 +1012,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                       </button>
                     </div>
 
-                    <p style={{ margin: '8px 0 0 0', fontSize: '11.5px', color: '#1E40AF', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <p style={{ margin: '8px 0 0 0', fontSize: '11.5px', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '5px' }}>
                       <ShieldCheck size={13} style={{ flexShrink: 0 }} />
                       <span>Safe sandbox link — tests routing, IP fraud gate & pre-screener qualification without consuming study quota.</span>
                     </p>
@@ -1304,7 +1304,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                           <div>• Status Code: <strong>{simResult.statusRequested || 'N/A'} ({simResult.statusLabel})</strong></div>
                         )}
                         {simResult.targetUrl && (
-                          <div style={{ wordBreak: 'break-all' }}>• Redirect Target: <strong style={{ color: '#93C5FD' }}>{simResult.targetUrl}</strong></div>
+                          <div style={{ wordBreak: 'break-all' }}>• Redirect Target: <strong style={{ color: '#CBD5E1' }}>{simResult.targetUrl}</strong></div>
                         )}
                         {simResult.generatedSha3Hash && (
                           <div>• SHA3-256 Hash: <strong style={{ color: '#4ADE80' }}>{String(simResult.generatedSha3Hash).slice(0, 24)}...</strong></div>

@@ -151,7 +151,7 @@ export default function ReferenceDataPage() {
                 color: tab.id === 'blocked-ips' && active ? '#f5325c' : undefined
               }}
             >
-              <Icon size={13} color={active ? (tab.id === 'blocked-ips' ? '#f5325c' : '#1761fd') : '#8997bd'} />
+              <Icon size={13} color={active ? (tab.id === 'blocked-ips' ? '#f5325c' : '#0F172A') : '#8997bd'} />
               {tab.label}
             </button>
           );
@@ -287,7 +287,7 @@ export default function ReferenceDataPage() {
                             fontSize: '11px',
                             fontWeight: 700,
                             background: item.control_type === '1' ? '#DCFCE7' : item.control_type === '4' ? '#F3E8FF' : '#F8FAFC',
-                            color: item.control_type === '1' ? '#15803D' : item.control_type === '4' ? '#7E22CE' : '#1D4ED8',
+                            color: item.control_type === '1' ? '#15803D' : item.control_type === '4' ? '#7E22CE' : '#0F172A',
                           }}>
                             {item.control_type_label || (item.control_type === '1' ? 'Single Punch' : item.control_type === '4' ? 'Multi Punch' : 'Range')} (Code {item.control_type})
                           </span>
@@ -314,7 +314,7 @@ export default function ReferenceDataPage() {
                         <td style={{ fontWeight: 800, color: '#0F172A' }}>{item.country_id}</td>
                         <td style={{ fontWeight: 700, color: '#0F172A' }}>{item.name}</td>
                         <td><span className="badge badge-info">{item.short_name}</span></td>
-                        <td><strong style={{ fontFamily: 'monospace', color: '#2563EB' }}>{item.iso_code}</strong></td>
+                        <td><strong style={{ fontFamily: 'monospace', color: '#0F172A' }}>{item.iso_code}</strong></td>
                       </>
                     )}
 
@@ -332,7 +332,7 @@ export default function ReferenceDataPage() {
                         <td><span className="badge badge-info">{item.Code}</span></td>
                         <td style={{ fontWeight: 700, color: '#0F172A' }}>{item.Name}</td>
                         <td>
-                          <span style={{ background: '#F8FAFC', color: '#1D4ED8', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                          <span style={{ background: '#F8FAFC', color: '#0F172A', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
                             {item.QuestionType}
                           </span>
                         </td>

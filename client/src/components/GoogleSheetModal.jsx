@@ -262,7 +262,7 @@ function ensureAllSheetsExist(ss) {
     'Users': ['User ID', 'Full Name', 'Username', 'Email', 'Mobile No', 'Role', 'Status', 'Updated At'],
     'ActivityLogs': ['Timestamp', 'Event Type', 'Project / Survey ID', 'Vendor Code', 'Outcome Status', 'Details / Link']
   };
-  var colors = { 'Admins': '#0C213A', 'Clients': '#1E3A8A', 'Vendors': '#065F46', 'Projects': '#1E40AF', 'Users': '#5B21B6', 'ActivityLogs': '#374151' };
+  var colors = { 'Admins': '#0C213A', 'Clients': '#1E3A8A', 'Vendors': '#065F46', 'Projects': '#0F172A', 'Users': '#5B21B6', 'ActivityLogs': '#374151' };
 
   for (var name in sheetDefs) {
     var sheet = ss.getSheetByName(name);
@@ -608,9 +608,9 @@ export default function GoogleSheetModal({ isOpen, onClose }) {
                 }}
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Code size={15} color="#2563EB" /> 5-Step Secure Google Apps Script Setup Guide (Code.gs)
+                  <Code size={15} color="#0F172A" /> 5-Step Secure Google Apps Script Setup Guide (Code.gs)
                 </span>
-                <span style={{ fontSize: '11px', color: '#2563EB' }}>
+                <span style={{ fontSize: '11px', color: '#0F172A' }}>
                   {showCode ? 'Hide Code ▲' : 'View & Copy Code ▼'}
                 </span>
               </div>
@@ -625,12 +625,12 @@ export default function GoogleSheetModal({ isOpen, onClose }) {
                     padding: '8px 12px',
                     marginBottom: '12px',
                     fontSize: '11.5px',
-                    color: '#1E40AF',
+                    color: '#0F172A',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px'
                   }}>
-                    <ShieldCheck size={16} color="#2563EB" />
+                    <ShieldCheck size={16} color="#0F172A" />
                     <span><strong>100% Secure Backend:</strong> API keys are handled strictly inside Google Apps Script (Script Properties) and never exposed to the frontend/browser.</span>
                   </div>
 

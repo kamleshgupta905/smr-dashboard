@@ -294,7 +294,7 @@ export default function SurveyCallbackPage() {
                 badge.style.fontSize = '18px';
                 badge.style.color = '#1e3a8a';
                 badge.style.letterSpacing = '0.04em';
-                badge.innerHTML = `<span style="width:24px;height:24px;border-radius:50%;border:3px solid #2563eb;display:inline-block"></span> VMH GROUP'S`;
+                badge.innerHTML = `<span style="width:24px;height:24px;border-radius:50%;border:3px solid #0F172A;display:inline-block"></span> VMH GROUP'S`;
                 parent.appendChild(badge);
               }
             }}
@@ -390,7 +390,7 @@ export default function SurveyCallbackPage() {
             gap: '12px',
             flexWrap: 'wrap'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#1E40AF', fontWeight: 600 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#0F172A', fontWeight: 600 }}>
               <RefreshCw size={16} style={{ animation: !isPaused ? 'prescreenerSpin 2s linear infinite' : 'none' }} />
               <span>
                 {isPaused 
@@ -424,7 +424,7 @@ export default function SurveyCallbackPage() {
                 style={{
                   padding: '6px 14px',
                   borderRadius: '6px',
-                  backgroundColor: '#2563EB',
+                  backgroundColor: '#0F172A',
                   color: '#FFFFFF',
                   fontSize: '12px',
                   fontWeight: 600,
