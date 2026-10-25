@@ -4043,6 +4043,8 @@ if ($normalizedRoute === 'leads' || str_starts_with($normalizedRoute, 'leads') |
                     $where[] = "(l.status = 'Terminates' OR l.status = 'Terminated' OR l.status = 'Screenout')";
                 } else if ($statusFilter === 'Complete' || $statusFilter === 'Completes' || $statusFilter === 'completes') {
                     $where[] = "(l.status = 'Complete' OR l.status = 'Completes')";
+                } else if ($statusFilter === 'Quota Full' || $statusFilter === 'quotafull' || $statusFilter === 'overquota') {
+                    $where[] = "(l.status = 'Quota Full' OR l.status = 'Overquota')";
                 } else {
                     $where[] = "l.status = ?";
                     $params[] = $statusFilter;
@@ -4050,16 +4052,17 @@ if ($normalizedRoute === 'leads' || str_starts_with($normalizedRoute, 'leads') |
             }
 
             if ($vendorIdFilter !== '') {
-                $where[] = "(l.vendor_id = ? OR l.vendor_id COLLATE utf8mb4_general_ci = ? OR vl.vendor_id COLLATE utf8mb4_general_ci = ? OR v.vendor_id = ?)";
+                // vendor_id in leads links to vendor.id (integer)
+                // vendorIdFilter can be vendor code (e.g. VI010322026, VND-DYN-01), integer ID (e.g. 2244), or vendor name
+                $where[] = "(v.vendor_id = ? OR l.vendor_id = ? OR v.name = ? OR v.name LIKE ?)";
                 $params[] = $vendorIdFilter;
+                $params[] = is_numeric($vendorIdFilter) ? (int)$vendorIdFilter : -1;
                 $params[] = $vendorIdFilter;
-                $params[] = $vendorIdFilter;
-                $params[] = $vendorIdFilter;
+                $params[] = "%{$vendorIdFilter}%";
             }
 
             if ($search !== '') {
-                $where[] = "(l.username LIKE ? OR l.project_id LIKE ? OR l.ip_address LIKE ? OR l.vendor_id LIKE ?)";
-                $params[] = "%{$search}%";
+                $where[] = "(l.uid LIKE ? OR l.project_id LIKE ? OR v.name LIKE ?)";
                 $params[] = "%{$search}%";
                 $params[] = "%{$search}%";
                 $params[] = "%{$search}%";
@@ -4067,7 +4070,13 @@ if ($normalizedRoute === 'leads' || str_starts_with($normalizedRoute, 'leads') |
 
             $whereSql = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
 
-            $countStmt = $db->prepare("SELECT COUNT(*) FROM leads l {$whereSql}");
+            $fromClause = "
+                FROM leads l
+                LEFT JOIN vendor v ON v.id = l.vendor_id
+                LEFT JOIN projects p ON p.id = l.project_id
+            ";
+
+            $countStmt = $db->prepare("SELECT COUNT(*) {$fromClause} {$whereSql}");
             $countStmt->execute($params);
             $totalCount = (int)$countStmt->fetchColumn();
 
@@ -4075,17 +4084,16 @@ if ($normalizedRoute === 'leads' || str_starts_with($normalizedRoute, 'leads') |
                 SELECT 
                     l.id,
                     l.project_id,
-                    l.vendor_id,
-                    COALESCE(vl.name, v.name, CONCAT('Vendor #', l.vendor_id)) as vendor_name,
+                    COALESCE(p.name, CONCAT('Study #', l.project_id)) as project_name,
+                    l.vendor_id as vendor_pk,
+                    COALESCE(v.vendor_id, CONCAT('VND-', l.vendor_id)) as vendor_code,
+                    COALESCE(v.name, CONCAT('Vendor #', l.vendor_id)) as vendor_name,
                     l.client_id,
-                    l.username as uid,
+                    l.uid,
                     l.status,
-                    l.ip_address,
-                    l.created_at,
-                    l.updated_at
-                FROM leads l
-                LEFT JOIN vendorlists vl ON vl.id = l.vendor_id OR vl.vendor_id COLLATE utf8mb4_general_ci = l.vendor_id COLLATE utf8mb4_general_ci
-                LEFT JOIN vendor v ON v.id = l.vendor_id OR v.vendor_id = l.vendor_id
+                    l.user_info,
+                    l.date as created_at
+                {$fromClause}
                 {$whereSql}
                 ORDER BY l.id DESC
                 LIMIT {$limit} OFFSET {$offset}
@@ -4093,6 +4101,22 @@ if ($normalizedRoute === 'leads' || str_starts_with($normalizedRoute, 'leads') |
             $stmt = $db->prepare($query);
             $stmt->execute($params);
             $leads = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($leads as &$lead) {
+                $ip = '—';
+                $country = 'Global';
+                if (!empty($lead['user_info'])) {
+                    $info = json_decode($lead['user_info'], true);
+                    if (is_array($info)) {
+                        $ip = $info['ip_address'] ?? ($info['ip'] ?? '—');
+                        $country = $info['country'] ?? ($info['region'] ?? 'Global');
+                    }
+                }
+                $lead['ip_address'] = $ip;
+                $lead['country'] = $country;
+                $lead['reason'] = ($lead['status'] === 'Terminates') ? 'Demographic screener / quota logic' : (($lead['status'] === 'Complete') ? 'Client verified complete' : 'Inbound entry logged');
+                unset($lead['user_info']);
+            }
 
             echo json_encode([
                 'success' => true,

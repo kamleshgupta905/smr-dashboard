@@ -842,146 +842,275 @@ function CountriesSelector({ selected = [], onChange, countries = [] }) {
                   </button>
                 </div>
 
-                {/* Search & Export Buttons */}
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <div style={{ position: 'relative' }}>
-                    <Search size={14} color="#94A3B8" style={{ position: 'absolute', left: '10px', top: '9px' }} />
-                    <input
-                      type="text"
-                      className="input-control"
-                      placeholder="Filter by UID, Project ID, or IP..."
-                      value={trafficModalSearch}
-                      onChange={e => setTrafficModalSearch(e.target.value)}
-                      style={{ paddingLeft: '32px', fontSize: '12px', height: '32px', width: '220px', borderRadius: '6px', border: '1px solid #CBD5E1' }}
-                    />
+                {/* Sub-view Switcher & Search Toolbar */}
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  {/* View Mode Toggle (Respondents vs Project Allocations) */}
+                  <div style={{ display: 'flex', gap: '4px', background: '#F1F5F9', padding: '3px', borderRadius: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setTrafficModalData(prev => ({ ...prev, viewMode: 'respondents' }))}
+                      style={{
+                        padding: '5px 12px',
+                        borderRadius: '4px',
+                        border: 'none',
+                        background: trafficModalData.viewMode !== 'projects' ? '#FFFFFF' : 'transparent',
+                        color: trafficModalData.viewMode !== 'projects' ? '#0F172A' : '#64748B',
+                        fontWeight: 700,
+                        fontSize: '11.5px',
+                        cursor: 'pointer',
+                        boxShadow: trafficModalData.viewMode !== 'projects' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none'
+                      }}
+                    >
+                      Respondent Stream ({trafficModalData.records?.length || 0})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTrafficModalData(prev => ({ ...prev, viewMode: 'projects' }))}
+                      style={{
+                        padding: '5px 12px',
+                        borderRadius: '4px',
+                        border: 'none',
+                        background: trafficModalData.viewMode === 'projects' ? '#FFFFFF' : 'transparent',
+                        color: trafficModalData.viewMode === 'projects' ? '#0F172A' : '#64748B',
+                        fontWeight: 700,
+                        fontSize: '11.5px',
+                        cursor: 'pointer',
+                        boxShadow: trafficModalData.viewMode === 'projects' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none'
+                      }}
+                    >
+                      Project Allocations ({trafficModalData.projects?.length || 0})
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleExportTrafficCsv}
-                    style={{
-                      background: '#FFFFFF',
-                      border: '1px solid #CBD5E1',
-                      color: '#0F172A',
-                      borderRadius: '6px',
-                      padding: '6px 12px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px'
-                    }}
-                  >
-                    <Download size={13} />
-                    <span>Export CSV</span>
-                  </button>
+
+                  {/* Search & Export Buttons */}
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginLeft: 'auto' }}>
+                    <div style={{ position: 'relative' }}>
+                      <Search size={14} color="#94A3B8" style={{ position: 'absolute', left: '10px', top: '9px' }} />
+                      <input
+                        type="text"
+                        className="input-control"
+                        placeholder="Filter records..."
+                        value={trafficModalSearch}
+                        onChange={e => setTrafficModalSearch(e.target.value)}
+                        style={{ paddingLeft: '32px', fontSize: '12px', height: '32px', width: '200px', borderRadius: '6px', border: '1px solid #CBD5E1' }}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleExportTrafficCsv}
+                      style={{
+                        background: '#FFFFFF',
+                        border: '1px solid #CBD5E1',
+                        color: '#0F172A',
+                        borderRadius: '6px',
+                        padding: '6px 12px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}
+                    >
+                      <Download size={13} />
+                      <span>Export CSV</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
               {/* Data Table */}
-              <div style={{ border: '1px solid #E2E8F0', borderRadius: '8px', overflow: 'hidden' }}>
+              <div className="tab-animated" style={{ border: '1px solid #E2E8F0', borderRadius: '8px', overflow: 'hidden' }}>
                 <div style={{ maxHeight: '420px', overflowY: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
-                    <thead style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 10 }}>
-                      <tr>
-                        <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700, width: '45px' }}>#</th>
-                        <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700 }}>Date & Time</th>
-                        <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700 }}>Respondent UID</th>
-                        <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700 }}>Study / Project ID</th>
-                        <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700 }}>Status</th>
-                        <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700 }}>IP Address</th>
-                        <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700 }}>Reason / Disposition</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {trafficModalData.loading ? (
+                  {trafficModalData.viewMode === 'projects' ? (
+                    /* Project-Level Allocation Breakdown Table */
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
+                      <thead style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 10 }}>
                         <tr>
-                          <td colSpan="7" style={{ padding: '40px', textAlign: 'center', color: '#64748B' }}>
-                            <RefreshCw size={24} className="spin" style={{ margin: '0 auto 8px auto', display: 'block', color: '#0F172A' }} />
-                            Loading traffic records...
-                          </td>
+                          <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700, width: '45px' }}>#</th>
+                          <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700 }}>Project ID</th>
+                          <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700 }}>Study / Project Name</th>
+                          <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700, textAlign: 'right' }}>Clicks</th>
+                          <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700, textAlign: 'right' }}>Completes</th>
+                          <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700, textAlign: 'right' }}>Terminates</th>
+                          <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700, textAlign: 'right' }}>Vendor CPI</th>
+                          <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700, textAlign: 'right' }}>Line Total</th>
                         </tr>
-                      ) : (() => {
-                        const filtered = (trafficModalData.records || []).filter(r => {
-                          if (!trafficModalSearch) return true;
-                          const q = trafficModalSearch.toLowerCase();
-                          return (
-                            (r.uid || '').toLowerCase().includes(q) ||
-                            (r.project_id || '').toLowerCase().includes(q) ||
-                            (r.ip_address || '').toLowerCase().includes(q) ||
-                            (r.reason || '').toLowerCase().includes(q) ||
-                            (r.created_at || '').toLowerCase().includes(q)
-                          );
-                        });
-
-                        if (filtered.length === 0) {
-                          return (
-                            <tr>
-                              <td colSpan="7" style={{ padding: '36px', textAlign: 'center', color: '#64748B' }}>
-                                No records found matching current filter.
+                      </thead>
+                      <tbody>
+                        {trafficModalData.loading ? (
+                          [1, 2, 3, 4, 5].map(i => (
+                            <tr key={i}>
+                              <td colSpan="8" style={{ padding: '12px' }}>
+                                <div className="skeleton-shimmer" style={{ height: '22px', borderRadius: '4px' }} />
                               </td>
                             </tr>
-                          );
-                        }
+                          ))
+                        ) : (() => {
+                          const pList = (trafficModalData.projects || []).filter(p => {
+                            if (!trafficModalSearch) return true;
+                            const q = trafficModalSearch.toLowerCase();
+                            return (
+                              String(p.project_id || '').toLowerCase().includes(q) ||
+                              String(p.project_name || '').toLowerCase().includes(q)
+                            );
+                          });
 
-                        return filtered.map((r, idx) => {
-                          const isTerm = (r.status || '').toLowerCase().includes('term') || (r.status || '').toLowerCase().includes('screen');
-                          const isComp = (r.status || '').toLowerCase().includes('comp');
-                          return (
-                            <tr 
-                              key={r.id || idx} 
-                              style={{ 
-                                borderBottom: '1px solid #F1F5F9',
-                                background: idx % 2 === 0 ? '#FFFFFF' : '#FAFAFA'
-                              }}
-                            >
-                              <td style={{ padding: '9px 12px', color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>
-                                {idx + 1}
-                              </td>
-                              <td style={{ padding: '9px 12px', color: '#334155', whiteSpace: 'nowrap', fontSize: '11.5px' }}>
-                                {r.created_at || '—'}
-                              </td>
-                              <td style={{ padding: '9px 12px', fontWeight: 600, color: '#0F172A', fontFamily: 'monospace', fontSize: '11.5px' }}>
-                                {r.uid}
-                              </td>
-                              <td style={{ padding: '9px 12px', color: '#1E293B', fontWeight: 600 }}>
-                                {r.project_id}
-                              </td>
-                              <td style={{ padding: '9px 12px' }}>
-                                <span style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  padding: '2px 8px',
-                                  borderRadius: '4px',
-                                  fontSize: '11px',
-                                  fontWeight: 700,
-                                  background: isTerm ? '#FEF2F2' : (isComp ? '#ECFDF5' : '#F1F5F9'),
-                                  color: isTerm ? '#B91C1C' : (isComp ? '#15803D' : '#0F172A'),
-                                  border: `1px solid ${isTerm ? '#FECACA' : (isComp ? '#A7F3D0' : '#CBD5E1')}`
-                                }}>
-                                  {r.status}
-                                </span>
-                              </td>
-                              <td style={{ padding: '9px 12px', fontFamily: 'monospace', color: '#475569', fontSize: '11.5px' }}>
-                                {r.ip_address || '—'}
-                              </td>
-                              <td style={{ padding: '9px 12px', color: '#475569', fontSize: '11.5px' }}>
-                                {r.reason || '—'}
+                          if (pList.length === 0) {
+                            return (
+                              <tr>
+                                <td colSpan="8" style={{ padding: '36px', textAlign: 'center', color: '#64748B' }}>
+                                  No project allocation sources found matching filter.
+                                </td>
+                              </tr>
+                            );
+                          }
+
+                          return pList.map((p, idx) => (
+                            <tr key={p.project_id || idx} style={{ borderBottom: '1px solid #F1F5F9', background: idx % 2 === 0 ? '#FFFFFF' : '#FAFAFA' }}>
+                              <td style={{ padding: '9px 12px', color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>{idx + 1}</td>
+                              <td style={{ padding: '9px 12px', fontWeight: 700, color: '#0F172A', fontFamily: 'monospace' }}>#{p.project_id}</td>
+                              <td style={{ padding: '9px 12px', fontWeight: 600, color: '#1E293B' }}>{p.project_name || 'Study #' + p.project_id}</td>
+                              <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 600, color: '#0F172A' }}>{Number(p.clicks_count || 0)}</td>
+                              <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#15803D' }}>{Number(p.complete_count || 0)}</td>
+                              <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#B91C1C' }}>{Number(p.terminates_count || 0)}</td>
+                              <td style={{ padding: '9px 12px', textAlign: 'right', color: '#475569', fontVariantNumeric: 'tabular-nums' }}>${Number(p.agreed_cpi || 0).toFixed(2)}</td>
+                              <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#0F172A' }}>${Number(p.line_total || (Number(p.complete_count || 0) * Number(p.agreed_cpi || 0))).toFixed(2)}</td>
+                            </tr>
+                          ));
+                        })()}
+                      </tbody>
+                    </table>
+                  ) : (
+                    /* Respondent-Level Audit Stream Table */
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
+                      <thead style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 10 }}>
+                        <tr>
+                          <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700, width: '45px' }}>#</th>
+                          <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700 }}>Date & Time</th>
+                          <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700 }}>Respondent UID</th>
+                          <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700 }}>Study / Project ID</th>
+                          <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700 }}>Status</th>
+                          <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700 }}>IP Address & Geo</th>
+                          <th style={{ padding: '10px 12px', color: '#475569', fontWeight: 700 }}>Reason / Disposition</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {trafficModalData.loading ? (
+                          [1, 2, 3, 4, 5].map(i => (
+                            <tr key={i}>
+                              <td colSpan="7" style={{ padding: '12px' }}>
+                                <div className="skeleton-shimmer" style={{ height: '22px', borderRadius: '4px' }} />
                               </td>
                             </tr>
-                          );
-                        });
-                      })()}
-                    </tbody>
-                  </table>
+                          ))
+                        ) : (() => {
+                          const filtered = (trafficModalData.records || []).filter(r => {
+                            if (!trafficModalSearch) return true;
+                            const q = trafficModalSearch.toLowerCase();
+                            return (
+                              (r.uid || '').toLowerCase().includes(q) ||
+                              (r.project_id || '').toLowerCase().includes(q) ||
+                              (r.ip_address || '').toLowerCase().includes(q) ||
+                              (r.country || '').toLowerCase().includes(q) ||
+                              (r.reason || '').toLowerCase().includes(q) ||
+                              (r.created_at || '').toLowerCase().includes(q)
+                            );
+                          });
+
+                          if (filtered.length === 0) {
+                            return (
+                              <tr>
+                                <td colSpan="7" style={{ padding: '36px', textAlign: 'center', color: '#64748B' }}>
+                                  <p style={{ margin: '0 0 10px 0', fontSize: '13px' }}>
+                                    No individual respondent stream logs found for this filter.
+                                  </p>
+                                  {trafficModalData.projects?.length > 0 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setTrafficModalData(prev => ({ ...prev, viewMode: 'projects' }))}
+                                      style={{
+                                        background: '#0F172A',
+                                        color: '#FFFFFF',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        padding: '6px 14px',
+                                        fontSize: '12px',
+                                        fontWeight: 600,
+                                        cursor: 'pointer'
+                                      }}
+                                    >
+                                      View {trafficModalData.projects.length} Project Allocation Sources
+                                    </button>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          }
+
+                          return filtered.map((r, idx) => {
+                            const isTerm = (r.status || '').toLowerCase().includes('term') || (r.status || '').toLowerCase().includes('screen');
+                            const isComp = (r.status || '').toLowerCase().includes('comp');
+                            return (
+                              <tr 
+                                key={r.id || idx} 
+                                style={{ 
+                                  borderBottom: '1px solid #F1F5F9',
+                                  background: idx % 2 === 0 ? '#FFFFFF' : '#FAFAFA'
+                                }}
+                              >
+                                <td style={{ padding: '9px 12px', color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>
+                                  {idx + 1}
+                                </td>
+                                <td style={{ padding: '9px 12px', color: '#334155', whiteSpace: 'nowrap', fontSize: '11.5px' }}>
+                                  {r.created_at || '—'}
+                                </td>
+                                <td style={{ padding: '9px 12px', fontWeight: 600, color: '#0F172A', fontFamily: 'monospace', fontSize: '11.5px' }}>
+                                  {r.uid}
+                                </td>
+                                <td style={{ padding: '9px 12px', color: '#1E293B', fontWeight: 600 }}>
+                                  {r.project_id}
+                                </td>
+                                <td style={{ padding: '9px 12px' }}>
+                                  <span style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    padding: '2px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    background: isTerm ? '#FEF2F2' : (isComp ? '#ECFDF5' : '#F1F5F9'),
+                                    color: isTerm ? '#B91C1C' : (isComp ? '#15803D' : '#0F172A'),
+                                    border: `1px solid ${isTerm ? '#FECACA' : (isComp ? '#A7F3D0' : '#CBD5E1')}`
+                                  }}>
+                                    {r.status}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '9px 12px', fontFamily: 'monospace', color: '#475569', fontSize: '11.5px' }}>
+                                  {r.ip_address || '—'} {r.country && r.country !== 'Global' ? `(${r.country})` : ''}
+                                </td>
+                                <td style={{ padding: '9px 12px', color: '#475569', fontSize: '11.5px' }}>
+                                  {r.reason || '—'}
+                                </td>
+                              </tr>
+                            );
+                          });
+                        })()}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
               </div>
 
               {/* Modal Footer */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #F1F5F9' }}>
                 <span style={{ fontSize: '12px', color: '#64748B' }}>
-                  Showing <strong>{trafficModalData.records?.length || 0}</strong> real database records for {trafficModalData.vendor?.name}
+                  {trafficModalData.viewMode === 'projects' ? (
+                    <>Showing <strong>{trafficModalData.projects?.length || 0}</strong> study allocation sources for {trafficModalData.vendor?.name}</>
+                  ) : (
+                    <>Showing <strong>{trafficModalData.records?.length || 0}</strong> real database respondent logs for {trafficModalData.vendor?.name}</>
+                  )}
                 </span>
                 <button
                   type="button"
@@ -2018,6 +2147,8 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
         type,
         records: allData[type] || termRecords,
         allTypesData: allData,
+        projects: projects,
+        viewMode: (allData[type]?.length > 0 ? 'respondents' : (projects.length > 0 ? 'projects' : 'respondents')),
         loading: false
       });
     } catch (err) {

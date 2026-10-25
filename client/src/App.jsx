@@ -380,6 +380,7 @@ export default function App() {
       {/* VMH Main Content Area */}
       <div className={`page-content-tab ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <main className="page-body">
+          <div key={activeTab} className="tab-animated">
           {activeTab === 'dashboard' && (
             <DashboardPage 
               stats={computedStats}
@@ -425,6 +426,8 @@ export default function App() {
           {activeTab === 'leads' && <LeadsPage currentUser={currentUser} showToast={showToast} />}
           {activeTab === 'reference' && <ReferenceDataPage />}
           
+
+          </div>
 
           {/* VMH Enterprise Footer */}
           <footer style={{
