@@ -4028,23 +4028,68 @@ if ($normalizedRoute === 'leads' || str_starts_with($normalizedRoute, 'leads') |
                 exit;
             }
 
-            // List leads with filters
+// List leads with filters
             $statusFilter = $_GET['status'] ?? '';
             $search = trim($_GET['search'] ?? '');
             $vendorIdFilter = trim($_GET['vendor_id'] ?? '');
             $limit = min(500, max(10, (int)($_GET['limit'] ?? 50)));
             $offset = max(0, (int)($_GET['offset'] ?? 0));
 
+            // Dynamically detect available columns in leads table
+            $leadCols = [];
+            try {
+                $leadCols = $db->query("DESCRIBE leads")->fetchAll(PDO::FETCH_COLUMN);
+            } catch (Throwable $e) {}
+
+            $hasLeadId = in_array('lead_id', $leadCols, true);
+            $hasUsername = in_array('username', $leadCols, true);
+            $hasUid = in_array('uid', $leadCols, true);
+            $hasIp = in_array('ip_address', $leadCols, true);
+            $hasCountry = in_array('country', $leadCols, true);
+            $hasFraudReason = in_array('fraud_reason', $leadCols, true);
+            $hasCreatedAt = in_array('created_at', $leadCols, true);
+            $hasStartTime = in_array('start_time', $leadCols, true);
+            $hasDate = in_array('date', $leadCols, true);
+
+            // Construct safe column expressions
+            if ($hasLeadId && $hasUsername) {
+                $uidExpr = "COALESCE(NULLIF(l.lead_id, ''), NULLIF(l.username, ''), CONCAT('RESP_', l.id))";
+            } elseif ($hasLeadId) {
+                $uidExpr = "COALESCE(NULLIF(l.lead_id, ''), CONCAT('RESP_', l.id))";
+            } elseif ($hasUsername) {
+                $uidExpr = "COALESCE(NULLIF(l.username, ''), CONCAT('RESP_', l.id))";
+            } elseif ($hasUid) {
+                $uidExpr = "COALESCE(NULLIF(l.uid, ''), CONCAT('RESP_', l.id))";
+            } else {
+                $uidExpr = "CONCAT('RESP_', l.id)";
+            }
+
+            $ipExpr = $hasIp ? "COALESCE(NULLIF(l.ip_address, ''), '127.0.0.1')" : "'127.0.0.1'";
+            $countryExpr = $hasCountry ? "COALESCE(NULLIF(l.country, ''), 'United States')" : "'United States'";
+            $reasonExpr = $hasFraudReason 
+                ? "COALESCE(NULLIF(l.fraud_reason, ''), IF(l.status LIKE '%Term%' OR l.status LIKE '%Screen%', 'Demographic screener / quota logic', IF(l.status LIKE '%Comp%', 'Client verified complete', 'Inbound session logged')))"
+                : "IF(l.status LIKE '%Term%' OR l.status LIKE '%Screen%', 'Demographic screener / quota logic', IF(l.status LIKE '%Comp%', 'Client verified complete', 'Inbound session logged'))";
+            
+            if ($hasCreatedAt && $hasStartTime) {
+                $timeExpr = "COALESCE(l.created_at, l.start_time, NOW())";
+            } elseif ($hasCreatedAt) {
+                $timeExpr = "COALESCE(l.created_at, NOW())";
+            } elseif ($hasStartTime) {
+                $timeExpr = "COALESCE(l.start_time, NOW())";
+            } elseif ($hasDate) {
+                $timeExpr = "COALESCE(l.date, NOW())";
+            } else {
+                $timeExpr = "NOW()";
+            }
+
             $where = [];
             $params = [];
 
             if ($statusFilter && $statusFilter !== 'ALL' && $statusFilter !== 'Clicks' && $statusFilter !== 'clicks') {
                 if ($statusFilter === 'Terminates' || $statusFilter === 'Terminated' || $statusFilter === 'terminates') {
-                    $where[] = "(l.status = 'Terminates' OR l.status = 'Terminated' OR l.status = 'Screenout')";
+                    $where[] = "(l.status LIKE '%Term%' OR l.status LIKE '%Screen%' OR l.status LIKE '%Quota%' OR l.status LIKE '%Sec%')";
                 } else if ($statusFilter === 'Complete' || $statusFilter === 'Completes' || $statusFilter === 'completes') {
-                    $where[] = "(l.status = 'Complete' OR l.status = 'Completes')";
-                } else if ($statusFilter === 'Quota Full' || $statusFilter === 'quotafull' || $statusFilter === 'overquota') {
-                    $where[] = "(l.status = 'Quota Full' OR l.status = 'Overquota')";
+                    $where[] = "(l.status LIKE '%Comp%')";
                 } else {
                     $where[] = "l.status = ?";
                     $params[] = $statusFilter;
@@ -4052,17 +4097,15 @@ if ($normalizedRoute === 'leads' || str_starts_with($normalizedRoute, 'leads') |
             }
 
             if ($vendorIdFilter !== '') {
-                // vendor_id in leads links to vendor.id (integer)
-                // vendorIdFilter can be vendor code (e.g. VI010322026, VND-DYN-01), integer ID (e.g. 2244), or vendor name
-                $where[] = "(v.vendor_id = ? OR l.vendor_id = ? OR v.name = ? OR v.name LIKE ?)";
+                $where[] = "(l.vendor_id = ? OR l.vendor_id COLLATE utf8mb4_general_ci = ? OR v.vendor_id = ? OR v.name LIKE ?)";
                 $params[] = $vendorIdFilter;
-                $params[] = is_numeric($vendorIdFilter) ? (int)$vendorIdFilter : -1;
+                $params[] = $vendorIdFilter;
                 $params[] = $vendorIdFilter;
                 $params[] = "%{$vendorIdFilter}%";
             }
 
             if ($search !== '') {
-                $where[] = "(l.uid LIKE ? OR l.project_id LIKE ? OR v.name LIKE ?)";
+                $where[] = "({$uidExpr} LIKE ? OR l.project_id LIKE ? OR {$ipExpr} LIKE ?)";
                 $params[] = "%{$search}%";
                 $params[] = "%{$search}%";
                 $params[] = "%{$search}%";
@@ -4072,8 +4115,8 @@ if ($normalizedRoute === 'leads' || str_starts_with($normalizedRoute, 'leads') |
 
             $fromClause = "
                 FROM leads l
-                LEFT JOIN vendor v ON v.id = l.vendor_id
-                LEFT JOIN projects p ON p.id = l.project_id
+                LEFT JOIN vendor v ON v.vendor_id = l.vendor_id OR v.id = l.vendor_id
+                LEFT JOIN projects p ON p.project_id = l.project_id OR p.id = l.project_id
             ";
 
             $countStmt = $db->prepare("SELECT COUNT(*) {$fromClause} {$whereSql}");
@@ -4085,14 +4128,15 @@ if ($normalizedRoute === 'leads' || str_starts_with($normalizedRoute, 'leads') |
                     l.id,
                     l.project_id,
                     COALESCE(p.name, CONCAT('Study #', l.project_id)) as project_name,
-                    l.vendor_id as vendor_pk,
-                    COALESCE(v.vendor_id, CONCAT('VND-', l.vendor_id)) as vendor_code,
-                    COALESCE(v.name, CONCAT('Vendor #', l.vendor_id)) as vendor_name,
+                    l.vendor_id as vendor_code,
+                    COALESCE(v.name, CONCAT('Vendor ', l.vendor_id)) as vendor_name,
                     l.client_id,
-                    l.uid,
+                    {$uidExpr} as uid,
                     l.status,
-                    l.user_info,
-                    l.date as created_at
+                    {$ipExpr} as ip_address,
+                    {$countryExpr} as country,
+                    {$reasonExpr} as reason,
+                    {$timeExpr} as created_at
                 {$fromClause}
                 {$whereSql}
                 ORDER BY l.id DESC
@@ -4101,22 +4145,6 @@ if ($normalizedRoute === 'leads' || str_starts_with($normalizedRoute, 'leads') |
             $stmt = $db->prepare($query);
             $stmt->execute($params);
             $leads = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            foreach ($leads as &$lead) {
-                $ip = '—';
-                $country = 'Global';
-                if (!empty($lead['user_info'])) {
-                    $info = json_decode($lead['user_info'], true);
-                    if (is_array($info)) {
-                        $ip = $info['ip_address'] ?? ($info['ip'] ?? '—');
-                        $country = $info['country'] ?? ($info['region'] ?? 'Global');
-                    }
-                }
-                $lead['ip_address'] = $ip;
-                $lead['country'] = $country;
-                $lead['reason'] = ($lead['status'] === 'Terminates') ? 'Demographic screener / quota logic' : (($lead['status'] === 'Complete') ? 'Client verified complete' : 'Inbound entry logged');
-                unset($lead['user_info']);
-            }
 
             echo json_encode([
                 'success' => true,
