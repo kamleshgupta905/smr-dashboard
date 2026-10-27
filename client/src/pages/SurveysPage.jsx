@@ -9,6 +9,7 @@ import { normalizeSurveys } from '../utils/normalize';
 import DemandProjectModal from '../components/DemandProjectModal';
 import DuplicateProjectModal from '../components/DuplicateProjectModal';
 import BulkAssignModal from '../components/BulkAssignModal';
+import ModalPortal from '../components/ModalPortal';
 import { exportSurveysInventoryToExcel } from '../utils/excelExport';
 import { getClients } from '../services/api';
 
