@@ -816,7 +816,7 @@ if ($normalizedRoute === 'reports/unified' || $normalizedRoute === 'reports') {
                     p.id,
                     p.project_id,
                     p.name as project_name,
-                    COALESCE(c.client_name, 'Market Xcel') as client_name,
+                    COALESCE(c.client_name, 'Zamplia Global') as client_name,
                     p.cost_per_complete as cpi,
                     p.max_limit as target_completes,
                     COUNT(l.id) as total_clicks,
@@ -988,7 +988,7 @@ if ($normalizedRoute === 'reports/vendor-details') {
                 COALESCE(p.name, CONCAT('Study #', p.id)) as project_name,
                 COALESCE(p.cost_per_complete, 1.00) as client_cpi,
                 COALESCE(p.status, 'Live') as project_status,
-                COALESCE(c.client_name, 'Market Xcel') as client_name
+                COALESCE(c.client_name, 'Zamplia Global') as client_name
             FROM vendor v
             LEFT JOIN projects p ON p.id = v.project_id
             LEFT JOIN client c ON c.id = p.client_id
@@ -1076,7 +1076,7 @@ if ($normalizedRoute === 'reports/project-details') {
 
     try {
         $projStmt = $db->prepare("
-            SELECT p.id, p.project_id, p.name as project_name, COALESCE(c.client_name, 'Market Xcel') as client_name,
+            SELECT p.id, p.project_id, p.name as project_name, COALESCE(c.client_name, 'Zamplia Global') as client_name,
                    p.cost_per_complete as cpi, p.max_limit as target_completes, p.status
             FROM projects p
             LEFT JOIN client c ON c.id = p.client_id
@@ -2014,7 +2014,7 @@ function getMergedSurveysWithDbProjects($zampliaSurveys = []) {
                     p.status,
                     p.date,
                     p.client_id,
-                    CAST(COALESCE(c.client_name, '') AS CHAR) as client_name
+                    CAST(COALESCE(c.client_name, 'Zamplia Global') AS CHAR) as client_name
                 FROM projects p
                 LEFT JOIN client c ON c.id = p.client_id
                 ORDER BY p.id DESC
@@ -2022,10 +2022,7 @@ function getMergedSurveysWithDbProjects($zampliaSurveys = []) {
             ");
             while ($row = $pStmt->fetch(PDO::FETCH_ASSOC)) {
                 $pId = !empty($row['project_id']) ? $row['project_id'] : (string)$row['id'];
-                $cName = !empty($row['client_name']) ? trim((string)$row['client_name']) : '';
-                if (empty($cName)) {
-                    $cName = (str_starts_with($pId, 'MX') || stripos($row['name'], 'market xcel') !== false) ? 'Market Xcel' : "VMH GROUP'S";
-                }
+                $cName = !empty($row['client_name']) ? trim((string)$row['client_name']) : 'Zamplia Global';
                 $dbProjects[] = [
                     'survey_id' => $pId,
                     'SurveyId' => $pId,
@@ -2067,12 +2064,15 @@ function getMergedSurveysWithDbProjects($zampliaSurveys = []) {
             $result[] = $p;
         }
     }
-    // Then Zamplia allocated inventory
+    // Then Zamplia allocated inventory (all assigned to Zamplia Global)
     if (is_array($zampliaSurveys)) {
         foreach ($zampliaSurveys as $s) {
             $sid = (string)($s['SurveyId'] ?? $s['survey_id'] ?? $s['id'] ?? '');
             if ($sid && !isset($seenIds[$sid])) {
                 $seenIds[$sid] = true;
+                $s['client'] = 'Zamplia Global';
+                $s['client_name'] = 'Zamplia Global';
+                $s['client_id'] = 51;
                 $result[] = $s;
             }
         }
@@ -3166,7 +3166,7 @@ if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 
                     'loi' => (int)($body['loi'] ?? 10),
                     'max_limit' => (int)($body['max_limit'] ?? $body['target_completes'] ?? 500),
                     'live_url' => $body['live_url'] ?? "https://surveysupply.zamplia.com/live/{$srcId}",
-                    'client_id' => 57
+                    'client_id' => 51
                 ];
             }
 
@@ -3181,7 +3181,7 @@ if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 
             $loi = isset($body['loi']) && $body['loi'] !== '' ? (int)$body['loi'] : (int)$orig['loi'];
             $maxLimit = isset($body['max_limit']) && $body['max_limit'] !== '' ? (int)$body['max_limit'] : (isset($body['target_completes']) ? (int)$body['target_completes'] : (int)$orig['max_limit']);
             $status = $body['status'] ?? 'Pause';
-            $clientId = !empty($body['client_id']) ? (int)$body['client_id'] : ($orig['client_id'] ?? 43);
+            $clientId = !empty($body['client_id']) ? (int)$body['client_id'] : ($orig['client_id'] ?? 51);
             if (empty($clientId) && !empty($body['client_name']) && $db) {
                 try {
                     $cStmt = $db->prepare("SELECT id FROM client WHERE client_name = ? LIMIT 1");
@@ -3227,6 +3227,16 @@ if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 
                 'max_limit' => $maxLimit
             ]);
 
+            $retClientName = 'Zamplia Global';
+            if ($db && $clientId) {
+                try {
+                    $cStmt = $db->prepare("SELECT client_name FROM client WHERE id = ? LIMIT 1");
+                    $cStmt->execute([$clientId]);
+                    $cn = $cStmt->fetchColumn();
+                    if ($cn) $retClientName = (string)$cn;
+                } catch (Throwable $e) {}
+            }
+
             echo json_encode([
                 'success' => true,
                 'message' => "Project successfully duplicated as {$newProjId}",
@@ -3236,6 +3246,8 @@ if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 
                     'project_id' => $newProjId,
                     'project_name' => $targetName,
                     'name' => $targetName,
+                    'client' => $retClientName,
+                    'client_name' => $retClientName,
                     'client_id' => $clientId,
                     'cpi' => $cpi,
                     'cost_per_complete' => $cpi,
@@ -3295,7 +3307,7 @@ if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 
                     p.id as _id,
                     p.project_id,
                     p.name as project_name,
-                    COALESCE(c.client_name, 'Market Xcel') as client_name,
+                    COALESCE(c.client_name, 'Zamplia Global') as client_name,
                     p.cost_per_complete as cpi,
                     p.cost_per_complete,
                     p.max_limit as target_completes,

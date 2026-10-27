@@ -24,8 +24,8 @@ export default function DuplicateProjectModal({ isOpen, project, onClose, onSucc
     max_limit: originalLimit,
     status: 'Live',
     auto_pause_clicks: 50,
-    client_id: project.client_id || 43,
-    client_name: project.client_name || project.client || 'Market Xcel',
+    client_id: project.client_id || 51,
+    client_name: project.client_name || project.client || 'Zamplia Global',
     vendor_id: '',
     rev_share_percent: 30,
     description: `Duplicated from #${originalId} [${originalName}]`
@@ -60,6 +60,19 @@ export default function DuplicateProjectModal({ isOpen, project, onClose, onSucc
     getVendors().then(res => {
       const v = res?.data || res || [];
       if (Array.isArray(v)) setVendorList(v);
+    }).catch(() => {});
+    getClients().then(res => {
+      const c = res?.data || res || [];
+      if (Array.isArray(c)) {
+        setClientList(c);
+        if (c.length > 0 && !formData.client_id) {
+          setFormData(prev => ({
+            ...prev,
+            client_id: c[0].id,
+            client_name: c[0].client_name || c[0].name
+          }));
+        }
+      }
     }).catch(() => {});
   }, []);
 
@@ -204,6 +217,34 @@ export default function DuplicateProjectModal({ isOpen, project, onClose, onSucc
                   <span style={{ fontSize: '11.5px', fontWeight: 700, background: '#0F172A', color: '#FFFFFF', padding: '3px 10px', borderRadius: '999px' }}>
                     #{originalId}
                   </span>
+                </div>
+
+                {/* Target Client */}
+                <div style={{ marginBottom: '14px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '5px' }}>
+                    Assign to Client *
+                  </label>
+                  <select
+                    value={formData.client_id || ''}
+                    onChange={(e) => {
+                      const selectedId = Number(e.target.value);
+                      const sel = clientList.find(c => Number(c.id) === selectedId);
+                      setFormData({
+                        ...formData,
+                        client_id: selectedId,
+                        client_name: sel ? (sel.client_name || sel.name) : ''
+                      });
+                    }}
+                    style={{ width: '100%', fontSize: '13px', padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', boxSizing: 'border-box', background: '#FFFFFF' }}
+                  >
+                    {clientList.length > 0 ? (
+                      clientList.map(c => (
+                        <option key={c.id} value={c.id}>{c.client_name || c.name}</option>
+                      ))
+                    ) : (
+                      <option value="51">Zamplia Global</option>
+                    )}
+                  </select>
                 </div>
 
                 {/* Cloned Study Name */}

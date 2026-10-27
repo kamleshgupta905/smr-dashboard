@@ -84,15 +84,17 @@ export default function SurveysPage({
   }, [normalized]);
 
   const channels = useMemo(() => {
-    const set = new Set(['ALL', 'Market Xcel', 'Zamplia']);
-    normalized.forEach(s => {
-      const c = (s.client_name || s.client || '').trim();
-      if (c && c !== 'ALL') set.add(c);
-    });
+    const set = new Set(['ALL']);
     (localClients || []).forEach(cl => {
       const name = (cl.client_name || cl.name || '').trim();
       if (name && name !== 'ALL') set.add(name);
     });
+    if (set.size === 1) {
+      normalized.forEach(s => {
+        const c = (s.client_name || s.client || '').trim();
+        if (c && c !== 'ALL') set.add(c);
+      });
+    }
     return Array.from(set);
   }, [normalized, localClients]);
 
@@ -108,14 +110,10 @@ export default function SurveysPage({
       // 2. Channel / Client Filter
       if (selectedChannel !== 'ALL') {
         const clientStr = (s.client_name || s.client || '').toLowerCase().trim();
-        const idStr = String(s.survey_id || '').toLowerCase().trim();
         const selLower = selectedChannel.toLowerCase().trim();
 
-        if (selectedChannel === 'Market Xcel') {
-          const isMx = clientStr.includes('market xcel') || idStr.startsWith('mx');
-          if (!isMx) return false;
-        } else if (selectedChannel === 'Zamplia') {
-          const isZamp = clientStr.includes('zamplia') || (!idStr.startsWith('mx') && !clientStr && !s.is_cloned);
+        if (selLower.includes('zamplia')) {
+          const isZamp = clientStr.includes('zamplia') || (!s.is_cloned && !clientStr.includes('survey sherpa') && !clientStr.includes('all research'));
           if (!isZamp) return false;
         } else {
           if (!clientStr.includes(selLower) && selLower !== clientStr) return false;
@@ -643,13 +641,12 @@ export default function SurveysPage({
                   const globalIdx = (page - 1) * pageSize + idx + 1;
                   const isExpanded = expandedId === s.survey_id;
                   const rawClient = (s.client_name || s.client || '').trim();
-                  let clientName = 'Zamplia';
+                  let clientName = 'Zamplia Global';
                   if (rawClient && rawClient !== '') {
                     clientName = rawClient;
-                  } else if (String(s.survey_id).toUpperCase().startsWith('MX')) {
-                    clientName = 'Market Xcel';
-                  } else if (s.is_cloned) {
-                    clientName = "VMH GROUP'S";
+                  } else if (s.is_cloned && s.client_id) {
+                    const matched = (localClients || []).find(c => String(c.id) === String(s.client_id));
+                    if (matched?.client_name) clientName = matched.client_name;
                   }
                   const quotaTarget = Number(s.complete_needed || s.target_completes || s.max_limit || 200);
                   const quotaFilled = Number(s.completes !== undefined ? s.completes : (s.total_complete || 0));
@@ -728,9 +725,9 @@ export default function SurveysPage({
                             borderRadius: '6px',
                             fontSize: '11px',
                             fontWeight: 700,
-                            background: clientName.toLowerCase().includes('market xcel') ? '#fff7ed' : '#F1F5F9',
-                            color: clientName.toLowerCase().includes('market xcel') ? '#c2410c' : '#0F172A',
-                            border: `1px solid ${clientName.toLowerCase().includes('market xcel') ? '#ffedd5' : '#CBD5E1'}`,
+                            background: '#F1F5F9',
+                            color: '#0F172A',
+                            border: '1px solid #CBD5E1',
                             display: 'inline-block',
                             whiteSpace: 'nowrap',
                             maxWidth: '150px',
@@ -1138,8 +1135,9 @@ export default function SurveysPage({
               cpi: Number(created.cpi ?? created.CPI ?? 1.00),
               loi: Number(created.loi ?? created.LOI ?? 15),
               ir: Number(created.ir ?? created.IR ?? 40),
-              client: created.client || created.Client || 'Market Xcel',
-              clientCode: created.clientCode || (created.client === 'Market Xcel' ? 'MX_DEMAND' : 'CUSTOM_CLIENT'),
+              client: created.client_name || created.client || created.Client || 'Zamplia Global',
+              client_name: created.client_name || created.client || created.Client || 'Zamplia Global',
+              clientCode: created.clientCode || (created.client_name ? created.client_name.toUpperCase().replace(/[^A-Z0-9]/g, '_') : 'CLIENT_DEMAND'),
               status: 'Live',
               totalRequired: Number(created.totalRequired || created.TotalCompleteRequired || 100),
               completesNeeded: Number(created.completesNeeded || created.TotalCompleteRequired || 100),
@@ -1256,8 +1254,10 @@ export default function SurveysPage({
               cost_per_complete: Number(cloned.cpi || cloned.cost_per_complete),
               loi: Number(cloned.loi),
               ir: Number(cloned.ir),
-              client: "VMH GROUP'S",
-              clientCode: 'VMH_DEMAND',
+              client: cloned.client_name || cloned.client || "Zamplia Global",
+              client_name: cloned.client_name || cloned.client || "Zamplia Global",
+              client_id: cloned.client_id,
+              clientCode: cloned.client_name ? cloned.client_name.toUpperCase().replace(/[^A-Z0-9]/g, '_') : 'CLIENT_DEMAND',
               status: cloned.status || 'Live',
               totalRequired: Number(cloned.target_completes || cloned.max_limit || 500),
               completesNeeded: Number(cloned.target_completes || cloned.max_limit || 500),

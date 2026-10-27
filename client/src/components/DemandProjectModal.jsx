@@ -21,7 +21,7 @@ export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
   // Tab 1: Client Custom / Market Xcel Survey State (Frame 001 / Admin Video)
   const [customForm, setCustomForm] = useState({
     name: 'German Consumer Retail & E-Commerce Preferences',
-    client: 'Market Xcel',
+    client: 'Zamplia Global',
     clientSurveyUrl: 'https://cluster.marketxcel.co.in/survey/supplier-auth?projectid=59715429818372&supplierid=12833316770&uid=[uid]',
     country: 'United States',
     cpi: 1.00,
@@ -90,8 +90,8 @@ export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
         cpi: Number(customForm.cpi || 1.00),
         loi: Number(customForm.loi || 15),
         ir: Number(customForm.ir || 40),
-        client: customForm.client || 'Market Xcel',
-        clientCode: customForm.client === 'Market Xcel' ? 'MX_DEMAND' : 'CUSTOM_CLIENT',
+        client: customForm.client || 'Zamplia Global',
+        clientCode: customForm.client === 'Zamplia Global' ? 'MX_DEMAND' : 'CUSTOM_CLIENT',
         status: 'Live',
         totalRequired: Number(customForm.totalRequired || 100),
         completesNeeded: Number(customForm.totalRequired || 100),
@@ -297,7 +297,7 @@ export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
                     <span style={{ color: '#64748B' }}>Client:</span>
-                    <strong style={{ color: '#0F172A' }}>{createdProject.Client || 'Market Xcel'}</strong>
+                    <strong style={{ color: '#0F172A' }}>{createdProject.Client || 'Zamplia Global'}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
                     <span style={{ color: '#64748B' }}>Completes Target:</span>
@@ -357,15 +357,25 @@ export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
                     </label>
                     <select
                       value={customForm.client}
-                      onChange={e => setCustomForm({ ...customForm, client: e.target.value })}
+                      onChange={e => {
+                        const val = e.target.value;
+                        const found = clientsList.find(c => (c.client_name || c.name) === val);
+                        setCustomForm({ 
+                          ...customForm, 
+                          client: val,
+                          client_id: found ? found.id : customForm.client_id 
+                        });
+                      }}
                       style={{ width: '100%', padding: '8px 10px', fontSize: '13px', borderRadius: '8px', border: '1px solid #CBD5E1' }}
                     >
-                      <option value="Market Xcel">Market Xcel</option>
-                      <option value="Zamplia Supply">Zamplia Supply</option>
-                      <option value="Dynata">Dynata Global</option>
-                      <option value="PureSpectrum">PureSpectrum</option>
-                      <option value="Toluna">Toluna</option>
-                      <option value="Custom Client">Custom Client</option>
+                      {clientsList.length > 0 ? (
+                        clientsList.map(c => {
+                          const cName = c.client_name || c.name;
+                          return <option key={c.id || cName} value={cName}>{cName}</option>;
+                        })
+                      ) : (
+                        <option value="Zamplia Global">Zamplia Global</option>
+                      )}
                     </select>
                   </div>
                 </div>
