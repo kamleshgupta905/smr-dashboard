@@ -159,12 +159,12 @@ $ht = '<IfModule mod_dir.c>
     RewriteRule ^api/(.*)$ api/index.php?route=$1 [QSA,L]
     RewriteRule ^api$ api/index.php?route=api [QSA,L]
     RewriteRule ^health$ api/index.php?route=health [QSA,L]
-    RewriteRule ^vendor/(.*)$ api/index.php?route=vendor/$1 [QSA,L]
-    RewriteRule ^survey/(.*)$ api/index.php?route=survey/$1 [QSA,L]
-    RewriteRule ^traffic/(.*)$ api/index.php?route=traffic/$1 [QSA,L]
-    RewriteRule ^router/(.*)$ api/index.php?route=router/$1 [QSA,L]
+    RewriteRule ^vendor(.*)$ api/index.php?route=vendor$1 [QSA,L]
+    RewriteRule ^survey(.*)$ api/index.php?route=survey$1 [QSA,L]
+    RewriteRule ^traffic(.*)$ api/index.php?route=traffic$1 [QSA,L]
+    RewriteRule ^router(.*)$ api/index.php?route=router$1 [QSA,L]
     RewriteRule ^redirects(.*)$ api/index.php?route=redirects$1 [QSA,L]
-    RewriteRule ^marketxcel/(.*)$ api/index.php?route=marketxcel/$1 [QSA,L]
+    RewriteRule ^marketxcel(.*)$ api/index.php?route=marketxcel$1 [QSA,L]
 
     # Static files
     RewriteCond %{REQUEST_FILENAME} -f [OR]

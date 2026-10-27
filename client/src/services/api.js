@@ -48,12 +48,30 @@ export const getSurveys = (tab = 'allocated') => {
   return api.get(`/zamplia?tab=${tab}`)
     .then(res => {
       const data = res.data?.data || res.data;
-      if (Array.isArray(data) && data.length > 0) {
-        return { ...res.data, data: [...custom, ...data], total: data.length + custom.length };
+      const rawList = Array.isArray(data) && data.length > 0 ? data : DEFAULT_SURVEYS;
+      const seen = new Set();
+      const merged = [];
+      for (const s of [...custom, ...rawList]) {
+        const sid = String(s.survey_id || s.SurveyId || s.surveyId || s.id || s.project_id || '');
+        if (sid && !seen.has(sid)) {
+          seen.add(sid);
+          merged.push(s);
+        }
       }
-      return { success: true, data: [...custom, ...DEFAULT_SURVEYS], total: DEFAULT_SURVEYS.length + custom.length };
+      return { ...res.data, data: merged, total: merged.length };
     })
-    .catch(() => ({ success: true, data: [...custom, ...DEFAULT_SURVEYS], total: DEFAULT_SURVEYS.length + custom.length }));
+    .catch(() => {
+      const seen = new Set();
+      const merged = [];
+      for (const s of [...custom, ...DEFAULT_SURVEYS]) {
+        const sid = String(s.survey_id || s.SurveyId || s.surveyId || s.id || s.project_id || '');
+        if (sid && !seen.has(sid)) {
+          seen.add(sid);
+          merged.push(s);
+        }
+      }
+      return { success: true, data: merged, total: merged.length };
+    });
 };
 
 export const syncSurveys = () => 
@@ -1318,7 +1336,32 @@ export const ZampliaAPI = {
 export const duplicateProject = async (payload) => {
   try {
     const res = await api.post('/manage/projects/duplicate', payload);
-    return res.data;
+    const result = res.data || res;
+    const p = result.project || res.project;
+    if (p) {
+      try {
+        createCustomSurvey({
+          surveyId: p.project_id || p.id,
+          survey_id: p.project_id || p.id,
+          project_id: p.project_id || p.id,
+          name: p.name || p.project_name || payload.target_name,
+          cpi: Number(p.cpi || p.cost_per_complete || payload.cost_per_complete),
+          cost_per_complete: Number(p.cpi || p.cost_per_complete || payload.cost_per_complete),
+          loi: Number(p.loi || payload.loi),
+          ir: Number(p.ir || payload.ir),
+          totalRequired: Number(p.max_limit || p.target_completes || payload.max_limit || 500),
+          completesNeeded: Number(p.max_limit || p.target_completes || payload.max_limit || 500),
+          status: p.status || payload.status || 'Live',
+          client: "VMH GROUP'S",
+          clientCode: 'VMH_DEMAND',
+          country: payload.country || 'United States',
+          category: 'Market Research',
+          studyType: 'Consumer',
+          live_url: p.live_url || payload.live_url
+        });
+      } catch (e) {}
+    }
+    return result;
   } catch (err) {
     console.error('Error duplicating project:', err);
     throw err;

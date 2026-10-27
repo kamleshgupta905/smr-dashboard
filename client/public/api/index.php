@@ -1994,30 +1994,104 @@ if ($normalizedRoute === 'marketxcel/projects' || $normalizedRoute === 'marketxc
     exit;
 }
 
+
+function getMergedSurveysWithDbProjects($zampliaSurveys = []) {
+    $dbProjects = [];
+    $db = getDbConnection();
+    if ($db) {
+        try {
+            $pStmt = $db->query("
+                SELECT
+                    p.id,
+                    p.project_id,
+                    p.name,
+                    p.description,
+                    p.cost_per_complete,
+                    p.loi,
+                    p.ir,
+                    p.max_limit,
+                    p.live_url,
+                    p.status,
+                    p.date,
+                    c.client_name
+                FROM projects p
+                LEFT JOIN client c ON c.id = p.client_id
+                ORDER BY p.id DESC
+                LIMIT 100
+            ");
+            while ($row = $pStmt->fetch(PDO::FETCH_ASSOC)) {
+                $pId = !empty($row['project_id']) ? $row['project_id'] : (string)$row['id'];
+                $dbProjects[] = [
+                    'survey_id' => $pId,
+                    'SurveyId' => $pId,
+                    'surveyId' => $pId,
+                    'id' => (int)$row['id'],
+                    '_id' => (int)$row['id'],
+                    'project_id' => $pId,
+                    'survey_name' => $row['name'],
+                    'name' => $row['name'],
+                    'cpi' => (float)$row['cost_per_complete'],
+                    'cost_per_complete' => (float)$row['cost_per_complete'],
+                    'loi' => (int)$row['loi'],
+                    'ir' => (float)$row['ir'],
+                    'totalRequired' => (int)$row['max_limit'],
+                    'completesNeeded' => (int)$row['max_limit'],
+                    'max_limit' => (int)$row['max_limit'],
+                    'status' => !empty($row['status']) ? $row['status'] : 'Live',
+                    'client' => !empty($row['client_name']) ? $row['client_name'] : "VMH GROUP'S",
+                    'clientCode' => 'VMH_DEMAND',
+                    'country' => 'United States',
+                    'category' => 'Market Research',
+                    'studyType' => 'Consumer',
+                    'live_url' => $row['live_url'],
+                    'is_cloned' => true
+                ];
+            }
+        } catch (Throwable $e) {}
+    }
+
+    $seenIds = [];
+    $result = [];
+    // DB projects (cloned & custom studies) take first priority
+    foreach ($dbProjects as $p) {
+        $sid = (string)($p['survey_id'] ?? $p['id']);
+        if (!isset($seenIds[$sid])) {
+            $seenIds[$sid] = true;
+            $result[] = $p;
+        }
+    }
+    // Then Zamplia allocated inventory
+    if (is_array($zampliaSurveys)) {
+        foreach ($zampliaSurveys as $s) {
+            $sid = (string)($s['SurveyId'] ?? $s['survey_id'] ?? $s['id'] ?? '');
+            if ($sid && !isset($seenIds[$sid])) {
+                $seenIds[$sid] = true;
+                $result[] = $s;
+            }
+        }
+    }
+    return $result;
+}
+
 if ($normalizedRoute === 'zamplia' || $normalizedRoute === 'zamplia/surveys') {
     global $CACHE_FILE;
+    $rawList = [];
     if (file_exists($CACHE_FILE) && (time() - filemtime($CACHE_FILE) < 120)) {
-        $cached = json_decode((string)file_get_contents($CACHE_FILE), true);
-        if (!empty($cached)) {
-            echo json_encode(['success' => true, 'data' => $cached, 'source' => 'cache']);
-            exit;
+        $rawList = json_decode((string)file_get_contents($CACHE_FILE), true) ?: [];
+    }
+
+    if (empty($rawList)) {
+        $res = zampliaRequest('/Surveys/GetAllocatedSurveys');
+        if ($res['success'] && !empty($res['data'])) {
+            $rawList = $res['data'];
+            @file_put_contents($CACHE_FILE, json_encode($rawList));
+        } elseif (file_exists($CACHE_FILE)) {
+            $rawList = json_decode((string)file_get_contents($CACHE_FILE), true) ?: [];
         }
     }
 
-    $res = zampliaRequest('/Surveys/GetAllocatedSurveys');
-    if ($res['success'] && !empty($res['data'])) {
-        @file_put_contents($CACHE_FILE, json_encode($res['data']));
-        echo json_encode(['success' => true, 'data' => $res['data'], 'source' => 'live']);
-        exit;
-    }
-
-    if (file_exists($CACHE_FILE)) {
-        $cached = json_decode((string)file_get_contents($CACHE_FILE), true);
-        echo json_encode(['success' => true, 'data' => $cached, 'source' => 'stale_cache']);
-        exit;
-    }
-
-    echo json_encode(['success' => false, 'message' => $res['message'] ?? 'Failed to fetch surveys', 'data' => []]);
+    $merged = getMergedSurveysWithDbProjects($rawList);
+    echo json_encode(['success' => true, 'data' => $merged, 'total' => count($merged)]);
     exit;
 }
 

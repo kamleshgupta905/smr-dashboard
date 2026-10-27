@@ -23,7 +23,7 @@ import LoginPage from './components/LoginPage';
 import { normalizeSurveys } from './utils/normalize';
 import { CheckCircle2, AlertTriangle, X } from 'lucide-react';
 
-import { getSurveys, syncSurveys, DEFAULT_SURVEYS, GoogleSheetAPI, getClients } from './services/api';
+import { getSurveys, syncSurveys, DEFAULT_SURVEYS, GoogleSheetAPI, getClients, createCustomSurvey } from './services/api';
 
 // URL Hash Parser for Seamless Refresh Persistence
 const parseHashRoute = () => {
@@ -283,10 +283,12 @@ export default function App() {
   const currentPath = window.location.pathname;
   const currentHash = window.location.hash || '';
 
-  const isPreScreener = 
-    currentPath.includes('/vendor/auth/') || 
-    currentPath.includes('/prescreener') || 
-    currentHash.includes('prescreener');
+  const isPreScreener =
+    currentPath.includes('/vendor/auth/') ||
+    currentPath.includes('/prescreener') ||
+    currentHash.includes('prescreener') ||
+    currentPath.startsWith('/router') ||
+    currentPath === '/router';
 
   if (isPreScreener) {
     let vendorId = '';
@@ -409,7 +411,12 @@ export default function App() {
               loading={loading}
               onRefresh={handleSync}
               onAddSurvey={(newStudy) => {
-                setSurveys(prev => [newStudy, ...prev]);
+                if (newStudy) {
+                  try {
+                    createCustomSurvey(newStudy);
+                  } catch (e) {}
+                  setSurveys(prev => [newStudy, ...prev.filter(s => String(s.survey_id || s.id) !== String(newStudy.survey_id || newStudy.id))]);
+                }
                 showToast(`✓ Study #${newStudy.surveyId} launched & added to marketplace!`);
               }}
               onOpenQuotas={openQuotas}

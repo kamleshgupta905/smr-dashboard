@@ -1206,10 +1206,16 @@ export default function SurveysPage({
         onSuccess={(cloned) => {
           setDuplicateModalProject(null);
           if (cloned && onAddSurvey) {
+            const sid = cloned.project_id || cloned.id;
             onAddSurvey({
-              surveyId: cloned.id || cloned.project_id,
+              surveyId: sid,
+              survey_id: sid,
+              project_id: sid,
+              id: cloned.id,
               name: cloned.name || cloned.project_name,
+              survey_name: cloned.name || cloned.project_name,
               cpi: Number(cloned.cpi || cloned.cost_per_complete),
+              cost_per_complete: Number(cloned.cpi || cloned.cost_per_complete),
               loi: Number(cloned.loi),
               ir: Number(cloned.ir),
               client: "VMH GROUP'S",
@@ -1219,7 +1225,9 @@ export default function SurveysPage({
               completesNeeded: Number(cloned.target_completes || cloned.max_limit || 500),
               country: cloned.country || 'United States',
               category: 'Market Research',
-              studyType: 'Consumer'
+              studyType: 'Consumer',
+              live_url: cloned.live_url,
+              is_cloned: true
             });
           }
           if (showToast) {
@@ -1334,7 +1342,9 @@ export default function SurveysPage({
                   <button
                     type="button"
                     onClick={() => {
-                      const testUrl = `https://api.vmhgroupsmr.com/router?pid=${linkModalSurvey.survey_id}&vid=VND-DYN-01&uid=TEST_ADMIN_${Date.now()}`;
+                      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://api.vmhgroupsmr.com';
+                      const sid = linkModalSurvey.survey_id || linkModalSurvey.project_id || linkModalSurvey.id;
+                      const testUrl = `${origin}/router?pid=${encodeURIComponent(sid)}&vid=VND-DYN-01&uid=TEST_${Date.now()}&test=1`;
                       window.open(testUrl, '_blank');
                     }}
                     style={{

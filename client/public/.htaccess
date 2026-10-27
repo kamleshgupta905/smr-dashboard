@@ -8,7 +8,10 @@
 
     # 2. Direct server-level traffic redirects (when calling backend router directly)
     RewriteRule ^redirects(.*)$ api/index.php?route=redirects$1 [QSA,L]
-    RewriteRule ^router/(.*)$ api/index.php?route=router/$1 [QSA,L]
+    RewriteRule ^router(.*)$ api/index.php?route=router$1 [QSA,L]
+    RewriteRule ^vendor(.*)$ api/index.php?route=vendor$1 [QSA,L]
+    RewriteRule ^survey(.*)$ api/index.php?route=survey$1 [QSA,L]
+    RewriteRule ^traffic(.*)$ api/index.php?route=traffic$1 [QSA,L]
     RewriteRule ^health$ api/index.php?route=health [QSA,L]
 
     # 3. Serve existing static files & directories directly
