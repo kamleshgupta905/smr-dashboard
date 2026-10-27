@@ -10,9 +10,11 @@ import DemandProjectModal from '../components/DemandProjectModal';
 import DuplicateProjectModal from '../components/DuplicateProjectModal';
 import BulkAssignModal from '../components/BulkAssignModal';
 import { exportSurveysInventoryToExcel } from '../utils/excelExport';
+import { getClients } from '../services/api';
 
 export default function SurveysPage({ 
   surveys = [], 
+  clients = [],
   globalSearch = '', 
   loading, 
   onRefresh, 
@@ -28,6 +30,17 @@ export default function SurveysPage({
   const [demandModalOpen, setDemandModalOpen] = useState(false);
   const [duplicateModalProject, setDuplicateModalProject] = useState(null);
   const [selectedSurveyIds, setSelectedSurveyIds] = useState(new Set());
+  const [localClients, setLocalClients] = useState(clients || []);
+
+  useEffect(() => {
+    if (clients && clients.length > 0) {
+      setLocalClients(clients);
+    } else {
+      getClients().then(res => {
+        if (Array.isArray(res)) setLocalClients(res);
+      }).catch(() => {});
+    }
+  }, [clients]);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
 
@@ -71,8 +84,17 @@ export default function SurveysPage({
   }, [normalized]);
 
   const channels = useMemo(() => {
-    return ['ALL', 'Market Xcel', 'Zamplia'];
-  }, []);
+    const set = new Set(['ALL', 'Market Xcel', 'Zamplia']);
+    normalized.forEach(s => {
+      const c = (s.client_name || s.client || '').trim();
+      if (c && c !== 'ALL') set.add(c);
+    });
+    (localClients || []).forEach(cl => {
+      const name = (cl.client_name || cl.name || '').trim();
+      if (name && name !== 'ALL') set.add(name);
+    });
+    return Array.from(set);
+  }, [normalized, localClients]);
 
   const filtered = useMemo(() => {
     let list = normalized.filter((s) => {
@@ -83,16 +105,20 @@ export default function SurveysPage({
         if (sCountry !== selCountry) return false;
       }
 
-      // 2. Channel Filter
+      // 2. Channel / Client Filter
       if (selectedChannel !== 'ALL') {
-        const clientStr = (s.client || '').toLowerCase();
-        const idStr = String(s.survey_id || '').toLowerCase();
+        const clientStr = (s.client_name || s.client || '').toLowerCase().trim();
+        const idStr = String(s.survey_id || '').toLowerCase().trim();
+        const selLower = selectedChannel.toLowerCase().trim();
+
         if (selectedChannel === 'Market Xcel') {
           const isMx = clientStr.includes('market xcel') || idStr.startsWith('mx');
           if (!isMx) return false;
         } else if (selectedChannel === 'Zamplia') {
-          const isZamp = clientStr.includes('zamplia') || (!idStr.startsWith('mx') && !clientStr.includes('market xcel'));
+          const isZamp = clientStr.includes('zamplia') || (!idStr.startsWith('mx') && !clientStr && !s.is_cloned);
           if (!isZamp) return false;
+        } else {
+          if (!clientStr.includes(selLower) && selLower !== clientStr) return false;
         }
       }
 
@@ -616,8 +642,15 @@ export default function SurveysPage({
                 paginatedSurveys.map((s, idx) => {
                   const globalIdx = (page - 1) * pageSize + idx + 1;
                   const isExpanded = expandedId === s.survey_id;
-                  const isMarketXcel = (s.client || '').toLowerCase().includes('market xcel') || String(s.survey_id).startsWith('MX');
-                  const clientName = isMarketXcel ? 'Market Xcel' : 'Zamplia';
+                  const rawClient = (s.client_name || s.client || '').trim();
+                  let clientName = 'Zamplia';
+                  if (rawClient && rawClient !== '') {
+                    clientName = rawClient;
+                  } else if (String(s.survey_id).toUpperCase().startsWith('MX')) {
+                    clientName = 'Market Xcel';
+                  } else if (s.is_cloned) {
+                    clientName = "VMH GROUP'S";
+                  }
                   const quotaTarget = Number(s.complete_needed || s.target_completes || s.max_limit || 200);
                   const quotaFilled = Number(s.completes !== undefined ? s.completes : (s.total_complete || 0));
                   const fillPercent = quotaTarget > 0 ? Math.min(100, Math.round((quotaFilled / quotaTarget) * 100)) : 0;
@@ -695,12 +728,17 @@ export default function SurveysPage({
                             borderRadius: '6px',
                             fontSize: '11px',
                             fontWeight: 700,
-                            background: clientName === 'Market Xcel' ? '#fff7ed' : '#F8FAFC',
-                            color: clientName === 'Market Xcel' ? '#c2410c' : '#0F172A',
-                            border: `1px solid ${clientName === 'Market Xcel' ? '#ffedd5' : '#E2E8F0'}`,
+                            background: clientName.toLowerCase().includes('market xcel') ? '#fff7ed' : '#F1F5F9',
+                            color: clientName.toLowerCase().includes('market xcel') ? '#c2410c' : '#0F172A',
+                            border: `1px solid ${clientName.toLowerCase().includes('market xcel') ? '#ffedd5' : '#CBD5E1'}`,
                             display: 'inline-block',
-                            whiteSpace: 'nowrap'
-                          }}>
+                            whiteSpace: 'nowrap',
+                            maxWidth: '150px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                          title={clientName}
+                          >
                             {clientName}
                           </span>
                         </td>

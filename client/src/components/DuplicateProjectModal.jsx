@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Copy, X, CheckCircle2, AlertCircle, ArrowRight, Layers, Sparkles, Share2, Check } from 'lucide-react';
 import ModalPortal from './ModalPortal';
-import { duplicateProject, getVendors } from '../services/api';
+import { duplicateProject, getVendors, getClients } from '../services/api';
 
 export default function DuplicateProjectModal({ isOpen, project, onClose, onSuccess }) {
   if (!isOpen || !project) return null;
@@ -24,11 +24,14 @@ export default function DuplicateProjectModal({ isOpen, project, onClose, onSucc
     max_limit: originalLimit,
     status: 'Live',
     auto_pause_clicks: 50,
+    client_id: project.client_id || 43,
+    client_name: project.client_name || project.client || 'Market Xcel',
     vendor_id: '',
     rev_share_percent: 30,
     description: `Duplicated from #${originalId} [${originalName}]`
   });
   const [vendorList, setVendorList] = useState([]);
+  const [clientList, setClientList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successResult, setSuccessResult] = useState(null);
@@ -74,6 +77,8 @@ export default function DuplicateProjectModal({ isOpen, project, onClose, onSucc
         loi: parseInt(formData.loi, 10),
         ir: parseFloat(formData.ir),
         max_limit: parseInt(formData.max_limit, 10),
+        client_id: formData.client_id,
+        client_name: formData.client_name,
         auto_pause_clicks: parseInt(formData.auto_pause_clicks || 50, 10),
         vendor_id: formData.vendor_id || '',
         rev_share_percent: parseFloat(formData.rev_share_percent || 30),

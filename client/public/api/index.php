@@ -2013,7 +2013,8 @@ function getMergedSurveysWithDbProjects($zampliaSurveys = []) {
                     p.live_url,
                     p.status,
                     p.date,
-                    c.client_name
+                    p.client_id,
+                    CAST(COALESCE(c.client_name, '') AS CHAR) as client_name
                 FROM projects p
                 LEFT JOIN client c ON c.id = p.client_id
                 ORDER BY p.id DESC
@@ -2021,6 +2022,10 @@ function getMergedSurveysWithDbProjects($zampliaSurveys = []) {
             ");
             while ($row = $pStmt->fetch(PDO::FETCH_ASSOC)) {
                 $pId = !empty($row['project_id']) ? $row['project_id'] : (string)$row['id'];
+                $cName = !empty($row['client_name']) ? trim((string)$row['client_name']) : '';
+                if (empty($cName)) {
+                    $cName = (str_starts_with($pId, 'MX') || stripos($row['name'], 'market xcel') !== false) ? 'Market Xcel' : "VMH GROUP'S";
+                }
                 $dbProjects[] = [
                     'survey_id' => $pId,
                     'SurveyId' => $pId,
@@ -2038,8 +2043,10 @@ function getMergedSurveysWithDbProjects($zampliaSurveys = []) {
                     'completesNeeded' => (int)$row['max_limit'],
                     'max_limit' => (int)$row['max_limit'],
                     'status' => !empty($row['status']) ? $row['status'] : 'Live',
-                    'client' => !empty($row['client_name']) ? $row['client_name'] : "VMH GROUP'S",
-                    'clientCode' => 'VMH_DEMAND',
+                    'client' => $cName,
+                    'client_name' => $cName,
+                    'client_id' => $row['client_id'],
+                    'clientCode' => strtoupper(preg_replace('/[^A-Za-z0-9]/', '_', $cName)),
                     'country' => 'United States',
                     'category' => 'Market Research',
                     'studyType' => 'Consumer',
@@ -3174,7 +3181,15 @@ if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 
             $loi = isset($body['loi']) && $body['loi'] !== '' ? (int)$body['loi'] : (int)$orig['loi'];
             $maxLimit = isset($body['max_limit']) && $body['max_limit'] !== '' ? (int)$body['max_limit'] : (isset($body['target_completes']) ? (int)$body['target_completes'] : (int)$orig['max_limit']);
             $status = $body['status'] ?? 'Pause';
-            $clientId = $orig['client_id'] ?? 57;
+            $clientId = !empty($body['client_id']) ? (int)$body['client_id'] : ($orig['client_id'] ?? 43);
+            if (empty($clientId) && !empty($body['client_name']) && $db) {
+                try {
+                    $cStmt = $db->prepare("SELECT id FROM client WHERE client_name = ? LIMIT 1");
+                    $cStmt->execute([$body['client_name']]);
+                    $foundCid = $cStmt->fetchColumn();
+                    if ($foundCid) $clientId = (int)$foundCid;
+                } catch (Throwable $e) {}
+            }
             $liveUrl = $body['live_url'] ?? $orig['live_url'];
             $desc = !empty($body['description']) ? $body['description'] : ($orig['description'] . " [Cloned from Project #{$orig['id']} {$orig['project_id']}]");
 

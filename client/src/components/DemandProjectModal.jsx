@@ -1,13 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, Check, Calculator, Send, AlertCircle, CheckCircle2, 
   DollarSign, Clock, Target, Globe, Layers, Sparkles, RefreshCw, Link2, Monitor, Smartphone, Tablet
 } from 'lucide-react';
-import { createDemandProject, getDemandFeasibility, GoogleSheetAPI, createCustomSurvey } from '../services/api';
+import { createDemandProject, getDemandFeasibility, GoogleSheetAPI, createCustomSurvey, getClients } from '../services/api';
 import ModalPortal from './ModalPortal';
 
 export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
   const [activeTab, setActiveTab] = useState('custom'); // 'custom' | 'zamplia'
+  const [availableClients, setAvailableClients] = useState([]);
+
+  useEffect(() => {
+    getClients().then(res => {
+      if (Array.isArray(res) && res.length > 0) {
+        setAvailableClients(res);
+      }
+    }).catch(() => {});
+  }, []);
 
   // Tab 1: Client Custom / Market Xcel Survey State (Frame 001 / Admin Video)
   const [customForm, setCustomForm] = useState({

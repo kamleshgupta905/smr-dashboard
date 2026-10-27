@@ -78,6 +78,7 @@ export default function App() {
 
   const [surveys, setSurveys] = useState([]);
   const [clientsCount, setClientsCount] = useState(2);
+  const [clientsList, setClientsList] = useState([]);
   const [globalSearch, setGlobalSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -185,6 +186,7 @@ export default function App() {
 
       if (clientsRes.status === 'fulfilled' && Array.isArray(clientsRes.value)) {
         setClientsCount(clientsRes.value.length || 2);
+        setClientsList(clientsRes.value);
       }
     } catch (err) {
       console.error('Error loading data:', err);
@@ -407,6 +409,7 @@ export default function App() {
             <SurveysPage 
               currentUser={currentUser}
               surveys={filteredSurveys}
+              clients={clientsList}
               globalSearch={globalSearch}
               loading={loading}
               onRefresh={handleSync}
