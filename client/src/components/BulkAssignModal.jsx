@@ -235,7 +235,7 @@ export default function BulkAssignModal({ selectedSurveys = [], isOpen, onClose,
                     <div style={{ flex: 1, position: 'relative' }}>
                       <input 
                         type="text"
-                        placeholder="Search 910 live vendors by name or ID..."
+                        placeholder="Search live vendors by name or ID..."
                         value={vendorSearch}
                         onChange={(e) => setVendorSearch(e.target.value)}
                         style={{

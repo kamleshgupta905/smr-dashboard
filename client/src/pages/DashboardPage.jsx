@@ -108,23 +108,19 @@ export default function DashboardPage({
       ];
     }
     const total = normalized.length;
-    const counts = normalized.reduce((acc, s) => {
-      const client = (s.client || '').toLowerCase();
-      if (client.includes('zamplia')) acc.zamplia++;
-      else if (client.includes('market xcel') || client.includes('marketxcel')) acc.mx++;
-      else if (client.includes('ipsos')) acc.ipsos++;
-      else acc.other++;
-      return acc;
-    }, { zamplia: 0, mx: 0, ipsos: 0, other: 0 });
+    const clientMap = {};
+    normalized.forEach(s => {
+      const c = (s.client_name || s.client || 'Zamplia Global').trim();
+      clientMap[c] = (clientMap[c] || 0) + 1;
+    });
 
-    return [
-      { name: 'Zamplia Supply Engine', count: counts.zamplia, color: '#0F172A' },
-      { name: 'Market Xcel Global', count: counts.mx, color: '#059669' },
-      { name: 'Ipsos Reid Routing', count: counts.ipsos, color: '#6366f1' },
-      { name: 'Direct & API Sources', count: counts.other, color: '#f59e0b' },
-    ]
-      .filter(c => c.count > 0)
-      .map(c => ({ ...c, pct: +((c.count / total) * 100).toFixed(1) }));
+    const palette = ['#0F172A', '#059669', '#6366f1', '#f59e0b', '#8b5cf6'];
+    return Object.entries(clientMap).map(([name, count], i) => ({
+      name,
+      count,
+      color: palette[i % palette.length],
+      pct: +((count / total) * 100).toFixed(1)
+    }));
   }, [normalized]);
 
   // ─── Activity Timeline — real computed insights from live surveys ─────────

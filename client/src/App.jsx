@@ -1,3 +1,4 @@
+import ReconciliationPage from './pages/ReconciliationPage';
 import React, { useState, useEffect, useMemo } from 'react';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
@@ -299,6 +300,7 @@ export default function App() {
     users: 'Team & Users',
     clients: 'Clients',
     vendors: 'Vendors',
+    reconciliation: 'Vendor Performance & Reports',
     surveys: 'Surveys',
     
     'developer-center': 'API & Integrations',
@@ -520,6 +522,7 @@ export default function App() {
           )}
 
           {activeTab === 'vendors' && <VendorsPage onNavigate={handleTabChange} globalSearch={globalSearch} showToast={showToast} />}
+          {activeTab === 'reconciliation' && <ReconciliationPage initialTab={currentReportSubTab || 'vendors'} />}
           {activeTab === 'bids' && <BidsPage />}
           {activeTab === 'payments' && <PaymentsPage currentUser={currentUser} showToast={showToast} />}
           {activeTab === 'team' && <TeamPage />}

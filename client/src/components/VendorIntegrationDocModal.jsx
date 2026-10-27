@@ -24,11 +24,11 @@ export default function VendorIntegrationDocModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const SPEC_TEXT = `# VMH GROUP'S • SMR Platform Vendor Integration Specification (v3.4)
-Host Gateway: https://smr.vmhgroupsmr.com
+Host Gateway: https://api.vmhgroupsmr.com
 
 ## 1. Survey Entry Link Format
 Each vendor receives a unique project allocation entry link:
-https://smr.vmhgroupsmr.com/vendor/auth/{VENDOR_ID}/project/{PROJECT_ID}?uid=[RESPONDENT_ID]
+https://api.vmhgroupsmr.com/vendor/auth/{VENDOR_ID}/project/{PROJECT_ID}?uid=[RESPONDENT_ID]
 
 ### Parameters:
 - VENDOR_ID : Unique supplier identifier assigned by VMH (e.g., VND-DYN-01, pure-spectrum)
@@ -59,13 +59,13 @@ When a respondent completes the survey session, the VMH router returns them to t
 
 ### Return URL Formats:
 - Complete (Status 10):
-  https://smr.vmhgroupsmr.com/survey/callback?status=10&uid=[UID]&vid={VENDOR_ID}&hash=[HASH]
+  https://api.vmhgroupsmr.com/survey/callback?status=10&uid=[UID]&vid={VENDOR_ID}&hash=[HASH]
 - Terminate (Status 20):
-  https://smr.vmhgroupsmr.com/survey/callback?status=20&uid=[UID]&vid={VENDOR_ID}&hash=[HASH]
+  https://api.vmhgroupsmr.com/survey/callback?status=20&uid=[UID]&vid={VENDOR_ID}&hash=[HASH]
 - Overquota (Status 30):
-  https://smr.vmhgroupsmr.com/survey/callback?status=30&uid=[UID]&vid={VENDOR_ID}&hash=[HASH]
+  https://api.vmhgroupsmr.com/survey/callback?status=30&uid=[UID]&vid={VENDOR_ID}&hash=[HASH]
 - Security Disqualify (Status 40):
-  https://smr.vmhgroupsmr.com/survey/callback?status=40&uid=[UID]&vid={VENDOR_ID}&hash=[HASH]
+  https://api.vmhgroupsmr.com/survey/callback?status=40&uid=[UID]&vid={VENDOR_ID}&hash=[HASH]
 
 ---
 
@@ -255,7 +255,7 @@ Expected Response: HTTP 200 OK within 3000ms.
                   Standard Vendor Entry URL Template:
                 </h4>
                 <div style={{ background: '#0F172A', color: '#94A3B8', padding: '12px 14px', borderRadius: '6px', fontFamily: 'monospace', fontSize: '12px', wordBreak: 'break-all', marginBottom: '14px' }}>
-                  https://smr.vmhgroupsmr.com/vendor/auth/<span style={{ color: '#FDE047' }}>{'{VENDOR_ID}'}</span>/project/<span style={{ color: '#4ADE80' }}>{'{PROJECT_ID}'}</span>?uid=<span style={{ color: '#F472B6' }}>[RESPONDENT_ID]</span>
+                  https://api.vmhgroupsmr.com/vendor/auth/<span style={{ color: '#FDE047' }}>{'{VENDOR_ID}'}</span>/project/<span style={{ color: '#4ADE80' }}>{'{PROJECT_ID}'}</span>?uid=<span style={{ color: '#F472B6' }}>[RESPONDENT_ID]</span>
                 </div>
 
                 <h4 style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
@@ -277,7 +277,7 @@ Expected Response: HTTP 200 OK within 3000ms.
                     Example Live Link Sent to Dynata (PID: VMHP1026542026):
                   </strong>
                   <code style={{ fontSize: '11.5px', color: '#0F172A', wordBreak: 'break-all' }}>
-                    https://smr.vmhgroupsmr.com/vendor/auth/VND-DYN-01/project/VMHP1026542026?uid=[RESPONDENT_ID]
+                    https://api.vmhgroupsmr.com/vendor/auth/VND-DYN-01/project/VMHP1026542026?uid=[RESPONDENT_ID]
                   </code>
                 </div>
               </div>
@@ -343,7 +343,7 @@ Expected Response: HTTP 200 OK within 3000ms.
                         <span style={{ fontSize: '11px', color: '#64748B' }}>HTTP 302 Redirect</span>
                       </div>
                       <code style={{ fontSize: '11px', color: '#334155', wordBreak: 'break-all' }}>
-                        https://smr.vmhgroupsmr.com/survey/callback?status={item.code}&uid=[UID]&vid={'VENDOR_CODE'}&hash=[HASH]
+                        https://api.vmhgroupsmr.com/survey/callback?status={item.code}&uid=[UID]&vid={'VENDOR_CODE'}&hash=[HASH]
                       </code>
                     </div>
                   ))}
@@ -356,7 +356,7 @@ Expected Response: HTTP 200 OK within 3000ms.
                 <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px', padding: '14px', marginBottom: '18px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803D', fontWeight: 700, marginBottom: '6px' }}>
                     <Key size={16} />
-                    <span>Market Xcel Anti-Tamper Security Standard</span>
+                    <span>VMH SMR Anti-Tamper Security Standard</span>
                   </div>
                   <p style={{ margin: 0, color: '#14532D', fontSize: '12.5px', lineHeight: 1.5 }}>
                     To prevent respondents from manually modifying callback URLs to fake completions, all redirect requests are signed with an anti-tamper cryptographic SHA3-256 hash.

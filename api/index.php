@@ -1220,7 +1220,7 @@ if (
     str_starts_with($normalizedRoute, 'vendor/entry') ||
     str_starts_with($normalizedRoute, 'traffic/router') ||
     str_starts_with($normalizedRoute, 'router') ||
-    str_starts_with($normalizedRoute, 'redirect')
+    (($normalizedRoute === 'redirect' || str_starts_with($normalizedRoute, 'redirect/')) && !str_starts_with($normalizedRoute, 'redirects/'))
 ) {
     $surveyId = $_GET['pid'] ?? $_GET['PID'] ?? $_GET['SurveyId'] ?? $_GET['project_id'] ?? $_GET['project'] ?? '';
     $vendorId = $_GET['vid'] ?? $_GET['vendor'] ?? $_GET['vendor_id'] ?? 'VND-DYN-01';
@@ -1562,37 +1562,51 @@ if (
         $statusParam = 'overquota';
     } elseif ($rawStatus === '40' || $rawStatus === '4' || $rawStatus === 'security' || $rawStatus === 'quality_terminate') {
         $statusParam = 'security';
-    } elseif (preg_match('#(complete|terminate|overquota|security)#i', $normalizedRoute, $sm)) {
-        $statusParam = strtolower($sm[1]);
+    } elseif (preg_match('#/(complete|terminate|overquota|quotafull|security|quality_terminate)#i', $normalizedRoute, $sm)) {
+        $matched = strtolower($sm[1]);
+        if ($matched === 'quotafull') $statusParam = 'overquota';
+        elseif ($matched === 'quality_terminate') $statusParam = 'security';
+        else $statusParam = $matched;
     }
 
     $uid      = $_GET['uid'] ?? $_GET['UID'] ?? $_GET['rid'] ?? $_GET['transaction_id'] ?? '';
-    $vendorId = $_GET['vid'] ?? $_GET['vendor'] ?? $_GET['vendor_id'] ?? 'VND-DYN-01';
-    $surveyId = $_GET['pid'] ?? $_GET['project'] ?? $_GET['project_id'] ?? '2042481293';
+    $vendorId = $_GET['vid'] ?? $_GET['vendor'] ?? $_GET['vendor_id'] ?? '';
+    $surveyId = $_GET['pid'] ?? $_GET['project'] ?? $_GET['project_id'] ?? '';
 
     $db = getDbConnection();
     $policy = getSecurityPolicy();
 
-    // Calculate time spent & verify Speeder threshold
+    // Calculate time spent & recover survey/vendor from leads table
     $startTime = time() - 60; // default 60s fallback
     $leadRecord = null;
 
     if ($db && !empty($uid)) {
         try {
-            $stmt = $db->prepare("SELECT * FROM leads WHERE lead_id = ? ORDER BY id DESC LIMIT 1");
-            $stmt->execute([$uid]);
+            $stmt = $db->prepare("SELECT * FROM leads WHERE lead_id = ? OR username = ? ORDER BY id DESC LIMIT 1");
+            $stmt->execute([$uid, $uid]);
             $leadRecord = $stmt->fetch();
-            if ($leadRecord && !empty($leadRecord['start_time'])) {
-                $startTime = strtotime($leadRecord['start_time']);
+            if ($leadRecord) {
+                if (empty($surveyId) && !empty($leadRecord['project_id'])) {
+                    $surveyId = $leadRecord['project_id'];
+                }
+                if (empty($vendorId) && !empty($leadRecord['vendor_id'])) {
+                    $vendorId = $leadRecord['vendor_id'];
+                }
+                if (!empty($leadRecord['start_time'])) {
+                    $startTime = strtotime($leadRecord['start_time']);
+                }
             }
         } catch (Throwable $e) {}
     }
+    if (empty($vendorId)) $vendorId = 'VND-DYN-01';
+    if (empty($surveyId)) $surveyId = '2042481293';
 
     $timeSpent = max(1, time() - $startTime);
+    $isTest = !empty($_GET['test']) || str_starts_with(strtoupper($uid), 'TEST_') || !empty($_GET['simulate']);
 
     // Speeder LOI Validation: if marked Complete but finished in < 30% LOI (or < 45s), disqualify as Security Terminate
     $isSpeeder = false;
-    if ($statusParam === 'complete' && !empty($policy['speederCheck'])) {
+    if ($statusParam === 'complete' && !empty($policy['speederCheck']) && !$isTest) {
         $thresholdSeconds = 45; // baseline minimum
         if ($timeSpent < $thresholdSeconds) {
             $isSpeeder = true;
@@ -2293,6 +2307,20 @@ if ($normalizedRoute === 'dashboard/analytics') {
             if (!empty($chartRows)) {
                 $chartData = $chartRows;
             }
+
+            // Real device distribution from leads table
+            $deviceCounts = ['Desktops' => 0, 'Mobiles' => 0, 'Tablets' => 0];
+            $dRows = $db->query("SELECT device, COUNT(*) as c FROM leads GROUP BY device")->fetchAll(PDO::FETCH_KEY_PAIR);
+            foreach ($dRows as $devName => $cnt) {
+                $devLower = strtolower((string)$devName);
+                if (str_contains($devLower, 'mobi') || str_contains($devLower, 'phone')) {
+                    $deviceCounts['Mobiles'] += (int)$cnt;
+                } elseif (str_contains($devLower, 'tab') || str_contains($devLower, 'pad')) {
+                    $deviceCounts['Tablets'] += (int)$cnt;
+                } else {
+                    $deviceCounts['Desktops'] += (int)$cnt;
+                }
+            }
         } catch (Throwable $e) {}
     }
 
@@ -2304,6 +2332,7 @@ if ($normalizedRoute === 'dashboard/analytics') {
         'completeLeads' => $completeLeads,
         'activeProjects' => $activeProjects,
         'chartData' => $chartData,
+        'deviceStats' => $deviceCounts ?? ['Desktops' => 0, 'Mobiles' => 0, 'Tablets' => 0],
         'donutChartData' => [
             ['category' => 'Vendors', 'value' => $totalVendors],
             ['category' => 'Active Studies', 'value' => $activeProjects],

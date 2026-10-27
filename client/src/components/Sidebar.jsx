@@ -236,15 +236,7 @@ export default function Sidebar({
 
                 <div className={`sidebar-submenu-collapsible ${opsOpen ? 'open' : 'closed'}`}>
                   <div className="sidebar-submenu-inner">
-                    {!isVendor && (
-                      <button
-                        className={`submenu-item ${activeTab === 'bids' ? 'active' : ''}`}
-                        onClick={() => handleNav('bids')}
-                      >
-                        <span className="bullet-circle" />
-                        <span>Bids & Feasibility</span>
-                      </button>
-                    )}
+                    {/* Hidden per user request: Bids & Feasibility */}
                     <button
                       className={`submenu-item ${activeTab === 'payments' ? 'active' : ''}`}
                       onClick={() => handleNav('payments')}

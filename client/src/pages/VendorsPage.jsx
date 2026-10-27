@@ -2606,9 +2606,9 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
             onClick={handleExportAllVendorsExcel}
             disabled={exportingVendors}
             style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px', borderRadius: '4px' }}
-            title="Download full master roster of all 910 vendors to Excel (.xlsx)"
+            title="Download full master roster of all active vendors to Excel (.xlsx)"
           >
-            <Download size={14} /> {exportingVendors ? 'Exporting...' : 'Export All 910 (Excel)'}
+            <Download size={14} /> {exportingVendors ? 'Exporting...' : `Export All (${vendors?.length || 0}) (Excel)`}
           </button>
           <button 
             type="button"
