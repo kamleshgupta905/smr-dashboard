@@ -32,6 +32,13 @@ export default function Sidebar({
   const [opsOpen, setOpsOpen] = useState(true);
 
   const isVendor = currentUser?.role_name === 'Vendor' || currentUser?.role === 'Vendor';
+  const isAdmin = !currentUser ||
+    currentUser.role_id === 1 ||
+    currentUser.role_name === 'Developer' ||
+    currentUser.role === 'Developer' ||
+    currentUser.role_name === 'Admin' ||
+    currentUser.username === 'admin' ||
+    currentUser.username === 'vmhgroup';
 
   // Check if current user has permission for a specific menu ID
   const isPermitted = (menuId) => {
@@ -53,12 +60,17 @@ export default function Sidebar({
       return true;
     }
 
-    const perms = userPermissions || (currentUser && currentUser.permissions) || null;
-    if (!perms || !Array.isArray(perms) || perms.length === 0) {
-      return true; // Default fallback to preserve full usability if unassigned
+    // User Management (2, 3, 4, 5) is strictly reserved for Super Admin / Developer
+    if ([2, 3, 4, 5].includes(Number(menuId))) {
+      return false;
     }
 
-    return perms.includes(Number(menuId));
+    const perms = userPermissions || (currentUser && currentUser.permissions) || null;
+    if (!perms || !Array.isArray(perms) || perms.length === 0) {
+      return false;
+    }
+
+    return perms.map(Number).includes(Number(menuId));
   };
 
   // Auto-expand the dropdown containing the active tab
@@ -269,7 +281,7 @@ export default function Sidebar({
 
 
           {/* Section: MANAGEMENT */}
-          {!isVendor && (isPermitted(2) || isPermitted(3) || isPermitted(4) || (!currentUser || currentUser.role_id === 1)) && (
+          {!isVendor && isAdmin && (
             <>
               <div className="sidebar-dotted-divider" />
               <div className="sidebar-section-title">MANAGEMENT</div>
@@ -277,7 +289,7 @@ export default function Sidebar({
 
 
               {/* Dropdown: System & Team */}
-              {(isPermitted(2) || isPermitted(3) || isPermitted(4) || (!currentUser || currentUser.role_id === 1)) && (
+              {isAdmin && (
                 <div className="sidebar-nav-group">
                   <button 
                     className={`sidebar-nav-heading ${['users', 'team', 'reference'].includes(activeTab) ? 'active' : ''}`}
@@ -295,7 +307,7 @@ export default function Sidebar({
                   <div className={`sidebar-submenu-collapsible ${developerOpen ? 'open' : 'closed'}`}>
                     <div className="sidebar-submenu-inner">
 
-                      {(isPermitted(2) || isPermitted(3) || isPermitted(4) || (!currentUser || currentUser.role_id === 1)) && (
+                      {isAdmin && (
                         <>
                           <button
                             className={`submenu-item ${activeTab === 'users' ? 'active' : ''}`}

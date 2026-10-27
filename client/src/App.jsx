@@ -24,7 +24,7 @@ import LoginPage from './components/LoginPage';
 import { normalizeSurveys } from './utils/normalize';
 import { CheckCircle2, AlertTriangle, X } from 'lucide-react';
 
-import { getSurveys, syncSurveys, DEFAULT_SURVEYS, GoogleSheetAPI, getClients, createCustomSurvey } from './services/api';
+import { getSurveys, syncSurveys, DEFAULT_SURVEYS, GoogleSheetAPI, getClients, createCustomSurvey, getUserPermissions } from './services/api';
 
 // URL Hash Parser for Seamless Refresh Persistence
 const parseHashRoute = () => {
@@ -48,7 +48,16 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const u = localStorage.getItem('smr_auth_user_data');
-      return u ? JSON.parse(u) : null;
+      if (u) return JSON.parse(u);
+      return {
+        id: 1,
+        name: localStorage.getItem('smr_auth_user') || 'Super Admin',
+        username: localStorage.getItem('smr_auth_user') || 'admin',
+        role: localStorage.getItem('smr_auth_role') || 'Developer',
+        role_name: localStorage.getItem('smr_auth_role') || 'Developer',
+        role_id: 1,
+        permissions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      };
     } catch (e) {
       return null;
     }
@@ -71,20 +80,21 @@ export default function App() {
     return null;
   });
 
-  const handleImpersonateUser = (targetUser) => {
+  const handleImpersonateUser = async (targetUser) => {
     if (!impersonatedOriginal) {
-      localStorage.setItem('smr_original_admin', JSON.stringify(currentUser));
-      setImpersonatedOriginal(currentUser);
+      const adminSession = currentUser || { id: 1, name: localStorage.getItem('smr_auth_user') || 'Super Admin', username: localStorage.getItem('smr_auth_user') || 'admin', role: localStorage.getItem('smr_auth_role') || 'Developer', role_name: localStorage.getItem('smr_auth_role') || 'Developer', role_id: 1, permissions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] };
+      localStorage.setItem('smr_original_admin', JSON.stringify(adminSession));
+      setImpersonatedOriginal(adminSession);
     }
     const impersonated = {
       ...targetUser,
       role: targetUser.role_name || targetUser.role || 'User',
       role_name: targetUser.role_name || targetUser.role || 'User',
-      permissions: Array.isArray(targetUser.menu_permissions) ? targetUser.menu_permissions : (targetUser.permissions || [])
+      permissions: Array.isArray(targetUser.menu_permissions) ? targetUser.menu_permissions : (targetUser.permissions || [1, 7])
     };
     setCurrentUser(impersonated);
     setUserPermissions(impersonated.permissions);
-    setActiveTab('dashboard');
+    handleTabChange('dashboard', true);
     showToast(`Viewing dashboard as ${targetUser.name || targetUser.username} (${impersonated.role_name})`, 'info');
   };
 
@@ -95,7 +105,7 @@ export default function App() {
       localStorage.removeItem('smr_original_admin');
       setImpersonatedOriginal(null);
     }
-    setActiveTab('users');
+    handleTabChange('users', true);
     showToast('Restored Super Administrator session', 'success');
   };
 
@@ -109,7 +119,18 @@ export default function App() {
   useEffect(() => {
     const isVendor = currentUser?.role_name === 'Vendor' || currentUser?.role === 'Vendor';
     if (isVendor && !['dashboard', 'surveys', 'leads', 'payments'].includes(activeTab)) {
-      setActiveTab('surveys');
+      handleTabChange('surveys', false);
+      return;
+    }
+    const isAdmin = !currentUser || 
+      currentUser.role_id === 1 || 
+      currentUser.role_name === 'Developer' || 
+      currentUser.role === 'Developer' || 
+      currentUser.role_name === 'Admin' || 
+      currentUser.username === 'admin' || 
+      currentUser.username === 'vmhgroup';
+    if (!isAdmin && ['users', 'team', 'security', 'reference'].includes(activeTab)) {
+      handleTabChange('dashboard', false);
     }
   }, [currentUser, activeTab]);
 
@@ -417,8 +438,11 @@ export default function App() {
         onLogout={handleLogout}
         globalSearch={globalSearch}
         onGlobalSearch={setGlobalSearch}
-        onOpenProfile={() => { setActiveTab('users'); showToast('Super Admin profile — manage team in User Roles (RBAC).', 'info'); }}
-        onOpenSettings={() => { setActiveTab('security'); showToast('Security & Fraud policy settings opened.', 'info'); }}
+        currentUser={currentUser}
+        isImpersonating={!!impersonatedOriginal}
+        onExitImpersonation={handleExitImpersonation}
+        onOpenProfile={() => { handleTabChange('users'); showToast('Super Admin profile — manage team in User Roles (RBAC).', 'info'); }}
+        onOpenSettings={() => { handleTabChange('security'); showToast('Security & Fraud policy settings opened.', 'info'); }}
       />
 
       {/* VMH Main Content Area */}
@@ -484,7 +508,13 @@ export default function App() {
           )}
 
           
-          {activeTab === 'users' && <UserManagementPage currentUser={currentUser} onImpersonateUser={handleImpersonateUser} />}
+          {activeTab === 'users' && (
+            <UserManagementPage 
+              currentUser={currentUser} 
+              onImpersonateUser={handleImpersonateUser} 
+              onExitImpersonation={handleExitImpersonation}
+            />
+          )}
           {activeTab === 'clients' && (
             <ClientsPage 
               onNavigate={handleTabChange} 

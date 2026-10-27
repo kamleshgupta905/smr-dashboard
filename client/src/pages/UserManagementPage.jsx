@@ -72,7 +72,7 @@ const DEFAULT_ROLES = [
   { id: 4, role: 'Customer' }
 ];
 
-export default function UserManagementPage({ currentUser, onImpersonateUser }) {
+export default function UserManagementPage({ currentUser, onImpersonateUser, onExitImpersonation }) {
   // Navigation & View State: 'list' | 'addEdit'
   const [viewMode, setViewMode] = useState('list');
   const [editingUserId, setEditingUserId] = useState(null);
@@ -98,7 +98,7 @@ export default function UserManagementPage({ currentUser, onImpersonateUser }) {
     confirm_password: '',
     profile_image: '',
     status: 'active',
-    menu_permissions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    menu_permissions: [1, 6, 7, 8, 9]
   };
 
   const [formData, setFormData] = useState(initialForm);
@@ -191,7 +191,7 @@ export default function UserManagementPage({ currentUser, onImpersonateUser }) {
     setEditingUserId(null);
     setFormData({
       ...initialForm,
-      menu_permissions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      menu_permissions: [1, 6, 7, 8, 9]
     });
     setFormError('');
     setFormSuccess('');
@@ -298,7 +298,7 @@ export default function UserManagementPage({ currentUser, onImpersonateUser }) {
   const handleSelectAllMenus = () => {
     setFormData(prev => ({
       ...prev,
-      menu_permissions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      menu_permissions: [1, 6, 7, 8, 9]
     }));
   };
 
@@ -453,6 +453,49 @@ export default function UserManagementPage({ currentUser, onImpersonateUser }) {
   // =========================================================================
   // VIEW: CREATE / EDIT USER (Matching screenshot addedit)
   // =========================================================================
+  const isAdminOrDev = !currentUser || 
+    currentUser.role_id === 1 || 
+    currentUser.role_name === 'Developer' || 
+    currentUser.role === 'Developer' || 
+    currentUser.role_name === 'Admin' || 
+    currentUser.username === 'admin' || 
+    currentUser.username === 'vmhgroup';
+
+  if (!isAdminOrDev) {
+    return (
+      <div style={{ padding: '48px 24px', textAlign: 'center', background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', margin: '24px auto', maxWidth: '640px', boxShadow: '0 4px 14px rgba(0,0,0,0.04)' }}>
+        <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+          <ShieldCheck size={32} color="#D97706" />
+        </div>
+        <h3 style={{ fontSize: '19px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
+          Super Administrator Privilege Required
+        </h3>
+        <p style={{ fontSize: '13.5px', color: '#64748B', lineHeight: '1.6', marginBottom: '22px' }}>
+          You are currently viewing this session as <strong>{currentUser?.name || currentUser?.username}</strong> ({currentUser?.role_name || currentUser?.role || 'Staff'}). User management, account creation and privilege matrix allocation are restricted to Super Administrators.
+        </p>
+        {onExitImpersonation && (
+          <button
+            type="button"
+            onClick={onExitImpersonation}
+            style={{
+              background: '#0F172A',
+              color: '#FFFFFF',
+              padding: '10px 22px',
+              borderRadius: '8px',
+              fontWeight: 700,
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '13px',
+              boxShadow: '0 2px 8px rgba(15,23,42,0.15)'
+            }}
+          >
+            Exit Preview & Return to Super Admin
+          </button>
+        )}
+      </div>
+    );
+  }
+
   if (viewMode === 'addEdit') {
     return (
       <div style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '40px' }}>
@@ -568,7 +611,20 @@ export default function UserManagementPage({ currentUser, onImpersonateUser }) {
                 </label>
                 <select 
                   value={formData.employee_type} 
-                  onChange={e => setFormData({ ...formData, employee_type: Number(e.target.value) })}
+                  onChange={e => {
+                    const newType = Number(e.target.value);
+                    let perms = formData.menu_permissions;
+                    if (!formData.id) {
+                      if (newType === 1 || newType === 2) {
+                        perms = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+                      } else if (newType === 8) {
+                        perms = [1, 7, 9, 10];
+                      } else {
+                        perms = [1, 6, 7, 8, 9];
+                      }
+                    }
+                    setFormData({ ...formData, employee_type: newType, menu_permissions: perms });
+                  }}
                   className="input-control"
                   style={{ width: '100%', height: '38px', fontSize: '13px', background: '#ffffff' }}
                 >

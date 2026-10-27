@@ -14,6 +14,9 @@ export default function Navbar({
   globalSearch,
   onGlobalSearch,
   onRoleChange,
+  currentUser,
+  isImpersonating,
+  onExitImpersonation,
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
@@ -22,7 +25,8 @@ export default function Navbar({
   const bellRef = useRef(null);
   const searchInputRef = useRef(null);
 
-  const activeRole = (typeof localStorage !== 'undefined' && (localStorage.getItem('smr_auth_role') || 'Admin')) || 'Admin';
+  const displayName = currentUser?.name || currentUser?.username || (typeof localStorage !== 'undefined' && localStorage.getItem('smr_auth_user')) || 'Admin';
+  const activeRole = currentUser?.role_name || currentUser?.role || (typeof localStorage !== 'undefined' && (localStorage.getItem('smr_auth_role') || 'Admin')) || 'Admin';
 
   const notifications = [
     { id: 1, icon: Zap, color: '#0F172A', title: 'Zamplia Inventory Synced', text: `${surveyCount || 626} live surveys refreshed with fresh quotas.`, time: 'Just now' },
@@ -272,7 +276,7 @@ export default function Navbar({
           >
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.2 }}>
               <span className="user-profile-name">
-                {localStorage.getItem('smr_auth_user') || 'Admin'}
+                {displayName}
               </span>
               <span style={{
                 fontSize: '10px',
@@ -282,7 +286,7 @@ export default function Navbar({
                 background: activeRole === 'Admin' ? 'rgba(15, 23, 42, 0.12)' : activeRole === 'Developer' ? 'rgba(147, 51, 234, 0.12)' : activeRole === 'Customer' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)',
                 color: activeRole === 'Admin' ? '#0F172A' : activeRole === 'Developer' ? '#9333ea' : activeRole === 'Customer' ? '#d97706' : '#10b981'
               }}>
-                {activeRole}
+                {activeRole}{isImpersonating ? ' (Preview)' : ''}
               </span>
             </div>
             <img
@@ -298,7 +302,7 @@ export default function Navbar({
             <div className="dastone-user-dropdown">
               <div className="dropdown-header">
                 <div className="name" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span>{localStorage.getItem('smr_auth_user') || 'Admin'}</span>
+                  <span>{displayName}</span>
                   <span style={{
                     fontSize: '10px',
                     fontWeight: 700,
@@ -307,10 +311,23 @@ export default function Navbar({
                     background: 'rgba(15, 23, 42, 0.1)',
                     color: '#0F172A'
                   }}>
-                    {activeRole}
+                    {activeRole}{isImpersonating ? ' (Preview)' : ''}
                   </span>
                 </div>
-                <div className="email">admin@vmhgroupsmr.com</div>
+                <div className="email">{currentUser?.email || (currentUser?.username ? `${currentUser.username}@vmhgroupsmr.com` : 'admin@vmhgroupsmr.com')}</div>
+                {isImpersonating && (
+                  <button
+                    className="dropdown-item"
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      if (onExitImpersonation) onExitImpersonation();
+                    }}
+                    style={{ color: '#DC2626', fontWeight: 700, padding: '6px 12px', borderRadius: '4px', background: '#FEF2F2', border: 'none', width: '100%', marginTop: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <LogOut size={14} color="#DC2626" />
+                    <span>Exit Preview Mode</span>
+                  </button>
+                )}
               </div>
 
               <button
