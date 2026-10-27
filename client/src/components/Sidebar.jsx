@@ -263,7 +263,7 @@ export default function Sidebar({
                       <span className="bullet-circle" />
                       {isVendor ? <span>My Traffic Leads & Clicks</span> : <span>Traffic Leads Stream</span>}
                     </button>
-                    {!isVendor && (
+                    {!isVendor && isPermitted(11) && (
                       <button
                         className={`submenu-item ${activeTab === 'security' ? 'active' : ''}`}
                         onClick={() => handleNav('security')}
@@ -281,61 +281,58 @@ export default function Sidebar({
 
 
           {/* Section: MANAGEMENT */}
-          {!isVendor && isAdmin && (
+          {!isVendor && (isAdmin || isPermitted(12) || isPermitted(13)) && (
             <>
               <div className="sidebar-dotted-divider" />
               <div className="sidebar-section-title">MANAGEMENT</div>
 
-
-
               {/* Dropdown: System & Team */}
-              {isAdmin && (
-                <div className="sidebar-nav-group">
-                  <button 
-                    className={`sidebar-nav-heading ${['users', 'team', 'reference'].includes(activeTab) ? 'active' : ''}`}
-                    onClick={() => setDeveloperOpen(prev => !prev)}
-                  >
-                    <div className="nav-heading-left">
-                      <Terminal size={16} className="nav-icon" />
-                      <span>System & Team</span>
-                    </div>
-                    <span className={`dropdown-chevron ${developerOpen ? 'rotated' : ''}`}>
-                      <ChevronRight size={14} />
-                    </span>
-                  </button>
+              <div className="sidebar-nav-group">
+                <button 
+                  className={`sidebar-nav-heading ${['users', 'team', 'reference'].includes(activeTab) ? 'active' : ''}`}
+                  onClick={() => setDeveloperOpen(prev => !prev)}
+                >
+                  <div className="nav-heading-left">
+                    <Terminal size={16} className="nav-icon" />
+                    <span>System & Team</span>
+                  </div>
+                  <span className={`dropdown-chevron ${developerOpen ? 'rotated' : ''}`}>
+                    <ChevronRight size={14} />
+                  </span>
+                </button>
 
-                  <div className={`sidebar-submenu-collapsible ${developerOpen ? 'open' : 'closed'}`}>
-                    <div className="sidebar-submenu-inner">
-
-                      {isAdmin && (
-                        <>
-                          <button
-                            className={`submenu-item ${activeTab === 'users' ? 'active' : ''}`}
-                            onClick={() => handleNav('users')}
-                          >
-                            <span className="bullet-circle" />
-                            <span>User Management</span>
-                          </button>
-                          <button
-                            className={`submenu-item ${activeTab === 'team' ? 'active' : ''}`}
-                            onClick={() => handleNav('team')}
-                          >
-                            <span className="bullet-circle" />
-                            <span>Team Directory</span>
-                          </button>
-                          <button
-                            className={`submenu-item ${activeTab === 'reference' ? 'active' : ''}`}
-                            onClick={() => handleNav('reference')}
-                          >
-                            <span className="bullet-circle" />
-                            <span>Reference Data</span>
-                          </button>
-                        </>
-                      )}
-                    </div>
+                <div className={`sidebar-submenu-collapsible ${developerOpen ? 'open' : 'closed'}`}>
+                  <div className="sidebar-submenu-inner">
+                    {isAdmin && (
+                      <button
+                        className={`submenu-item ${activeTab === 'users' ? 'active' : ''}`}
+                        onClick={() => handleNav('users')}
+                      >
+                        <span className="bullet-circle" />
+                        <span>User Management</span>
+                      </button>
+                    )}
+                    {(isAdmin || isPermitted(12)) && (
+                      <button
+                        className={`submenu-item ${activeTab === 'team' ? 'active' : ''}`}
+                        onClick={() => handleNav('team')}
+                      >
+                        <span className="bullet-circle" />
+                        <span>Team Directory</span>
+                      </button>
+                    )}
+                    {(isAdmin || isPermitted(13)) && (
+                      <button
+                        className={`submenu-item ${activeTab === 'reference' ? 'active' : ''}`}
+                        onClick={() => handleNav('reference')}
+                      >
+                        <span className="bullet-circle" />
+                        <span>Reference Data</span>
+                      </button>
+                    )}
                   </div>
                 </div>
-              )}
+              </div>
             </>
           )}
 

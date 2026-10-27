@@ -129,8 +129,27 @@ export default function App() {
       currentUser.role_name === 'Admin' || 
       currentUser.username === 'admin' || 
       currentUser.username === 'vmhgroup';
-    if (!isAdmin && ['users', 'team', 'security', 'reference'].includes(activeTab)) {
-      handleTabChange('dashboard', false);
+    if (!isAdmin) {
+      if (activeTab === 'users') {
+        handleTabChange('dashboard', false);
+      } else {
+        const perms = (userPermissions || currentUser?.permissions || []).map(Number);
+        const map = {
+          dashboard: 1,
+          surveys: 7,
+          clients: 6,
+          vendors: 8,
+          payments: 10,
+          leads: 9,
+          security: 11,
+          team: 12,
+          reference: 13
+        };
+        const reqMenu = map[activeTab];
+        if (reqMenu && !perms.includes(reqMenu)) {
+          handleTabChange('dashboard', false);
+        }
+      }
     }
   }, [currentUser, activeTab]);
 

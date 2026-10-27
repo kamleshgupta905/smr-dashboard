@@ -33,36 +33,74 @@ import {
 } from 'lucide-react';
 import ModalPortal from '../components/ModalPortal';
 
-// Official Menu Tree Structure matching MySQL `menus` schema and uploaded screenshot
-const MENU_TREE = [
-  { id: 1, name: 'Dashboard' },
-  { 
-    id: 2, 
-    name: 'User Management',
-    children: [
-      { id: 3, name: 'User' },
-      { id: 4, name: 'Menu Permission' },
-      { id: 5, name: 'Change Password' }
+// 100% Comprehensive Menu Hierarchy matching the exact SMR Platform Sidebar sections & MySQL schema
+export const MENU_SECTIONS = [
+  {
+    key: 'main',
+    title: 'MAIN',
+    badge: 'Core Telemetry',
+    items: [
+      { id: 1, name: 'Overview', desc: 'Real-time telemetry, KPI cards, yield trajectory & CPI analytics', route: 'dashboard' },
+      { id: 7, name: 'Surveys', desc: 'Marketplace survey inventory, quotas, qualifications & allocations', route: 'surveys' }
     ]
   },
-  { id: 6, name: 'Client' },
-  { id: 7, name: 'Projects' },
-  { id: 8, name: 'Vendor' },
-  { id: 9, name: 'Leads' },
-  { id: 10, name: 'Payments' }
+  {
+    key: 'partners',
+    title: 'PARTNERS',
+    badge: 'Integrations',
+    items: [
+      { id: 6, name: 'Clients', desc: 'Demand sources, client API endpoints, keys & security toggles', route: 'clients' },
+      { id: 8, name: 'Vendors', desc: 'Supply partners, hash formulas, traffic sub-IDs & revshare', route: 'vendors' }
+    ]
+  },
+  {
+    key: 'operations',
+    title: 'OPERATIONS',
+    badge: 'Payouts & Traffic',
+    items: [
+      { id: 10, name: 'Vendor Payments', desc: 'Vendor payment statements, monthly invoicing & net settlements', route: 'payments' },
+      { id: 9, name: 'Traffic Leads Stream', desc: 'Live respondents stream, IP fraud scoring, conversion telemetry', route: 'leads' },
+      { id: 11, name: 'Security & Fraud Gate', desc: 'Bot & VPN firewall, demographic pre-screener rules & blacklists', route: 'security' }
+    ]
+  },
+  {
+    key: 'management',
+    title: 'MANAGEMENT',
+    badge: 'System & Admin',
+    items: [
+      { 
+        id: 2, 
+        name: 'User Management', 
+        desc: 'Staff user accounts, employee permissions & platform security access',
+        route: 'users',
+        children: [
+          { id: 3, name: 'User Accounts', desc: 'Provision, edit & deactivate employee login accounts' },
+          { id: 4, name: 'Role & Menu Privileges', desc: 'Customizable section permissions & RBAC matrix' },
+          { id: 5, name: 'Change Password', desc: 'Staff password management & security resets' }
+        ]
+      },
+      { id: 12, name: 'Team Directory', desc: 'Staff organization directory, contact roster & departments', route: 'team' },
+      { id: 13, name: 'Reference Data', desc: 'Standard platform lookups, question IDs, countries & languages', route: 'reference' }
+    ]
+  }
 ];
 
-const MENU_NAMES = {
-  1: 'Dashboard',
+export const ALL_MENU_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+
+export const MENU_NAMES = {
+  1: 'Overview',
   2: 'User Management',
-  3: 'User',
-  4: 'Menu Permission',
+  3: 'User Accounts',
+  4: 'Role & Menu Privileges',
   5: 'Change Password',
-  6: 'Client',
-  7: 'Projects',
-  8: 'Vendor',
-  9: 'Leads',
-  10: 'Payments'
+  6: 'Clients',
+  7: 'Surveys',
+  8: 'Vendors',
+  9: 'Traffic Leads Stream',
+  10: 'Vendor Payments',
+  11: 'Security & Fraud Gate',
+  12: 'Team Directory',
+  13: 'Reference Data'
 };
 
 const DEFAULT_ROLES = [
@@ -98,7 +136,7 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
     confirm_password: '',
     profile_image: '',
     status: 'active',
-    menu_permissions: [1, 6, 7, 8, 9]
+    menu_permissions: [1, 6, 7, 8, 9, 10]
   };
 
   const [formData, setFormData] = useState(initialForm);
@@ -191,7 +229,7 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
     setEditingUserId(null);
     setFormData({
       ...initialForm,
-      menu_permissions: [1, 6, 7, 8, 9]
+      menu_permissions: [1, 6, 7, 8, 9, 10]
     });
     setFormError('');
     setFormSuccess('');
@@ -239,7 +277,7 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
     setEditingUserId(null);
   };
 
-  // Permission Checkbox Toggle Logic
+  // Permission Checkbox Toggle Logic supporting all 13 sidebar modules
   const handleToggleMenu = (menuId) => {
     setFormData(prev => {
       const current = prev.menu_permissions || [];
@@ -249,13 +287,11 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
       if (idNum === 2) {
         const isParentChecked = current.includes(2);
         if (isParentChecked) {
-          // Uncheck parent and all 3 children
           return {
             ...prev,
             menu_permissions: current.filter(id => ![2, 3, 4, 5].includes(id))
           };
         } else {
-          // Check parent and all 3 children
           const merged = Array.from(new Set([...current, 2, 3, 4, 5]));
           return {
             ...prev,
@@ -264,23 +300,21 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
         }
       }
 
-      // Child toggle: User (3), Menu Permission (4), Change Password (5)
+      // Child toggle: User Accounts (3), Role & Menu Privileges (4), Change Password (5)
       if ([3, 4, 5].includes(idNum)) {
         let updated;
         if (current.includes(idNum)) {
           updated = current.filter(id => id !== idNum);
-          // If no child is checked, remove parent 2
           if (![3, 4, 5].some(c => updated.includes(c))) {
             updated = updated.filter(id => id !== 2);
           }
         } else {
-          // Check child, and ensure parent 2 is also checked
           updated = Array.from(new Set([...current, idNum, 2]));
         }
         return { ...prev, menu_permissions: updated };
       }
 
-      // Regular root items (1, 6, 7, 8, 9, 10)
+      // All root platform modules (1, 6, 7, 8, 9, 10, 11, 12, 13)
       if (current.includes(idNum)) {
         return {
           ...prev,
@@ -295,10 +329,32 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
     });
   };
 
+  const handleToggleSection = (sectionKey) => {
+    const sec = MENU_SECTIONS.find(s => s.key === sectionKey);
+    if (!sec) return;
+    const secIds = [];
+    sec.items.forEach(it => {
+      secIds.push(it.id);
+      if (it.children) it.children.forEach(c => secIds.push(c.id));
+    });
+
+    setFormData(prev => {
+      const current = prev.menu_permissions || [];
+      const allSelected = secIds.every(id => current.includes(id));
+      let updated;
+      if (allSelected) {
+        updated = current.filter(id => !secIds.includes(id));
+      } else {
+        updated = Array.from(new Set([...current, ...secIds]));
+      }
+      return { ...prev, menu_permissions: updated };
+    });
+  };
+
   const handleSelectAllMenus = () => {
     setFormData(prev => ({
       ...prev,
-      menu_permissions: [1, 6, 7, 8, 9]
+      menu_permissions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
     }));
   };
 
@@ -441,13 +497,16 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
 
   // RBAC Matrix Reference
   const permissionsMatrix = [
-    { module: 'Dashboard Overview', action: 'Live Survey Marketplace, Demand Stats, Key KPIs', dev: true, admin: true, user: true, cust: false },
-    { module: 'User Management', action: 'Create Staff, Assign Menu Permissions, Reset Passwords', dev: true, admin: true, user: false, cust: false },
-    { module: 'Client Integrations', action: 'Direct S2S Demand API, Client Secret Keys & Endpoints', dev: true, admin: true, user: false, cust: false },
-    { module: 'Projects & Surveys', action: 'Launch Inventory, Quotas, Qualifications & Allocations', dev: true, admin: true, user: true, cust: true },
-    { module: 'Vendor Hub', action: 'Supply Partner Redirects, Hash Formula & RevShare', dev: true, admin: true, user: false, cust: false },
-    { module: 'Leads & Reports Hub', action: 'Real-time Completes, Quality Drops & Reconciliations', dev: true, admin: true, user: true, cust: false },
-    { module: 'Payments & Settlement', action: 'Vendor Invoices, Net Payouts & Export Settlement Files', dev: true, admin: true, user: false, cust: false }
+    { module: 'Overview (Dashboard)', action: 'View executive metrics, live quota telemetry & capacity histogram', dev: true, admin: true, user: true, cust: true },
+    { module: 'Surveys & Inventory', action: 'Launch inventory, quotas, qualifications, clones & survey links', dev: true, admin: true, user: true, cust: true },
+    { module: 'Clients Hub', action: 'Direct S2S Demand API, Client Secret Keys, security toggles & specs', dev: true, admin: true, user: false, cust: false },
+    { module: 'Vendors Hub', action: 'Supply partner redirects, traffic hash formula & revenue share', dev: true, admin: true, user: false, cust: false },
+    { module: 'Vendor Payments', action: 'Vendor invoices, net balances, payment reconciliation & settlement', dev: true, admin: true, user: false, cust: false },
+    { module: 'Traffic Leads Stream', action: 'Real-time clicks, completes, IP fraud scoring & conversion logs', dev: true, admin: true, user: true, cust: false },
+    { module: 'Security & Fraud Gate', action: 'VPN/proxy firewall, demographic pre-screener rules & IP blacklists', dev: true, admin: true, user: false, cust: false },
+    { module: 'User Management', action: 'Staff user accounts, employee permissions & platform security access', dev: true, admin: true, user: false, cust: false },
+    { module: 'Team Directory', action: 'Organizational staff directory, contact roster & departments', dev: true, admin: true, user: true, cust: false },
+    { module: 'Reference Data', action: 'Platform lookup tables, questions, countries & global mappings', dev: true, admin: true, user: false, cust: false }
   ];
 
   // =========================================================================
@@ -616,11 +675,11 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
                     let perms = formData.menu_permissions;
                     if (!formData.id) {
                       if (newType === 1 || newType === 2) {
-                        perms = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+                        perms = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
                       } else if (newType === 8) {
                         perms = [1, 7, 9, 10];
                       } else {
-                        perms = [1, 6, 7, 8, 9];
+                        perms = [1, 6, 7, 8, 9, 10];
                       }
                     }
                     setFormData({ ...formData, employee_type: newType, menu_permissions: perms });
@@ -754,24 +813,25 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
             </div>
           </div>
 
-          {/* Card: Assign Menu Permissions (Dotted Tree matching screenshot media_1791931422938_038cf589.png) */}
-          <div className="card report-card" style={{ padding: '24px', marginBottom: '22px', borderRadius: '6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', marginBottom: '18px' }}>
+          {/* Card: Assign Menu Permissions (100% Matching Sidebar Sections & All Modules) */}
+          <div className="card report-card" style={{ padding: '24px', marginBottom: '22px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#ffffff', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '14px', marginBottom: '20px' }}>
               <div>
-                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>
+                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <ShieldCheck size={18} color="#0F172A" />
                   Assign Menu Permissions
                 </h4>
                 <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-                  Configure hierarchical menu permissions for this user account.
+                  Configure granular section and module permissions matching the platform sidebar hierarchy.
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button
                   type="button"
                   onClick={handleSelectAllMenus}
                   className="btn btn-secondary btn-sm"
-                  style={{ fontSize: '11.5px', padding: '4px 10px', fontWeight: 600 }}
+                  style={{ fontSize: '11.5px', padding: '5px 12px', fontWeight: 700 }}
                 >
                   Select All
                 </button>
@@ -779,105 +839,179 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
                   type="button"
                   onClick={handleDeselectAllMenus}
                   className="btn btn-secondary btn-sm"
-                  style={{ fontSize: '11.5px', padding: '4px 10px', fontWeight: 600 }}
+                  style={{ fontSize: '11.5px', padding: '5px 12px', fontWeight: 700 }}
                 >
                   Deselect All
                 </button>
               </div>
             </div>
 
-            {/* Dotted Tree Hierarchy */}
-            <div style={{
-              background: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: '6px',
-              padding: '18px 24px'
-            }}>
-              {MENU_TREE.map(node => {
-                const isChecked = (formData.menu_permissions || []).includes(node.id);
-                const hasChildren = node.children && node.children.length > 0;
+            {/* Grouped by SMR Platform Sections */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {MENU_SECTIONS.map(section => {
+                const secIds = [];
+                section.items.forEach(it => {
+                  secIds.push(it.id);
+                  if (it.children) it.children.forEach(c => secIds.push(c.id));
+                });
+                const selectedCount = secIds.filter(id => (formData.menu_permissions || []).includes(id)).length;
+                const isAllSecChecked = selectedCount === secIds.length && secIds.length > 0;
 
                 return (
-                  <div key={node.id} style={{ marginBottom: hasChildren ? '10px' : '8px' }}>
-                    {/* Node Row */}
-                    <label style={{
-                      display: 'inline-flex',
+                  <div 
+                    key={section.key} 
+                    style={{
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      background: '#f8fafc',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {/* Section Header */}
+                    <div style={{
+                      padding: '10px 16px',
+                      background: '#f1f5f9',
+                      borderBottom: '1px solid #e2e8f0',
+                      display: 'flex',
                       alignItems: 'center',
-                      gap: '10px',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      fontSize: '13.5px',
-                      fontWeight: 600,
-                      color: isChecked ? '#0F172A' : '#1e293b',
-                      padding: '4px 0'
+                      justifyContent: 'space-between'
                     }}>
-                      <input 
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => handleToggleMenu(node.id)}
-                        style={{
-                          width: '16px',
-                          height: '16px',
-                          cursor: 'pointer',
-                          accentColor: '#0F172A'
-                        }}
-                      />
-                      <span>{node.name}</span>
-                    </label>
-
-                    {/* Dotted Nested Children (Tree branch lines) */}
-                    {hasChildren && (
-                      <div style={{
-                        marginLeft: '26px',
-                        paddingLeft: '18px',
-                        borderLeft: '1.5px dashed #cbd5e1',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '6px',
-                        marginTop: '4px',
-                        marginBottom: '8px'
-                      }}>
-                        {node.children.map(child => {
-                          const childChecked = (formData.menu_permissions || []).includes(child.id);
-                          return (
-                            <div key={child.id} style={{ position: 'relative' }}>
-                              {/* Horizontal dotted connector branch */}
-                              <span style={{
-                                position: 'absolute',
-                                left: '-18px',
-                                top: '50%',
-                                width: '12px',
-                                borderTop: '1.5px dashed #cbd5e1'
-                              }} />
-                              
-                              <label style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                cursor: 'pointer',
-                                userSelect: 'none',
-                                fontSize: '13px',
-                                color: childChecked ? '#0F172A' : '#334155',
-                                padding: '3px 0'
-                              }}>
-                                <input 
-                                  type="checkbox"
-                                  checked={childChecked}
-                                  onChange={() => handleToggleMenu(child.id)}
-                                  style={{
-                                    width: '15px',
-                                    height: '15px',
-                                    cursor: 'pointer',
-                                    accentColor: '#0F172A'
-                                  }}
-                                />
-                                <span>{child.name}</span>
-                              </label>
-                            </div>
-                          );
-                        })}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+                        <span style={{
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          background: '#0F172A',
+                          color: '#ffffff',
+                          letterSpacing: '0.5px'
+                        }}>
+                          {section.title}
+                        </span>
+                        <span style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>
+                          ({selectedCount}/{secIds.length} modules granted)
+                        </span>
                       </div>
-                    )}
+
+                      <button
+                        type="button"
+                        onClick={() => handleToggleSection(section.key)}
+                        style={{
+                          fontSize: '11.5px',
+                          fontWeight: 700,
+                          color: isAllSecChecked ? '#dc2626' : '#0F172A',
+                          background: 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          textDecoration: 'underline'
+                        }}
+                      >
+                        {isAllSecChecked ? 'Deselect Section' : 'Select Section'}
+                      </button>
+                    </div>
+
+                    {/* Section Items List */}
+                    <div style={{ padding: '12px 18px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {section.items.map(node => {
+                        const isChecked = (formData.menu_permissions || []).includes(node.id);
+                        const hasChildren = node.children && node.children.length > 0;
+
+                        return (
+                          <div key={node.id}>
+                            <label style={{
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              gap: '10px',
+                              cursor: 'pointer',
+                              userSelect: 'none',
+                              padding: '4px 0'
+                            }}>
+                              <input 
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => handleToggleMenu(node.id)}
+                                style={{
+                                  width: '16px',
+                                  height: '16px',
+                                  cursor: 'pointer',
+                                  accentColor: '#0F172A',
+                                  marginTop: '2px'
+                                }}
+                              />
+                              <div>
+                                <div style={{ fontSize: '13.5px', fontWeight: 700, color: isChecked ? '#0F172A' : '#334155' }}>
+                                  {node.name}
+                                </div>
+                                {node.desc && (
+                                  <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '1px' }}>
+                                    {node.desc}
+                                  </div>
+                                )}
+                              </div>
+                            </label>
+
+                            {/* Dotted Nested Children for User Management */}
+                            {hasChildren && (
+                              <div style={{
+                                marginLeft: '26px',
+                                paddingLeft: '18px',
+                                borderLeft: '1.5px dashed #cbd5e1',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '6px',
+                                marginTop: '4px',
+                                marginBottom: '6px'
+                              }}>
+                                {node.children.map(child => {
+                                  const childChecked = (formData.menu_permissions || []).includes(child.id);
+                                  return (
+                                    <div key={child.id} style={{ position: 'relative' }}>
+                                      <span style={{
+                                        position: 'absolute',
+                                        left: '-18px',
+                                        top: '50%',
+                                        width: '12px',
+                                        borderTop: '1.5px dashed #cbd5e1'
+                                      }} />
+                                      <label style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        cursor: 'pointer',
+                                        userSelect: 'none',
+                                        padding: '3px 0'
+                                      }}>
+                                        <input 
+                                          type="checkbox"
+                                          checked={childChecked}
+                                          onChange={() => handleToggleMenu(child.id)}
+                                          style={{
+                                            width: '15px',
+                                            height: '15px',
+                                            cursor: 'pointer',
+                                            accentColor: '#0F172A'
+                                          }}
+                                        />
+                                        <div>
+                                          <span style={{ fontSize: '12.5px', fontWeight: 600, color: childChecked ? '#0F172A' : '#475569' }}>
+                                            {child.name}
+                                          </span>
+                                          {child.desc && (
+                                            <span style={{ fontSize: '11px', color: '#94a3b8', marginLeft: '6px' }}>
+                                              — {child.desc}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </label>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })}

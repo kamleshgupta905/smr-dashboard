@@ -3440,18 +3440,21 @@ if ($normalizedRoute === 'manage/menus') {
             exit;
         } catch (Throwable $e) {}
     }
-    // Fallback menu tree matching MySQL schema
+    // Comprehensive platform menu tree matching exact Sidebar sections
     echo json_encode(['success' => true, 'data' => [
-        ['id' => 1, 'name' => 'Dashboard', 'route' => 'dashboard', 'is_parent' => 'Y', 'parent_id' => null, 'menu_srl' => 1],
-        ['id' => 2, 'name' => 'User Management', 'route' => 'users', 'is_parent' => 'Y', 'parent_id' => null, 'menu_srl' => 2],
-        ['id' => 3, 'name' => 'User', 'route' => 'user', 'is_parent' => 'N', 'parent_id' => 2, 'menu_srl' => 1],
-        ['id' => 4, 'name' => 'Menu Permission', 'route' => 'menupermission', 'is_parent' => 'Y', 'parent_id' => 2, 'menu_srl' => 2],
+        ['id' => 1, 'name' => 'Dashboard Overview', 'route' => 'dashboard', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 1],
+        ['id' => 7, 'name' => 'Surveys', 'route' => 'surveys', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 2],
+        ['id' => 6, 'name' => 'Clients', 'route' => 'clients', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 3],
+        ['id' => 8, 'name' => 'Vendors', 'route' => 'vendors', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 4],
+        ['id' => 10, 'name' => 'Vendor Payments', 'route' => 'payments', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 5],
+        ['id' => 9, 'name' => 'Traffic Leads Stream', 'route' => 'leads', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 6],
+        ['id' => 11, 'name' => 'Security & Fraud Gate', 'route' => 'security', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 7],
+        ['id' => 2, 'name' => 'User Management', 'route' => 'users', 'is_parent' => 'Y', 'parent_id' => null, 'menu_srl' => 8],
+        ['id' => 3, 'name' => 'User Accounts', 'route' => 'user', 'is_parent' => 'N', 'parent_id' => 2, 'menu_srl' => 1],
+        ['id' => 4, 'name' => 'Menu Permissions', 'route' => 'menupermission', 'is_parent' => 'N', 'parent_id' => 2, 'menu_srl' => 2],
         ['id' => 5, 'name' => 'Change Password', 'route' => 'changepassword', 'is_parent' => 'N', 'parent_id' => 2, 'menu_srl' => 3],
-        ['id' => 6, 'name' => 'Client', 'route' => 'client', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 3],
-        ['id' => 7, 'name' => 'Projects', 'route' => 'projects', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 4],
-        ['id' => 8, 'name' => 'Vendor', 'route' => 'vendor', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 5],
-        ['id' => 9, 'name' => 'Leads', 'route' => 'leads', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 6],
-        ['id' => 10, 'name' => 'Payments', 'route' => 'payments', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 7]
+        ['id' => 12, 'name' => 'Team Directory', 'route' => 'team', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 9],
+        ['id' => 13, 'name' => 'Reference Data', 'route' => 'reference', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 10]
     ]]);
     exit;
 }
