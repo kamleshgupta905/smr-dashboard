@@ -419,8 +419,10 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
           </div>
         </div>
 
-        {/* Section 5: Interactive Live Fraud Policy Rule Evaluator & Simulator */}
-        <div className="report-card" style={{ gridColumn: '1 / -1', margin: 0, padding: 0, border: '1px solid #CBD5E1' }}>
+      </div>
+
+      {/* Section 5: Interactive Live Fraud Policy Rule Evaluator & Simulator */}
+      <div className="report-card" style={{ marginTop: '20px', padding: 0, border: '1px solid #CBD5E1', borderRadius: '8px' }}>
           <div className="report-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <ShieldCheck size={18} color="#16A34A" />
@@ -555,8 +557,8 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
           </div>
         </div>
 
-        {/* Live Fraud & Quality Audit Ledger (Zamplia 8 Automated Quality Checks) */}
-        <div className="report-card" style={{ marginTop: '24px', padding: '24px' }}>
+      {/* Live Fraud & Quality Audit Ledger (Zamplia 8 Automated Quality Checks) */}
+      <div className="report-card" style={{ marginTop: '20px', padding: '24px', borderRadius: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{
@@ -677,8 +679,6 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
             </table>
           </div>
         </div>
-
-      </div>
     </div>
   );
 }
