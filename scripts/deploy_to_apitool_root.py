@@ -12,7 +12,7 @@ files_to_deploy = {}
 
 for root, dirs, files in os.walk(dist_dir):
     for f in files:
-        if f.endswith(('.html', '.js', '.css', '.svg', '.png', '.php', '.htaccess')):
+        if f.endswith(('.html', '.js', '.css', '.svg', '.png', '.php', '.htaccess', '.ico')):
             full_path = os.path.join(root, f)
             rel_path = os.path.relpath(full_path, dist_dir).replace('\\', '/')
             remote_path = f"{target_base}/{rel_path}"
@@ -21,6 +21,14 @@ for root, dirs, files in os.walk(dist_dir):
 api_php = os.path.join(project_root, "api", "index.php")
 if os.path.exists(api_php):
     files_to_deploy[f"{target_base}/api/index.php"] = api_php
+
+fav_ico = os.path.join(project_root, "client", "public", "favicon.ico")
+if os.path.exists(fav_ico):
+    files_to_deploy[f"{target_base}/favicon.ico"] = fav_ico
+
+fav_png = os.path.join(project_root, "client", "public", "favicon.png")
+if os.path.exists(fav_png):
+    files_to_deploy[f"{target_base}/favicon.png"] = fav_png
 
 print(f"Staging {len(files_to_deploy)} files to deploy directly to {target_base}:")
 for r, l in files_to_deploy.items():

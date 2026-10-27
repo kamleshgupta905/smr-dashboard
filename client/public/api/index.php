@@ -1545,6 +1545,8 @@ if (
 if (
     str_starts_with($normalizedRoute, 'callback') ||
     str_starts_with($normalizedRoute, 'survey/callback') ||
+    str_starts_with($normalizedRoute, 'survey/return-preview') ||
+    $normalizedRoute === 'survey/return-preview' ||
     str_starts_with($normalizedRoute, 'redirects/') ||
     $normalizedRoute === 'survey/complete' ||
     $normalizedRoute === 'survey/terminate' ||
@@ -1877,6 +1879,9 @@ function renderSMRBrandedEndPage($statusParam, $vendorId, $surveyId, $uid, $targ
     header('Content-Type: text/html; charset=utf-8');
     echo '<!DOCTYPE html><html><head><title>VMH GROUP&#39;S &bull; ' . htmlspecialchars($cfg['title']) . '</title>';
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
+    echo '<link rel="icon" type="image/x-icon" href="/favicon.ico?v=vmh">';
+    echo '<link rel="icon" type="image/png" sizes="32x32" href="/vmh-logo.png">';
+    echo '<link rel="apple-touch-icon" href="/vmh-logo.png">';
     echo '<style>';
     echo 'body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f8fafc;color:#334155;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 16px}';
     echo '.main-card{max-width:820px;width:100%;background:#ffffff;border-radius:12px;border:1px solid #e2e8f0;box-shadow:0 4px 20px rgba(0,0,0,0.05);padding:48px 36px;text-align:center}';
