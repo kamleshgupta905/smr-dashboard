@@ -72,7 +72,7 @@ const DEFAULT_ROLES = [
   { id: 4, role: 'Customer' }
 ];
 
-export default function UserManagementPage({ currentUser }) {
+export default function UserManagementPage({ currentUser, onImpersonateUser }) {
   // Navigation & View State: 'list' | 'addEdit'
   const [viewMode, setViewMode] = useState('list');
   const [editingUserId, setEditingUserId] = useState(null);
@@ -1168,6 +1168,14 @@ export default function UserManagementPage({ currentUser }) {
                         </td>
                         <td style={{ textAlign: 'center' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                            <button
+                              className="btn btn-soft-success btn-sm"
+                              onClick={() => onImpersonateUser && onImpersonateUser(user)}
+                              style={{ padding: '4px 7px', borderRadius: '4px', color: '#16A34A', background: '#DCFCE7', border: '1px solid #BBF7D0' }}
+                              title="View this User's Dashboard (Live Impersonation)"
+                            >
+                              <Eye size={13} />
+                            </button>
                             <button
                               className="btn btn-soft-primary btn-sm"
                               onClick={() => handleOpenEdit(user)}

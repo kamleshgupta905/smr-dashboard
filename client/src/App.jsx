@@ -62,6 +62,42 @@ export default function App() {
     }
   });
 
+    const [impersonatedOriginal, setImpersonatedOriginal] = useState(() => {
+    try {
+      const orig = localStorage.getItem('smr_original_admin');
+      if (orig) return JSON.parse(orig);
+    } catch {}
+    return null;
+  });
+
+  const handleImpersonateUser = (targetUser) => {
+    if (!impersonatedOriginal) {
+      localStorage.setItem('smr_original_admin', JSON.stringify(currentUser));
+      setImpersonatedOriginal(currentUser);
+    }
+    const impersonated = {
+      ...targetUser,
+      role: targetUser.role_name || targetUser.role || 'User',
+      role_name: targetUser.role_name || targetUser.role || 'User',
+      permissions: Array.isArray(targetUser.menu_permissions) ? targetUser.menu_permissions : (targetUser.permissions || [])
+    };
+    setCurrentUser(impersonated);
+    setUserPermissions(impersonated.permissions);
+    setActiveTab('dashboard');
+    showToast(`Viewing dashboard as ${targetUser.name || targetUser.username} (${impersonated.role_name})`, 'info');
+  };
+
+  const handleExitImpersonation = () => {
+    if (impersonatedOriginal) {
+      setCurrentUser(impersonatedOriginal);
+      setUserPermissions(impersonatedOriginal.permissions || []);
+      localStorage.removeItem('smr_original_admin');
+      setImpersonatedOriginal(null);
+    }
+    setActiveTab('users');
+    showToast('Restored Super Administrator session', 'success');
+  };
+
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('smr_auth_token') === 'authenticated_vmhgroup';
   });
@@ -384,6 +420,50 @@ export default function App() {
       {/* VMH Main Content Area */}
       <div className={`page-content-tab ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <main className="page-body">
+          {/* Live Impersonation Preview Banner */}
+          {impersonatedOriginal && (
+            <div style={{
+              background: '#0F172A',
+              color: '#FFFFFF',
+              padding: '10px 20px',
+              borderRadius: '10px',
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: '0 4px 12px rgba(15,23,42,0.18)',
+              border: '1px solid #334155'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ display: 'inline-block', width: '9px', height: '9px', borderRadius: '50%', background: '#10B981', boxShadow: '0 0 6px #10B981' }}></span>
+                <span style={{ fontSize: '13px' }}>
+                  Live Preview: Viewing Dashboard as <strong>{currentUser?.name || currentUser?.username}</strong> ({currentUser?.role_name || currentUser?.role || 'Staff'})
+                </span>
+                <span style={{ fontSize: '11px', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '4px', color: '#94A3B8' }}>
+                  Live RBAC Permissions Applied
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleExitImpersonation}
+                style={{
+                  background: '#DC2626',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                Exit & Return to Super Admin
+              </button>
+            </div>
+          )}
           <div key={activeTab} className="tab-animated">
           {activeTab === 'dashboard' && (
             <DashboardPage 
@@ -400,7 +480,7 @@ export default function App() {
           )}
 
           
-          {activeTab === 'users' && <UserManagementPage currentUser={currentUser} />}
+          {activeTab === 'users' && <UserManagementPage currentUser={currentUser} onImpersonateUser={handleImpersonateUser} />}
           {activeTab === 'clients' && (
             <ClientsPage 
               onNavigate={handleTabChange} 
