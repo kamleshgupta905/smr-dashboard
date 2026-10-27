@@ -28,6 +28,7 @@ export default function DuplicateProjectModal({ isOpen, project, onClose, onSucc
     client_name: project.client_name || project.client || 'Zamplia Global',
     vendor_id: '',
     rev_share_percent: 30,
+    live_url: '',
     description: `Duplicated from #${originalId} [${originalName}]`
   });
   const [vendorList, setVendorList] = useState([]);
@@ -96,7 +97,8 @@ export default function DuplicateProjectModal({ isOpen, project, onClose, onSucc
         vendor_id: formData.vendor_id || '',
         rev_share_percent: parseFloat(formData.rev_share_percent || 30),
         status: formData.status,
-        description: formData.description
+        description: formData.description,
+        live_url: (formData.live_url || '').trim()
       });
 
       if (res.success && res.project) {
@@ -259,6 +261,23 @@ export default function DuplicateProjectModal({ isOpen, project, onClose, onSucc
                     onChange={(e) => setFormData({ ...formData, target_name: e.target.value })}
                     style={{ width: '100%', fontSize: '13px', padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }}
                   />
+                </div>
+
+                {/* Destination Live Survey URL */}
+                <div style={{ marginBottom: '14px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '5px' }}>
+                    Client Survey Live URL (Destination Link — Optional)
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://client-survey.com/live?id=123&uid=[RESPONDENT_ID]"
+                    value={formData.live_url || ''}
+                    onChange={(e) => setFormData({ ...formData, live_url: e.target.value })}
+                    style={{ width: '100%', fontSize: '13px', padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }}
+                  />
+                  <small style={{ fontSize: '11px', color: '#64748B', display: 'block', marginTop: '3px' }}>
+                    Leave empty to use the interactive SMR Test Runner Bridge. Use [RESPONDENT_ID] for UID insertion.
+                  </small>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>

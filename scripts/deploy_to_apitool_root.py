@@ -98,7 +98,7 @@ if (
     str_starts_with($path, "/api") || 
     $path === "/api" || 
     $path === "/health" || 
-    str_starts_with($path, "/redirects") || 
+    str_starts_with($path, "/redirect") || 
     str_starts_with($path, "/router") ||
     str_starts_with($path, "/traffic") ||
     str_starts_with($path, "/vendor") ||
@@ -171,7 +171,7 @@ $ht = '<IfModule mod_dir.c>
     RewriteRule ^survey(.*)$ api/index.php?route=survey$1 [QSA,L]
     RewriteRule ^traffic(.*)$ api/index.php?route=traffic$1 [QSA,L]
     RewriteRule ^router(.*)$ api/index.php?route=router$1 [QSA,L]
-    RewriteRule ^redirects(.*)$ api/index.php?route=redirects$1 [QSA,L]
+    RewriteRule ^redirect(.*)$ api/index.php?route=redirect$1 [QSA,L]
     RewriteRule ^marketxcel(.*)$ api/index.php?route=marketxcel$1 [QSA,L]
 
     # Static files

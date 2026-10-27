@@ -1469,12 +1469,70 @@ if (
         }
     }
 
-    // 4. Pre-Screener Gate Check: Pre-qualify respondent before survey starts
+    // Filter out invalid/dead Zamplia live URLs
+    if (!empty($targetUrl) && str_contains($targetUrl, 'surveysupply.zamplia.com/live/')) {
+        $targetUrl = '';
+    }
+
     $hasPassedScreener = !empty($_GET['screened']) && $_GET['screened'] === '1';
-    $isTestSession = !empty($_GET['test']) || str_starts_with(strtoupper((string)$uid), 'TEST');
-    if (!$hasPassedScreener && empty($_GET['bridge'])) {
-        $screenerUrl = "{$appUrl}/#/prescreener?vid=" . urlencode($vendorId) . "&pid=" . urlencode($surveyId) . "&uid=" . urlencode($uid) . ($isTestSession ? "&test=1" : "") . (!empty($targetUrl) ? "&target=" . urlencode($targetUrl) : "");
+    $isTestSession = !empty($_GET['test']) || !empty($_GET['bridge']) || str_starts_with(strtoupper((string)$uid), 'TEST');
+
+    // 4. Pre-Screener Gate Check: Pre-qualify respondent for live external surveys (Bypassed in test/bridge mode)
+    if (!$isTestSession && !empty($targetUrl) && !$hasPassedScreener) {
+        $screenerUrl = "{$appUrl}/#/prescreener?vid=" . urlencode($vendorId) . "&pid=" . urlencode($surveyId) . "&uid=" . urlencode($uid) . (!empty($targetUrl) ? "&target=" . urlencode($targetUrl) : "");
         header("Location: {$screenerUrl}", true, 302);
+        exit;
+    }
+
+    // 5. Interactive Test Bridge (rendered for test sessions, explicit bridge requests, or when survey has no external live URL)
+    if ($isTestSession || empty($targetUrl) || !empty($_GET['bridge'])) {
+        // Render SMR Survey Interactive Test Runner Bridge
+        header('Content-Type: text/html; charset=utf-8');
+        $projName = $projRow['name'] ?? "Research Survey Study #{$surveyId}";
+        $projCpi = number_format((float)($projRow['cost_per_complete'] ?? 2.50), 2);
+        $vRevShare = 30; // 30% RevShare Standard
+        $vPayout = number_format((float)$projCpi * ($vRevShare / 100), 2);
+        $origin = "{$proto}://{$hostName}";
+
+        echo '<!DOCTYPE html><html><head><title>VMH SMR &bull; Survey Test Bridge - ' . htmlspecialchars($surveyId) . '</title>';
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
+        echo '<link rel="icon" type="image/x-icon" href="/favicon.ico?v=vmh">';
+        echo '<style>';
+        echo 'body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#0f172a;color:#f8fafc;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}';
+        echo '.bridge-card{background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:680px;width:100%;padding:32px;box-shadow:0 20px 40px rgba(0,0,0,0.5)}';
+        echo '.header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #334155;padding-bottom:16px;margin-bottom:20px}';
+        echo '.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;background:#334155;color:#f8fafc;border:1px solid #475569}';
+        echo '.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}';
+        echo '.info-box{background:#0f172a;border:1px solid #334155;padding:12px;border-radius:8px;font-size:12px}';
+        echo '.info-lbl{color:#94a3b8;font-size:11px;text-transform:uppercase;margin-bottom:4px}';
+        echo '.info-val{font-weight:700;color:#f8fafc;font-family:monospace}';
+        echo '.btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}';
+        echo '.btn-act{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;transition:all 0.2s}';
+        echo '.btn-complete{background:#059669;color:#fff}.btn-complete:hover{background:#10b981}';
+        echo '.btn-term{background:#dc2626;color:#fff}.btn-term:hover{background:#ef4444}';
+        echo '.btn-quota{background:#d97706;color:#fff}.btn-quota:hover{background:#f59e0b}';
+        echo '.btn-sec{background:#7c3aed;color:#fff}.btn-sec:hover{background:#8b5cf6}';
+        echo '</style></head><body>';
+        echo '<div class="bridge-card">';
+        echo '<div class="header">';
+        echo '<div><h2 style="margin:0;font-size:18px;color:#ffffff">SMR Live Survey Router Bridge</h2><p style="margin:4px 0 0;font-size:12px;color:#94a3b8">Test & Verification Environment Active</p></div>';
+        echo '<span class="badge">VMH Enterprise Router</span>';
+        echo '</div>';
+        echo '<div class="grid">';
+        echo '<div class="info-box"><div class="info-lbl">Project ID / Study</div><div class="info-val">' . htmlspecialchars($surveyId) . ' (' . htmlspecialchars($projName) . ')</div></div>';
+        echo '<div class="info-box"><div class="info-lbl">Assigned Vendor</div><div class="info-val">' . htmlspecialchars($vendorId) . ' (RevShare: ' . $vRevShare . '%)</div></div>';
+        echo '<div class="info-box"><div class="info-lbl">Respondent UID</div><div class="info-val">' . htmlspecialchars($uid) . '</div></div>';
+        echo '<div class="info-box"><div class="info-lbl">Client CPI / Vendor Payout</div><div class="info-val">$' . $projCpi . ' &rarr; $' . $vPayout . '</div></div>';
+        echo '</div>';
+        echo '<p style="font-size:13px;color:#cbd5e1;margin-bottom:14px">Select an outcome below to test live router settlement, postback logging, and branded return screens:</p>';
+        echo '<div class="btn-grid">';
+        echo '<a href="' . $origin . '/survey/complete?status=10&vid=' . urlencode($vendorId) . '&pid=' . urlencode($surveyId) . '&uid=' . urlencode($uid) . '&test=1" class="btn-act btn-complete">&#10004; Simulate Complete (Status 10)</a>';
+        echo '<a href="' . $origin . '/survey/terminate?status=20&vid=' . urlencode($vendorId) . '&pid=' . urlencode($surveyId) . '&uid=' . urlencode($uid) . '&test=1" class="btn-act btn-term">&#9888; Simulate Terminate (Status 20)</a>';
+        echo '<a href="' . $origin . '/survey/overquota?status=30&vid=' . urlencode($vendorId) . '&pid=' . urlencode($surveyId) . '&uid=' . urlencode($uid) . '&test=1" class="btn-act btn-quota">&#128101; Simulate Quota Full (Status 30)</a>';
+        echo '<a href="' . $origin . '/survey/security?status=40&vid=' . urlencode($vendorId) . '&pid=' . urlencode($surveyId) . '&uid=' . urlencode($uid) . '&test=1" class="btn-act btn-sec">&#128737; Simulate Quality Reject (Status 40)</a>';
+        echo '</div>';
+        echo '<div style="margin-top:20px;text-align:center"><a href="/" style="color:#94a3b8;font-size:12px;text-decoration:none">&larr; Return to SMR Dashboard</a></div>';
+        echo '</div></body></html>';
         exit;
     }
 
@@ -3199,7 +3257,7 @@ if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 
                     'ir' => (float)($body['ir'] ?? 80),
                     'loi' => (int)($body['loi'] ?? 10),
                     'max_limit' => (int)($body['max_limit'] ?? $body['target_completes'] ?? 500),
-                    'live_url' => $body['live_url'] ?? "https://surveysupply.zamplia.com/live/{$srcId}",
+                    'live_url' => !empty($body['live_url']) ? trim($body['live_url']) : '',
                     'client_id' => 51
                 ];
             }
@@ -3224,7 +3282,7 @@ if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 
                     if ($foundCid) $clientId = (int)$foundCid;
                 } catch (Throwable $e) {}
             }
-            $liveUrl = $body['live_url'] ?? $orig['live_url'];
+            $liveUrl = !empty($body['live_url']) ? trim($body['live_url']) : (!empty($orig['live_url']) && !str_contains($orig['live_url'], 'surveysupply.zamplia.com/live/') ? $orig['live_url'] : '');
             $desc = !empty($body['description']) ? $body['description'] : ($orig['description'] . " [Cloned from Project #{$orig['id']} {$orig['project_id']}]");
 
             $autoPauseClicks = isset($body['auto_pause_clicks']) ? (int)$body['auto_pause_clicks'] : 50;

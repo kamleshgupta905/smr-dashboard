@@ -48,7 +48,7 @@ export default function SurveysPage({
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://api.vmhgroupsmr.com';
     const link = isVendor
       ? `https://api.vmhgroupsmr.com/vendor/auth/${vendorId}/project/${s.survey_id}?uid=[RESPONDENT_ID]`
-      : (s.entry_live_url || `${origin}/redirect?pid=${s.survey_id}&uid=[RESPONDENT_ID]`);
+      : (s.entry_live_url || `${origin}/router?pid=${s.survey_id}&vid=VND-DYN-01&uid=[RESPONDENT_ID]`);
     try {
       navigator.clipboard.writeText(link);
       setCopiedId(s.survey_id);
@@ -1382,7 +1382,7 @@ export default function SurveysPage({
                     onClick={() => {
                       const origin = typeof window !== 'undefined' ? window.location.origin : 'https://api.vmhgroupsmr.com';
                       const sid = linkModalSurvey.survey_id || linkModalSurvey.project_id || linkModalSurvey.id;
-                      const testUrl = `${origin}/router?pid=${encodeURIComponent(sid)}&vid=VND-DYN-01&uid=TEST_${Date.now()}&test=1`;
+                      const testUrl = `${origin}/router?pid=${encodeURIComponent(sid)}&vid=VND-DYN-01&uid=TEST_${Date.now()}&test=1&bridge=1`;
                       window.open(testUrl, '_blank');
                     }}
                     style={{

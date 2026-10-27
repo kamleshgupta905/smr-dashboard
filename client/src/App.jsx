@@ -328,7 +328,9 @@ export default function App() {
     currentPath.includes('/prescreener') ||
     currentHash.includes('prescreener') ||
     currentPath.startsWith('/router') ||
-    currentPath === '/router';
+    currentPath === '/router' ||
+    currentPath.startsWith('/redirect') ||
+    currentPath === '/redirect';
 
   if (isPreScreener) {
     let vendorId = '';

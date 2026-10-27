@@ -173,7 +173,7 @@ export default function PreScreenerGate({
       let finalTargetUrl = '';
 
       // 1. If explicit target URL was passed into the screener
-      if (targetUrl && targetUrl.startsWith('http')) {
+      if (targetUrl && targetUrl.startsWith('http') && !targetUrl.includes('surveysupply.zamplia.com/live/')) {
         finalTargetUrl = targetUrl;
       }
 
@@ -187,7 +187,7 @@ export default function PreScreenerGate({
       // 3. Check if survey has custom target link
       if (!finalTargetUrl) {
         const customUrl = surveyInfo?.liveSurveyUrl || surveyInfo?.entry_live_url || surveyInfo?.live_url;
-        if (customUrl && customUrl.startsWith('http')) {
+        if (customUrl && customUrl.startsWith('http') && !customUrl.includes('surveysupply.zamplia.com/live/')) {
           finalTargetUrl = customUrl;
         }
       }
@@ -195,7 +195,7 @@ export default function PreScreenerGate({
       // 4. Otherwise route to backend auth with screened=1
       if (!finalTargetUrl) {
         const origin = typeof window !== 'undefined' ? window.location.origin : '';
-        window.location.href = `${origin}/vendor/auth/${encodeURIComponent(vendorId)}/project/${encodeURIComponent(projectId)}?uid=${encodeURIComponent(uid)}&screened=1`;
+        window.location.href = `${origin}/router?pid=${encodeURIComponent(projectId)}&vid=${encodeURIComponent(vendorId)}&uid=${encodeURIComponent(uid)}&screened=1&bridge=1`;
         return;
       }
 
@@ -234,7 +234,7 @@ export default function PreScreenerGate({
     } catch (err) {
       console.error('Redirection error:', err);
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      window.location.href = `${origin}/vendor/auth/${encodeURIComponent(vendorId)}/project/${encodeURIComponent(projectId)}?uid=${encodeURIComponent(uid)}&screened=1`;
+      window.location.href = `${origin}/router?pid=${encodeURIComponent(projectId)}&vid=${encodeURIComponent(vendorId)}&uid=${encodeURIComponent(uid)}&screened=1&bridge=1`;
     }
   };
 
