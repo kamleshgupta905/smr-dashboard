@@ -12,7 +12,7 @@ import {
 import ModalPortal from '../components/ModalPortal';
 import { sha3_256 } from 'js-sha3';
 
-export default function ClientsPage({ onNavigate, globalSearch = '', showToast }) {
+export default function ClientsPage({ onNavigate, globalSearch = '', showToast, onClientsUpdated }) {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -78,10 +78,14 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast }
       const clientId = editModalClient.id || editModalClient._id;
       const res = await updateClient(clientId, editFormData);
       if (res?.success || res?.data) {
-        setClients(prev => prev.map(c => {
-          const match = (c.id && c.id === clientId) || (c._id && c._id === clientId) || (c.client_code && c.client_code === editModalClient.client_code);
-          return match ? { ...c, ...editFormData, ...(res.data || {}) } : c;
-        }));
+        setClients(prev => {
+          const next = prev.map(c => {
+            const match = (c.id && c.id === clientId) || (c._id && c._id === clientId) || (c.client_code && c.client_code === editModalClient.client_code);
+            return match ? { ...c, ...editFormData, ...(res.data || {}) } : c;
+          });
+          if (onClientsUpdated) onClientsUpdated(next);
+          return next;
+        });
         if (showToast) showToast('Client details updated successfully!', 'success');
         setEditModalClient(null);
       } else {
@@ -174,7 +178,9 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast }
   const loadData = async () => {
     try {
       const list = await getClients();
-      setClients(Array.isArray(list) ? list : []);
+      const arr = Array.isArray(list) ? list : [];
+      setClients(arr);
+      if (onClientsUpdated) onClientsUpdated(arr);
     } catch (e) {
       console.error('Failed to load clients:', e);
     } finally {
@@ -248,7 +254,11 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast }
     if (!window.confirm('Are you sure you want to remove this client integration?')) return;
     try {
       await deleteClient(id);
-      setClients(prev => prev.filter(c => (c._id !== id && c.id != id)));
+      setClients(prev => {
+        const next = prev.filter(c => (c._id !== id && c.id != id));
+        if (onClientsUpdated) onClientsUpdated(next);
+        return next;
+      });
     } catch (err) {
       console.error('Failed to delete client:', err);
     }
@@ -319,8 +329,24 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast }
     setSaveSecuritySuccess(false);
   };
 
-  const handleSaveSecurity = (e) => {
+  const handleSaveSecurity = async (e) => {
     e.preventDefault();
+    if (securityModalClient) {
+      try {
+        const cId = securityModalClient.id || securityModalClient._id;
+        await updateClient(cId, {
+          complete_redirect: securityForm.completeUrl,
+          terminate_redirect: securityForm.terminateUrl,
+          overquota_redirect: securityForm.overquotaUrl,
+          security_redirect: securityForm.securityUrl,
+          secret_key: securityForm.secretKey,
+          hash_algorithm: securityForm.hashAlgorithm
+        });
+        await loadData();
+      } catch (err) {
+        console.error('Failed saving security settings:', err);
+      }
+    }
     setSaveSecuritySuccess(true);
     setTimeout(() => {
       setSecurityModalClient(null);

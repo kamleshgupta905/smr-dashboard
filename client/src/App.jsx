@@ -401,7 +401,17 @@ export default function App() {
 
           
           {activeTab === 'users' && <UserManagementPage currentUser={currentUser} />}
-          {activeTab === 'clients' && <ClientsPage onNavigate={handleTabChange} globalSearch={globalSearch} showToast={showToast} />}
+          {activeTab === 'clients' && (
+            <ClientsPage 
+              onNavigate={handleTabChange} 
+              globalSearch={globalSearch} 
+              showToast={showToast} 
+              onClientsUpdated={(newList) => {
+                setClientsList(newList);
+                setClientsCount(newList.length);
+              }}
+            />
+          )}
           {activeTab === 'security' && <SecurityFraudPage onLaunchPreScreener={(data) => openTestPreScreener(data)} />}
           {activeTab === 'developer-center' && <DashboardPage showToast={showToast} />}
 
