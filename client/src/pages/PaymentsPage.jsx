@@ -35,6 +35,7 @@ export default function PaymentsPage({ currentUser, showToast }) {
     count_rejected: 0
   });
   const [vendors, setVendors] = useState([]);
+  const [projectsList, setProjectsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -63,10 +64,23 @@ export default function PaymentsPage({ currentUser, showToast }) {
   const loadData = async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      const [payRes, venRes] = await Promise.all([
+      const [payRes, venRes, projRes] = await Promise.all([
         getPayments(),
-        getVendors()
+        getVendors(),
+        getProjects().catch(() => ({ data: [] }))
       ]);
+
+      const pList = projRes?.data || (Array.isArray(projRes) ? projRes : []);
+      if (Array.isArray(pList) && pList.length > 0) {
+        setProjectsList(pList);
+        if (!createForm.project_name) {
+          setCreateForm(prev => ({
+            ...prev,
+            project_id: pList[0].id || pList[0].project_id || 1,
+            project_name: pList[0].project_name || pList[0].name || ''
+          }));
+        }
+      }
 
       if (payRes && payRes.success) {
         setPayments(payRes.data || []);
@@ -643,9 +657,18 @@ export default function PaymentsPage({ currentUser, showToast }) {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Healthcare B2B Panel Wave 4"
+                    list="payments-projects-datalist"
+                    placeholder="Select or enter study name..."
                     value={createForm.project_name}
-                    onChange={(e) => setCreateForm({ ...createForm, project_name: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const match = projectsList.find(p => (p.project_name === val || p.name === val || p.project_id === val));
+                      setCreateForm({
+                        ...createForm,
+                        project_name: val,
+                        project_id: match ? (match.id || match.project_id) : createForm.project_id
+                      });
+                    }}
                     style={{
                       width: '100%',
                       padding: '9px 12px',
@@ -655,6 +678,13 @@ export default function PaymentsPage({ currentUser, showToast }) {
                       outline: 'none'
                     }}
                   />
+                  <datalist id="payments-projects-datalist">
+                    {projectsList.map((p, idx) => (
+                      <option key={idx} value={p.project_name || p.name || p.project_id}>
+                        {p.project_id ? `[${p.project_id}] ` : ''}{p.project_name || p.name}
+                      </option>
+                    ))}
+                  </datalist>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>

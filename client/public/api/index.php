@@ -614,7 +614,7 @@ if ($normalizedRoute === 'vendor/allotments' || $normalizedRoute === 'vendor/all
         if (file_exists($allotFile)) {
             $list = json_decode((string)file_get_contents($allotFile), true) ?: [];
             $list = array_values(array_filter($list, fn($a) => !(($a['project_id'] ?? '') === $pId && ($a['vendor_id'] ?? '') === $vId)));
-            @file_put_contents($allotFile, json_encode($list, JSON_PRETTY_PRINT));
+            @file_put_contents($allotFile, json_encode($list, JSON_PRETTY_PRINT), LOCK_EX);
         }
         echo json_encode(['success' => true, 'message' => 'Vendor allotment removed successfully']);
         exit;
@@ -709,7 +709,7 @@ if ($normalizedRoute === 'vendor/allotments' || $normalizedRoute === 'vendor/all
                 ];
             }
         }
-        @file_put_contents($allotFile, json_encode($list, JSON_PRETTY_PRINT));
+        @file_put_contents($allotFile, json_encode($list, JSON_PRETTY_PRINT), LOCK_EX);
 
         echo json_encode([
             'success' => true,
@@ -2168,7 +2168,7 @@ if ($normalizedRoute === 'zamplia' || $normalizedRoute === 'zamplia/surveys') {
         $res = zampliaRequest('/Surveys/GetAllocatedSurveys');
         if ($res['success'] && !empty($res['data'])) {
             $rawList = $res['data'];
-            @file_put_contents($CACHE_FILE, json_encode($rawList));
+            @file_put_contents($CACHE_FILE, json_encode($rawList), LOCK_EX);
         } elseif (file_exists($CACHE_FILE)) {
             $rawList = json_decode((string)file_get_contents($CACHE_FILE), true) ?: [];
         }
@@ -2182,7 +2182,7 @@ if ($normalizedRoute === 'zamplia' || $normalizedRoute === 'zamplia/surveys') {
 if ($normalizedRoute === 'zamplia/sync') {
     $res = zampliaRequest('/Surveys/GetAllocatedSurveys');
     if ($res['success']) {
-        @file_put_contents($CACHE_FILE, json_encode($res['data']));
+        @file_put_contents($CACHE_FILE, json_encode($res['data']), LOCK_EX);
         echo json_encode(['success' => true, 'message' => 'Synced ' . count($res['data']) . ' surveys successfully.', 'count' => count($res['data'])]);
     } else {
         echo json_encode(['success' => false, 'message' => $res['message']]);
@@ -2285,7 +2285,7 @@ if ($normalizedRoute === 'security/settings' || $normalizedRoute === 'security/p
                 $db->prepare("REPLACE INTO security_settings (id, policy_json) VALUES (1, ?)")->execute([$policyJson]);
             } catch (Throwable $e) {}
         }
-        @file_put_contents($DATA_DIR . '/security_policy.json', $policyJson);
+        @file_put_contents($DATA_DIR . '/security_policy.json', $policyJson, LOCK_EX);
         echo json_encode(['success' => true, 'message' => 'Security policy updated successfully', 'data' => $body]);
         exit;
     }
@@ -2344,7 +2344,7 @@ if ($normalizedRoute === 'dashboard/analytics') {
     global $DATA_DIR, $CACHE_FILE;
     $db = getDbConnection();
 
-    $totalVendors = 23;
+    $totalVendors = 0;
     $totalClick = 0;
     $completeLeads = 0;
     $pendingLeads = 0;
@@ -3143,12 +3143,12 @@ if ($normalizedRoute === 'manage/countries') {
 if ($normalizedRoute === 'reports/legacy-stats') {
     $db = getDbConnection();
     $stats = [
-        'totalProjects' => 1554,
-        'totalLeads' => 33699,
-        'totalCompletes' => 3875,
-        'totalVendors' => 2137,
-        'totalClients' => 10,
-        'estimatedRevenue' => 128450.00
+        'totalProjects' => 0,
+        'totalLeads' => 0,
+        'totalCompletes' => 0,
+        'totalVendors' => 0,
+        'totalClients' => 0,
+        'estimatedRevenue' => 0.00
     ];
     if ($db) {
         try {
@@ -3827,7 +3827,7 @@ if ($normalizedRoute === 'clients' || str_starts_with($normalizedRoute, 'clients
         if (!$updatedInJson) {
             $cList[] = $savedClient;
         }
-        file_put_contents($clientsFile, json_encode($cList, JSON_PRETTY_PRINT));
+        file_put_contents($clientsFile, json_encode($cList, JSON_PRETTY_PRINT), LOCK_EX);
         echo json_encode(['success' => true, 'data' => $savedClient]);
         exit;
     }
@@ -3842,7 +3842,7 @@ if ($normalizedRoute === 'clients' || str_starts_with($normalizedRoute, 'clients
                 } catch (Throwable $e) {}
             }
             $cList = array_values(array_filter($cList, fn($c) => ($c['_id'] ?? $c['id'] ?? $c['client_code'] ?? '') !== $delId));
-            file_put_contents($clientsFile, json_encode($cList, JSON_PRETTY_PRINT));
+            file_put_contents($clientsFile, json_encode($cList, JSON_PRETTY_PRINT), LOCK_EX);
         }
         echo json_encode(['success' => true]);
         exit;
@@ -4053,17 +4053,33 @@ if ($normalizedRoute === 'explorer/run-test') {
     $ep = $body['endpoint'] ?? '';
     $provider = $body['provider'] ?? 'zamplia_demand';
 
-    // Exact Frame 013 Demonstration response for updateProject
+    // Real database execution for updateProject
     if (stripos($ep, 'updateProject') !== false) {
+        $pId = (string)($body['body']['ProjectId'] ?? $body['body']['project_id'] ?? '');
+        $status = (string)($body['body']['Status'] ?? $body['body']['status'] ?? 'Active');
+        $cpi = (float)($body['body']['CPI'] ?? $body['body']['cpi'] ?? 3.50);
+        $totalRequired = (int)($body['body']['TotalCompleteRequired'] ?? $body['body']['total_required'] ?? 100);
+
+        $db = getDbConnection();
+        $updatedDb = false;
+        if ($db && !empty($pId)) {
+            try {
+                $stmt = $db->prepare("UPDATE projects SET status = ?, cpi = ?, total_required = ?, updated_at = NOW() WHERE project_id = ? OR id = ?");
+                $stmt->execute([$status, $cpi, $totalRequired, $pId, $pId]);
+                $updatedDb = ($stmt->rowCount() > 0);
+            } catch (Throwable $e) {}
+        }
+
         echo json_encode([
             'success' => true,
             'service' => 'VMH Zamplia Live Gateway',
             'status' => 'online',
             'dispatchedPath' => '/api/suppliers/run-test',
-            'projectId' => $body['body']['ProjectId'] ?? 108422,
-            'projectStatus' => $body['body']['Status'] ?? 'Active',
-            'cpi' => $body['body']['CPI'] ?? 3.85,
-            'totalCompletesRequired' => $body['body']['TotalCompleteRequired'] ?? 750,
+            'projectId' => !empty($pId) ? $pId : 'LIVE-PRJ-VERIFIED',
+            'projectStatus' => $status,
+            'cpi' => $cpi,
+            'totalCompletesRequired' => $totalRequired,
+            'dbSynchronized' => $updatedDb,
             'timestamp' => date('c')
         ]);
         exit;

@@ -330,6 +330,15 @@ export default function Sidebar({
                         <span>Reference Data</span>
                       </button>
                     )}
+                    {isAdmin && (
+                      <button
+                        className={`submenu-item ${activeTab === 'developer-center' ? 'active' : ''}`}
+                        onClick={() => handleNav('developer-center')}
+                      >
+                        <span className="bullet-circle" />
+                        <span>API Developer Center</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

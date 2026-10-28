@@ -245,47 +245,7 @@ export const DEFAULT_SECURITY_POLICY = {
   allowTablet: true
 };
 
-const DEFAULT_RECON_RECORDS = [
-  {
-    participantId: '0734',
-    surveyId: '2078015664',
-    surveyName: 'Market Xcel Global B2B Decision Maker Study',
-    cpi: 1.75,
-    status: 'complete',
-    completionDate: '2026-10-21T18:24:15.000Z',
-    vendorId: 'VND-DYN-01',
-    vendorName: 'Dynata Global Panel',
-    durationMinutes: 12,
-    device: 'AndroidOS (Chrome)',
-    country: 'United States'
-  },
-  {
-    participantId: '43007860',
-    surveyId: '2078015665',
-    surveyName: 'Zamplia Healthcare Opinion Benchmark',
-    cpi: 1.50,
-    status: 'complete',
-    completionDate: '2026-10-21T18:19:52.000Z',
-    vendorId: 'VND-CNT-01',
-    vendorName: 'Cint Exchange',
-    durationMinutes: 14,
-    device: 'Windows (Edge)',
-    country: 'India'
-  },
-  {
-    participantId: '298104',
-    surveyId: '2078015666',
-    surveyName: 'Consumer Tech Adoption Index Q4',
-    cpi: 1.60,
-    status: 'complete',
-    completionDate: '2026-10-21T17:45:00.000Z',
-    vendorId: 'VND-PSP-01',
-    vendorName: 'PureSpectrum Router',
-    durationMinutes: 11,
-    device: 'Windows (Chrome)',
-    country: 'United States'
-  }
-];
+const DEFAULT_RECON_RECORDS = [];
 
 export const generateVendorLink = (surveyId, vendorId) =>
   api.post('/zamplia/generate-link', { surveyId, vendorId })
@@ -505,24 +465,12 @@ export const createDemandProject = (data) =>
 export const getDemandFeasibility = (params) =>
   api.get('/explorer/zamplia/demand/feasibility', { params })
     .then(res => res.data)
-    .catch(() => {
-      const loi = Number(params?.LOI || 12);
-      const ir = Number(params?.IR || 80);
-      const sampleSize = Number(params?.SampleSize || 500);
-      const baseCpi = (loi * 0.18 + (100 - ir) * 0.025 + 1.2).toFixed(2);
-      const daysToComplete = Math.max(1, Math.ceil(sampleSize / (ir * 4)));
-      return {
-        success: true,
-        isLiveGateway: true,
-        data: {
-          FeasibilityScore: ir >= 70 ? 'High (94%)' : (ir >= 40 ? 'Moderate (78%)' : 'Niche Target (52%)'),
-          EstimatedCPI: parseFloat(baseCpi),
-          Currency: 'USD',
-          EstimatedDaysToComplete: daysToComplete,
-          AvailableMarketplaceAudience: Math.floor(sampleSize * 160 + Math.random() * 4000)
-        }
-      };
-    });
+    .catch((err) => ({
+      success: false,
+      isLiveGateway: false,
+      error: err.response?.data?.message || err.message || 'Unable to compute feasibility from live gateway',
+      data: null
+    }));
 
 // Project, Vendor, Client & User Management with Local Resilience
 export const getProjects = async () => {
@@ -714,43 +662,37 @@ export const getLegacyStats = async () => {
     if (res.data?.data) return res.data.data;
   } catch {}
   return {
-    totalProjects: 1554,
-    totalLeads: 33699,
-    totalCompletes: 3875,
-    totalVendors: 2137,
-    totalClients: 10,
-    estimatedRevenue: 128450.00
+    totalProjects: 0,
+    totalLeads: 0,
+    totalCompletes: 0,
+    totalVendors: 0,
+    totalClients: 0,
+    estimatedRevenue: 0.00
   };
 };
 
 export const getLegacyProjects = async (search = '', limit = 50, offset = 0) => {
   try {
     const res = await api.get(`/reports/legacy-projects?search=${encodeURIComponent(search)}&limit=${limit}&offset=${offset}`);
-    return res.data || { data: [], total: 1554 };
+    return res.data || { data: [], total: 0 };
   } catch {
-    return { data: [], total: 1554 };
+    return { data: [], total: 0 };
   }
 };
 
 export const getDashboardAnalytics = () =>
   api.get('/dashboard/analytics').then(res => res.data).catch(() => ({
-    totalVendors: 2137,
-    pendingLeads: 13568,
-    totalClick: 33688,
-    activeProjects: 1554,
-    completeLeads: 3875,
-    chartData: {
-      'VMH#100223': 577,
-      'VMH#100170 USA (B2C)': 548,
-      'VMHAML29201 US': 459,
-      'VMHZASI26213- TG -1': 418,
-      'VMH_1498': 404,
-      'VMH_1685': 393
-    },
+    success: false,
+    totalVendors: 0,
+    pendingLeads: 0,
+    totalClick: 0,
+    activeProjects: 0,
+    completeLeads: 0,
+    chartData: {},
     donutChartData: [
-      { category: 'Vendors', value: 2137 },
-      { category: 'Projects', value: 1554 },
-      { category: 'Leads', value: 33688 }
+      { category: 'Vendors', value: 0 },
+      { category: 'Active Studies', value: 0 },
+      { category: 'Routed Leads', value: 0 }
     ]
   }));
 

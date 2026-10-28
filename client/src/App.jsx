@@ -10,6 +10,7 @@ import ReferenceDataPage from './pages/ReferenceDataPage';
 import ClientsPage from './pages/ClientsPage';
 import SecurityFraudPage from './pages/SecurityFraudPage';
 import ApiDeveloperCenterPage from './pages/ApiDeveloperCenterPage';
+import ProjectsPage from './pages/ProjectsPage';
 import UserManagementPage from './pages/UserManagementPage';
 import BidsPage from './pages/BidsPage';
 import LeadsPage from './pages/LeadsPage';
@@ -138,6 +139,7 @@ export default function App() {
         const map = {
           dashboard: 1,
           surveys: 7,
+          projects: 7,
           clients: 6,
           vendors: 8,
           reconciliation: 8,
@@ -145,7 +147,9 @@ export default function App() {
           leads: 9,
           security: 11,
           team: 12,
-          reference: 13
+          reference: 13,
+          bids: 7,
+          'developer-center': 1
         };
         const reqMenu = map[activeTab];
         if (reqMenu && !perms.includes(reqMenu)) {
@@ -358,9 +362,13 @@ export default function App() {
     reconciliation: 'Vendor Performance & Reports',
     surveys: 'Surveys',
     
-    'developer-center': 'API & Integrations',
-    security: 'Security Settings',
-        reference: 'Categories & Reference Data'
+    projects: 'Projects Directory',
+    payments: 'Vendor Payments & Invoices',
+    team: 'Team Directory',
+    bids: 'Bids & Feasibility Quotations',
+    'developer-center': 'API Developer Center & Integrations',
+    security: 'Security & Anti-Fraud Gate',
+    reference: 'Categories & Reference Data'
   };
 
   const handleLogout = () => {
@@ -562,7 +570,8 @@ export default function App() {
             />
           )}
           {activeTab === 'security' && <SecurityFraudPage onLaunchPreScreener={(data) => openTestPreScreener(data)} />}
-          {activeTab === 'developer-center' && <DashboardPage showToast={showToast} />}
+          {activeTab === 'developer-center' && <ApiDeveloperCenterPage showToast={showToast} />}
+          {activeTab === 'projects' && <ProjectsPage showToast={showToast} />}
 
           {activeTab === 'surveys' && (
             <SurveysPage 

@@ -17,7 +17,7 @@ import {
   ExternalLink,
   Percent
 } from 'lucide-react';
-import { getLeads, createLead, getVendors } from '../services/api';
+import { getLeads, createLead, getVendors, getProjects } from '../services/api';
 import ModalPortal from '../components/ModalPortal';
 
 export default function LeadsPage({ currentUser, showToast }) {
@@ -32,6 +32,7 @@ export default function LeadsPage({ currentUser, showToast }) {
     conversion_rate: 0.0
   });
   const [vendors, setVendors] = useState([]);
+  const [projectsList, setProjectsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [autoSync, setAutoSync] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -51,10 +52,19 @@ export default function LeadsPage({ currentUser, showToast }) {
     try {
       if (!silent) setLoading(true);
       setSyncing(true);
-      const [leadsRes, venRes] = await Promise.all([
+      const [leadsRes, venRes, projRes] = await Promise.all([
         getLeads({ search, status: statusFilter !== 'ALL' ? statusFilter : '' }),
-        getVendors()
+        getVendors(),
+        getProjects().catch(() => ({ data: [] }))
       ]);
+
+      const pList = projRes?.data || (Array.isArray(projRes) ? projRes : []);
+      if (Array.isArray(pList) && pList.length > 0) {
+        setProjectsList(pList);
+        if (simForm.project_id === 'PRJ-2026-001') {
+          setSimForm(prev => ({ ...prev, project_id: String(pList[0].project_id || pList[0].id || 'PRJ-2026-001') }));
+        }
+      }
 
       if (leadsRes && leadsRes.success) {
         setLeads(leadsRes.data || []);
@@ -590,7 +600,8 @@ export default function LeadsPage({ currentUser, showToast }) {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. PRJ-2026-001"
+                    list="leads-projects-datalist"
+                    placeholder="Select or enter study code..."
                     value={simForm.project_id}
                     onChange={(e) => setSimForm({ ...simForm, project_id: e.target.value })}
                     style={{
@@ -602,6 +613,13 @@ export default function LeadsPage({ currentUser, showToast }) {
                       outline: 'none'
                     }}
                   />
+                  <datalist id="leads-projects-datalist">
+                    {projectsList.map((p, idx) => (
+                      <option key={idx} value={p.project_id || p.id}>
+                        {p.project_name || p.name || p.project_id}
+                      </option>
+                    ))}
+                  </datalist>
                 </div>
 
                 <div style={{ marginBottom: '14px' }}>
