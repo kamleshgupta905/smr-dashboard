@@ -15,12 +15,12 @@ return [
 
     'production' => [
         'base_url' => env('ZAMPLIA_BASE_URL', 'https://surveysupply.zamplia.com/api/v1'),
-        'api_key'  => env('ZAMPLIA_API_KEY', 'RCgqJ2hfoVZdwgPkwGnjMwTIi0CSKQ2u'),
+        'api_key'  => env('ZAMPLIA_API_KEY', ''),
     ],
 
     'sandbox' => [
         'base_url' => env('ZAMPLIA_SANDBOX_BASE_URL', 'https://surveysupplysandbox.zamplia.com/api/v1'),
-        'api_key'  => env('ZAMPLIA_SANDBOX_API_KEY', 's5YnczOM9ahIKuSdwzKvPyTlBUvBLfqG'),
+        'api_key'  => env('ZAMPLIA_SANDBOX_API_KEY', ''),
     ],
 
     // Active base URL and API Key based on sandbox mode
@@ -29,8 +29,8 @@ return [
         : env('ZAMPLIA_BASE_URL', 'https://surveysupply.zamplia.com/api/v1'),
 
     'active_api_key' => env('ZAMPLIA_USE_SANDBOX', false)
-        ? env('ZAMPLIA_SANDBOX_API_KEY', 's5YnczOM9ahIKuSdwzKvPyTlBUvBLfqG')
-        : env('ZAMPLIA_API_KEY', 'RCgqJ2hfoVZdwgPkwGnjMwTIi0CSKQ2u'),
+        ? env('ZAMPLIA_SANDBOX_API_KEY', '')
+        : env('ZAMPLIA_API_KEY', ''),
 
     // Security & HMAC signature secret
     'hmac_secret' => env('ZAMPLIA_HMAC_SECRET', ''),
