@@ -11,8 +11,9 @@ import {
   TrendingUp, 
   Clock, 
   ExternalLink,
-  Trash2
-} , X } from 'lucide-react';
+  Trash2,
+  X
+} from 'lucide-react';
 import { getProjects, createProject, deleteProject } from '../services/api';
 import ModalPortal from '../components/ModalPortal';
 

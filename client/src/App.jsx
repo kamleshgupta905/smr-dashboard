@@ -31,11 +31,12 @@ const parseHashRoute = () => {
   const hash = window.location.hash.replace(/^#\/?/, '');
   if (!hash) {
     const saved = localStorage.getItem('smr_active_tab') || 'dashboard';
-    return { tab: saved };
+    return { tab: saved, subTab: null };
   }
   const [tabPart] = hash.split('?');
-  const tab = tabPart || 'dashboard';
-  return { tab };
+  const [mainTab, subPart] = (tabPart || '').split('/');
+  const tab = mainTab || 'dashboard';
+  return { tab, subTab: subPart || null };
 };
 
 export default function App() {
@@ -139,6 +140,7 @@ export default function App() {
           surveys: 7,
           clients: 6,
           vendors: 8,
+          reconciliation: 8,
           payments: 10,
           leads: 9,
           security: 11,
@@ -193,12 +195,24 @@ export default function App() {
   };
   const closeTestPreScreener = () => setTestPreScreener(null);
 
-  const handleTabChange = (tab, pushHistory = true) => {
+  const [currentReportSubTab, setCurrentReportSubTab] = useState(() => {
+    const { subTab } = parseHashRoute();
+    return subTab || 'vendors';
+  });
+
+  const handleTabChange = (tab, subTabOrPush = true, maybePush = true) => {
+    let pushHistory = true;
+    if (typeof subTabOrPush === 'string') {
+      setCurrentReportSubTab(subTabOrPush);
+      pushHistory = maybePush !== false;
+    } else if (typeof subTabOrPush === 'boolean') {
+      pushHistory = subTabOrPush;
+    }
     setActiveTab(tab);
     localStorage.setItem('smr_active_tab', tab);
-    const hashStr = `#/${tab}`;
+    const hashStr = typeof subTabOrPush === 'string' ? `#/${tab}/${subTabOrPush}` : `#/${tab}`;
     if (pushHistory && window.location.hash !== hashStr) {
-      window.history.pushState({ tab }, '', hashStr);
+      window.history.pushState({ tab, subTab: typeof subTabOrPush === 'string' ? subTabOrPush : null }, '', hashStr);
     }
   };
 
@@ -215,8 +229,9 @@ export default function App() {
       }
 
       // 2. Otherwise navigate to the URL hash route
-      const { tab } = parseHashRoute();
+      const { tab, subTab } = parseHashRoute();
       setActiveTab(tab);
+      if (subTab) setCurrentReportSubTab(subTab);
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -437,6 +452,7 @@ export default function App() {
       {/* VMH Sidebar Navigation */}
       <Sidebar 
         activeTab={activeTab}
+        currentReportSubTab={currentReportSubTab}
         onTabChange={handleTabChange}
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}

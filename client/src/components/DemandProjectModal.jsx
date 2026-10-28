@@ -9,6 +9,7 @@ import ModalPortal from './ModalPortal';
 export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
   const [activeTab, setActiveTab] = useState('custom'); // 'custom' | 'zamplia'
   const [availableClients, setAvailableClients] = useState([]);
+  const clientsList = availableClients;
 
   useEffect(() => {
     getClients().then(res => {

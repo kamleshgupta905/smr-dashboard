@@ -119,6 +119,18 @@ export const getSurveyQuotas = (surveyId) =>
       data: []
     }));
 
+// Local persistent storage helpers
+const getLocalData = (key, defaultData) => {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : defaultData;
+  } catch {
+    return defaultData;
+  }
+};
+
+const getVendorsFromStorage = () => getLocalData('smr_custom_vendors', []);
+
 export const getSurveyStats = (surveyId = '') => 
   api.get('/dashboard/analytics')
     .then(res => {
@@ -160,15 +172,7 @@ export const getSurveyStats = (surveyId = '') =>
       };
     });
 
-// Local persistent storage helpers for client/standalone local resilience
-const getLocalData = (key, defaultData) => {
-  try {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : defaultData;
-  } catch {
-    return defaultData;
-  }
-};
+// (getLocalData hoisted to top)
 
 const setLocalData = (key, data) => {
   try {
