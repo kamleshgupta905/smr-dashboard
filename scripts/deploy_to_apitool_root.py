@@ -34,10 +34,13 @@ print(f"Staging {len(files_to_deploy)} files to deploy directly to {target_base}
 for r, l in files_to_deploy.items():
     print(f"  {r} <- {os.path.basename(l)} ({os.path.getsize(l):,} bytes)")
 
-db_host = os.environ.get("DB_HOST", "srv2215.hstgr.io")
-db_user = os.environ.get("DB_USER", "u839355029_vmhgropu")
-db_pass = os.environ.get("DB_PASS", "U839355029_vmhgroup")
-db_name = os.environ.get("DB_NAME", "u839355029_vmh_group")
+db_host = os.environ.get("DB_HOST")
+db_user = os.environ.get("DB_USER")
+db_pass = os.environ.get("DB_PASS")
+db_name = os.environ.get("DB_NAME")
+
+if not all([db_host, db_user, db_pass, db_name]):
+    raise SystemExit("Missing DB_HOST/DB_USER/DB_PASS/DB_NAME secrets (GitHub Secrets). Refusing to deploy with hardcoded credentials.")
 
 conn = pymysql.connect(
     host=db_host,
@@ -56,7 +59,11 @@ for remote_path, local_path in files_to_deploy.items():
         b64 = base64.b64encode(f.read()).decode("ascii")
     cur.execute("INSERT INTO _deploy_tmp (path, content) VALUES (%s, %s);", (remote_path, b64))
 
-php_runner = r'''$pdo = new PDO("mysql:host=127.0.0.1;port=3306;dbname=u839355029_vmh_group", "u839355029_vmhgropu", "U839355029_vmhgroup", [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+php_runner = r'''$secFile = '/home/u839355029/config/smr_secrets.php';
+$sec = is_file($secFile) ? require $secFile : null;
+if (!is_array($sec) || empty($sec['deploy_db']['host']) || empty($sec['deploy_db']['user']) || empty($sec['deploy_db']['pass']) || empty($sec['deploy_db']['db'])) { die("Deploy secrets file missing: create /home/u839355029/config/smr_secrets.php with a 'deploy_db' entry.\n"); }
+$ddb = $sec['deploy_db'];
+$pdo = new PDO("mysql:host={$ddb['host']};port=3306;dbname={$ddb['db']}", $ddb['user'], $ddb['pass'], [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
 
 $base = "/home/u839355029/domains/vmhgroupsmr.com/public_html/apitool";
 
@@ -132,7 +139,9 @@ if ($path !== "/" && is_file($file)) {
     if (isset($mimes[$ext])) {
         header("Content-Type: " . $mimes[$ext]);
     }
-    header("Access-Control-Allow-Origin: *");
+    $allowedOrigins = ['https://api.vmhgroupsmr.com', 'https://smr.vmhgroupsmr.com', 'https://vmhgroupsmr.com'];
+    $reqOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    if (in_array($reqOrigin, $allowedOrigins, true)) { header('Access-Control-Allow-Origin: ' . $reqOrigin); header('Vary: Origin'); }
     header("Cache-Control: public, max-age=86400");
     readfile($file);
     exit;
@@ -141,7 +150,9 @@ if ($path !== "/" && is_file($file)) {
 // 3. SPA Fallback: Serve SMR React Frontend index.html
 if (file_exists(__DIR__ . "/index.html")) {
     header("Content-Type: text/html; charset=utf-8");
-    header("Access-Control-Allow-Origin: *");
+    $allowedOrigins = ['https://api.vmhgroupsmr.com', 'https://smr.vmhgroupsmr.com', 'https://vmhgroupsmr.com'];
+    $reqOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    if (in_array($reqOrigin, $allowedOrigins, true)) { header('Access-Control-Allow-Origin: ' . $reqOrigin); header('Vary: Origin'); }
     header("Cache-Control: no-cache, no-store, must-revalidate");
     readfile(__DIR__ . "/index.html");
     exit;
@@ -184,7 +195,8 @@ $ht = '<IfModule mod_dir.c>
 </IfModule>
 
 <IfModule mod_headers.c>
-    Header set Access-Control-Allow-Origin "*"
+    SetEnvIf Origin "^https://(api\.vmhgroupsmr\.com|smr\.vmhgroupsmr\.com|vmhgroupsmr\.com)$" CORS_ALLOW_ORIGIN=$0
+    Header set Access-Control-Allow-Origin "%{CORS_ALLOW_ORIGIN}e" env=CORS_ALLOW_ORIGIN
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
 </IfModule>
