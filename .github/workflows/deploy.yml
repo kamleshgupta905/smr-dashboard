@@ -14,6 +14,14 @@ jobs:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
+      - name: 🧪 Lint PHP (syntax must pass before any deploy)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: 🧪 Check PHP syntax
+        run: php -l api/index.php && php -l config/zamplia.php && php -l config/cors.php
+
       - name: 🟢 Setup Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -41,8 +49,8 @@ jobs:
 
       - name: 🚀 Deploy to Hostinger apitool Root
         env:
-          DB_HOST: ${{ secrets.HOSTINGER_DB_HOST || 'srv2215.hstgr.io' }}
-          DB_USER: ${{ secrets.HOSTINGER_DB_USER || 'u839355029_vmhgropu' }}
-          DB_PASS: ${{ secrets.HOSTINGER_DB_PASS || 'U839355029_vmhgroup' }}
-          DB_NAME: ${{ secrets.HOSTINGER_DB_NAME || 'u839355029_vmh_group' }}
+          DB_HOST: ${{ secrets.HOSTINGER_DB_HOST }}
+          DB_USER: ${{ secrets.HOSTINGER_DB_USER }}
+          DB_PASS: ${{ secrets.HOSTINGER_DB_PASS }}
+          DB_NAME: ${{ secrets.HOSTINGER_DB_NAME }}
         run: python scripts/deploy_to_apitool_root.py

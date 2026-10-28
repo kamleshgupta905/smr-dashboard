@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => ['https://api.vmhgroupsmr.com', 'https://smr.vmhgroupsmr.com', 'https://vmhgroupsmr.com'],
 
     'allowed_origins_patterns' => [],
 

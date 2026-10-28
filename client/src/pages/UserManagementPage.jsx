@@ -466,13 +466,14 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
   // =========================================================================
   // VIEW: CREATE / EDIT USER (Matching screenshot addedit)
   // =========================================================================
-  const isAdminOrDev = !currentUser || 
-    currentUser.role_id === 1 || 
-    currentUser.role_name === 'Developer' || 
-    currentUser.role === 'Developer' || 
-    currentUser.role_name === 'Admin' || 
-    currentUser.username === 'admin' || 
-    currentUser.username === 'vmhgroup';
+  const isAdminOrDev = Boolean(currentUser) && (
+    currentUser.role_id === 1 ||
+    currentUser.role_name === 'Developer' ||
+    currentUser.role === 'Developer' ||
+    currentUser.role_name === 'Admin' ||
+    currentUser.username === 'admin' ||
+    currentUser.username === 'vmhgroup'
+  );
 
   if (!isAdminOrDev) {
     return (
@@ -1262,6 +1263,7 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                             <button
                               className="btn btn-soft-success btn-sm"
+                              disabled={!isAdminOrDev}
                               onClick={() => onImpersonateUser && onImpersonateUser(user)}
                               style={{ padding: '4px 7px', borderRadius: '4px', color: '#16A34A', background: '#DCFCE7', border: '1px solid #BBF7D0' }}
                               title="View this User's Dashboard (Live Impersonation)"

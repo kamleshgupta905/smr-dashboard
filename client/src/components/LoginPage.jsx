@@ -24,7 +24,12 @@ export default function LoginPage({ onLogin }) {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        localStorage.setItem('smr_auth_token', data.token || 'authenticated_vmhgroup');
+        if (!data.token) {
+          setError('Login could not be verified with the server. Please try again.');
+          setLoading(false);
+          return;
+        }
+        localStorage.setItem('smr_auth_token', data.token);
         localStorage.setItem('smr_auth_user', data.user?.username || data.user?.name || 'Vmhgroup');
         localStorage.setItem('smr_auth_role', data.user?.role_name || data.user?.role || 'admin');
         if (data.user) {
@@ -39,53 +44,11 @@ export default function LoginPage({ onLogin }) {
         setLoading(false);
       }
     } catch (err) {
-      console.warn('Live auth request failed, checking Super Admin fallback:', err);
-      const isVendorFallback = username.trim().toUpperCase().startsWith('VND-') || username.trim().toLowerCase().includes('dynata') || username.trim().toLowerCase().includes('cint');
-      if (isVendorFallback && (password === 'Vendor@123' || password === 'Jelly')) {
-        const vCode = username.trim().toUpperCase().startsWith('VND-') ? username.trim().toUpperCase() : 'VND-DYN-01';
-        const vendorUser = {
-          id: 99,
-          name: `${vCode} Supply Partner`,
-          username: vCode,
-          email: `${vCode.toLowerCase()}@partner.vmhgroupsmr.com`,
-          role_id: 8,
-          role_name: 'Vendor',
-          role: 'Vendor',
-          vendor_id: vCode,
-          permissions: [1, 7, 9, 10]
-        };
-        localStorage.setItem('smr_auth_token', 'authenticated_vmhgroup');
-        localStorage.setItem('smr_auth_user', vCode);
-        localStorage.setItem('smr_auth_role', 'Vendor');
-        localStorage.setItem('smr_auth_user_data', JSON.stringify(vendorUser));
-        localStorage.setItem('smr_auth_permissions', JSON.stringify(vendorUser.permissions));
-        onLogin(vendorUser);
-        return;
-      }
-
-      const validUser = username.trim().toLowerCase() === 'vmhgroup';
-      const validPass = password === 'Jelly';
-
-      if (validUser && validPass) {
-        const fallbackUser = {
-          id: 1,
-          name: 'VMH GROUPS',
-          username: 'vmhgroup',
-          email: 'vmhgroups.in@gmail.com',
-          role_id: 1,
-          role_name: 'Developer',
-          permissions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        };
-        localStorage.setItem('smr_auth_token', 'authenticated_vmhgroup');
-        localStorage.setItem('smr_auth_user', 'Vmhgroup');
-        localStorage.setItem('smr_auth_role', 'Developer');
-        localStorage.setItem('smr_auth_user_data', JSON.stringify(fallbackUser));
-        localStorage.setItem('smr_auth_permissions', JSON.stringify(fallbackUser.permissions));
-        onLogin(fallbackUser);
-      } else {
-        setError('Access Denied');
-        setLoading(false);
-      }
+      // SECURITY FIX: removed offline fallbacks. Previously, when the server
+      // request failed, hardcoded credentials logged in as full Developer or
+      // Vendor WITHOUT any server check. Login now succeeds only via server.
+      setError('Login could not be verified with the server. Please try again.');
+      setLoading(false);
     }
   };
 
@@ -269,50 +232,6 @@ export default function LoginPage({ onLogin }) {
               {loading ? 'AUTHENTICATING...' : 'LOGIN'}
             </button>
 
-            {/* Quick Access Demo Portals */}
-            <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
-              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Quick Access Portals:</div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setUsername('vmhgroup');
-                    setPassword('Jelly');
-                  }}
-                  style={{
-                    background: '#e9ebf8',
-                    color: '#2a2d8c',
-                    border: 'none',
-                    borderRadius: '16px',
-                    padding: '4px 12px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
-                >
-                  👑 Admin Portal
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setUsername('VND-DYN-01');
-                    setPassword('Vendor@123');
-                  }}
-                  style={{
-                    background: '#f1f5f9',
-                    color: '#475569',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '16px',
-                    padding: '4px 12px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
-                >
-                  🏢 Vendor Portal
-                </button>
-              </div>
-            </div>
           </form>
         </div>
 
