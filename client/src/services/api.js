@@ -7,11 +7,17 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = (typeof localStorage !== 'undefined' && localStorage.getItem('smr_auth_token')) || 'authenticated_vmhgroup';
-  const role = (typeof localStorage !== 'undefined' && localStorage.getItem('smr_user_role')) || 'Admin';
-  config.headers['X-SMR-Auth'] = token;
-  config.headers['X-SMR-Role'] = role;
-  config.headers['Authorization'] = `Bearer ${token}`;
+  // SECURITY FIX: no default token/role. Logged-out requests carry no auth
+  // headers, so the backend gate returns 401 instead of silently passing.
+  const token = (typeof localStorage !== 'undefined' && localStorage.getItem('smr_auth_token')) || '';
+  const role = (typeof localStorage !== 'undefined' && localStorage.getItem('smr_user_role')) || '';
+  if (token) {
+    config.headers['X-SMR-Auth'] = token;
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  if (role) {
+    config.headers['X-SMR-Role'] = role;
+  }
   return config;
 });
 
@@ -861,16 +867,13 @@ export const simulateTrafficCheck = (data) =>
   api.post('/security/simulate-check', data)
     .then(res => res.data)
     .catch(() => ({
-      isAllowed: true,
-      riskScore: 12,
-      decision: 'Passed All Security Filters (Low Risk)',
-      details: {
-        ipReputation: 'Clean (Residential ISP)',
-        geoMatch: true,
-        botSignature: 'Not Detected',
-        duplicateUid: false,
-        deviceFingerprint: 'Verified Unique'
-      }
+      // SECURITY FIX: fail CLOSED. The old fallback fabricated a "Passed"
+      // verdict whenever the (nonexistent) endpoint errored, so the security
+      // check always looked green. Unknown is now reported as unknown.
+      isAllowed: false,
+      riskScore: null,
+      decision: 'Security check unavailable — verdict unknown, do not treat as passed',
+      details: {}
     }));
 
 export const getFraudLogs = () =>
