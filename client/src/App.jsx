@@ -51,15 +51,9 @@ export default function App() {
     try {
       const u = localStorage.getItem('smr_auth_user_data');
       if (u) return JSON.parse(u);
-      return {
-        id: 1,
-        name: localStorage.getItem('smr_auth_user') || 'Super Admin',
-        username: localStorage.getItem('smr_auth_user') || 'admin',
-        role: localStorage.getItem('smr_auth_role') || 'Developer',
-        role_name: localStorage.getItem('smr_auth_role') || 'Developer',
-        role_id: 1,
-        permissions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-      };
+      // SECURITY FIX: never default to a Developer session. No stored user
+      // data means no session (login screen), not a full-admin session.
+      return null;
     } catch (e) {
       return null;
     }
@@ -83,8 +77,15 @@ export default function App() {
   });
 
   const handleImpersonateUser = async (targetUser) => {
+    // SECURITY FIX: impersonation is admin-only, and never fabricates an
+    // admin session from nothing. (Phase 2 adds a server-side check.)
+    const canImpersonate = currentUser && (currentUser.role_id === 1 || currentUser.role_name === 'Developer' || currentUser.role === 'Developer' || currentUser.role_name === 'Admin' || currentUser.role === 'Admin');
+    if (!canImpersonate) {
+      showToast('Impersonation is restricted to administrators.', 'error');
+      return;
+    }
     if (!impersonatedOriginal) {
-      const adminSession = currentUser || { id: 1, name: localStorage.getItem('smr_auth_user') || 'Super Admin', username: localStorage.getItem('smr_auth_user') || 'admin', role: localStorage.getItem('smr_auth_role') || 'Developer', role_name: localStorage.getItem('smr_auth_role') || 'Developer', role_id: 1, permissions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] };
+      const adminSession = currentUser;
       localStorage.setItem('smr_original_admin', JSON.stringify(adminSession));
       setImpersonatedOriginal(adminSession);
     }
@@ -112,7 +113,8 @@ export default function App() {
   };
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('smr_auth_token') === 'authenticated_vmhgroup';
+    // A stored token alone is not a session: real logins store user data too.
+    return localStorage.getItem('smr_auth_token') === 'authenticated_vmhgroup' && Boolean(localStorage.getItem('smr_auth_user_data'));
   });
 
   const initialRoute = parseHashRoute();
@@ -124,13 +126,14 @@ export default function App() {
       handleTabChange('surveys', false);
       return;
     }
-    const isAdmin = !currentUser || 
-      currentUser.role_id === 1 || 
-      currentUser.role_name === 'Developer' || 
-      currentUser.role === 'Developer' || 
-      currentUser.role_name === 'Admin' || 
-      currentUser.username === 'admin' || 
-      currentUser.username === 'vmhgroup';
+    const isAdmin = Boolean(currentUser) && (
+      currentUser.role_id === 1 ||
+      currentUser.role_name === 'Developer' ||
+      currentUser.role === 'Developer' ||
+      currentUser.role_name === 'Admin' ||
+      currentUser.username === 'admin' ||
+      currentUser.username === 'vmhgroup'
+    );
     if (!isAdmin) {
       if (activeTab === 'users') {
         handleTabChange('dashboard', false);
@@ -377,6 +380,10 @@ export default function App() {
     localStorage.removeItem('smr_auth_role');
     localStorage.removeItem('smr_auth_user_data');
     localStorage.removeItem('smr_auth_permissions');
+    // SECURITY FIX: also clear the impersonation-restore key, otherwise the
+    // previous admin session could be restored after logout.
+    localStorage.removeItem('smr_original_admin');
+    setImpersonatedOriginal(null);
     setCurrentUser(null);
     setUserPermissions([]);
     setIsAuthenticated(false);
