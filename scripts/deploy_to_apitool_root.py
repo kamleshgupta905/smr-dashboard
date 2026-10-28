@@ -139,9 +139,9 @@ if ($path !== "/" && is_file($file)) {
     if (isset($mimes[$ext])) {
         header("Content-Type: " . $mimes[$ext]);
     }
-    $allowedOrigins = ['https://api.vmhgroupsmr.com', 'https://smr.vmhgroupsmr.com', 'https://vmhgroupsmr.com'];
-    $reqOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
-    if (in_array($reqOrigin, $allowedOrigins, true)) { header('Access-Control-Allow-Origin: ' . $reqOrigin); header('Vary: Origin'); }
+    $allowedOrigins = ["https://api.vmhgroupsmr.com", "https://smr.vmhgroupsmr.com", "https://vmhgroupsmr.com"];
+    $reqOrigin = $_SERVER["HTTP_ORIGIN"] ?? "";
+    if (in_array($reqOrigin, $allowedOrigins, true)) { header("Access-Control-Allow-Origin: " . $reqOrigin); header("Vary: Origin"); }
     header("Cache-Control: public, max-age=86400");
     readfile($file);
     exit;
@@ -150,9 +150,9 @@ if ($path !== "/" && is_file($file)) {
 // 3. SPA Fallback: Serve SMR React Frontend index.html
 if (file_exists(__DIR__ . "/index.html")) {
     header("Content-Type: text/html; charset=utf-8");
-    $allowedOrigins = ['https://api.vmhgroupsmr.com', 'https://smr.vmhgroupsmr.com', 'https://vmhgroupsmr.com'];
-    $reqOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
-    if (in_array($reqOrigin, $allowedOrigins, true)) { header('Access-Control-Allow-Origin: ' . $reqOrigin); header('Vary: Origin'); }
+    $allowedOrigins = ["https://api.vmhgroupsmr.com", "https://smr.vmhgroupsmr.com", "https://vmhgroupsmr.com"];
+    $reqOrigin = $_SERVER["HTTP_ORIGIN"] ?? "";
+    if (in_array($reqOrigin, $allowedOrigins, true)) { header("Access-Control-Allow-Origin: " . $reqOrigin); header("Vary: Origin"); }
     header("Cache-Control: no-cache, no-store, must-revalidate");
     readfile(__DIR__ . "/index.html");
     exit;
