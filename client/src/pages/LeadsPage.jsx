@@ -60,10 +60,11 @@ export default function LeadsPage({ currentUser, showToast }) {
         setLeads(leadsRes.data || []);
         if (leadsRes.summary) setSummary(leadsRes.summary);
       }
-      if (Array.isArray(venRes)) {
-        setVendors(venRes);
-        if (venRes.length > 0 && !simForm.vendor_id) {
-          setSimForm(prev => ({ ...prev, vendor_id: String(venRes[0].id) }));
+      const vList = Array.isArray(venRes) ? venRes : (venRes?.data || []);
+      if (Array.isArray(vList) && vList.length > 0) {
+        setVendors(vList);
+        if (!simForm.vendor_id) {
+          setSimForm(prev => ({ ...prev, vendor_id: String(vList[0].id || vList[0].vendor_id) }));
         }
       }
     } catch (err) {

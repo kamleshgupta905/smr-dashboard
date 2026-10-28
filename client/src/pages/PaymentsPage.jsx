@@ -75,10 +75,11 @@ export default function PaymentsPage({ currentUser, showToast }) {
         }
       }
 
-      if (Array.isArray(venRes)) {
-        setVendors(venRes);
-        if (venRes.length > 0 && !createForm.vendor_id) {
-          setCreateForm(prev => ({ ...prev, vendor_id: venRes[0].id }));
+      const vList = Array.isArray(venRes) ? venRes : (venRes?.data || []);
+      if (Array.isArray(vList) && vList.length > 0) {
+        setVendors(vList);
+        if (!createForm.vendor_id) {
+          setCreateForm(prev => ({ ...prev, vendor_id: vList[0].id || vList[0].vendor_id }));
         }
       }
     } catch (err) {
