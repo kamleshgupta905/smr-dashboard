@@ -1045,7 +1045,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
             <div 
               className="modal-content" 
               onClick={e => e.stopPropagation()} 
-              style={{ maxWidth: '680px', width: '94%', maxHeight: '92vh', overflowY: 'auto', borderRadius: '12px' }}
+              style={{ maxWidth: '680px', width: '94%', maxHeight: '92vh', overflowY: 'auto', overflowX: 'hidden', boxSizing: 'border-box', borderRadius: '12px' }}
             >
               <div className="modal-header" style={{ padding: '16px 20px', borderBottom: '1px solid #e9ebf8', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -1066,12 +1066,12 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                 </button>
               </div>
 
-              <form onSubmit={handleAdd}>
-                <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px' }}>
+              <form onSubmit={handleAdd} style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
+                <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px', width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
                   
                   {/* Section A: SMR Redirect URLs to share with client */}
-                  <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '10px', border: '1px solid #e2e8f0', width: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', width: '100%', gap: '8px' }}>
                       <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#1d2c48', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ background: '#2a2d8c', color: '#fff', width: '18px', height: '18px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800 }}>A</span>
                         <span>SMR Inbound Redirect URLs (Send these 4 links to your client):</span>
@@ -1098,26 +1098,26 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                       </button>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '11px' }}>
-                      <div style={{ background: '#fff', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '8px', fontSize: '11px', width: '100%' }}>
+                      <div style={{ background: '#fff', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e2e8f0', minWidth: 0, overflow: 'hidden' }}>
                         <strong style={{ color: '#16a34a' }}>Complete:</strong>
                         <div style={{ fontFamily: 'monospace', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {origin}/redirects/c/{previewClientCode}/complete?rid=[id]&hash=[hash]
                         </div>
                       </div>
-                      <div style={{ background: '#fff', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ background: '#fff', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e2e8f0', minWidth: 0, overflow: 'hidden' }}>
                         <strong style={{ color: '#dc2626' }}>Terminate:</strong>
                         <div style={{ fontFamily: 'monospace', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {origin}/redirects/c/{previewClientCode}/terminate?rid=[id]&hash=[hash]
                         </div>
                       </div>
-                      <div style={{ background: '#fff', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ background: '#fff', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e2e8f0', minWidth: 0, overflow: 'hidden' }}>
                         <strong style={{ color: '#d97706' }}>OverQuota:</strong>
                         <div style={{ fontFamily: 'monospace', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {origin}/redirects/c/{previewClientCode}/quotafull?rid=[id]&hash=[hash]
                         </div>
                       </div>
-                      <div style={{ background: '#fff', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ background: '#fff', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e2e8f0', minWidth: 0, overflow: 'hidden' }}>
                         <strong style={{ color: '#9333ea' }}>Quality:</strong>
                         <div style={{ fontFamily: 'monospace', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {origin}/redirects/c/{previewClientCode}/quality_terminate?rid=[id]&hash=[hash]
@@ -1127,7 +1127,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                   </div>
 
                   {/* Section B: Client Details */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px', width: '100%' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#1d2c48', marginBottom: '4px' }}>Client Name *</label>
                       <input
@@ -1152,7 +1152,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px', width: '100%' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#1d2c48', marginBottom: '4px' }}>Market Country</label>
                       <input
@@ -1207,7 +1207,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                   </div>
 
                   {/* Section C: Client's 3 APIs (Received from Client) */}
-                  <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '10px', border: '1px solid #e2e8f0', width: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
                     <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#1d2c48', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ background: '#2a2d8c', color: '#fff', width: '18px', height: '18px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800 }}>B</span>
                       <span>Client's 3 API Endpoints (Received from Client):</span>
@@ -1259,7 +1259,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                   </div>
 
                   {/* Section D: Security Tokens */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px', width: '100%' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#1d2c48', marginBottom: '4px' }}>Client API Token / Bearer Key:</label>
                       <input
@@ -1462,7 +1462,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
               <form onSubmit={handleSaveEditClient}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   {/* Basic Client Details */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px', width: '100%' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
                         Client Name *
@@ -1490,7 +1490,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px', width: '100%' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
                         Contact Email
@@ -1519,7 +1519,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px', width: '100%' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
                         Market Country
@@ -1547,7 +1547,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                   </div>
 
                   {/* Architecture & Hashing */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px', width: '100%' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
                         API Architecture
@@ -1582,7 +1582,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                   </div>
 
                   {/* Security Key & Token */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px', width: '100%' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
                         Signing Secret Key / Salt
@@ -1643,7 +1643,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                   </div>
 
                   {/* Operational Settings */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px', width: '100%' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
                         Security Gate
