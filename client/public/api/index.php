@@ -3897,6 +3897,20 @@ if ($normalizedRoute === 'clients' || str_starts_with($normalizedRoute, 'clients
 // -------------------------------------------------------------
 // 8b-2. Market Xcel & Zamplia Catalog Explorer Endpoints
 // -------------------------------------------------------------
+if ($normalizedRoute === 'explorer/endpoints') {
+    echo json_encode([
+        'success' => true,
+        'message' => 'API Catalog Endpoints active',
+        'data' => [
+            ['provider' => 'zamplia_supply', 'name' => 'Get All Live Surveys', 'endpoint' => 'zamplia/surveys', 'method' => 'GET'],
+            ['provider' => 'zamplia_demand', 'name' => 'Create Demand Project', 'endpoint' => 'explorer/zamplia/demand/create-project', 'method' => 'POST'],
+            ['provider' => 'zamplia_demand', 'name' => 'Feasibility Check', 'endpoint' => 'explorer/zamplia/demand/feasibility', 'method' => 'GET'],
+            ['provider' => 'marketxcel', 'name' => 'Universal Test Runner', 'endpoint' => 'explorer/run-test', 'method' => 'POST']
+        ]
+    ]);
+    exit;
+}
+
 if ($normalizedRoute === 'explorer/marketxcel/countries') {
     $db = getDbConnection();
     $countries = [];
