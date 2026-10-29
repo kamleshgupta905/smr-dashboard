@@ -32,13 +32,14 @@ export default function Sidebar({
   const [opsOpen, setOpsOpen] = useState(true);
 
   const isVendor = currentUser?.role_name === 'Vendor' || currentUser?.role === 'Vendor';
-  const isAdmin = !currentUser ||
+  const isAdmin = Boolean(currentUser) && (
     currentUser.role_id === 1 ||
     currentUser.role_name === 'Developer' ||
     currentUser.role === 'Developer' ||
     currentUser.role_name === 'Admin' ||
     currentUser.username === 'admin' ||
-    currentUser.username === 'vmhgroup';
+    currentUser.username === 'vmhgroup'
+  );
 
   // Check if current user has permission for a specific menu ID
   const isPermitted = (menuId) => {
@@ -48,15 +49,7 @@ export default function Sidebar({
     }
 
     // Super Admin / Developer has full system access
-    if (
-      !currentUser ||
-      currentUser.role_id === 1 ||
-      currentUser.role_name === 'Developer' ||
-      currentUser.role === 'Developer' ||
-      currentUser.role_name === 'Admin' ||
-      currentUser.username === 'admin' ||
-      currentUser.username === 'vmhgroup'
-    ) {
+    if (isAdmin) {
       return true;
     }
 
@@ -227,7 +220,7 @@ export default function Sidebar({
           )}
 
           {/* Section: OPERATIONS */}
-          {(isPermitted(7) || isPermitted(10) || (!currentUser || currentUser.role_id === 1)) && (
+          {(isPermitted(10) || isPermitted(9) || isPermitted(11) || isAdmin) && (
             <>
               <div className="sidebar-dotted-divider" />
               <div className="sidebar-section-title">OPERATIONS</div>
@@ -249,20 +242,24 @@ export default function Sidebar({
                 <div className={`sidebar-submenu-collapsible ${opsOpen ? 'open' : 'closed'}`}>
                   <div className="sidebar-submenu-inner">
                     {/* Hidden per user request: Bids & Feasibility */}
-                    <button
-                      className={`submenu-item ${activeTab === 'payments' ? 'active' : ''}`}
-                      onClick={() => handleNav('payments')}
-                    >
-                      <span className="bullet-circle" />
-                      {isVendor ? <span>My Payout Statements</span> : <span>Vendor Payments</span>}
-                    </button>
-                    <button
-                      className={`submenu-item ${activeTab === 'leads' ? 'active' : ''}`}
-                      onClick={() => handleNav('leads')}
-                    >
-                      <span className="bullet-circle" />
-                      {isVendor ? <span>My Traffic Leads & Clicks</span> : <span>Traffic Leads Stream</span>}
-                    </button>
+                    {isPermitted(10) && (
+                      <button
+                        className={`submenu-item ${activeTab === 'payments' ? 'active' : ''}`}
+                        onClick={() => handleNav('payments')}
+                      >
+                        <span className="bullet-circle" />
+                        {isVendor ? <span>My Payout Statements</span> : <span>Vendor Payments</span>}
+                      </button>
+                    )}
+                    {isPermitted(9) && (
+                      <button
+                        className={`submenu-item ${activeTab === 'leads' ? 'active' : ''}`}
+                        onClick={() => handleNav('leads')}
+                      >
+                        <span className="bullet-circle" />
+                        {isVendor ? <span>My Traffic Leads & Clicks</span> : <span>Traffic Leads Stream</span>}
+                      </button>
+                    )}
                     {!isVendor && isPermitted(11) && (
                       <button
                         className={`submenu-item ${activeTab === 'security' ? 'active' : ''}`}

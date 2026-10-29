@@ -40,6 +40,28 @@ const parseHashRoute = () => {
   return { tab, subTab: subPart || null };
 };
 
+// Smart Permission Route Resolver: Finds the highest-priority allowed tab for a user
+const getFirstPermittedTab = (perms, isVendor, isAdmin) => {
+  if (isAdmin) return 'dashboard';
+  if (isVendor) return 'surveys';
+  const numPerms = (perms || []).map(Number);
+  const priority = [
+    { tab: 'dashboard', id: 1 },
+    { tab: 'surveys', id: 7 },
+    { tab: 'clients', id: 6 },
+    { tab: 'vendors', id: 8 },
+    { tab: 'leads', id: 9 },
+    { tab: 'payments', id: 10 },
+    { tab: 'security', id: 11 },
+    { tab: 'team', id: 12 },
+    { tab: 'reference', id: 13 }
+  ];
+  for (const p of priority) {
+    if (numPerms.includes(p.id)) return p.tab;
+  }
+  return 'surveys';
+};
+
 export default function App() {
   useEffect(() => {
     localStorage.removeItem('smr_custom_clients');
@@ -89,15 +111,21 @@ export default function App() {
       localStorage.setItem('smr_original_admin', JSON.stringify(adminSession));
       setImpersonatedOriginal(adminSession);
     }
+    const rawPerms = Array.isArray(targetUser.menu_permissions) 
+      ? targetUser.menu_permissions 
+      : (Array.isArray(targetUser.permissions) ? targetUser.permissions : []);
+    const permList = rawPerms.map(Number);
     const impersonated = {
       ...targetUser,
       role: targetUser.role_name || targetUser.role || 'User',
       role_name: targetUser.role_name || targetUser.role || 'User',
-      permissions: Array.isArray(targetUser.menu_permissions) ? targetUser.menu_permissions : (targetUser.permissions || [1, 7])
+      permissions: permList
     };
     setCurrentUser(impersonated);
-    setUserPermissions(impersonated.permissions);
-    handleTabChange('dashboard', true);
+    setUserPermissions(permList);
+    const targetIsVendor = impersonated.role_name === 'Vendor' || impersonated.role === 'Vendor';
+    const firstTab = getFirstPermittedTab(permList, targetIsVendor, false);
+    handleTabChange(firstTab, true);
     showToast(`Viewing dashboard as ${targetUser.name || targetUser.username} (${impersonated.role_name})`, 'info');
   };
 
@@ -135,10 +163,11 @@ export default function App() {
       currentUser.username === 'vmhgroup'
     );
     if (!isAdmin) {
+      const perms = (userPermissions || currentUser?.permissions || []).map(Number);
+      const fallbackTab = getFirstPermittedTab(perms, isVendor, false);
       if (activeTab === 'users') {
-        handleTabChange('dashboard', false);
+        handleTabChange(fallbackTab, false);
       } else {
-        const perms = (userPermissions || currentUser?.permissions || []).map(Number);
         const map = {
           dashboard: 1,
           surveys: 7,
@@ -156,7 +185,7 @@ export default function App() {
         };
         const reqMenu = map[activeTab];
         if (reqMenu && !perms.includes(reqMenu)) {
-          handleTabChange('dashboard', false);
+          handleTabChange(fallbackTab, false);
         }
       }
     }
@@ -543,7 +572,7 @@ export default function App() {
             </div>
           )}
           <div key={activeTab} className="tab-animated">
-          {activeTab === 'dashboard' && (
+          {activeTab === 'dashboard' && (isAdmin || (userPermissions || currentUser?.permissions || []).map(Number).includes(1)) && (
             <DashboardPage 
               stats={computedStats}
               surveys={filteredSurveys}
