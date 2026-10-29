@@ -81,7 +81,7 @@ export default function DemandProjectModal({ isOpen, onClose, onSuccess }) {
     setError(null);
 
     try {
-      const sid = Math.floor(100000 + Math.random() * 900000);
+      const sid = Number(Date.now().toString().slice(-6));
       const newStudy = {
         surveyId: sid,
         SurveyId: sid,

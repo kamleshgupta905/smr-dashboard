@@ -1131,7 +1131,7 @@ export default function SurveysPage({
             const countryMap = { 229: 'United States', 38: 'Canada', 228: 'United Kingdom', 80: 'Germany', 99: 'India' };
             const langMap = { 5: 'en-US', 6: 'en-GB', 9: 'de-DE', 12: 'fr-FR', 18: 'hi-IN' };
             const newStudy = {
-              surveyId: created.surveyId || created.ProjectId || Math.floor(100000 + Math.random() * 900000),
+              surveyId: created.surveyId || created.ProjectId || Number(Date.now().toString().slice(-6)),
               name: created.name || created.ProjectName || 'New Research Study',
               cpi: Number(created.cpi ?? created.CPI ?? 1.00),
               loi: Number(created.loi ?? created.LOI ?? 15),

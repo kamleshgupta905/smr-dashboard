@@ -34,7 +34,7 @@ export const getCustomSurveys = () => {
 
 export const createCustomSurvey = (surveyData) => {
   const current = getCustomSurveys();
-  const sid = surveyData.surveyId || surveyData.survey_id || Math.floor(100000 + Math.random() * 900000);
+  const sid = surveyData.surveyId || surveyData.survey_id || Number(Date.now().toString().slice(-6));
   const newSurvey = {
     ...surveyData,
     surveyId: sid,
@@ -295,10 +295,7 @@ export const getReferenceData = () =>
           { Id: 2, Name: 'B2B Professional & Decision Makers' },
           { Id: 3, Name: 'Healthcare Professionals (HCP)' }
         ],
-        blockedIps: [
-          { Ip: '198.51.100.4', Reason: 'Known Bot Network / Datacenter IP', BlockedAt: '2026-01-12' },
-          { Ip: '203.0.113.88', Reason: 'High-Velocity Rapid Submissions', BlockedAt: '2026-02-19' }
-        ],
+        blockedIps: [],
         categories: [
           { CategoryId: 1, Name: 'Consumer & Retail' },
           { CategoryId: 2, Name: 'Technology & IT Telecom' },
@@ -397,28 +394,12 @@ export const getReferenceCategories = () =>
 export const createDemandProject = (data) =>
   api.post('/explorer/zamplia/demand/create-project', data)
     .then(res => res.data)
-    .catch(() => {
-      const created = {
-        ProjectId: Math.floor(100000 + Math.random() * 900000),
-        ProjectName: data.ProjectName || 'Global Brand Health & Product Preferences 2026',
-        TotalCompleteRequired: Number(data.TotalCompleteRequired || 500),
-        CPI: Number(data.CPI || 3.50),
-        LOI: Number(data.LOI || 12),
-        IR: Number(data.IR || 80),
-        Status: 'Active',
-        LiveSurveyUrl: `${data.SurveyUrl || 'https://research-host.com/survey'}&zamp_pid=${Date.now()}`,
-        CreatedAt: new Date().toISOString(),
-        CountryId: Number(data.CountryId || 229),
-        LanguageId: Number(data.LanguageId || 5),
-        StudyType: data.StudyType || 'Consumer'
-      };
-      return {
-        success: true,
-        isLiveGateway: true,
-        message: 'Project successfully launched on Zamplia Marketplace',
-        data: created
-      };
-    });
+    .catch((err) => ({
+      success: false,
+      isLiveGateway: false,
+      message: err?.response?.data?.message || err?.message || 'Failed to create demand project on marketplace.',
+      data: null
+    }));
 
 export const getDemandFeasibility = (params) =>
   api.get('/explorer/zamplia/demand/feasibility', { params })
@@ -447,7 +428,7 @@ export const createProject = async (data) => {
   const created = {
     ...data,
     _id: `prj_${Date.now()}`,
-    project_id: data.project_id || `PRJ-2026-${Math.floor(10 + Math.random() * 90)}`,
+    project_id: data.project_id || `PRJ-2026-${Date.now().toString().slice(-4)}`,
     completeCount: 0,
     status: data.status || 'active',
     createdAt: new Date().toISOString()
@@ -939,28 +920,16 @@ export const getMarketXcelQuestions = (countryId, langId) =>
 export const runUniversalApiTest = (payload) =>
   api.post('/explorer/run-test', payload)
     .then(res => res.data)
-    .catch(() => ({
-      success: true,
-      isVerified: true,
+    .catch((err) => ({
+      success: false,
+      isVerified: false,
       executionTimestamp: new Date().toISOString(),
       endpointTested: payload?.endpoint || 'API_ENDPOINT',
       provider: payload?.provider || 'Zamplia',
-      httpStatus: 200,
-      latencyMs: Math.floor(85 + Math.random() * 60),
-      responseHeaders: {
-        'content-type': 'application/json; charset=utf-8',
-        'x-zamplia-gateway': 'prod-fra-01',
-        'cache-control': 'no-cache, private'
-      },
-      result: {
-        status: 'SUCCESS',
-        message: 'Endpoint executed successfully with active credentials.',
-        payloadEcho: payload?.params || payload?.body || {},
-        dataSample: {
-          verified: true,
-          recordsReturned: 1,
-          throughputCapacity: 'Optimal'
-        }
+      httpStatus: err?.response?.status || 500,
+      latencyMs: 0,
+      response: {
+        error: err?.response?.data?.message || err?.message || 'Universal API test failed to connect to live provider.'
       }
     }));
 

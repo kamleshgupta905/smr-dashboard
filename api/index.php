@@ -2,7 +2,7 @@
 /**
  * ============================================================================
  * SMR Enterprise • High-Speed Zamplia Supply Engine & API Traffic Router
- * Native PHP 8.1+ Production Gateway for Hostinger LiteSpeed (smr.vmhgroupsmr.com)
+ * Native PHP 8.1+ Production Gateway for Hostinger LiteSpeed (api.vmhgroupsmr.com)
  * 
  * Features:
  *  - High-Speed cURL Zamplia Supply API Proxy (RCgqJ2hfoVZdwgPkwGnjMwTIi0CSKQ2u)
