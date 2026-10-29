@@ -191,7 +191,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
 
   // 1-Click Open Live End Page in New Tab
   const openEndPageTab = (statusNum) => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://api.vmhgroupsmr.com';
     const statusMap = { 1: '10', 2: '20', 3: '30', 4: '40', 10: '10', 20: '20', 30: '30', 40: '40' };
     const code = statusMap[statusNum] || '10';
     const testUid = `TEST_${selectedVendor}_${Date.now().toString().slice(-4)}`;
@@ -1021,7 +1021,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                   {/* 3. Configured Return Callbacks for this Supply Vendor */}
                   {(() => {
                     const vendorObj = vendors.find(v => (v.vendor_code === selectedVendor || v.vendorUid === selectedVendor || v._id === selectedVendor));
-                    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
+                    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://api.vmhgroupsmr.com';
                     const vidCode = vendorObj?.vendor_code || selectedVendor || 'VND-DYN-01';
                     const isDummy = (url) => !url || url.includes('vnddyn01.com') || url.includes('supplier.com');
                     const rc = !isDummy(vendorObj?.redirect_complete) ? vendorObj.redirect_complete : `${origin}/survey/callback?status=10&vid=${vidCode}&hash=[HASH]&uid=[UID]`;

@@ -83,31 +83,16 @@ export const getSurveys = (tab = 'allocated') => {
 export const syncSurveys = () => 
   api.get('/zamplia/sync')
     .then(res => res.data)
-    .catch(() => ({ success: true, message: `Synced ${DEFAULT_SURVEYS.length} live surveys successfully` }));
+    .catch(() => ({ success: false, message: 'Survey synchronization failed. Check supplier gateway connection.' }));
 
 export const getSurveyDetails = (surveyId) => 
   api.get(`/zamplia/details/${surveyId}`)
     .then(res => res.data)
-    .catch(() => {
-      const match = DEFAULT_SURVEYS.find(s => String(s.SurveyId || s.survey_id || s.surveyId) === String(surveyId)) || DEFAULT_SURVEYS[0];
-      const targetReq = Number(match.TotalCompleteRequired || match.totalRequired || 500);
-      return {
-        success: true,
-        data: {
-          SurveyId: match.SurveyId || match.survey_id || match.surveyId,
-          Name: match.Name || match.survey_name || match.name,
-          TotalCompleteRequired: targetReq,
-          CompletedCount: Math.round(targetReq * 0.35),
-          RemainingCapacity: Math.round(targetReq * 0.65),
-          CPI: match.CPI || match.cpi || 1.00,
-          LOI: match.LOI || match.loi || 10,
-          IR: match.IR || match.ir || 75,
-          LanguageCode: match.LanguageCode || match.languageCode || 'En-US',
-          DeviceRequirement: match.Device || match.device || 'Both',
-          Industry: match.category || match.IndustryId || 'Market Research'
-        }
-      };
-    });
+    .catch(() => ({
+      success: false,
+      data: null,
+      message: 'Survey details unavailable.'
+    }));
 
 export const getSurveyQualifications = (surveyId) => 
   api.get(`/zamplia/qualifications/${surveyId}`)
@@ -188,44 +173,11 @@ const setLocalData = (key, data) => {
 
 export const DEFAULT_CLIENTS = [];
 
-export const DEFAULT_VENDORS = [
-  { _id: 'VND-DYN-01', id: 'VND-DYN-01', vendor_id: 'VND-DYN-01', vendor_code: 'VND-DYN-01', vendorUid: 'VND-DYN-01', name: 'Dynata Global Panel', email: 'dynata.delivery@vmhgroupsmr.com', commission_type: 'revenue_share', cpi: 1.75, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 89, completes_count: 89, clicks_count: 142, terminates_count: 32 },
-  { _id: 'VND-CNT-01', id: 'VND-CNT-01', vendor_id: 'VND-CNT-01', vendor_code: 'VND-CNT-01', vendorUid: 'VND-CNT-01', name: 'Cint Exchange', email: 'cint.supply@vmhgroupsmr.com', commission_type: 'revenue_share', cpi: 1.50, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 54, completes_count: 54, clicks_count: 96, terminates_count: 28 },
-  { _id: 'VND-PSP-01', id: 'VND-PSP-01', vendor_id: 'VND-PSP-01', vendor_code: 'VND-PSP-01', vendorUid: 'VND-PSP-01', name: 'PureSpectrum Router', email: 'purespectrum.api@vmhgroupsmr.com', commission_type: 'revenue_share', cpi: 1.60, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 38, completes_count: 38, clicks_count: 64, terminates_count: 19 },
-  { _id: 'VND-LUC-01', id: 'VND-LUC-01', vendor_id: 'VND-LUC-01', vendor_code: 'VND-LUC-01', vendorUid: 'VND-LUC-01', name: 'Lucid Marketplace', email: 'lucid.router@vmhgroupsmr.com', commission_type: 'revenue_share', cpi: 1.80, cpi_percentage: 70, status: 'Y', is_active: 'Y', complete_count: 26, completes_count: 26, clicks_count: 45, terminates_count: 12 }
-];
+export const DEFAULT_VENDORS = [];
 
 export const DEFAULT_PROJECTS = [];
 
-export const DEFAULT_USERS = [
-  {
-    id: 1,
-    name: 'Kamlesh Gupta',
-    username: 'kamlesh',
-    email: 'kamlesh@vmhgroupsmr.com',
-    mobile_no: '+91 9876543210',
-    role: 'Super Admin',
-    status: 'active'
-  },
-  {
-    id: 2,
-    name: 'Operations Manager',
-    username: 'ops_manager',
-    email: 'ops@vmhgroupsmr.com',
-    mobile_no: '+1 415 555 2671',
-    role: 'Admin',
-    status: 'active'
-  },
-  {
-    id: 3,
-    name: 'Sample Traffic Specialist',
-    username: 'traffic_lead',
-    email: 'router@vmhgroupsmr.com',
-    mobile_no: '+44 20 7946 0912',
-    role: 'Project Manager',
-    status: 'active'
-  }
-];
+export const DEFAULT_USERS = [];
 
 export const DEFAULT_SECURITY_POLICY = {
   preScreenEnabled: true,
@@ -258,11 +210,11 @@ export const generateVendorLink = (surveyId, vendorId) =>
     .then(res => res.data)
     .catch(() => ({
       success: true,
-      liveLink: `https://smr.vmhgroupsmr.com/vendor/auth/${vendorId}/project/${surveyId}?uid=[RESPONDENT_ID]`,
-      signedLiveLink: `https://smr.vmhgroupsmr.com/vendor/auth/${vendorId}/project/${surveyId}?uid=[RESPONDENT_ID]`,
+      liveLink: `https://api.vmhgroupsmr.com/vendor/auth/${vendorId}/project/${surveyId}?uid=[RESPONDENT_ID]`,
+      signedLiveLink: `https://api.vmhgroupsmr.com/vendor/auth/${vendorId}/project/${surveyId}?uid=[RESPONDENT_ID]`,
       data: {
-        liveUrl: `https://smr.vmhgroupsmr.com/vendor/auth/${vendorId}/project/${surveyId}?uid=[RESPONDENT_ID]`,
-        testUrl: `https://smr.vmhgroupsmr.com/vendor/auth/${vendorId}/project/${surveyId}?uid=[RESPONDENT_ID]`
+        liveUrl: `https://api.vmhgroupsmr.com/vendor/auth/${vendorId}/project/${surveyId}?uid=[RESPONDENT_ID]`,
+        testUrl: `https://api.vmhgroupsmr.com/vendor/auth/${vendorId}/project/${surveyId}?uid=[RESPONDENT_ID]`
       }
     }));
 
@@ -886,7 +838,7 @@ export const generateStandardVendorLink = (projectId, vendorId) =>
   api.post('/router/generate-vendor-link', { projectId, vendorId })
     .then(res => res.data)
     .catch(() => {
-      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://api.vmhgroupsmr.com';
       return {
         success: true,
         liveUrl: `${origin}/vendor/auth/${vendorId}/project/${projectId}?uid=[RESPONDENT_ID]`,
@@ -903,7 +855,7 @@ export const simulateTestRouting = async (payload) => {
     4: 'Security Exclusion (VPN/Fraud)'
   };
   const statusLabel = labels[statusNumber] || 'Complete';
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://api.vmhgroupsmr.com';
   const statusCode = statusNumber === 1 ? 10 : statusNumber === 2 ? 20 : statusNumber === 3 ? 30 : 40;
   
   // Real dynamic Market Xcel SHA3-256 calculation
@@ -1022,7 +974,7 @@ export const getUsers = async () => {
   } catch (err) {
     console.error('Failed to fetch users from MySQL:', err);
   }
-  const local = getLocalData('smr_custom_users', DEFAULT_USERS);
+  const local = getLocalData('smr_custom_users', []);
   return { success: true, data: local };
 };
 

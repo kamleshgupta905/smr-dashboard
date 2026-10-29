@@ -873,7 +873,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://api.vmhgroupsmr.com';
       const vidCode = formData.vendor_code || 'VND';
       const payload = {
         ...formData,
@@ -927,7 +927,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
   const handleOpenRedirects = (vendor) => {
     setEditingVendor(vendor);
     setEditModalTab('general');
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://api.vmhgroupsmr.com';
     const vidCode = vendor.vendor_code || vendor.vendor_id || vendor.vendorUid || 'VND';
     const isDummy = (url) => !url || url.includes('vnddyn01.com') || url.includes('supplier.com');
     setRedirectForm({
@@ -3146,7 +3146,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                 {(() => {
                   const activePid = selectedProjectId === 'CUSTOM' ? (customProjectId || 'CUSTOM_PRJ') : selectedProjectId;
                   const vCode = entryLinkVendor.vendor_code || entryLinkVendor.vendorUid || entryLinkVendor._id;
-                  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smr.vmhgroupsmr.com';
+                  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://api.vmhgroupsmr.com';
                   const liveEntryUrl = `${origin}/vendor/auth/${vCode}/project/${activePid}?uid=[uid]`;
                   const testEntryUrl = `${origin}/vendor/auth/${vCode}/project/${activePid}?uid=${testUidParam}`;
                   const directCallbackUrl = `${origin}/survey/terminate?status=20&uid=${testUidParam}&pid=${activePid}&vid=${vCode}&test=1`;

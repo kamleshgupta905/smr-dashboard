@@ -602,7 +602,7 @@ if ($normalizedRoute === 'health') {
     echo json_encode([
         'status' => 'OK',
         'service' => 'SMR Enterprise Supply Engine',
-        'host' => 'smr.vmhgroupsmr.com',
+        'host' => 'api.vmhgroupsmr.com',
         'php_version' => PHP_VERSION,
         'database' => $db ? 'Connected (u839355029_api - Clean & Independent)' : 'JSON File Store Active',
         'hashing' => 'SHA3-256 Market Xcel Standard Active',
@@ -1284,7 +1284,7 @@ if (
     $db = getDbConnection();
 
     $proto = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https' ? 'https' : 'http';
-    $hostName = $_SERVER['HTTP_HOST'] ?? 'smr.vmhgroupsmr.com';
+    $hostName = $_SERVER['HTTP_HOST'] ?? 'api.vmhgroupsmr.com';
     $appUrl = "{$proto}://{$hostName}";
 
     // Test respondent detection (bypass duplicate IP & device locks for testing)
@@ -3693,8 +3693,9 @@ if ($normalizedRoute === 'manage/users') {
 
     $usersFile = $DATA_DIR . '/users.json';
     $defaultUsers = [
-        ['id' => 1, 'name' => 'Super Administrator', 'username' => 'admin', 'mobile_no' => '+91 9876543210', 'email' => 'admin@vmhgroupsmr.com', 'role_name' => 'Developer', 'is_active' => 'Y', 'is_online' => 'Y', 'menu_permissions' => [1,2,3,4,5,6,7,8,9,10]],
-        ['id' => 2, 'name' => 'VMH GROUPS', 'username' => 'vmhgroup', 'mobile_no' => '+91 7891677632', 'email' => 'vmhgroups.in@gmail.com', 'role_name' => 'Admin', 'is_active' => 'Y', 'is_online' => 'Y', 'menu_permissions' => [1,6,7,8,9,10]]
+        ['id' => 1, 'name' => 'Super Admin', 'username' => 'admin', 'mobile_no' => null, 'email' => 'admin@vmhgroupsmr.com', 'role_name' => 'Admin', 'is_active' => 'Y', 'is_online' => 'Y', 'menu_permissions' => [1,2,3,4,5,6,7,8,9,10,11,12,13]],
+        ['id' => 7, 'name' => 'VMH GROUPS Ops', 'username' => 'vmhgroup', 'mobile_no' => '7891677632', 'email' => 'vmhgroups.in@gmail.com', 'role_name' => 'Admin', 'is_active' => 'Y', 'is_online' => 'Y', 'menu_permissions' => [1,2,3,4,5,6,7,8,9,10,11,12,13]],
+        ['id' => 16, 'name' => 'test', 'username' => 'admin1', 'mobile_no' => null, 'email' => null, 'role_name' => 'Employee', 'is_active' => 'Y', 'is_online' => 'N', 'menu_permissions' => [6,7,8,10]]
     ];
     $list = file_exists($usersFile) ? json_decode((string)file_get_contents($usersFile), true) : $defaultUsers;
     echo json_encode(['success' => true, 'data' => $list]);
