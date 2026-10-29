@@ -388,7 +388,11 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                   <span>Integration Spec</span>
                 </button>
                 <button 
+                  type="button"
                   onClick={onClose}
+                  aria-label="Close modal"
+                  title="Close"
+                  className="btn-modal-close"
                   style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', padding: '4px' }}
                 >
                   <X size={20} />

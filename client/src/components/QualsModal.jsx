@@ -34,8 +34,12 @@ export default function QualsModal({ survey, surveyId, onClose }) {
             </h3>
           </div>
           <button 
+            type="button"
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+            aria-label="Close modal"
+            title="Close"
+            className="btn-modal-close"
+            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
           >
             <X size={18} />
           </button>
