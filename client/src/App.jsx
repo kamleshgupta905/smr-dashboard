@@ -119,6 +119,29 @@ export default function App() {
     }
   });
 
+  // Live Revalidation of Impersonated User Permissions directly from MySQL DB
+  useEffect(() => {
+    if (impersonatedOriginal && currentUser?.id) {
+      getUserPermissions(currentUser.id)
+        .then(res => {
+          if (res?.menu_ids && Array.isArray(res.menu_ids)) {
+            const freshPerms = res.menu_ids.map(Number);
+            setUserPermissions(freshPerms);
+            try {
+              const impStr = localStorage.getItem('smr_impersonated_user');
+              if (impStr) {
+                const impObj = JSON.parse(impStr);
+                impObj.permissions = freshPerms;
+                impObj.menu_permissions = freshPerms;
+                localStorage.setItem('smr_impersonated_user', JSON.stringify(impObj));
+              }
+            } catch {}
+          }
+        })
+        .catch(() => {});
+    }
+  }, [impersonatedOriginal, currentUser?.id]);
+
   // Top-level RBAC & Permission definitions (Single source of truth)
   const isAdmin = Boolean(currentUser) && (
     currentUser.role_id === 1 ||
@@ -150,6 +173,20 @@ export default function App() {
       return;
     }
 
+    const isTargetAdmin = targetUser.role_id === 1 || 
+      targetUser.role_id === 2 || 
+      targetUser.role_name === 'Admin' || 
+      targetUser.role === 'Admin' || 
+      targetUser.role_name === 'Developer' || 
+      targetUser.role === 'Developer' || 
+      targetUser.username === 'admin' || 
+      targetUser.username === 'vmhgroup' ||
+      String(targetUser.id) === String(actingAdmin?.id);
+    if (isTargetAdmin) {
+      showToast('Cannot impersonate an Administrator or Developer account.', 'warning');
+      return;
+    }
+
     let originalAdmin = impersonatedOriginal;
     if (!originalAdmin) {
       originalAdmin = {
@@ -160,10 +197,19 @@ export default function App() {
       setImpersonatedOriginal(originalAdmin);
     }
 
-    const rawPerms = Array.isArray(targetUser.menu_permissions) 
-      ? targetUser.menu_permissions 
-      : (Array.isArray(targetUser.permissions) ? targetUser.permissions : []);
-    const permList = rawPerms.map(Number);
+    let permList = [];
+    try {
+      const livePermRes = await getUserPermissions(targetUser.id);
+      if (livePermRes?.menu_ids && Array.isArray(livePermRes.menu_ids)) {
+        permList = livePermRes.menu_ids.map(Number);
+      }
+    } catch (e) {
+      const rawPerms = Array.isArray(targetUser.menu_permissions) 
+        ? targetUser.menu_permissions 
+        : (Array.isArray(targetUser.permissions) ? targetUser.permissions : []);
+      permList = rawPerms.map(Number);
+    }
+
     const impersonated = {
       ...targetUser,
       role: targetUser.role_name || targetUser.role || 'User',
@@ -227,28 +273,27 @@ export default function App() {
     }
     if (!isAdmin) {
       const fallbackTab = getFirstPermittedTab(userPermNumbers, isVendor, false);
-      if (activeTab === 'users') {
+      if (activeTab === 'users' || activeTab === 'developer-center') {
         handleTabChange(fallbackTab, false);
-      } else {
-        const map = {
-          dashboard: 1,
-          surveys: 7,
-          projects: 7,
-          clients: 6,
-          vendors: 8,
-          reconciliation: 8,
-          payments: 10,
-          leads: 9,
-          security: 11,
-          team: 12,
-          reference: 13,
-          bids: 7,
-          'developer-center': 1
-        };
-        const reqMenu = map[activeTab];
-        if (reqMenu && !userPermNumbers.includes(reqMenu)) {
-          handleTabChange(fallbackTab, false);
-        }
+        return;
+      }
+      const map = {
+        dashboard: 1,
+        surveys: 7,
+        projects: 7,
+        clients: 6,
+        vendors: 8,
+        reconciliation: 8,
+        payments: 10,
+        leads: 9,
+        security: 11,
+        team: 12,
+        reference: 13,
+        bids: 7
+      };
+      const reqMenu = map[activeTab];
+      if (reqMenu && !userPermNumbers.includes(reqMenu)) {
+        handleTabChange(fallbackTab, false);
       }
     }
   }, [currentUser, activeTab, isAdmin, userPermissions]);
@@ -318,27 +363,27 @@ export default function App() {
 
   // Browser Navigation & Back Button Interceptor (Popstate)
   useEffect(() => {
-    const handlePopState = () => {
-      // 1. If any modal is currently open, close the modal first without leaving the page
-      if (quotasModalId || qualsModalId || assignModalId || testPreScreener) {
-        setQuotasModalId(null);
-        setQualsModalId(null);
-        setAssignModalId(null);
-        setTestPreScreener(null);
-        return;
-      }
-
-      // 2. Otherwise navigate to the URL hash route
+    const syncRouteFromHash = () => {
       const { tab, subTab } = parseHashRoute();
       setActiveTab(tab);
       if (subTab) setCurrentReportSubTab(subTab);
     };
 
+    const handlePopState = () => {
+      if (quotasModalId || qualsModalId || assignModalId || testPreScreener) {
+        setQuotasModalId(null);
+        setQualsModalId(null);
+        setAssignModalId(null);
+        setTestPreScreener(null);
+      }
+      syncRouteFromHash();
+    };
+
     window.addEventListener('popstate', handlePopState);
-    window.addEventListener('hashchange', handlePopState);
+    window.addEventListener('hashchange', syncRouteFromHash);
     return () => {
       window.removeEventListener('popstate', handlePopState);
-      window.removeEventListener('hashchange', handlePopState);
+      window.removeEventListener('hashchange', syncRouteFromHash);
     };
   }, [quotasModalId, qualsModalId, assignModalId, testPreScreener]);
 

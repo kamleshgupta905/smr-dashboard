@@ -19,7 +19,12 @@ declare(strict_types=1);
 
 // Standard CORS & JSON Headers
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
+$allowedOrigins = ['https://api.vmhgroupsmr.com', 'https://smr.vmhgroupsmr.com', 'https://vmhgroupsmr.com'];
+$reqOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($reqOrigin, $allowedOrigins, true)) {
+    header('Access-Control-Allow-Origin: ' . $reqOrigin);
+    header('Vary: Origin');
+}
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-SMR-Auth');
 
@@ -41,17 +46,54 @@ if (!is_dir($DATA_DIR)) {
 }
 
 // -------------------------------------------------------------
+// Phase 1 session token: issued by auth/login, exact-matched by the gate below.
+// TEMPORARY by design: Phase 2 replaces this shared value with per-user random
+// tokens. Keeping it in exactly one place (was previously scattered across the
+// gate, the login response, and frontend defaults).
+define('SMR_SESSION_TOKEN', 'authenticated_vmhgroup');
+
 // Database Connection (Hostinger MySQL on localhost)
 // -------------------------------------------------------------
+// Server-side secrets (OUTSIDE the web root and OUTSIDE the repo).
+// Create /home/u839355029/config/smr_secrets.php on the server returning:
+//   ['db' => ['host'=>..., 'user'=>..., 'pass'=>..., 'db'=>...],
+//    'deploy_db' => ['host'=>..., 'user'=>..., 'pass'=>..., 'db'=>...]]
+// Deployments never touch that path, so it survives every deploy. The repo
+// ships only config/smr_secrets.example.php (placeholders, no real values).
+// Env var SMR_SECRETS_FILE can override the path.
+function smrSecretConfig(): array {
+    $candidates = [];
+    $envFile = getenv('SMR_SECRETS_FILE');
+    if ($envFile) $candidates[] = $envFile;
+    $candidates[] = '/home/u839355029/config/smr_secrets.php';
+    foreach ($candidates as $f) {
+        if ($f && is_file($f)) {
+            $cfg = require $f;
+            if (is_array($cfg)) return $cfg;
+        }
+    }
+    return [];
+}
+
 function getDbConnection(): ?PDO {
     static $pdo = null;
     if ($pdo !== null) return $pdo;
 
-    $configs = [
-        ['host' => 'localhost', 'user' => 'u839355029_apitool', 'pass' => 'Z^3k!2dVKs8', 'db' => 'u839355029_api'],
-        ['host' => '127.0.0.1', 'user' => 'u839355029_apitool', 'pass' => 'Z^3k!2dVKs8', 'db' => 'u839355029_api'],
-        ['host' => 'srv2215.hstgr.io', 'user' => 'u839355029_apitool', 'pass' => 'Z^3k!2dVKs8', 'db' => 'u839355029_api'],
-    ];
+    $secrets = smrSecretConfig();
+    $dbCfg = $secrets['db'] ?? null;
+    $configs = [];
+    if ($dbCfg && !empty($dbCfg['host']) && !empty($dbCfg['user']) && !empty($dbCfg['pass']) && !empty($dbCfg['db'])) {
+        // Configured host first, then local fallbacks (same credentials).
+        $configs[] = $dbCfg;
+        $configs[] = ['host' => 'localhost', 'user' => $dbCfg['user'], 'pass' => $dbCfg['pass'], 'db' => $dbCfg['db']];
+        $configs[] = ['host' => '127.0.0.1', 'user' => $dbCfg['user'], 'pass' => $dbCfg['pass'], 'db' => $dbCfg['db']];
+    } else {
+        $envHost = getenv('SMR_DB_HOST'); $envUser = getenv('SMR_DB_USER');
+        $envPass = getenv('SMR_DB_PASS'); $envDb = getenv('SMR_DB_NAME');
+        if ($envHost && $envUser && $envPass && $envDb) {
+            $configs[] = ['host' => $envHost, 'user' => $envUser, 'pass' => $envPass, 'db' => $envDb];
+        }
+    }
 
     foreach ($configs as $cfg) {
         try {
@@ -378,7 +420,7 @@ $isPublic = (
     str_starts_with($normalizedRoute, 'payments') ||
     str_starts_with($normalizedRoute, 'team') ||
     str_starts_with($normalizedRoute, 'health') ||
-    str_starts_with($normalizedRoute, 'auth') ||
+    $normalizedRoute === 'auth/login' ||
     $normalizedRoute === 'login' ||
     str_starts_with($normalizedRoute, 'redirect') ||
     str_starts_with($normalizedRoute, 'callback') ||
@@ -400,20 +442,17 @@ $isPublic = (
 );
 
 // -------------------------------------------------------------
-// Authentication Gate: Vmhgroup : Jelly
+// Authentication Gate (Phase 1)
 // -------------------------------------------------------------
+// Exact match on the server-issued session token ONLY. Removed in Phase 1:
+//  - substring matching (any header merely containing a known word passed),
+//  - HTTP Basic backdoor, and
+//  - ?auth_token= URL tokens (tokens leak into server/proxy/browser logs).
+// Phase 2 replaces the shared token with per-user random tokens.
 if (!$isPublic) {
-    $authHeader = $_SERVER['HTTP_X_SMR_AUTH'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? $_GET['auth_token'] ?? '';
-    $isAuthorized = (
-        stripos($authHeader, 'authenticated_vmhgroup') !== false ||
-        stripos($authHeader, 'Vmhgroup:Jelly') !== false ||
-        stripos($authHeader, 'vmhgroup') !== false ||
-        (isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) &&
-         strtolower($_SERVER['PHP_AUTH_USER']) === 'vmhgroup' &&
-         $_SERVER['PHP_AUTH_PW'] === 'Jelly')
-    );
-
-    if (!$isAuthorized) {
+    $authHeader = $_SERVER['HTTP_X_SMR_AUTH'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+    $authHeader = preg_replace('/^\s*Bearer\s+/i', '', trim($authHeader));
+    if (!hash_equals(SMR_SESSION_TOKEN, $authHeader)) {
         http_response_code(401);
         echo json_encode([
             'success' => false,
@@ -457,15 +496,24 @@ if ($normalizedRoute === 'auth/login' || $normalizedRoute === 'login') {
 
             if ($u) {
                 $passValid = false;
+                $needsRehash = false;
                 if (!empty($u['password']) && password_verify($inputPass, $u['password'])) {
                     $passValid = true;
-                } else if ($u['password'] === md5($inputPass) || $u['password'] === sha1($inputPass) || $u['password'] === $inputPass) {
+                } else if (!empty($u['password']) && ($u['password'] === md5($inputPass) || $u['password'] === sha1($inputPass) || $u['password'] === $inputPass)) {
+                    // Legacy password format (MD5/SHA1/plain). Accept ONCE, then
+                    // upgrade to bcrypt immediately so the weak hash disappears.
+                    // Admins should force-reset accounts that never log in again.
                     $passValid = true;
-                } else if (strtolower($inputUser) === 'vmhgroup' && $inputPass === 'Jelly') {
-                    $passValid = true;
+                    $needsRehash = true;
                 }
 
                 if ($passValid) {
+                    if ($needsRehash) {
+                        try {
+                            $upStmt = $db->prepare("UPDATE users SET password = ? WHERE id = ?");
+                            $upStmt->execute([password_hash($inputPass, PASSWORD_BCRYPT), $u['id']]);
+                        } catch (Throwable $e) {}
+                    }
                     // Fetch real menu permissions
                     $pStmt = $db->prepare("SELECT menu_id FROM menu_permissions WHERE user_id = ?");
                     $pStmt->execute([$u['id']]);
@@ -493,17 +541,21 @@ if ($normalizedRoute === 'auth/login' || $normalizedRoute === 'login') {
             $vend = $vStmt->fetch(PDO::FETCH_ASSOC);
             if ($vend) {
                 $vPassOk = false;
-                if (!empty($vend['password']) && (
-                    $vend['password'] === $inputPass ||
-                    password_verify($inputPass, $vend['password']) ||
-                    $vend['password'] === md5($inputPass) ||
-                    $inputPass === 'Vendor@123'
-                )) {
+                $vNeedsRehash = false;
+                if (!empty($vend['password']) && password_verify($inputPass, $vend['password'])) {
                     $vPassOk = true;
-                } else if ($inputPass === 'Vendor@123' || $inputPass === 'Jelly') {
+                } else if (!empty($vend['password']) && ($vend['password'] === md5($inputPass) || $vend['password'] === $inputPass)) {
+                    // Legacy password format: accept once, then upgrade to bcrypt.
                     $vPassOk = true;
+                    $vNeedsRehash = true;
                 }
                 if ($vPassOk) {
+                    if ($vNeedsRehash) {
+                        try {
+                            $vUpStmt = $db->prepare("UPDATE vendor SET password = ? WHERE id = ?");
+                            $vUpStmt->execute([password_hash($inputPass, PASSWORD_BCRYPT), $vend['id']]);
+                        } catch (Throwable $e) {}
+                    }
                     $authenticatedUser = [
                         'id' => (int)$vend['id'],
                         'name' => $vend['name'],
@@ -520,18 +572,8 @@ if ($normalizedRoute === 'auth/login' || $normalizedRoute === 'login') {
         } catch (Throwable $e) {}
     }
 
-    // Fallback Master Admin
-    if (!$authenticatedUser && strtolower($inputUser) === 'vmhgroup' && $inputPass === 'Jelly') {
-        $authenticatedUser = [
-            'id' => 1,
-            'name' => 'VMH GROUPS',
-            'username' => 'vmhgroup',
-            'email' => 'vmhgroups.in@gmail.com',
-            'role_id' => 1,
-            'role_name' => 'Developer',
-            'permissions' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        ];
-    }
+    // NOTE (Phase 1): the old 'Fallback Master Admin' backdoor was removed.
+    // Admin access now requires a real row in `users` with a valid password.
 
     if ($authenticatedUser) {
         if ($db) {
@@ -539,7 +581,7 @@ if ($normalizedRoute === 'auth/login' || $normalizedRoute === 'login') {
         }
         echo json_encode([
             'success' => true,
-            'token' => 'authenticated_vmhgroup',
+            'token' => SMR_SESSION_TOKEN,
             'user' => $authenticatedUser
         ]);
         exit;
@@ -3500,6 +3542,7 @@ if ($normalizedRoute === 'manage/users/save' || ($normalizedRoute === 'manage/us
     }
 
     try {
+        $generatedPassword = null;
         if ($id) {
             // Update existing user
             if (!empty($password)) {
@@ -3529,7 +3572,14 @@ if ($normalizedRoute === 'manage/users/save' || ($normalizedRoute === 'manage/us
                 exit;
             }
 
-            $hashed = !empty($password) ? password_hash($password, PASSWORD_BCRYPT) : password_hash('vmh@2026', PASSWORD_BCRYPT);
+            if (!empty($password)) {
+                $hashed = password_hash($password, PASSWORD_BCRYPT);
+            } else {
+                // SECURITY FIX: never assign a fixed default password. Generate a
+                // random one and return it once so the admin can share it securely.
+                $generatedPassword = bin2hex(random_bytes(12));
+                $hashed = password_hash($generatedPassword, PASSWORD_BCRYPT);
+            }
             $stmt = $db->prepare("
                 INSERT INTO users (name, username, email, mobile_no, role_id, password, profile_image, is_active, is_online, created_at, updated_at) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'N', NOW(), NOW())
@@ -3555,11 +3605,16 @@ if ($normalizedRoute === 'manage/users/save' || ($normalizedRoute === 'manage/us
         }
         logActivity($db, 'menu_permissions', $userId, 'Menu Permissions Updated', ['assigned_menu_ids' => $menuPermissions], 1);
 
-        echo json_encode([
+        $resp = [
             'success' => true,
             'message' => $id ? 'User and menu permissions updated successfully.' : 'User created and menu permissions allocated successfully.',
             'user_id' => $userId
-        ]);
+        ];
+        if ($generatedPassword !== null) {
+            $resp['generated_password'] = $generatedPassword;
+            $resp['message'] .= ' Temporary password (share securely, ask the user to change it): ' . $generatedPassword;
+        }
+        echo json_encode($resp);
         exit;
     } catch (Throwable $e) {
         echo json_encode(['success' => false, 'message' => 'Error saving user: ' . $e->getMessage()]);

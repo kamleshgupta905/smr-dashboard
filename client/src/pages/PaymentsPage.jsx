@@ -17,7 +17,7 @@ import {
   RefreshCw,
   AlertCircle
 } from 'lucide-react';
-import { getPayments, createPayment, updatePaymentStatus, deletePayment, getVendors } from '../services/api';
+import { getPayments, createPayment, updatePaymentStatus, deletePayment, getVendors, getProjects } from '../services/api';
 import ModalPortal from '../components/ModalPortal';
 
 export default function PaymentsPage({ currentUser, showToast }) {

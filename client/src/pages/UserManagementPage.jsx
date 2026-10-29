@@ -112,7 +112,7 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
     confirm_password: '',
     profile_image: '',
     status: 'active',
-    menu_permissions: [1, 6, 7, 8, 9, 10]
+    menu_permissions: [7]
   };
 
   const [formData, setFormData] = useState(initialForm);
@@ -205,7 +205,7 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
     setEditingUserId(null);
     setFormData({
       ...initialForm,
-      menu_permissions: [1, 6, 7, 8, 9, 10]
+      menu_permissions: [7]
     });
     setFormError('');
     setFormSuccess('');
@@ -380,6 +380,17 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
 
       const res = await saveUserAndPermissions(payload);
       if (res?.success) {
+        try {
+          const impStr = localStorage.getItem('smr_impersonated_user');
+          if (impStr) {
+            const impObj = JSON.parse(impStr);
+            if (String(impObj.id) === String(formData.id)) {
+              impObj.menu_permissions = formData.menu_permissions;
+              impObj.permissions = formData.menu_permissions;
+              localStorage.setItem('smr_impersonated_user', JSON.stringify(impObj));
+            }
+          }
+        } catch {}
         setFormSuccess(res.message || 'User and menu permissions saved successfully!');
         await loadData();
         setTimeout(() => {
@@ -634,7 +645,7 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
                       } else if (newType === 8) {
                         perms = [1, 7, 9, 10];
                       } else {
-                        perms = [1, 6, 7, 8, 9, 10];
+                        perms = [7];
                       }
                     }
                     setFormData({ ...formData, employee_type: newType, menu_permissions: perms });
@@ -1261,15 +1272,24 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
                         </td>
                         <td style={{ textAlign: 'center' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                            <button
-                              className="btn btn-soft-success btn-sm"
-                              disabled={!isAdminOrDev}
-                              onClick={() => onImpersonateUser && onImpersonateUser(user)}
-                              style={{ padding: '4px 7px', borderRadius: '4px', color: '#16A34A', background: '#DCFCE7', border: '1px solid #BBF7D0' }}
-                              title="View this User's Dashboard (Live Impersonation)"
-                            >
-                              <Eye size={13} />
-                            </button>
+                            {(() => {
+                              const isUserAdminRole = user.role_id === 1 || user.role_id === 2 || user.role_name === 'Admin' || user.role === 'Admin' || user.role_name === 'Developer' || user.role === 'Developer' || user.username === 'admin' || user.username === 'vmhgroup';
+                              const isSelf = String(user.id) === String(currentUser?.id) || user.username === currentUser?.username;
+                              if (isUserAdminRole || isSelf) {
+                                return null;
+                              }
+                              return (
+                                <button
+                                  className="btn btn-soft-success btn-sm"
+                                  disabled={!isAdminOrDev}
+                                  onClick={() => onImpersonateUser && onImpersonateUser(user)}
+                                  style={{ padding: '4px 7px', borderRadius: '4px', color: '#16A34A', background: '#DCFCE7', border: '1px solid #BBF7D0' }}
+                                  title={`View ${user.name || user.username}'s Dashboard (Live Impersonation)`}
+                                >
+                                  <Eye size={13} />
+                                </button>
+                              );
+                            })()}
                             <button
                               className="btn btn-soft-primary btn-sm"
                               onClick={() => handleOpenEdit(user)}
