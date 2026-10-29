@@ -228,7 +228,7 @@ function CountriesSelector({ selected = [], onChange, countries = [] }) {
               <input
                 type="checkbox"
                 checked={isSel}
-                onChange={() => {}}
+                onChange={(e) => { e.stopPropagation(); toggleCountry(c.id); }}
                 style={{ cursor: 'pointer' }}
               />
               <span style={{
@@ -335,7 +335,7 @@ function RestrictionsAndContacts({ blockedClients = [], onBlockedChange, contact
                   userSelect: 'none'
                 }}
               >
-                <input type="checkbox" checked={isBlocked} onChange={() => {}} style={{ cursor: 'pointer' }} />
+                <input type="checkbox" checked={isBlocked} onChange={(e) => { e.stopPropagation(); toggleBlockedClient(cId); }} style={{ cursor: 'pointer' }} />
                 <span style={{ fontSize: '11.5px', fontWeight: isBlocked ? 700 : 500, color: isBlocked ? '#DC2626' : '#1E293B', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {cName}
                 </span>

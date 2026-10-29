@@ -58,7 +58,7 @@ export default function SurveyCallbackPage() {
     if (localUid && !localUid.includes('[') && !localUid.includes('%5B')) {
       return localUid;
     }
-    return 'VMH_' + Math.random().toString(36).substring(2, 9).toUpperCase();
+    return 'VMH_' + Date.now().toString(36).toUpperCase();
   };
 
   const uid = resolveEnteredUid();

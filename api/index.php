@@ -5110,7 +5110,7 @@ if ($normalizedRoute === 'payments' || str_starts_with($normalizedRoute, 'paymen
 // -------------------------------------------------------------
 // 9b. RBAC User Roles & Granular Permissions (Real MySQL `roles` - 4 Roles)
 // -------------------------------------------------------------
-if ($normalizedRoute === 'auth/roles' || $normalizedRoute === 'roles') {
+if ($normalizedRoute === 'auth/roles' || $normalizedRoute === 'roles' || $normalizedRoute === 'manage/roles') {
     $db = getDbConnection();
     if ($db) {
         try {

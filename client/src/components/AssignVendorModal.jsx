@@ -586,7 +586,7 @@ export default function AssignVendorModal({ survey, surveyId, onClose, onOpenPre
                                   <input
                                     type="checkbox"
                                     checked={isChecked}
-                                    onChange={() => {}}
+                                    onChange={(e) => { e.stopPropagation(); toggleVendorSelection(code); }}
                                     style={{ cursor: 'pointer', accentColor: '#0F172A' }}
                                   />
                                   <span style={{ fontWeight: isChecked ? 700 : 500, color: '#0F172A', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

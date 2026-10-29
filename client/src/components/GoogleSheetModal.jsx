@@ -237,7 +237,7 @@ function handleLogin(data) {
 function handleRegister(data) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('Admins');
-  var newId = 'adm_' + Math.floor(1000 + Math.random() * 9000);
+  var newId = 'adm_' + (new Date().getTime().toString().slice(-4));
   sheet.appendRow([newId, (data.username || '').trim(), (data.email || '').trim(), (data.password || '').trim(), (data.role || 'admin').trim().toLowerCase(), (data.name || data.username || '').trim(), 'Active', new Date().toISOString(), '']);
   return createJsonResponse({ success: true, message: 'Admin registered successfully', user: { id: newId, username: data.username, email: data.email, role: data.role || 'admin', name: data.name } });
 }
