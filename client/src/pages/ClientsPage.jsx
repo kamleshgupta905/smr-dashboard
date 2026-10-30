@@ -78,16 +78,9 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
       const clientId = editModalClient.id || editModalClient._id;
       const res = await updateClient(clientId, editFormData);
       if (res?.success || res?.data) {
-        setClients(prev => {
-          const next = prev.map(c => {
-            const match = (c.id && c.id === clientId) || (c._id && c._id === clientId) || (c.client_code && c.client_code === editModalClient.client_code);
-            return match ? { ...c, ...editFormData, ...(res.data || {}) } : c;
-          });
-          if (onClientsUpdated) onClientsUpdated(next);
-          return next;
-        });
         if (showToast) showToast('Client details updated successfully!', 'success');
         setEditModalClient(null);
+        await loadData();
       } else {
         if (showToast) showToast(res?.message || 'Failed to update client', 'error');
       }
@@ -106,7 +99,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
     terminateUrl: 'https://router.dynata.com/survey/terminate?uid=[uid]',
     overquotaUrl: 'https://router.dynata.com/survey/overquota?uid=[uid]',
     securityUrl: 'https://router.dynata.com/survey/security?uid=[uid]',
-    hashAlgorithm: 'SHA3-256 (Market Xcel / SMR Enterprise)',
+    hashAlgorithm: 'SHA3-256',
     secretKey: 'mx_secret_sha3_key_2026',
     testUid: 'test_resp_7721'
   });
@@ -322,7 +315,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
       terminateUrl: 'https://router.dynata.com/survey/terminate?uid=[uid]',
       overquotaUrl: 'https://router.dynata.com/survey/overquota?uid=[uid]',
       securityUrl: 'https://router.dynata.com/survey/security?uid=[uid]',
-      hashAlgorithm: client.hash_algorithm || client.hashAlgorithm || 'SHA3-256 (Market Xcel / SMR Enterprise)',
+      hashAlgorithm: client.hash_algorithm ? String(client.hash_algorithm).replace(/\s*\(.*?\)/, '') : 'SHA3-256',
       secretKey: client.secret_key || client.secretKey || 'mx_secret_sha3_key_2026',
       testUid: `test_resp_${Date.now().toString().slice(-4)}`
     });
@@ -773,8 +766,8 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                   <div style={{ display: 'flex', gap: '16px', marginTop: '6px', fontSize: '12px', color: '#64748b', flexWrap: 'wrap' }}>
                     {client.email && <span>Email: <strong style={{ color: '#1d2c48' }}>{client.email}</strong></span>}
                     {client.phone && <span>Phone: <strong style={{ color: '#1d2c48' }}>{client.phone}</strong></span>}
-                    <span>API Architecture: <strong style={{ color: '#2a2d8c' }}>{client.api_type || client.apiType || 'Market Xcel / Demand'}</strong></span>
-                    <span>Hashing: <strong style={{ color: '#16a34a' }}>{client.hash_algorithm || 'SHA3-256'}</strong></span>
+                    <span>API Architecture: <strong style={{ color: '#2a2d8c' }}>{client.api_type || client.apiType || 'Standard REST'}</strong></span>
+                    <span>Hashing: <strong style={{ color: '#16a34a' }}>{client.hash_algorithm ? String(client.hash_algorithm).toUpperCase().replace(/\s*\(.*?\)/, '') : 'SHA3-256'}</strong></span>
                   </div>
                 </div>
 
@@ -1139,7 +1132,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                       <input
                         type="text"
                         required
-                        placeholder="e.g. Market Xcel, German Client GmbH"
+                        placeholder="e.g. Global Research Ltd, Insight Corp"
                         className="input-control"
                         value={formData.client_name}
                         onChange={e => setFormData({ ...formData, client_name: e.target.value })}
@@ -1211,10 +1204,10 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                           });
                         }}
                       >
-                        <option value="marketxcel">Market Xcel Demand API</option>
+                        <option value="marketxcel">Standard Demand REST API</option>
                         <option value="surveysherpa">SurveySherpa API</option>
-                        <option value="zamplia">Zamplia Supply API</option>
-                        <option value="custom">German Client / Custom REST</option>
+                        <option value="zamplia">S2S Supply / Callback API</option>
+                        <option value="custom">Custom Partner REST API</option>
                       </select>
                     </div>
                   </div>
@@ -1571,10 +1564,11 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                         onChange={e => setEditFormData({ ...editFormData, apiType: e.target.value })}
                         style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '7px 10px', fontSize: '12.5px' }}
                       >
-                        <option value="marketxcel">Market Xcel Demand API</option>
+                        <option value="marketxcel">Standard Demand REST API</option>
                         <option value="surveysherpa">SurveySherpa API</option>
-                        <option value="zamplia">Zamplia Supply API</option>
-                        <option value="custom">German Client / Custom REST</option>
+                        <option value="SurveySherpa API">SurveySherpa API</option>
+                        <option value="zamplia">S2S Supply / Callback API</option>
+                        <option value="custom">Custom Partner REST API</option>
                       </select>
                     </div>
                     <div>
@@ -1587,9 +1581,9 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                         onChange={e => setEditFormData({ ...editFormData, hash_algorithm: e.target.value })}
                         style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '7px 10px', fontSize: '12.5px' }}
                       >
-                        <option value="sha3-256">SHA3-256 (Market Xcel / SMR Enterprise)</option>
-                        <option value="hmac-sha256">HMAC-SHA256 (Zamplia)</option>
-                        <option value="sha256">SHA-256 Standard</option>
+                        <option value="sha3-256">SHA3-256</option>
+                        <option value="hmac-sha256">HMAC-SHA256</option>
+                        <option value="sha256">SHA-256</option>
                         <option value="none">None / Direct Pass</option>
                       </select>
                     </div>

@@ -3846,7 +3846,7 @@ if ($normalizedRoute === 'manage/users') {
 $clientsFile = $DATA_DIR . '/clients.json';
 if ($normalizedRoute === 'clients' || str_starts_with($normalizedRoute, 'clients')) {
     $db = getDbConnection();
-    if ($method === 'POST') {
+    if ($method === 'POST' || $method === 'PUT') {
         if ($normalizedRoute === 'clients/toggle-security') {
             $cId = $body['client_id'] ?? $body['id'] ?? '';
             $secVal = isset($body['security_enabled']) ? (int)$body['security_enabled'] : 1;
@@ -3986,13 +3986,38 @@ if ($normalizedRoute === 'clients' || str_starts_with($normalizedRoute, 'clients
                 }
 
                 if ($existingId) {
+                    $curStmt = $db->prepare("SELECT * FROM client WHERE id = ? LIMIT 1");
+                    $curStmt->execute([$existingId]);
+                    $curRow = $curStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+                    if (empty($cName) && !empty($curRow['client_name'])) $cName = $curRow['client_name'];
+                    if (empty($cCode) && !empty($curRow['client_code'])) $cCode = $curRow['client_code'];
+                    if (empty($cEmail) && !empty($curRow['email'])) $cEmail = $curRow['email'];
+                    if (empty($cPhone) && !empty($curRow['phone'])) $cPhone = $curRow['phone'];
+                    if (empty($apiType) && !empty($curRow['api_type'])) $apiType = $curRow['api_type'];
+                    if (empty($feedUrl) && !empty($curRow['feed_api_url'])) $feedUrl = $curRow['feed_api_url'];
+                    if (empty($s2sUrl) && !empty($curRow['s2s_callback_url'])) $s2sUrl = $curRow['s2s_callback_url'];
+                    if (empty($masterUrl) && !empty($curRow['master_data_url'])) $masterUrl = $curRow['master_data_url'];
+                    if (empty($token) && !empty($curRow['api_token'])) $token = $curRow['api_token'];
+                    if (empty($secKey) && !empty($curRow['secret_key'])) $secKey = $curRow['secret_key'];
+                    if (empty($hashAlg) && !empty($curRow['hash_algorithm'])) $hashAlg = $curRow['hash_algorithm'];
+
+                    // Strip any bracketed customer names from hash algorithm
+                    $hashAlg = trim(preg_replace('/\s*\(.*?\)/', '', (string)$hashAlg));
+
+                    if (empty($body['complete_redirect']) && !empty($curRow['complete_redirect'])) $rc = $curRow['complete_redirect'];
+                    if (empty($body['terminate_redirect']) && !empty($curRow['terminate_redirect'])) $rt = $curRow['terminate_redirect'];
+                    if (empty($body['overquota_redirect']) && !empty($curRow['overquota_redirect'])) $ro = $curRow['overquota_redirect'];
+                    if (empty($body['security_redirect']) && !empty($curRow['security_redirect'])) $rs = $curRow['security_redirect'];
+
                     $uStmt = $db->prepare("
                         UPDATE client 
                         SET client_name = ?, client_code = ?, email = ?, phone = ?, api_type = ?, feed_api_url = ?, s2s_callback_url = ?, master_data_url = ?, api_token = ?, secret_key = ?, hash_algorithm = ?, complete_redirect = ?, terminate_redirect = ?, overquota_redirect = ?, security_redirect = ?, security_enabled = ?, is_active = ?, updated_at = NOW()
                         WHERE id = ?
                     ");
                     $uStmt->execute([$cName, $cCode, $cEmail, $cPhone, $apiType, $feedUrl, $s2sUrl, $masterUrl, $token, $secKey, $hashAlg, $rc, $rt, $ro, $rs, $secEnabled, $isActive, $existingId]);
-                    $savedClient = array_merge($body, ['id' => $existingId, '_id' => $existingId, 'client_code' => $cCode, 'client_name' => $cName, 'security_enabled' => $secEnabled, 'status' => $statusVal]);
+                    logActivity($db, 'client', $existingId, 'UPDATE_CLIENT', $body, 1);
+                    $savedClient = array_merge($curRow, $body, ['id' => $existingId, '_id' => $existingId, 'client_code' => $cCode, 'client_name' => $cName, 'hash_algorithm' => $hashAlg, 'security_enabled' => $secEnabled, 'status' => $statusVal]);
                 } else {
                     $iStmt = $db->prepare("
                         INSERT INTO client (client_name, client_code, email, phone, status, is_active, api_type, feed_api_url, s2s_callback_url, master_data_url, api_token, secret_key, hash_algorithm, complete_redirect, terminate_redirect, overquota_redirect, security_redirect, security_enabled, created_at, updated_at)

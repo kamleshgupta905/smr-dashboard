@@ -1961,7 +1961,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast, 
                                     Anti-Tamper Cryptography
                                   </div>
                                   <div style={{ fontSize: '12px', color: '#1e293b', background: '#f8fafc', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                    <span>Protocol: <strong>{v.hash_algorithm || 'SHA3-256 (Market Xcel / SMR Enterprise)'}</strong></span>
+                                    <span>Protocol: <strong>{v.hash_algorithm ? String(v.hash_algorithm).toUpperCase().replace(/\s*\(.*?\)/, '') : 'SHA3-256'}</strong></span>
                                   </div>
                                 </div>
 
