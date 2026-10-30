@@ -3690,30 +3690,34 @@ if ($normalizedRoute === 'manage/users/save' || ($normalizedRoute === 'manage/us
             logActivity($db, 'users', $userId, 'User Created', ['name' => $name, 'username' => $username, 'role_id' => $role_id], 1);
         }
 
-        // Update assigned granular menu permissions in real time
+        // Update assigned granular menu permissions in real time (save parent modules + all selected sub-permissions)
         $db->prepare("DELETE FROM menu_permissions WHERE user_id = ?")->execute([$userId]);
         $ins = $db->prepare("
             INSERT INTO menu_permissions (user_id, menu_id, `add`, edit, `delete`, `print`, created_at, updated_at) 
             VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
         ");
 
-        if (!empty($granularPermissions)) {
+        $allUniqueMenuIds = [];
+        if (is_array($menuPermissions)) {
+            foreach ($menuPermissions as $mid) {
+                $mIdNum = (int)$mid;
+                if ($mIdNum > 0) $allUniqueMenuIds[$mIdNum] = true;
+            }
+        }
+        if (is_array($granularPermissions)) {
             foreach ($granularPermissions as $mKey => $g) {
                 $mIdNum = (int)$mKey;
-                if ($mIdNum <= 0) continue;
-                $vAdd = !empty($g['add']) ? 1 : 0;
-                $vEdit = !empty($g['edit']) ? 1 : 0;
-                $vDel = !empty($g['delete']) ? 1 : 0;
-                $vPrint = !empty($g['print']) ? 1 : 0;
-                $ins->execute([$userId, $mIdNum, $vAdd, $vEdit, $vDel, $vPrint]);
+                if ($mIdNum > 0) $allUniqueMenuIds[$mIdNum] = true;
             }
-        } elseif (!empty($menuPermissions)) {
-            foreach ($menuPermissions as $mId) {
-                $mIdNum = (int)$mId;
-                if ($mIdNum > 0) {
-                    $ins->execute([$userId, $mIdNum, 1, 1, 1, 1]);
-                }
-            }
+        }
+
+        foreach ($allUniqueMenuIds as $mIdNum => $trueVal) {
+            $g = $granularPermissions[$mIdNum] ?? null;
+            $vAdd = $g ? (!empty($g['add']) ? 1 : 0) : 1;
+            $vEdit = $g ? (!empty($g['edit']) ? 1 : 0) : 1;
+            $vDel = $g ? (!empty($g['delete']) ? 1 : 0) : 1;
+            $vPrint = $g ? (!empty($g['print']) ? 1 : 0) : 1;
+            $ins->execute([$userId, $mIdNum, $vAdd, $vEdit, $vDel, $vPrint]);
         }
         logActivity($db, 'menu_permissions', $userId, 'Menu Permissions Updated', ['assigned_menu_ids' => $menuPermissions, 'granular' => $granularPermissions], 1);
 

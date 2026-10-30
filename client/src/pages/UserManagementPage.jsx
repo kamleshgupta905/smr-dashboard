@@ -35,34 +35,136 @@ import {
 import ModalPortal from '../components/ModalPortal';
 
 // 100% Comprehensive Menu Hierarchy matching the exact SMR Platform Sidebar sections & MySQL schema
-// Official Complete Menu Tree matching all Sidebar sections and exact clean style
+// Official Complete Menu Tree with Sub-Permissions for ALL Platform Modules
 export const MENU_TREE = [
   // MAIN
-  { id: 1, name: 'Overview', section: 'Main' },
-  { id: 7, name: 'Surveys', section: 'Main' },
+  {
+    id: 1,
+    name: 'Overview',
+    section: 'Main',
+    children: [
+      { id: 101, name: 'Key Performance Metrics (KPIs)' },
+      { id: 102, name: 'Traffic & Volume Analytics Chart' },
+      { id: 103, name: 'Recent Team Activity Log' }
+    ]
+  },
+  {
+    id: 7,
+    name: 'Surveys',
+    section: 'Main',
+    children: [
+      { id: 701, name: 'Survey Directory & Search' },
+      { id: 702, name: 'Create / Add Survey Study' },
+      { id: 703, name: 'Clone / Duplicate Study' },
+      { id: 704, name: 'Assign Supply Vendors' },
+      { id: 705, name: 'Quotas Management & Limits' },
+      { id: 706, name: 'Targeting & Criteria Qualifications' }
+    ]
+  },
+
   // PARTNERS
-  { id: 6, name: 'Clients', section: 'Partners' },
-  { id: 8, name: 'Vendors', section: 'Partners' },
-  // OPERATIONS
-  { id: 10, name: 'Vendor Payments', section: 'Operations & Payouts' },
-  { id: 9, name: 'Traffic Leads Stream', section: 'Operations & Payouts' },
-  { id: 11, name: 'Security & Fraud Gate', section: 'Operations & Payouts' },
-  // MANAGEMENT
+  {
+    id: 6,
+    name: 'Clients',
+    section: 'Partners',
+    children: [
+      { id: 601, name: 'Client Directory' },
+      { id: 602, name: 'Add New Client Onboarding' },
+      { id: 603, name: 'API Endpoints (Feed & S2S Callbacks)' },
+      { id: 604, name: 'Anti-Tamper & Security Hash Keys' },
+      { id: 605, name: 'Client Contacts Directory' },
+      { id: 606, name: 'Edit Client Configuration' },
+      { id: 607, name: 'Delete / Deactivate Client' }
+    ]
+  },
+  {
+    id: 8,
+    name: 'Vendors',
+    section: 'Partners',
+    children: [
+      { id: 801, name: 'Vendor Directory & Status' },
+      { id: 802, name: 'Add Supply Vendor Integration' },
+      { id: 803, name: 'Return Callbacks (4 Links Configuration)' },
+      { id: 804, name: 'RevShare & CPI Payout Rules' },
+      { id: 805, name: 'Statements & Reconciliation Ledger' },
+      { id: 806, name: 'Bank & Compliance Profile' },
+      { id: 807, name: 'Remove / Delete Vendor' }
+    ]
+  },
+
+  // OPERATIONS & PAYOUTS
+  {
+    id: 10,
+    name: 'Vendor Payments',
+    section: 'Operations & Payouts',
+    children: [
+      { id: 1001, name: 'Disbursements Ledger' },
+      { id: 1002, name: 'Record Vendor Payout' },
+      { id: 1003, name: 'Approve / Mark Paid Status' },
+      { id: 1004, name: 'Export Payments CSV' },
+      { id: 1005, name: 'Edit Payment Remarks & Proof' },
+      { id: 1006, name: 'Delete Payment Record' }
+    ]
+  },
+  {
+    id: 9,
+    name: 'Traffic Leads Stream',
+    section: 'Operations & Payouts',
+    children: [
+      { id: 901, name: 'Live Respondent Clicks Stream' },
+      { id: 902, name: 'Traffic Search & Filter' },
+      { id: 903, name: 'Manual Status Override' },
+      { id: 904, name: 'Export Leads CSV' }
+    ]
+  },
+  {
+    id: 11,
+    name: 'Security & Fraud Gate',
+    section: 'Operations & Payouts',
+    children: [
+      { id: 1101, name: 'Fraud Detection Logs' },
+      { id: 1102, name: 'Speeder LOI & IP Rules' },
+      { id: 1103, name: 'Pre-Screener Simulator Gate' }
+    ]
+  },
+
+  // SYSTEM & TEAM
   { 
     id: 2, 
     name: 'User Management',
     section: 'System & Team',
     children: [
-      { id: 3, name: 'User' },
-      { id: 4, name: 'Menu Permission' },
-      { id: 5, name: 'Change Password' }
+      { id: 3, name: 'User Accounts Directory' },
+      { id: 4, name: 'Menu & Action Permissions' },
+      { id: 5, name: 'Password Management' }
     ]
   },
-  { id: 12, name: 'Team Directory', section: 'System & Team' },
-  { id: 13, name: 'Reference Data', section: 'System & Team' }
+  {
+    id: 12,
+    name: 'Team Directory',
+    section: 'System & Team',
+    children: [
+      { id: 1201, name: 'Staff Directory Listing' },
+      { id: 1202, name: 'Add Team Member' },
+      { id: 1203, name: 'Activity Audit Trail' }
+    ]
+  },
+  {
+    id: 13,
+    name: 'Reference Data',
+    section: 'System & Team',
+    children: [
+      { id: 1301, name: 'Country Master' },
+      { id: 1302, name: 'Language Master' },
+      { id: 1303, name: 'Questions & Qualification Library' }
+    ]
+  }
 ];
 
-export const ALL_MENU_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+export const ALL_MENU_IDS = MENU_TREE.flatMap(node => [
+  node.id,
+  ...(node.children ? node.children.map(c => c.id) : [])
+]);
 
 export const MENU_NAMES = {
   1: 'Overview',
@@ -250,8 +352,20 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
       }
     } catch {}
 
+    // For legacy users who only had parent IDs saved, expand to pre-check all their sub-permissions
+    const fullPermissionsSet = new Set(permissions);
+    MENU_TREE.forEach(node => {
+      if (fullPermissionsSet.has(node.id) && node.children) {
+        const hasAnyChildSaved = node.children.some(c => fullPermissionsSet.has(c.id));
+        if (!hasAnyChildSaved) {
+          node.children.forEach(c => fullPermissionsSet.add(c.id));
+        }
+      }
+    });
+    const expandedPermissions = Array.from(fullPermissionsSet);
+
     // Ensure all menu_permissions IDs have at least view=true in granular
-    permissions.forEach(mid => {
+    expandedPermissions.forEach(mid => {
       if (!granular[mid]) {
         granular[mid] = { view: true, add: true, edit: true, delete: false, print: true };
       }
@@ -271,7 +385,7 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
       confirm_password: userPwd,
       profile_image: user.profile_image || '',
       status: (user.is_active === 'N' || user.status === 'inactive') ? 'inactive' : 'active',
-      menu_permissions: permissions,
+      menu_permissions: expandedPermissions,
       granular_permissions: granular
     });
 
@@ -396,56 +510,63 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
       const current = prev.menu_permissions || [];
       const idNum = Number(menuId);
 
-      // Parent toggle: User Management (id: 2)
-      if (idNum === 2) {
-        const isParentChecked = current.includes(2);
+      // 1. Check if clicked node is a parent module
+      const parentNode = MENU_TREE.find(n => n.id === idNum);
+      if (parentNode && parentNode.children && parentNode.children.length > 0) {
+        const childIds = parentNode.children.map(c => c.id);
+        const allIds = [idNum, ...childIds];
+        const isParentChecked = current.includes(idNum);
+
+        let nextMenus;
         if (isParentChecked) {
-          return {
-            ...prev,
-            menu_permissions: current.filter(id => ![2, 3, 4, 5].includes(id))
-          };
+          // Uncheck parent and all of its sub-permissions
+          nextMenus = current.filter(id => !allIds.includes(id));
         } else {
-          const merged = Array.from(new Set([...current, 2, 3, 4, 5]));
-          return {
-            ...prev,
-            menu_permissions: merged
-          };
+          // Check parent and all of its sub-permissions
+          nextMenus = Array.from(new Set([...current, ...allIds]));
+        }
+        return { ...prev, menu_permissions: nextMenus };
+      }
+
+      // 2. Check if clicked node is a sub-permission of some parent
+      let containingParent = null;
+      for (const node of MENU_TREE) {
+        if (node.children && node.children.some(c => c.id === idNum)) {
+          containingParent = node;
+          break;
         }
       }
 
-      // Child toggle: User Accounts (3), Role & Menu Privileges (4), Change Password (5)
-      if ([3, 4, 5].includes(idNum)) {
-        let updated;
+      if (containingParent) {
+        const childIds = containingParent.children.map(c => c.id);
+        let nextMenus;
         if (current.includes(idNum)) {
-          updated = current.filter(id => id !== idNum);
-          if (![3, 4, 5].some(c => updated.includes(c))) {
-            updated = updated.filter(id => id !== 2);
+          // Unchecking child sub-permission
+          nextMenus = current.filter(id => id !== idNum);
+          // If no other sub-permissions of this module remain checked, uncheck parent too
+          const hasAnyChildLeft = childIds.some(cid => nextMenus.includes(cid));
+          if (!hasAnyChildLeft) {
+            nextMenus = nextMenus.filter(id => id !== containingParent.id);
           }
         } else {
-          updated = Array.from(new Set([...current, idNum, 2]));
+          // Checking child sub-permission -> automatically ensure parent is checked too!
+          nextMenus = Array.from(new Set([...current, idNum, containingParent.id]));
         }
-        return { ...prev, menu_permissions: updated };
+        return { ...prev, menu_permissions: nextMenus };
       }
 
-      // All root platform modules (1, 6, 7, 8, 9, 10, 11, 12, 13)
-      if (current.includes(idNum)) {
-        return {
-          ...prev,
-          menu_permissions: current.filter(id => id !== idNum)
-        };
-      } else {
-        return {
-          ...prev,
-          menu_permissions: [...current, idNum]
-        };
-      }
+      // 3. Standalone node without children
+      const nextMenus = current.includes(idNum)
+        ? current.filter(id => id !== idNum)
+        : [...current, idNum];
+      return { ...prev, menu_permissions: nextMenus };
     });
   };
 
   const handleSelectAllMenus = () => {
     setFormData(prev => ({
       ...prev,
-      menu_permissions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+      menu_permissions: ALL_MENU_IDS
     }));
   };
 

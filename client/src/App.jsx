@@ -156,12 +156,30 @@ export default function App() {
   const userPermNumbers = (userPermissions || currentUser?.permissions || []).map(Number);
   const hasMenuAccess = (menuId) => isAdmin || userPermNumbers.includes(Number(menuId));
 
-  // Granular RBAC Action Evaluator: checks view, add, edit, delete, print
+  // Granular RBAC Action Evaluator: checks sub-permission IDs & granular view, add, edit, delete, print
   const canPerformAction = (menuId, action = 'view') => {
     if (isAdmin) return true;
     const mId = Number(menuId);
     if (!userPermNumbers.includes(mId)) return false;
     if (action === 'view') return true;
+
+    // Check specific sub-permission IDs in userPermNumbers
+    const subMap = {
+      7: { add: [702, 703], edit: [704, 705, 706], delete: [707] },
+      6: { add: [602], edit: [606], delete: [607] },
+      8: { add: [802], edit: [803, 804], delete: [807] },
+      10: { add: [1002], edit: [1003], delete: [1006] },
+      2: { add: [3, 201], edit: [4, 202], delete: [3, 203] }
+    };
+
+    if (subMap[mId] && subMap[mId][action]) {
+      const allowedSubs = subMap[mId][action];
+      const allModuleSubs = [...(subMap[mId].add || []), ...(subMap[mId].edit || []), ...(subMap[mId].delete || [])];
+      const hasAnySubConfigured = allModuleSubs.some(sid => userPermNumbers.includes(sid));
+      if (hasAnySubConfigured && !allowedSubs.some(sid => userPermNumbers.includes(sid))) {
+        return false;
+      }
+    }
 
     const gran = currentUser?.granular_permissions;
     if (!gran) return true;
