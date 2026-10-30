@@ -566,7 +566,12 @@ export const deleteVendor = async (id) => {
   try {
     await api.delete(`/manage/vendors/${id}`);
     const current = getLocalData('smr_custom_vendors', []);
-    const next = current.filter(v => v._id !== id && v.vendor_code !== id && v.vendor_id !== id);
+    const next = current.filter(v => (
+      String(v._id) !== String(id) && 
+      String(v.vendor_code) !== String(id) && 
+      String(v.vendor_id) !== String(id) &&
+      String(v.id) !== String(id)
+    ));
     setLocalData('smr_custom_vendors', next);
     GoogleSheetAPI.syncToSheet('deleteVendor', { vendor_id: id, id });
     return { success: true };

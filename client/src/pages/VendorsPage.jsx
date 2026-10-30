@@ -1010,9 +1010,24 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
     if (!window.confirm('Are you sure you want to remove this vendor integration?')) return;
     try {
       await deleteVendor(id);
-      setVendors(prev => prev.filter(v => (v._id !== id && v.vendor_code !== id)));
+      setVendors(prev => prev.filter(v => (
+        String(v._id) !== String(id) && 
+        String(v.vendor_code) !== String(id) && 
+        String(v.vendor_id) !== String(id) && 
+        String(v.id) !== String(id)
+      )));
+      if (selectedVendor && (
+        String(selectedVendor.vendor_id) === String(id) || 
+        String(selectedVendor._id) === String(id) || 
+        String(selectedVendor.vendor_code) === String(id) ||
+        String(selectedVendor.id) === String(id)
+      )) {
+        setSelectedVendor(null);
+      }
+      if (showToast) showToast('Vendor integration removed successfully.', 'success');
     } catch (err) {
       console.error('Failed to delete vendor:', err);
+      if (showToast) showToast(err.message || 'Failed to remove vendor integration.', 'error');
     }
   };
 

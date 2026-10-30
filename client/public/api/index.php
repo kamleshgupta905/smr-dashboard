@@ -2880,17 +2880,35 @@ if ($normalizedRoute === 'vendors' || $normalizedRoute === 'manage/vendors' || s
         }
     }
 
-    // DELETE: Soft delete vendor in MySQL
+    // DELETE: Fully delete vendor from MySQL & store
     if ($method === 'DELETE') {
-        $targetId = trim($segments[2] ?? ($body['id'] ?? ($body['vendor_id'] ?? '')));
-        if ($targetId && $db) {
+        $targetId = '';
+        if (preg_match('#(?:manage/)?vendors/([^/?]+)#', $normalizedRoute, $vm)) {
+            $targetId = trim($vm[1]);
+        }
+        if (empty($targetId)) {
+            $targetId = trim($_GET['id'] ?? ($_GET['vendor_id'] ?? ($body['id'] ?? ($body['vendor_id'] ?? ''))));
+        }
+
+        if (!empty($targetId) && $db) {
             try {
-                $db->prepare("UPDATE vendor SET is_active = 'N' WHERE vendor_id = ? OR id = ?")->execute([$targetId, $targetId]);
                 $db->prepare("DELETE FROM vendorlists WHERE vendor_id = ? OR id = ?")->execute([$targetId, $targetId]);
+                $db->prepare("DELETE FROM vendor WHERE vendor_id = ? OR id = ?")->execute([$targetId, $targetId]);
                 $db->prepare("DELETE FROM vendor_settings WHERE vendor_id = ?")->execute([$targetId]);
+                $db->prepare("DELETE FROM vendor_contacts WHERE vendor_id = ?")->execute([$targetId]);
+                $db->prepare("DELETE FROM vendor_allotments WHERE vendor_id = ?")->execute([$targetId]);
+                $db->prepare("DELETE FROM vendor_billing WHERE vendor_id = ?")->execute([$targetId]);
+                logActivity($db, 'vendorlists', $targetId, 'Vendor Removed', ['vendor_id' => $targetId]);
             } catch (Throwable $e) {}
         }
-        echo json_encode(['success' => true]);
+        if (!empty($targetId) && file_exists($vendorsFile)) {
+            try {
+                $vList = json_decode((string)file_get_contents($vendorsFile), true) ?: [];
+                $vList = array_values(array_filter($vList, fn($x) => ($x['vendor_id'] ?? $x['_id'] ?? '') !== $targetId));
+                file_put_contents($vendorsFile, json_encode($vList, JSON_PRETTY_PRINT), LOCK_EX);
+            } catch (Throwable $e) {}
+        }
+        echo json_encode(['success' => true, 'deleted' => $targetId]);
         exit;
     }
 
@@ -3422,14 +3440,20 @@ if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 
     }
 
     if ($method === 'DELETE') {
-        $targetId = $segments[2] ?? ($body['id'] ?? ($body['project_id'] ?? ''));
-        if ($targetId && $db) {
+        $targetId = '';
+        if (preg_match('#(?:manage/)?projects/([^/?]+)#', $normalizedRoute, $pm)) {
+            $targetId = trim($pm[1]);
+        }
+        if (empty($targetId)) {
+            $targetId = trim($_GET['id'] ?? ($_GET['project_id'] ?? ($body['id'] ?? ($body['project_id'] ?? ''))));
+        }
+        if (!empty($targetId) && $db) {
             try {
                 $db->prepare("DELETE FROM projects WHERE id = ? OR project_id = ?")->execute([$targetId, $targetId]);
                 logActivity($db, 'projects', $targetId, 'Delete', ['id' => $targetId]);
             } catch (Throwable $e) {}
         }
-        echo json_encode(['success' => true]);
+        echo json_encode(['success' => true, 'deleted' => $targetId]);
         exit;
     }
 
