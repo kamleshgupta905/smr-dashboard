@@ -4298,6 +4298,42 @@ if ($normalizedRoute === 'explorer/run-test') {
     $ep = $body['endpoint'] ?? '';
     $provider = $body['provider'] ?? 'zamplia_demand';
 
+    // SurveySherpa live API proxy execution
+    if ($provider === 'surveysherpa' || stripos($ep, 'surveysherpa') !== false || stripos($ep, 'supplier/') !== false) {
+        $cleanEp = ltrim(preg_replace('#^(surveysherpa/|/api/supplier/|api/supplier/|supplier/)#', '', (string)$ep), '/');
+        $sherpaUrl = 'https://api.surveysherpa.com/api/supplier/' . $cleanEp;
+        $params = $body['params'] ?? [];
+        if (!empty($params) && is_array($params)) {
+            $sherpaUrl .= '?' . http_build_query($params);
+        }
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $sherpaUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'access-key: f3f5bf8fde5242a5964263444e1d9814',
+            'Accept: application/json'
+        ]);
+        $resp = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        $json = json_decode((string)$resp, true);
+        echo json_encode([
+            'success' => ($httpCode >= 200 && $httpCode < 300),
+            'service' => 'SurveySherpa Live API Gateway',
+            'status' => 'online',
+            'httpStatus' => $httpCode,
+            'dispatchedPath' => $sherpaUrl,
+            'endpoint' => $ep,
+            'provider' => 'surveysherpa',
+            'timestamp' => date('c'),
+            'data' => $json['result']['data'] ?? $json['result'] ?? $json['data'] ?? $json,
+            'raw' => $json
+        ]);
+        exit;
+    }
+
+
     // Real database execution for updateProject
     if (stripos($ep, 'updateProject') !== false) {
         $pId = (string)($body['body']['ProjectId'] ?? $body['body']['project_id'] ?? '');

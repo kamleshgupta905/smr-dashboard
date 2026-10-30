@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Code2, Play, ExternalLink, Copy, Check, Terminal, Globe, 
+  Compass, Code2, Play, ExternalLink, Copy, Check, Terminal, Globe, 
   ShieldCheck, Send, CheckCircle2, AlertCircle, RefreshCw, Key, Filter, Search, Layers, Box
 } from 'lucide-react';
 import { runUniversalApiTest } from '../services/api';
@@ -16,6 +16,63 @@ export default function ApiDeveloperCenterPage() {
   const [customBody, setCustomBody] = useState('');
 
   const apiCatalog = {
+    // ============================================================
+    // 4. SURVEYSHERPA SUPPLIER API (Official Swagger Specification)
+    // ============================================================
+    sherpa_definitions: {
+      provider: 'surveysherpa',
+      category: 'SurveySherpa Supplier API',
+      endpoint: 'getDefinitions',
+      name: 'getDefinitions (Languages & Country Master)',
+      method: 'GET',
+      url: 'https://api.surveysherpa.com/api/supplier/getDefinitions',
+      headers: { 'access-key': 'f3f5bf8fde5242a5964263444e1d9814', 'Accept': 'application/json' },
+      description: 'Retrieves all 259+ countries, languages, and regional taxonomy supported by SurveySherpa.'
+    },
+    sherpa_qualifications: {
+      provider: 'surveysherpa',
+      category: 'SurveySherpa Supplier API',
+      endpoint: 'getQualifications',
+      name: 'getQualifications (Demographic Questions Library)',
+      method: 'GET',
+      url: 'https://api.surveysherpa.com/api/supplier/getQualifications?lang_id=1',
+      params: { lang_id: '1' },
+      headers: { 'access-key': 'f3f5bf8fde5242a5964263444e1d9814', 'Accept': 'application/json' },
+      description: 'Retrieves qualification library questions (AGE, GENDER, REGION, etc.) and answer options for language ID (1=US English).'
+    },
+    sherpa_all_surveys: {
+      provider: 'surveysherpa',
+      category: 'SurveySherpa Supplier API',
+      endpoint: 'getAllSurveys',
+      name: 'getAllSurveys (Live Inventory Feed)',
+      method: 'GET',
+      url: 'https://api.surveysherpa.com/api/supplier/getAllSurveys',
+      headers: { 'access-key': 'f3f5bf8fde5242a5964263444e1d9814', 'Accept': 'application/json' },
+      description: 'Returns real-time list of all active survey studies with CPI, LOI, IR, complete required, and basecamp survey entry URL.'
+    },
+    sherpa_survey_details: {
+      provider: 'surveysherpa',
+      category: 'SurveySherpa Supplier API',
+      endpoint: 'getSurveyDetails',
+      name: 'getSurveyDetails (Targeting Criteria & Quotas)',
+      method: 'GET',
+      url: 'https://api.surveysherpa.com/api/supplier/getSurveyDetails?survey_id=11',
+      params: { survey_id: '11' },
+      headers: { 'access-key': 'f3f5bf8fde5242a5964263444e1d9814', 'Accept': 'application/json' },
+      description: 'Retrieves complete demographic criteria, questions, and parameters for survey_id 11 (SurveySherpa live test study).'
+    },
+    sherpa_survey_stats: {
+      provider: 'surveysherpa',
+      category: 'SurveySherpa Supplier API',
+      endpoint: 'getSurveyStats',
+      name: 'getSurveyStats (Entrances & Completes Metrics)',
+      method: 'GET',
+      url: 'https://api.surveysherpa.com/api/supplier/getSurveyStats?survey_id=11',
+      params: { survey_id: '11' },
+      headers: { 'access-key': 'f3f5bf8fde5242a5964263444e1d9814', 'Accept': 'application/json' },
+      description: 'Retrieves statistics for a specific survey including total entrants, completed interviews, and performance telemetry.'
+    },
+
     // ============================================================
     // 1. ZAMPLIA SUPPLY API V2 (16 Endpoints - /docs/category/supply-api)
     // ============================================================
@@ -464,6 +521,7 @@ export default function ApiDeveloperCenterPage() {
   // Filter APIs by category tab and search query
   const filteredApiKeys = Object.keys(apiCatalog).filter((key) => {
     const api = apiCatalog[key];
+    if (activeTab === 'surveysherpa' && api.provider !== 'surveysherpa') return false;
     if (activeTab === 'zamplia_supply' && api.provider !== 'zamplia_supply') return false;
     if (activeTab === 'zamplia_demand' && api.provider !== 'zamplia_demand') return false;
     if (activeTab === 'marketxcel' && api.provider !== 'marketxcel') return false;
@@ -531,6 +589,7 @@ export default function ApiDeveloperCenterPage() {
 
   const counts = {
     all: Object.keys(apiCatalog).length,
+    surveysherpa: Object.values(apiCatalog).filter(a => a.provider === 'surveysherpa').length,
     zamplia_supply: Object.values(apiCatalog).filter(a => a.provider === 'zamplia_supply').length,
     zamplia_demand: Object.values(apiCatalog).filter(a => a.provider === 'zamplia_demand').length,
     marketxcel: Object.values(apiCatalog).filter(a => a.provider === 'marketxcel').length,
@@ -599,6 +658,81 @@ export default function ApiDeveloperCenterPage() {
         </div>
       </div>
 
+      {/* SurveySherpa Partner Documentation & Access Key Banner */}
+      <div style={{
+        background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+        borderRadius: '8px',
+        padding: '16px 20px',
+        color: '#FFFFFF',
+        marginBottom: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '16px',
+        boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(56, 189, 248, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Compass size={22} color="#38BDF8" />
+          </div>
+          <div>
+            <div style={{ fontSize: '14.5px', fontWeight: 800, color: '#F8FAFC', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>SurveySherpa Supplier API Integration</span>
+              <span style={{ fontSize: '10.5px', fontWeight: 700, background: '#10B981', color: '#FFFFFF', padding: '1px 7px', borderRadius: '12px' }}>LIVE TEST ACTIVE</span>
+            </div>
+            <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '3px' }}>
+              Access Key: <code style={{ color: '#38BDF8', background: 'rgba(56, 189, 248, 0.1)', padding: '2px 6px', borderRadius: '4px', fontFamily: 'monospace' }}>f3f5bf8fde5242a5964263444e1d9814</code>
+              <span style={{ margin: '0 8px', color: '#475569' }}>•</span>
+              Test Study: <strong style={{ color: '#F1F5F9' }}>Survey ID 11 ($1.00 CPI, 5m LOI)</strong>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <a
+            href="https://api.surveysherpa.com/api/api-docs/#/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '7px 14px',
+              borderRadius: '6px',
+              background: '#38BDF8',
+              color: '#0F172A',
+              fontSize: '12px',
+              fontWeight: 700,
+              textDecoration: 'none',
+              transition: '0.2s'
+            }}
+          >
+            <span>Open SurveySherpa Swagger UI</span>
+            <ExternalLink size={13} />
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('surveysherpa');
+              setSelectedApi('sherpa_all_surveys');
+            }}
+            style={{
+              padding: '7px 14px',
+              borderRadius: '6px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              color: '#FFFFFF',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            View 5 Endpoints
+          </button>
+        </div>
+      </div>
+
       {/* Filter Tabs & Search Bar */}
       <div style={{
         display: 'flex',
@@ -612,9 +746,10 @@ export default function ApiDeveloperCenterPage() {
         <div className="timeframe-group">
           {[
             { id: 'all', label: `All APIs (${counts.all})`, icon: Layers },
+            { id: 'surveysherpa', label: `SurveySherpa (${counts.surveysherpa})`, icon: Compass },
             { id: 'zamplia_supply', label: `Zamplia Supply (${counts.zamplia_supply})`, icon: Box },
             { id: 'zamplia_demand', label: `Zamplia Demand (${counts.zamplia_demand})`, icon: Globe },
-            { id: 'marketxcel', label: `Market Xcel (${counts.marketxcel})`, icon: Code2 },
+            { id: 'marketxcel', label: `Demand REST (${counts.marketxcel})`, icon: Code2 },
           ].map(tab => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;

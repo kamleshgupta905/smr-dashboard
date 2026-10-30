@@ -298,11 +298,11 @@ function RestrictionsAndContacts({ blockedClients = [], onBlockedChange, contact
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
           gap: '8px',
           maxHeight: '180px',
           overflowY: 'auto',
-          padding: '4px',
+          padding: '6px',
           border: '1px solid #E2E8F0',
           borderRadius: '8px',
           background: '#F8FAFC'
@@ -328,7 +328,7 @@ function RestrictionsAndContacts({ blockedClients = [], onBlockedChange, contact
                 }}
               >
                 <input type="checkbox" checked={isBlocked} onChange={(e) => { e.stopPropagation(); toggleBlockedClient(cId); }} style={{ cursor: 'pointer' }} />
-                <span style={{ fontSize: '11.5px', fontWeight: isBlocked ? 700 : 500, color: isBlocked ? '#DC2626' : '#1E293B', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: '11.5px', fontWeight: isBlocked ? 700 : 500, color: isBlocked ? '#DC2626' : '#1E293B', flex: 1, wordBreak: 'break-word', lineHeight: '1.25' }} title={cName}>
                   {cName}
                 </span>
                 {isBlocked && (
@@ -355,48 +355,53 @@ function RestrictionsAndContacts({ blockedClients = [], onBlockedChange, contact
           </div>
         </div>
 
-        {/* Add Contact Draft Inputs */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 1fr 1fr auto', gap: '8px', background: '#F8FAFC', padding: '10px', borderRadius: '8px', border: '1px solid #E2E8F0', marginBottom: '10px' }}>
-          <input
-            type="text"
-            placeholder="Full Name *"
-            value={draft.name}
-            onChange={e => setDraft({ ...draft, name: e.target.value })}
-            className="input-field"
-            style={{ fontSize: '11.5px', padding: '6px 8px' }}
-          />
-          <input
-            type="email"
-            placeholder="Email Address"
-            value={draft.email}
-            onChange={e => setDraft({ ...draft, email: e.target.value })}
-            className="input-field"
-            style={{ fontSize: '11.5px', padding: '6px 8px' }}
-          />
-          <input
-            type="text"
-            placeholder="Phone Number"
-            value={draft.phone}
-            onChange={e => setDraft({ ...draft, phone: e.target.value })}
-            className="input-field"
-            style={{ fontSize: '11.5px', padding: '6px 8px' }}
-          />
-          <input
-            type="text"
-            placeholder="Designation / Role"
-            value={draft.role}
-            onChange={e => setDraft({ ...draft, role: e.target.value })}
-            className="input-field"
-            style={{ fontSize: '11.5px', padding: '6px 8px' }}
-          />
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={addContact}
-            style={{ fontSize: '11.5px', padding: '6px 12px', fontWeight: 700, whiteSpace: 'nowrap' }}
-          >
-            + Add Contact
-          </button>
+        {/* Add Contact Draft Inputs (Clean 2-Row Form to prevent horizontal clipping) */}
+        <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '8px', border: '1px solid #E2E8F0', marginBottom: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '8px', marginBottom: '8px' }}>
+            <input
+              type="text"
+              placeholder="Full Name *"
+              value={draft.name}
+              onChange={e => setDraft({ ...draft, name: e.target.value })}
+              className="input-field"
+              style={{ fontSize: '12px', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', width: '100%', boxSizing: 'border-box' }}
+            />
+            <input
+              type="email"
+              placeholder="Email Address"
+              value={draft.email}
+              onChange={e => setDraft({ ...draft, email: e.target.value })}
+              className="input-field"
+              style={{ fontSize: '12px', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', width: '100%', boxSizing: 'border-box' }}
+            />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) auto', gap: '8px', alignItems: 'center' }}>
+            <input
+              type="text"
+              placeholder="Phone Number"
+              value={draft.phone}
+              onChange={e => setDraft({ ...draft, phone: e.target.value })}
+              className="input-field"
+              style={{ fontSize: '12px', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', width: '100%', boxSizing: 'border-box' }}
+            />
+            <input
+              type="text"
+              placeholder="Designation / Role"
+              value={draft.role}
+              onChange={e => setDraft({ ...draft, role: e.target.value })}
+              className="input-field"
+              style={{ fontSize: '12px', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', width: '100%', boxSizing: 'border-box' }}
+            />
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={addContact}
+              style={{ fontSize: '12px', padding: '7px 16px', fontWeight: 700, whiteSpace: 'nowrap', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              <UserPlus size={13} />
+              <span>+ Add Contact</span>
+            </button>
+          </div>
         </div>
 
         {/* Added Contacts Cards */}
@@ -2102,7 +2107,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast, 
             <div 
               className="modal-content" 
               onClick={e => e.stopPropagation()} 
-              style={{ maxWidth: '680px', width: '92%', maxHeight: '90vh', overflowY: 'auto' }}
+              style={{ maxWidth: '780px', width: '94%', maxHeight: '90vh', overflowY: 'auto' }}
             >
               <div className="modal-header" style={{ borderBottom: '1px solid #e2e8f0', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
@@ -2690,7 +2695,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast, 
       {showModal && (
         <ModalPortal isOpen={showModal} onClose={() => setShowModal(false)}>
           <div className="modal-overlay" onClick={() => setShowModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '680px', width: '92%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '780px', width: '94%', maxHeight: '90vh', overflowY: 'auto' }}>
               <div className="modal-header">
                 <div>
                   <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0F172A' }}>Add Supply Vendor Panel</h3>
@@ -3089,7 +3094,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast, 
             <div 
               className="modal-content" 
               onClick={e => e.stopPropagation()} 
-              style={{ maxWidth: '680px', width: '92%', maxHeight: '90vh', overflowY: 'auto' }}
+              style={{ maxWidth: '780px', width: '94%', maxHeight: '90vh', overflowY: 'auto' }}
             >
               <div className="modal-header" style={{ borderBottom: '1px solid #e2e8f0', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
