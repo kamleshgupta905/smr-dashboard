@@ -972,7 +972,7 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
                     }}
                     title="Click to generate a secure random password"
                   >
-                    ⚡ Auto-Generate
+                    Auto-Generate
                   </button>
                 </div>
                 <div style={{ position: 'relative' }}>
