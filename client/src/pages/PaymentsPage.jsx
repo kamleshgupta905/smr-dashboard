@@ -20,7 +20,7 @@ import {
 import { getPayments, createPayment, updatePaymentStatus, deletePayment, getVendors, getProjects } from '../services/api';
 import ModalPortal from '../components/ModalPortal';
 
-export default function PaymentsPage({ currentUser, showToast }) {
+export default function PaymentsPage({ currentUser, showToast, canAdd = true, canEdit = true, canDelete = true }) {
   const isVendor = currentUser?.role_name === "Vendor" || currentUser?.role === "Vendor";
   const vendorId = currentUser?.vendor_id || currentUser?.username;
   const [payments, setPayments] = useState([]);
@@ -320,27 +320,29 @@ export default function PaymentsPage({ currentUser, showToast }) {
             <Download size={13} />
             Export CSV
           </button>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '6px', 
-              fontSize: '13px', 
-              fontWeight: 700, 
-              padding: '7px 20px', 
-              borderRadius: '20px', 
-              background: '#2a2d8c', 
-              border: 'none',
-              color: '#ffffff',
-              boxShadow: '0 3px 10px rgba(42, 45, 140, 0.3)',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            <Plus size={15} />
-            + Record Payout
-          </button>
+          {canAdd && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '6px', 
+                fontSize: '13px', 
+                fontWeight: 700, 
+                padding: '7px 20px', 
+                borderRadius: '20px', 
+                background: '#2a2d8c', 
+                border: 'none',
+                color: '#ffffff',
+                boxShadow: '0 3px 10px rgba(42, 45, 140, 0.3)',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Plus size={15} />
+              + Record Payout
+            </button>
+          )}
         </div>
       </div>
 
@@ -555,43 +557,47 @@ export default function PaymentsPage({ currentUser, showToast }) {
                       </td>
                       <td style={{ padding: '14px 18px', textAlign: 'right' }}>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
-                          <button
-                            onClick={() => openEditModal(p)}
-                            style={{ 
-                              width: '28px', 
-                              height: '28px', 
-                              borderRadius: '4px', 
-                              background: '#2a2d8c', 
-                              color: '#ffffff', 
-                              border: 'none', 
-                              display: 'inline-flex', 
-                              alignItems: 'center', 
-                              justifyContent: 'center', 
-                              cursor: 'pointer',
-                              boxShadow: '0 1px 3px rgba(42, 45, 140, 0.2)'
-                            }}
-                            title="Edit / Add Remarks"
-                          >
-                            <Edit2 size={13} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(p.id, p.payment_id)}
-                            style={{ 
-                              width: '28px', 
-                              height: '28px', 
-                              borderRadius: '4px', 
-                              background: '#fee2e2', 
-                              color: '#dc2626', 
-                              border: 'none', 
-                              display: 'inline-flex', 
-                              alignItems: 'center', 
-                              justifyContent: 'center', 
-                              cursor: 'pointer' 
-                            }}
-                            title="Delete Record"
-                          >
-                            <Trash2 size={13} />
-                          </button>
+                          {canEdit && (
+                            <button
+                              onClick={() => openEditModal(p)}
+                              style={{ 
+                                width: '28px', 
+                                height: '28px', 
+                                borderRadius: '4px', 
+                                background: '#2a2d8c', 
+                                color: '#ffffff', 
+                                border: 'none', 
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                justifyContents: 'center', 
+                                cursor: 'pointer',
+                                boxShadow: '0 1px 3px rgba(42, 45, 140, 0.2)'
+                              }}
+                              title="Edit / Add Remarks"
+                            >
+                              <Edit2 size={13} />
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button
+                              onClick={() => handleDelete(p.id, p.payment_id)}
+                              style={{ 
+                                width: '28px', 
+                                height: '28px', 
+                                borderRadius: '4px', 
+                                background: '#fee2e2', 
+                                color: '#dc2626', 
+                                border: 'none', 
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                cursor: 'pointer' 
+                              }}
+                              title="Delete Record"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

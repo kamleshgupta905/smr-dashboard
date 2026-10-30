@@ -24,7 +24,10 @@ export default function SurveysPage({
   onOpenQuals, 
   onOpenAssign,
   currentUser,
-  showToast
+  showToast,
+  canAdd = true,
+  canEdit = true,
+  canDelete = true
 }) {
   const isVendor = currentUser?.role_name === "Vendor" || currentUser?.role === "Vendor";
   const vendorId = currentUser?.vendor_id || currentUser?.username || "VND-DYN-01";
@@ -336,27 +339,29 @@ export default function SurveysPage({
             </button>
           )}
 
-          <button
-            onClick={openDemandModal}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
-              border: '1px solid #0F172A',
-              color: '#ffffff',
-              borderRadius: '8px',
-              padding: '8px 16px',
-              fontSize: '12.5px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(15, 23, 42, 0.35)',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            <Layers size={14} />
-            <span>+ Add Survey</span>
-          </button>
+          {canAdd && (
+            <button
+              onClick={openDemandModal}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
+                border: '1px solid #0F172A',
+                color: '#ffffff',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.35)',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Layers size={14} />
+              <span>+ Add Survey</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -832,7 +837,7 @@ export default function SurveysPage({
                               </button>
                             )}
 
-                            {!isVendor && (
+                            {!isVendor && canAdd && (
                               <button
                                 type="button"
                                 className="action-suite-btn"

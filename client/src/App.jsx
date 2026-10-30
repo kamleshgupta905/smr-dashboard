@@ -156,6 +156,22 @@ export default function App() {
   const userPermNumbers = (userPermissions || currentUser?.permissions || []).map(Number);
   const hasMenuAccess = (menuId) => isAdmin || userPermNumbers.includes(Number(menuId));
 
+  // Granular RBAC Action Evaluator: checks view, add, edit, delete, print
+  const canPerformAction = (menuId, action = 'view') => {
+    if (isAdmin) return true;
+    const mId = Number(menuId);
+    if (!userPermNumbers.includes(mId)) return false;
+    if (action === 'view') return true;
+
+    const gran = currentUser?.granular_permissions;
+    if (!gran) return true;
+    const modPerm = gran[mId] || gran[String(mId)];
+    if (!modPerm) return true;
+    const val = modPerm[action];
+    if (val === undefined || val === null) return true;
+    return Boolean(val === 1 || val === true || val === '1');
+  };
+
   const handleImpersonateUser = async (targetUser) => {
     // SECURITY FIX: impersonation is admin-only, and never fabricates an admin session from nothing.
     const actingAdmin = impersonatedOriginal || currentUser;
@@ -210,11 +226,20 @@ export default function App() {
       permList = rawPerms.map(Number);
     }
 
+    let granularMap = targetUser.granular_permissions || {};
+    try {
+      const livePermRes = await getUserPermissions(targetUser.id);
+      if (livePermRes?.granular && typeof livePermRes.granular === 'object') {
+        granularMap = livePermRes.granular;
+      }
+    } catch {}
+
     const impersonated = {
       ...targetUser,
       role: targetUser.role_name || targetUser.role || 'User',
       role_name: targetUser.role_name || targetUser.role || 'User',
-      permissions: permList
+      permissions: permList,
+      granular_permissions: granularMap
     };
 
     // Store impersonated user in localStorage so page reload stays in preview!
@@ -273,7 +298,11 @@ export default function App() {
     }
     if (!isAdmin) {
       const fallbackTab = getFirstPermittedTab(userPermNumbers, isVendor, false);
-      if (activeTab === 'users' || activeTab === 'developer-center') {
+      if (activeTab === 'users' && !userPermNumbers.includes(2)) {
+        handleTabChange(fallbackTab, false);
+        return;
+      }
+      if (activeTab === 'developer-center') {
         handleTabChange(fallbackTab, false);
         return;
       }
@@ -712,6 +741,9 @@ export default function App() {
               onOpenQuals={openQuals}
               onOpenAssign={openAssign}
               showToast={showToast}
+              canAdd={canPerformAction(7, 'add')}
+              canEdit={canPerformAction(7, 'edit')}
+              canDelete={canPerformAction(7, 'delete')}
             />
           )}
 
@@ -720,6 +752,9 @@ export default function App() {
               currentUser={currentUser} 
               onImpersonateUser={handleImpersonateUser} 
               onExitImpersonation={handleExitImpersonation}
+              canAdd={canPerformAction(2, 'add')}
+              canEdit={canPerformAction(2, 'edit')}
+              canDelete={canPerformAction(2, 'delete')}
             />
           )}
 
@@ -732,6 +767,9 @@ export default function App() {
                 setClientsList(newList);
                 setClientsCount(newList.length);
               }}
+              canAdd={canPerformAction(6, 'add')}
+              canEdit={canPerformAction(6, 'edit')}
+              canDelete={canPerformAction(6, 'delete')}
             />
           )}
 
@@ -763,10 +801,27 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'vendors' && hasMenuAccess(8) && <VendorsPage onNavigate={handleTabChange} globalSearch={globalSearch} showToast={showToast} />}
+          {activeTab === 'vendors' && hasMenuAccess(8) && (
+            <VendorsPage 
+              onNavigate={handleTabChange} 
+              globalSearch={globalSearch} 
+              showToast={showToast} 
+              canAdd={canPerformAction(8, 'add')}
+              canEdit={canPerformAction(8, 'edit')}
+              canDelete={canPerformAction(8, 'delete')}
+            />
+          )}
           {activeTab === 'reconciliation' && hasMenuAccess(8) && <ReconciliationPage initialTab={currentReportSubTab || 'vendors'} />}
           {activeTab === 'bids' && hasMenuAccess(7) && <BidsPage />}
-          {activeTab === 'payments' && hasMenuAccess(10) && <PaymentsPage currentUser={currentUser} showToast={showToast} />}
+          {activeTab === 'payments' && hasMenuAccess(10) && (
+            <PaymentsPage 
+              currentUser={currentUser} 
+              showToast={showToast} 
+              canAdd={canPerformAction(10, 'add')}
+              canEdit={canPerformAction(10, 'edit')}
+              canDelete={canPerformAction(10, 'delete')}
+            />
+          )}
           {activeTab === 'team' && hasMenuAccess(12) && <TeamPage />}
           {activeTab === 'leads' && hasMenuAccess(9) && <LeadsPage currentUser={currentUser} showToast={showToast} />}
           {activeTab === 'reference' && hasMenuAccess(13) && <ReferenceDataPage />}

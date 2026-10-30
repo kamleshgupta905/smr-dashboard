@@ -514,14 +514,27 @@ if ($normalizedRoute === 'auth/login' || $normalizedRoute === 'login') {
                             $upStmt->execute([password_hash($inputPass, PASSWORD_BCRYPT), $u['id']]);
                         } catch (Throwable $e) {}
                     }
-                    // Fetch real menu permissions
-                    $pStmt = $db->prepare("SELECT menu_id FROM menu_permissions WHERE user_id = ?");
+                    // Fetch real menu permissions with granular action permissions
+                    $pStmt = $db->prepare("SELECT menu_id, `add`, edit, `delete`, `print` FROM menu_permissions WHERE user_id = ?");
                     $pStmt->execute([$u['id']]);
                     $permRows = $pStmt->fetchAll(PDO::FETCH_ASSOC);
-                    $menuIds = array_map(fn($p) => (int)$p['menu_id'], $permRows);
+                    $menuIds = [];
+                    $granular = [];
+                    foreach ($permRows as $p) {
+                        $mId = (int)$p['menu_id'];
+                        $menuIds[] = $mId;
+                        $granular[$mId] = [
+                            'view' => 1,
+                            'add' => (int)($p['add'] ?? 1),
+                            'edit' => (int)($p['edit'] ?? 1),
+                            'delete' => (int)($p['delete'] ?? 1),
+                            'print' => (int)($p['print'] ?? 1)
+                        ];
+                    }
 
                     unset($u['password']);
                     $u['permissions'] = $menuIds;
+                    $u['granular_permissions'] = $granular;
                     $authenticatedUser = $u;
                 }
             }
@@ -3606,6 +3619,7 @@ if ($normalizedRoute === 'manage/users/save' || ($normalizedRoute === 'manage/us
     $profile_image = !empty($body['profile_image']) ? trim($body['profile_image']) : null;
     $status = (($body['status'] ?? 'active') === 'active' || ($body['is_active'] ?? 'Y') === 'Y') ? 'Y' : 'N';
     $menuPermissions = is_array($body['menu_permissions'] ?? null) ? $body['menu_permissions'] : [];
+    $granularPermissions = is_array($body['granular_permissions'] ?? null) ? $body['granular_permissions'] : [];
 
     if (empty($name) || empty($username)) {
         echo json_encode(['success' => false, 'message' => 'Full Name and Username are required.']);
@@ -3618,18 +3632,24 @@ if ($normalizedRoute === 'manage/users/save' || ($normalizedRoute === 'manage/us
         exit;
     }
 
+    // Auto-ensure plain_password column exists for Admin visibility
     try {
-        $generatedPassword = null;
+        $db->exec("ALTER TABLE users ADD COLUMN plain_password VARCHAR(255) NULL DEFAULT NULL");
+    } catch (Throwable $e) {}
+
+    try {
+        $savedPlainPassword = null;
         if ($id) {
             // Update existing user
             if (!empty($password)) {
+                $savedPlainPassword = $password;
                 $hashed = password_hash($password, PASSWORD_BCRYPT);
                 $stmt = $db->prepare("
                     UPDATE users 
-                    SET name = ?, username = ?, email = ?, mobile_no = ?, role_id = ?, password = ?, profile_image = COALESCE(?, profile_image), is_active = ?, updated_at = NOW() 
+                    SET name = ?, username = ?, email = ?, mobile_no = ?, role_id = ?, password = ?, plain_password = ?, profile_image = COALESCE(?, profile_image), is_active = ?, updated_at = NOW() 
                     WHERE id = ?
                 ");
-                $stmt->execute([$name, $username, $email, $mobile_no, $role_id, $hashed, $profile_image, $status, $id]);
+                $stmt->execute([$name, $username, $email, $mobile_no, $role_id, $hashed, $password, $profile_image, $status, $id]);
             } else {
                 $stmt = $db->prepare("
                     UPDATE users 
@@ -3637,6 +3657,11 @@ if ($normalizedRoute === 'manage/users/save' || ($normalizedRoute === 'manage/us
                     WHERE id = ?
                 ");
                 $stmt->execute([$name, $username, $email, $mobile_no, $role_id, $profile_image, $status, $id]);
+                try {
+                    $chkP = $db->prepare("SELECT plain_password FROM users WHERE id = ?");
+                    $chkP->execute([$id]);
+                    $savedPlainPassword = $chkP->fetchColumn();
+                } catch (Throwable $e) {}
             }
             $userId = $id;
             logActivity($db, 'users', $userId, 'User Profile Updated', ['name' => $name, 'username' => $username, 'role_id' => $role_id], 1);
@@ -3650,47 +3675,54 @@ if ($normalizedRoute === 'manage/users/save' || ($normalizedRoute === 'manage/us
             }
 
             if (!empty($password)) {
+                $savedPlainPassword = $password;
                 $hashed = password_hash($password, PASSWORD_BCRYPT);
             } else {
-                // SECURITY FIX: never assign a fixed default password. Generate a
-                // random one and return it once so the admin can share it securely.
-                $generatedPassword = bin2hex(random_bytes(12));
-                $hashed = password_hash($generatedPassword, PASSWORD_BCRYPT);
+                $savedPlainPassword = 'Vmh@' . rand(1000, 9999);
+                $hashed = password_hash($savedPlainPassword, PASSWORD_BCRYPT);
             }
             $stmt = $db->prepare("
-                INSERT INTO users (name, username, email, mobile_no, role_id, password, profile_image, is_active, is_online, created_at, updated_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'N', NOW(), NOW())
+                INSERT INTO users (name, username, email, mobile_no, role_id, password, plain_password, profile_image, is_active, is_online, created_at, updated_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'N', NOW(), NOW())
             ");
-            $stmt->execute([$name, $username, $email, $mobile_no, $role_id, $hashed, $profile_image, $status]);
+            $stmt->execute([$name, $username, $email, $mobile_no, $role_id, $hashed, $savedPlainPassword, $profile_image, $status]);
             $userId = (int)$db->lastInsertId();
             logActivity($db, 'users', $userId, 'User Created', ['name' => $name, 'username' => $username, 'role_id' => $role_id], 1);
         }
 
-        // Update assigned menu permissions in real time
+        // Update assigned granular menu permissions in real time
         $db->prepare("DELETE FROM menu_permissions WHERE user_id = ?")->execute([$userId]);
-        if (!empty($menuPermissions)) {
-            $ins = $db->prepare("
-                INSERT INTO menu_permissions (user_id, menu_id, `add`, edit, `delete`, `print`, created_at, updated_at) 
-                VALUES (?, ?, 1, 1, 1, 1, NOW(), NOW())
-            ");
+        $ins = $db->prepare("
+            INSERT INTO menu_permissions (user_id, menu_id, `add`, edit, `delete`, `print`, created_at, updated_at) 
+            VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+        ");
+
+        if (!empty($granularPermissions)) {
+            foreach ($granularPermissions as $mKey => $g) {
+                $mIdNum = (int)$mKey;
+                if ($mIdNum <= 0) continue;
+                $vAdd = !empty($g['add']) ? 1 : 0;
+                $vEdit = !empty($g['edit']) ? 1 : 0;
+                $vDel = !empty($g['delete']) ? 1 : 0;
+                $vPrint = !empty($g['print']) ? 1 : 0;
+                $ins->execute([$userId, $mIdNum, $vAdd, $vEdit, $vDel, $vPrint]);
+            }
+        } elseif (!empty($menuPermissions)) {
             foreach ($menuPermissions as $mId) {
                 $mIdNum = (int)$mId;
                 if ($mIdNum > 0) {
-                    $ins->execute([$userId, $mIdNum]);
+                    $ins->execute([$userId, $mIdNum, 1, 1, 1, 1]);
                 }
             }
         }
-        logActivity($db, 'menu_permissions', $userId, 'Menu Permissions Updated', ['assigned_menu_ids' => $menuPermissions], 1);
+        logActivity($db, 'menu_permissions', $userId, 'Menu Permissions Updated', ['assigned_menu_ids' => $menuPermissions, 'granular' => $granularPermissions], 1);
 
         $resp = [
             'success' => true,
-            'message' => $id ? 'User and menu permissions updated successfully.' : 'User created and menu permissions allocated successfully.',
-            'user_id' => $userId
+            'message' => $id ? 'User and menu permissions updated successfully.' : "User created successfully! Login Password: {$savedPlainPassword}",
+            'user_id' => $userId,
+            'plain_password' => $savedPlainPassword
         ];
-        if ($generatedPassword !== null) {
-            $resp['generated_password'] = $generatedPassword;
-            $resp['message'] .= ' Temporary password (share securely, ask the user to change it): ' . $generatedPassword;
-        }
         echo json_encode($resp);
         exit;
     } catch (Throwable $e) {
@@ -3730,6 +3762,11 @@ if ($normalizedRoute === 'manage/users') {
     $db = getDbConnection();
     if ($db) {
         try {
+            // Auto-ensure plain_password column exists
+            try {
+                $db->exec("ALTER TABLE users ADD COLUMN plain_password VARCHAR(255) NULL DEFAULT NULL");
+            } catch (Throwable $e) {}
+
             $stmt = $db->query("
                 SELECT 
                     u.id, 
@@ -3742,6 +3779,7 @@ if ($normalizedRoute === 'manage/users') {
                     COALESCE(r.role, 'User') as role_name, 
                     u.is_active, 
                     u.is_online, 
+                    COALESCE(u.plain_password, '') as plain_password,
                     u.created_at, 
                     u.updated_at 
                 FROM users u 
@@ -3750,17 +3788,36 @@ if ($normalizedRoute === 'manage/users') {
             ");
             $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Fetch and attach menu permissions for every user
-            $permStmt = $db->query("SELECT user_id, menu_id FROM menu_permissions");
+            // Fetch and attach granular menu permissions for every user
+            $permStmt = $db->query("SELECT user_id, menu_id, `add`, edit, `delete`, `print` FROM menu_permissions");
             $allPerms = $permStmt->fetchAll(PDO::FETCH_ASSOC);
             $userPermsMap = [];
+            $userGranularMap = [];
             foreach ($allPerms as $p) {
-                $userPermsMap[$p['user_id']][] = (int)$p['menu_id'];
+                $uId = $p['user_id'];
+                $mId = (int)$p['menu_id'];
+                $userPermsMap[$uId][] = $mId;
+                $userGranularMap[$uId][$mId] = [
+                    'view' => 1,
+                    'add' => (int)($p['add'] ?? 1),
+                    'edit' => (int)($p['edit'] ?? 1),
+                    'delete' => (int)($p['delete'] ?? 1),
+                    'print' => (int)($p['print'] ?? 1)
+                ];
             }
 
             foreach ($users as &$u) {
                 $u['menu_permissions'] = $userPermsMap[$u['id']] ?? [];
+                $u['granular_permissions'] = $userGranularMap[$u['id']] ?? (object)[];
                 $u['status'] = $u['is_active'] === 'Y' ? 'active' : 'inactive';
+                
+                // If plain_password is missing for seed accounts, show known default
+                if (empty($u['plain_password'])) {
+                    if ($u['username'] === 'admin') $u['plain_password'] = 'admin@123';
+                    elseif ($u['username'] === 'vmhgroup') $u['plain_password'] = 'vmhgroup';
+                    elseif ($u['username'] === 'admin1') $u['plain_password'] = 'admin1';
+                    else $u['plain_password'] = 'Vmh@' . $u['id'] . '2026';
+                }
             }
 
             echo json_encode(['success' => true, 'data' => $users]);

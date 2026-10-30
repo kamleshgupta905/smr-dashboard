@@ -29,7 +29,8 @@ import {
   Upload, 
   AlertCircle,
   Eye,
-  EyeOff
+  EyeOff,
+  Copy
 } from 'lucide-react';
 import ModalPortal from '../components/ModalPortal';
 
@@ -86,7 +87,7 @@ const DEFAULT_ROLES = [
   { id: 4, role: 'Customer' }
 ];
 
-export default function UserManagementPage({ currentUser, onImpersonateUser, onExitImpersonation }) {
+export default function UserManagementPage({ currentUser, onImpersonateUser, onExitImpersonation, canAdd = true, canEdit = true, canDelete = true }) {
   // Navigation & View State: 'list' | 'addEdit'
   const [viewMode, setViewMode] = useState('list');
   const [editingUserId, setEditingUserId] = useState(null);
@@ -98,6 +99,8 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
   
   // Real Roles from MySQL `roles` table
   const [dbRoles, setDbRoles] = useState(DEFAULT_ROLES);
+  const [revealedPasswords, setRevealedPasswords] = useState({});
+  const [copiedUserId, setCopiedUserId] = useState(null);
 
   // Form State matching screenshot `admin/user/addedit`
   const initialForm = {
@@ -229,6 +232,33 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
       console.warn('Live permissions fetch fallback:', e);
     }
 
+    let granular = user.granular_permissions || {};
+    try {
+      if (permRes?.data && Array.isArray(permRes.data) && permRes.data.length > 0) {
+        const gMap = {};
+        permRes.data.forEach(p => {
+          const mid = Number(p.menu_id);
+          gMap[mid] = {
+            view: true,
+            add: Boolean(Number(p.add ?? 1)),
+            edit: Boolean(Number(p.edit ?? 1)),
+            delete: Boolean(Number(p.delete ?? 1)),
+            print: Boolean(Number(p.print ?? 1))
+          };
+        });
+        granular = gMap;
+      }
+    } catch {}
+
+    // Ensure all menu_permissions IDs have at least view=true in granular
+    permissions.forEach(mid => {
+      if (!granular[mid]) {
+        granular[mid] = { view: true, add: true, edit: true, delete: false, print: true };
+      }
+    });
+
+    const userPwd = user.plain_password || '';
+
     setFormData({
       id: user.id,
       name: user.name || '',
@@ -237,11 +267,12 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
       employee_type: user.role_id || (user.role_name === 'Developer' ? 1 : user.role_name === 'Admin' ? 2 : 3),
       supplier_id: user.supplier_id || '',
       username: user.username || '',
-      password: '',
-      confirm_password: '',
+      password: userPwd,
+      confirm_password: userPwd,
       profile_image: user.profile_image || '',
       status: (user.is_active === 'N' || user.status === 'inactive') ? 'inactive' : 'active',
-      menu_permissions: permissions
+      menu_permissions: permissions,
+      granular_permissions: granular
     });
 
     window.history.pushState({ view: 'addEdit', userId: user.id }, '');
@@ -254,6 +285,112 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
   };
 
   // Permission Checkbox Toggle Logic supporting all 13 sidebar modules
+  const toggleRevealPassword = (userId) => {
+    setRevealedPasswords(prev => ({ ...prev, [userId]: !prev[userId] }));
+  };
+
+  const copyCredentials = (user) => {
+    const pwd = user.plain_password || 'Vmh@2026';
+    const text = `Username: ${user.username} | Password: ${pwd}`;
+    try {
+      navigator.clipboard.writeText(text);
+      setCopiedUserId(user.id);
+      setTimeout(() => setCopiedUserId(null), 2500);
+    } catch {
+      prompt('Copy Login Credentials:', text);
+    }
+  };
+
+  const generateRandomPassword = () => {
+    const pwd = 'Vmh@' + Math.floor(1000 + Math.random() * 9000);
+    setFormData(prev => ({ ...prev, password: pwd, confirm_password: pwd }));
+    setShowPassword(true);
+  };
+
+  const handleToggleGranular = (menuId, action) => {
+    const mid = Number(menuId);
+    setFormData(prev => {
+      const currentG = prev.granular_permissions || {};
+      const currentMod = currentG[mid] || { view: false, add: false, edit: false, delete: false, print: false };
+      const newVal = !currentMod[action];
+      const updatedMod = { ...currentMod, [action]: newVal };
+
+      if (action === 'view' && !newVal) {
+        updatedMod.add = false;
+        updatedMod.edit = false;
+        updatedMod.delete = false;
+        updatedMod.print = false;
+      } else if (action !== 'view' && newVal) {
+        updatedMod.view = true;
+      }
+
+      const nextG = { ...currentG, [mid]: updatedMod };
+      const currentMenus = prev.menu_permissions || [];
+      let nextMenus;
+      if (updatedMod.view) {
+        nextMenus = Array.from(new Set([...currentMenus, mid]));
+      } else {
+        nextMenus = currentMenus.filter(id => id !== mid);
+      }
+
+      return {
+        ...prev,
+        granular_permissions: nextG,
+        menu_permissions: nextMenus
+      };
+    });
+  };
+
+  const setRowPreset = (menuId, type) => {
+    const mid = Number(menuId);
+    setFormData(prev => {
+      const currentG = prev.granular_permissions || {};
+      let updatedMod;
+      if (type === 'full') {
+        updatedMod = { view: true, add: true, edit: true, delete: true, print: true };
+      } else if (type === 'viewOnly') {
+        updatedMod = { view: true, add: false, edit: false, delete: false, print: false };
+      } else {
+        updatedMod = { view: false, add: false, edit: false, delete: false, print: false };
+      }
+
+      const nextG = { ...currentG, [mid]: updatedMod };
+      const currentMenus = prev.menu_permissions || [];
+      let nextMenus;
+      if (updatedMod.view) {
+        nextMenus = Array.from(new Set([...currentMenus, mid]));
+      } else {
+        nextMenus = currentMenus.filter(id => id !== mid);
+      }
+
+      return {
+        ...prev,
+        granular_permissions: nextG,
+        menu_permissions: nextMenus
+      };
+    });
+  };
+
+  const setAllPreset = (type) => {
+    const allIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+    const newG = {};
+    allIds.forEach(id => {
+      if (type === 'full') {
+        newG[id] = { view: true, add: true, edit: true, delete: true, print: true };
+      } else if (type === 'viewOnly') {
+        newG[id] = { view: true, add: false, edit: false, delete: false, print: false };
+      } else {
+        newG[id] = { view: false, add: false, edit: false, delete: false, print: false };
+      }
+    });
+
+    setFormData(prev => ({
+      ...prev,
+      granular_permissions: newG,
+      menu_permissions: type === 'none' ? [] : allIds
+    }));
+  };
+
   const handleToggleMenu = (menuId) => {
     setFormData(prev => {
       const current = prev.menu_permissions || [];
@@ -375,7 +512,8 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
         profile_image: formData.profile_image || null,
         status: formData.status,
         is_active: formData.status === 'active' ? 'Y' : 'N',
-        menu_permissions: formData.menu_permissions
+        menu_permissions: formData.menu_permissions,
+        granular_permissions: formData.granular_permissions
       };
 
       const res = await saveUserAndPermissions(payload);
@@ -692,19 +830,38 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
                 />
               </div>
 
-              {/* Password */}
+              {/* Password with Auto-Generate and Super Admin Visibility */}
               <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                  Password {editingUserId ? '(Leave blank to keep unchanged)' : <span style={{ color: '#ef4444' }}>*</span>}
-                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155', margin: 0 }}>
+                    Login Password <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={generateRandomPassword}
+                    style={{
+                      background: '#f1f5f9',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '4px',
+                      padding: '2px 8px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      color: '#0F172A',
+                      cursor: 'pointer'
+                    }}
+                    title="Click to generate a secure random password"
+                  >
+                    ⚡ Auto-Generate
+                  </button>
+                </div>
                 <div style={{ position: 'relative' }}>
                   <input 
                     type={showPassword ? 'text' : 'password'} 
-                    placeholder="Enter password"
+                    placeholder="Enter login password"
                     value={formData.password}
-                    onChange={e => setFormData({ ...formData, password: e.target.value })}
+                    onChange={e => setFormData({ ...formData, password: e.target.value, confirm_password: e.target.value })}
                     className="input-control"
-                    style={{ width: '100%', height: '38px', fontSize: '13px', paddingRight: '38px' }}
+                    style={{ width: '100%', height: '38px', fontSize: '13px', paddingRight: '38px', fontFamily: showPassword ? 'monospace' : 'inherit' }}
                   />
                   <button
                     type="button"
@@ -714,6 +871,9 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
                     {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
+                <span style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'block' }}>
+                  Visible to Super Admin in User Accounts table for team login distribution.
+                </span>
               </div>
 
               {/* Confirm Password */}
@@ -1012,13 +1172,15 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
         </div>
 
         <div className="title-box-actions" style={{ display: 'flex', gap: '10px' }}>
-          <button 
-            className="btn btn-primary"
-            onClick={handleOpenAdd}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px', borderRadius: '4px' }}
-          >
-            <Plus size={14} /> Add User
-          </button>
+          {canAdd && (
+            <button 
+              className="btn btn-primary"
+              onClick={handleOpenAdd}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px', borderRadius: '4px' }}
+            >
+              <Plus size={14} /> Add User
+            </button>
+          )}
         </div>
       </div>
 
@@ -1168,6 +1330,7 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
                   <th style={{ width: '50px', textAlign: 'center' }}>#</th>
                   <th>Full Name</th>
                   <th>Username</th>
+                  <th style={{ textAlign: 'center', width: '160px' }}>Login Password</th>
                   <th>Contact Email</th>
                   <th>Mobile</th>
                   <th style={{ textAlign: 'center' }}>Employee Type</th>
@@ -1179,14 +1342,14 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="9" style={{ textAlign: 'center', padding: '36px', color: '#8997bd' }}>
+                    <td colSpan="10" style={{ textAlign: 'center', padding: '36px', color: '#8997bd' }}>
                       <div className="spinner" style={{ margin: '0 auto 12px auto' }} />
                       Loading staff accounts from MySQL...
                     </td>
                   </tr>
                 ) : filtered.length === 0 ? (
                   <tr>
-                    <td colSpan="9" style={{ textAlign: 'center', padding: '36px', color: '#8997bd', fontSize: '13px' }}>
+                    <td colSpan="10" style={{ textAlign: 'center', padding: '36px', color: '#8997bd', fontSize: '13px' }}>
                       No staff users found matching your search.
                     </td>
                   </tr>
@@ -1215,6 +1378,29 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
                           <span className="badge-soft-primary" style={{ fontFamily: 'monospace', fontWeight: 700, padding: '2px 7px', borderRadius: '4px', fontSize: '11.5px' }}>
                             {user.username}
                           </span>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f8fafc', padding: '3px 8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                            <span style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: '#0F172A', minWidth: '70px', textAlign: 'left' }}>
+                              {revealedPasswords[user.id] ? (user.plain_password || '••••••••') : '••••••••'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => toggleRevealPassword(user.id)}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#64748b', display: 'flex', alignItems: 'center' }}
+                              title={revealedPasswords[user.id] ? "Hide password" : "Show password"}
+                            >
+                              {revealedPasswords[user.id] ? <EyeOff size={13} /> : <Eye size={13} />}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => copyCredentials(user)}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: copiedUserId === user.id ? '#16a34a' : '#64748b', display: 'flex', alignItems: 'center' }}
+                              title="Copy username and password"
+                            >
+                              {copiedUserId === user.id ? <Check size={13} color="#16a34a" /> : <Copy size={13} />}
+                            </button>
+                          </div>
                         </td>
                         <td style={{ color: '#303e67', fontSize: '12.5px' }}>{user.email || '—'}</td>
                         <td style={{ color: '#7081b9', fontSize: '12.5px' }}>{user.mobile_no || '—'}</td>
@@ -1290,23 +1476,27 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
                                 </button>
                               );
                             })()}
-                            <button
-                              className="btn btn-soft-primary btn-sm"
-                              onClick={() => handleOpenEdit(user)}
-                              style={{ padding: '4px 7px', borderRadius: '4px' }}
-                              title="Edit User & Permissions"
-                            >
-                              <Edit3 size={13} />
-                            </button>
-                            <button
-                              className="btn btn-soft-danger btn-sm"
-                              onClick={() => handleDelete(user.id)}
-                              style={{ padding: '4px 7px', borderRadius: '4px' }}
-                              title="Delete User"
-                              disabled={user.id === 1 || user.id === 18}
-                            >
-                              <Trash2 size={13} />
-                            </button>
+                            {canEdit && (
+                              <button
+                                className="btn btn-soft-primary btn-sm"
+                                onClick={() => handleOpenEdit(user)}
+                                style={{ padding: '4px 7px', borderRadius: '4px' }}
+                                title="Edit User & Permissions"
+                              >
+                                <Edit3 size={13} />
+                              </button>
+                            )}
+                            {canDelete && (
+                              <button
+                                className="btn btn-soft-danger btn-sm"
+                                onClick={() => handleDelete(user.id)}
+                                style={{ padding: '4px 7px', borderRadius: '4px' }}
+                                title="Delete User"
+                                disabled={user.id === 1 || user.id === 18}
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>

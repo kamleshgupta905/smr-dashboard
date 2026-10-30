@@ -463,7 +463,7 @@ function RestrictionsAndContacts({ blockedClients = [], onBlockedChange, contact
   );
 }
 
-export default function VendorsPage({ onNavigate, globalSearch = '', showToast }) {
+export default function VendorsPage({ onNavigate, globalSearch = '', showToast, canAdd = true, canEdit = true, canDelete = true }) {
   const [vendors, setVendors] = useState([]);
   const [totalServerVendors, setTotalServerVendors] = useState(0);
   const [projectsList, setProjectsList] = useState([]);
@@ -1262,14 +1262,16 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
           >
             <FileText size={14} /> Vendor Integration Spec
           </button>
-          <button 
-            className="btn btn-primary"
-            onClick={() => setShowModal(true)}
-            id="btn-add-vendor"
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px', borderRadius: '4px' }}
-          >
-            <Plus size={14} /> Add New Vendor
-          </button>
+          {canAdd && (
+            <button 
+              className="btn btn-primary"
+              onClick={() => setShowModal(true)}
+              id="btn-add-vendor"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, padding: '7px 14px', borderRadius: '4px' }}
+            >
+              <Plus size={14} /> Add New Vendor
+            </button>
+          )}
         </div>
       </div>
 
@@ -1382,28 +1384,30 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             {/* Primary Exact Pill + ADD Button */}
-            <button
-              type="button"
-              onClick={() => setShowModal(true)}
-              id="btn-add-vendor-banner"
-              style={{
-                background: '#ffffff',
-                color: '#2a2d8c',
-                border: 'none',
-                borderRadius: '20px',
-                padding: '6px 18px',
-                fontWeight: 800,
-                fontSize: '12px',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
-                transition: 'transform 0.15s ease'
-              }}
-            >
-              <span>+ ADD</span>
-            </button>
+            {canAdd && (
+              <button
+                type="button"
+                onClick={() => setShowModal(true)}
+                id="btn-add-vendor-banner"
+                style={{
+                  background: '#ffffff',
+                  color: '#2a2d8c',
+                  border: 'none',
+                  borderRadius: '20px',
+                  padding: '6px 18px',
+                  fontWeight: 800,
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                  transition: 'transform 0.15s ease'
+                }}
+              >
+                <span>+ ADD</span>
+              </button>
+            )}
 
             {/* Auxiliary Tools (Export & Spec) */}
             <button
@@ -1748,26 +1752,28 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                         <td style={{ padding: '13px 16px', textAlign: 'center' }}>
                           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                             {/* 1. Edit Button (#2a2d8c square) */}
-                            <button
-                              type="button"
-                              onClick={() => handleOpenRedirects(v)}
-                              title="Edit Vendor & Redirects"
-                              style={{
-                                width: '30px',
-                                height: '30px',
-                                borderRadius: '6px',
-                                background: '#2a2d8c',
-                                border: 'none',
-                                color: '#ffffff',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                transition: 'opacity 0.15s ease'
-                              }}
-                            >
-                              <Edit2 size={13} color="#ffffff" />
-                            </button>
+                            {canEdit && (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenRedirects(v)}
+                                title="Edit Vendor & Redirects"
+                                style={{
+                                  width: '30px',
+                                  height: '30px',
+                                  borderRadius: '6px',
+                                  background: '#2a2d8c',
+                                  border: 'none',
+                                  color: '#ffffff',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  cursor: 'pointer',
+                                  transition: 'opacity 0.15s ease'
+                                }}
+                              >
+                                <Edit2 size={13} color="#ffffff" />
+                              </button>
+                            )}
 
                             {/* 2. View / Details Drawer Toggle (#2a2d8c square) */}
                             <button
@@ -1885,26 +1891,28 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast }
                                     <Landmark size={13} /> Bank Compliance
                                   </button>
 
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDelete(vendorId)}
-                                    title="Remove this supplier"
-                                    style={{
-                                      padding: '5px 10px',
-                                      borderRadius: '6px',
-                                      background: '#fef2f2',
-                                      color: '#b91c1c',
-                                      border: '1px solid #fecaca',
-                                      cursor: 'pointer',
-                                      fontSize: '11.5px',
-                                      fontWeight: 600,
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      gap: '4px'
-                                    }}
-                                  >
-                                    <Trash2 size={13} /> Remove
-                                  </button>
+                                  {canDelete && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDelete(vendorId)}
+                                      title="Remove this supplier"
+                                      style={{
+                                        padding: '5px 10px',
+                                        borderRadius: '6px',
+                                        background: '#fef2f2',
+                                        color: '#b91c1c',
+                                        border: '1px solid #fecaca',
+                                        cursor: 'pointer',
+                                        fontSize: '11.5px',
+                                        fontWeight: 600,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                      }}
+                                    >
+                                      <Trash2 size={13} /> Remove
+                                    </button>
+                                  )}
                                 </div>
                               </div>
 

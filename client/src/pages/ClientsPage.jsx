@@ -12,7 +12,7 @@ import {
 import ModalPortal from '../components/ModalPortal';
 import { sha3_256 } from 'js-sha3';
 
-export default function ClientsPage({ onNavigate, globalSearch = '', showToast, onClientsUpdated }) {
+export default function ClientsPage({ onNavigate, globalSearch = '', showToast, onClientsUpdated, canAdd = true, canEdit = true, canDelete = true }) {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -428,25 +428,27 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
             <span>{copiedAll ? 'Redirects Copied!' : 'Copy SMR Redirects'}</span>
           </button>
 
-          <button 
-            onClick={() => setShowAddModal(true)}
-            style={{
-              background: '#2a2d8c',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '24px',
-              padding: '8px 18px',
-              fontSize: '12.5px',
-              fontWeight: 700,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(42, 45, 140, 0.25)'
-            }}
-          >
-            <Plus size={15} /> Add New Client
-          </button>
+          {canAdd && (
+            <button 
+              onClick={() => setShowAddModal(true)}
+              style={{
+                background: '#2a2d8c',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '24px',
+                padding: '8px 18px',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(42, 45, 140, 0.25)'
+              }}
+            >
+              <Plus size={15} /> Add New Client
+            </button>
+          )}
         </div>
       </div>
 
@@ -860,43 +862,47 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                     <ShieldCheck size={12} /> Security
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEditModal(client)}
-                    style={{
-                      background: '#0F172A',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '20px',
-                      padding: '5px 14px',
-                      fontSize: '11.5px',
-                      fontWeight: 700,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 6px rgba(15, 23, 42, 0.15)'
-                    }}
-                    title="Edit Client details, endpoints and security settings"
-                  >
-                    <Edit2 size={12} color="#ffffff" />
-                    <span>Edit Client</span>
-                  </button>
+                  {canEdit && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditModal(client)}
+                      style={{
+                        background: '#0F172A',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '20px',
+                        padding: '5px 14px',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(15, 23, 42, 0.15)'
+                      }}
+                      title="Edit Client details, endpoints and security settings"
+                    >
+                      <Edit2 size={12} color="#ffffff" />
+                      <span>Edit Client</span>
+                    </button>
+                  )}
 
-                  <button
-                    onClick={() => handleDelete(client._id || client.id)}
-                    style={{
-                      background: '#ffffff',
-                      color: '#dc2626',
-                      border: '1px solid #fecaca',
-                      borderRadius: '20px',
-                      padding: '5px 8px',
-                      cursor: 'pointer'
-                    }}
-                    title="Delete Client"
-                  >
-                    <Trash2 size={12} />
-                  </button>
+                  {canDelete && (
+                    <button
+                      onClick={() => handleDelete(client._id || client.id)}
+                      style={{
+                        background: '#ffffff',
+                        color: '#dc2626',
+                        border: '1px solid #fecaca',
+                        borderRadius: '20px',
+                        padding: '5px 8px',
+                        cursor: 'pointer'
+                      }}
+                      title="Delete Client"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  )}
                 </div>
               </div>
 
