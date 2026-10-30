@@ -228,42 +228,11 @@ export const getReconciliationReversals = (startDate, endDate) =>
     .then(res => res.data)
     .catch(() => ({
       success: true,
-      data: [
-        {
-          participantId: '0734',
-          surveyId: '2078015664',
-          surveyName: 'Market Xcel Global B2B Decision Maker Study',
-          cpi: 0,
-          status: 'reversed',
-          completionDate: '2026-10-21T18:24:15.000Z',
-          vendorId: 'VND-DYN-01',
-          vendorName: 'Dynata Global Panel',
-          durationMinutes: 4,
-          verificationCode: 'SECURITY_POLICY_TERMINATION',
-          reversalReason: 'Disqualified by client / security policy check',
-          device: 'AndroidOS (Firefox)',
-          country: 'United States'
-        },
-        {
-          participantId: '43007860',
-          surveyId: '2078015665',
-          surveyName: 'Zamplia Healthcare Opinion Benchmark',
-          cpi: 0,
-          status: 'reversed',
-          completionDate: '2026-10-21T18:19:52.000Z',
-          vendorId: 'VND-CNT-01',
-          vendorName: 'Cint Exchange',
-          durationMinutes: 3,
-          verificationCode: 'SECURITY_POLICY_TERMINATION',
-          reversalReason: 'Disqualified by client / security policy check',
-          device: 'Windows (Edge)',
-          country: 'India'
-        }
-      ],
+      data: [],
     }));
 
 export const getInternalLeads = (limit = 100) =>
-  api.get(`/router/leads?limit=${limit}`)
+  api.get(`/leads?limit=${limit}`)
     .then(res => res.data)
     .catch(() => ({ success: true, source: 'client_fallback', data: [] }));
 
