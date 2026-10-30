@@ -279,7 +279,7 @@ export default function SecurityFraudPage({ onLaunchPreScreener }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: '20px' }}>
         
         {/* Section 1: Pre-Screener & Callbacks */}
         <div className="report-card" style={{ margin: 0, padding: 0 }}>

@@ -609,7 +609,7 @@ export default function SurveysPage({
 
         {/* Clean Data Table */}
         <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          <table className="custom-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table className="custom-table" style={{ width: '100%', minWidth: '980px', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr>
                 <th style={{ width: '36px', textAlign: 'center', padding: '12px 6px' }}>

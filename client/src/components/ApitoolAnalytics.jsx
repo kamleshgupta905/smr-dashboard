@@ -233,7 +233,7 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
             }}>
               <h4 className="card-title">Marketplace Capacity & Yield Trajectory</h4>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                 {/* Series Legend */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px' }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#303e67' }}>

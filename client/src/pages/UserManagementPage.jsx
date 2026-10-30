@@ -1445,7 +1445,7 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
           </div>
 
           <div className="table-wrapper" style={{ margin: 0, border: 'none', borderRadius: 0 }}>
-            <table className="custom-table" style={{ width: '100%' }}>
+            <table className="custom-table" style={{ width: '100%', minWidth: '1080px' }}>
               <thead className="thead-light">
                 <tr>
                   <th style={{ width: '50px', textAlign: 'center' }}>#</th>

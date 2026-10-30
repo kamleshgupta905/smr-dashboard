@@ -726,7 +726,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
           flexWrap: 'wrap'
         }}>
           {/* 4 Main Report Navigation Tabs */}
-          <div className="timeframe-group" style={{ display: 'flex', gap: '4px' }}>
+          <div className="timeframe-group" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxWidth: '100%' }}>
             <button
               className={`timeframe-btn ${reportTab === 'clients' ? 'active' : ''}`}
               onClick={() => { setReportTab('clients'); setSearchTerm(''); }}

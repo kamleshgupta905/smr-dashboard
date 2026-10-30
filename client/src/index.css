@@ -2596,3 +2596,64 @@ html {
     transform: translateY(0) scale(1);
   }
 }
+
+/* ==========================================================================
+   MASTER RESPONSIVE UI/UX POLISH & ZERO-OVERFLOW DEFENSE
+   ========================================================================== */
+
+/* 1. Ensure all timeframe pill groups wrap gracefully */
+.timeframe-group {
+  display: inline-flex !important;
+  flex-wrap: wrap !important;
+  max-width: 100% !important;
+  gap: 3px !important;
+}
+
+/* 2. Universal Table Container Protection: All tables auto-scroll with zero page distortion */
+.table-responsive,
+.table-wrapper,
+.table-container,
+div:has(> table) {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  display: block;
+}
+
+/* 3. Small Screen Action Header Tuning */
+@media (max-width: 768px) {
+  .page-title-box {
+    padding: 8px 0 14px 0 !important;
+    margin-bottom: 16px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  .title-box-actions {
+    width: 100% !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  .title-box-actions > button,
+  .title-box-actions > div {
+    flex: 1 1 auto !important;
+  }
+}
+
+/* 4. Mobile & Touch Screen Comfort Padding */
+@media (max-width: 480px) {
+  .page-content-tab {
+    padding: 12px 10px 40px 10px !important;
+  }
+  .card, .report-card {
+    padding: 14px 12px !important;
+  }
+  .dastone-topbar {
+    padding: 0 10px !important;
+  }
+  .topbar-left-side, .topbar-right-side {
+    gap: 6px !important;
+  }
+}

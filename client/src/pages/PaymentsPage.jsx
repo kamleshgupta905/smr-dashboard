@@ -471,7 +471,7 @@ export default function PaymentsPage({ currentUser, showToast, canAdd = true, ca
 
         {/* Table View */}
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table style={{ width: '100%', minWidth: '920px', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ background: '#e9ebf8', borderBottom: '1px solid #d6d9ef' }}>
                 <th style={{ padding: '12px 18px', fontSize: '12px', fontWeight: 700, color: '#2a2d8c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Payment ID</th>

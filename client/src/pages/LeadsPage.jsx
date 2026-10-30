@@ -227,7 +227,7 @@ export default function LeadsPage({ currentUser, showToast }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Live Auto-Pulse Indicator & Toggle */}
           <button
             type="button"
@@ -452,7 +452,7 @@ export default function LeadsPage({ currentUser, showToast }) {
 
         {/* Data Table */}
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table style={{ width: '100%', minWidth: '920px', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ background: '#e9ebf8', borderBottom: '1px solid #d6d9ef' }}>
                 <th style={{ padding: '12px 18px', fontSize: '12px', fontWeight: 700, color: '#2a2d8c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Respondent UID</th>

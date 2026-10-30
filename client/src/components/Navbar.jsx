@@ -120,7 +120,7 @@ export default function Navbar({
                 placeholder="Search surveys, vendors, clients, IDs..."
                 aria-label="Search marketplace"
                 style={{
-                  width: '260px',
+                  width: 'min(260px, calc(100vw - 160px))',
                   height: '36px',
                   paddingLeft: '38px',
                   paddingRight: globalSearch ? '28px' : '12px',
@@ -207,7 +207,7 @@ export default function Navbar({
               position: 'absolute',
               right: 0,
               top: 'calc(100% + 10px)',
-              width: '320px',
+              width: 'min(320px, calc(100vw - 24px))',
               background: '#ffffff',
               border: '1px solid #e3ebf6',
               borderRadius: '8px',
