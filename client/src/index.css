@@ -645,6 +645,7 @@ select:disabled {
    ========================================================================== */
 .page-wrapper {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   width: 100%;
   max-width: 100vw;
@@ -2536,4 +2537,62 @@ html {
 
 .btn-interactive:active {
   transform: translateY(0);
+}
+
+/* ==========================================================================
+   VMH UNIVERSAL FLOATING TOAST SYSTEM (Zero Layout Distortion)
+   ========================================================================== */
+.toast-container {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  z-index: 999999 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  pointer-events: none !important;
+  max-width: 440px !important;
+}
+
+.toast {
+  pointer-events: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 18px !important;
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.4), 0 8px 10px -6px rgba(15, 23, 42, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  animation: toastSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+.toast.toast-error {
+  border-left: 4px solid #ef4444 !important;
+}
+
+.toast.toast-success {
+  border-left: 4px solid #10b981 !important;
+}
+
+.toast.toast-info {
+  border-left: 4px solid #3b82f6 !important;
+}
+
+.toast.toast-warning {
+  border-left: 4px solid #f59e0b !important;
+}
+
+@keyframes toastSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

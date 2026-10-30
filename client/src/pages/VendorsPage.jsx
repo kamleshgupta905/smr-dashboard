@@ -1537,7 +1537,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast, 
           </div>
         ) : (
           <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+            <table style={{ width: '100%', minWidth: '920px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
               <thead>
                 <tr style={{ background: '#e9ebf8', borderBottom: '1px solid #d6d9ef' }}>
                   <th style={{ padding: '12px 16px', color: '#2a2d8c', fontWeight: 700, fontSize: '12.5px', width: '65px' }}>

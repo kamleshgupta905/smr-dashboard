@@ -1,5 +1,6 @@
 import ReconciliationPage from './pages/ReconciliationPage';
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import DashboardPage from './pages/DashboardPage';
@@ -971,10 +972,10 @@ export default function App() {
         </div>
       )}
 
-      {/* Toast Alert Notification */}
-      {toast && (
-        <div className="toast-container">
-          <div className="toast">
+      {/* Toast Alert Notification - Portaled directly to document.body to prevent flexbox layout shrink */}
+      {toast && typeof document !== 'undefined' && createPortal(
+        <div className="toast-container" role="status" aria-live="polite">
+          <div className={`toast toast-${toast.type || 'info'}`}>
             {toast.type === 'error' ? (
               <AlertTriangle size={18} color="#f87171" />
             ) : (
@@ -983,12 +984,14 @@ export default function App() {
             <span>{toast.message}</span>
             <button 
               onClick={() => setToast(null)}
-              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', marginLeft: '8px' }}
+              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', marginLeft: '8px', display: 'flex', alignItems: 'center' }}
+              aria-label="Dismiss notification"
             >
               <X size={14} />
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
