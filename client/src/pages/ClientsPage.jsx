@@ -1175,7 +1175,13 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                           let autoFeed = 'https://api.marketxcel.co.in/webservices/supplier/send_supplier_data';
                           let autoEndpoint = 'https://api.marketxcel.co.in/webservices/callback/updateRespondentStatus';
                           let autoMaster = 'https://api.marketxcel.co.in/webservices/supplier/get_master_data/';
-                          if (val === 'zamplia') {
+                          if (val === 'surveysherpa') {
+                            autoAlgo = 'sha256';
+                            autoSec = 'vmh_surveysherpa_hash_key_2026';
+                            autoFeed = 'https://api.surveysherpa.com/api/supplier/getAllSurveys';
+                            autoEndpoint = 'https://api.surveysherpa.com/api/supplier/getSurveyDetails';
+                            autoMaster = 'https://api.surveysherpa.com/api/supplier/getQualifications';
+                          } else if (val === 'zamplia') {
                             autoAlgo = 'hmac-sha256';
                             autoSec = 'zamplia_auth_token_live';
                             autoFeed = 'https://api.zamplia.com/v1/surveys/live';
@@ -1200,6 +1206,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                         }}
                       >
                         <option value="marketxcel">Market Xcel Demand API</option>
+                        <option value="surveysherpa">SurveySherpa API</option>
                         <option value="zamplia">Zamplia Supply API</option>
                         <option value="custom">German Client / Custom REST</option>
                       </select>
@@ -1559,6 +1566,7 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                         style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '7px 10px', fontSize: '12.5px' }}
                       >
                         <option value="marketxcel">Market Xcel Demand API</option>
+                        <option value="surveysherpa">SurveySherpa API</option>
                         <option value="zamplia">Zamplia Supply API</option>
                         <option value="custom">German Client / Custom REST</option>
                       </select>

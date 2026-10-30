@@ -821,7 +821,7 @@ if ($normalizedRoute === 'reports/unified' || $normalizedRoute === 'reports') {
                 SELECT 
                     c.id as client_id,
                     c.client_name,
-                    c.client_id as client_code,
+                    COALESCE(c.client_code, CONCAT('CLI-', c.id)) as client_code,
                     COUNT(DISTINCT p.id) as total_projects,
                     COUNT(l.id) as total_clicks,
                     SUM(CASE WHEN l.status = 'Complete' THEN 1 ELSE 0 END) as total_completes,
@@ -830,8 +830,8 @@ if ($normalizedRoute === 'reports/unified' || $normalizedRoute === 'reports') {
                     ROUND(COALESCE(SUM(CASE WHEN l.status = 'Complete' THEN p.cost_per_complete ELSE 0 END), 0), 2) as total_revenue
                 FROM client c
                 LEFT JOIN projects p ON p.client_id = c.id
-                LEFT JOIN leads l ON l.project_id = p.id
-                GROUP BY c.id, c.client_name, c.client_id
+                LEFT JOIN leads l ON (l.project_id = p.project_id OR l.project_id = CAST(p.id AS CHAR))
+                GROUP BY c.id, c.client_name, c.client_code
                 ORDER BY total_completes DESC, total_clicks DESC
             ")->fetchAll();
 
@@ -870,7 +870,7 @@ if ($normalizedRoute === 'reports/unified' || $normalizedRoute === 'reports') {
                     p.status
                 FROM projects p
                 LEFT JOIN client c ON c.id = p.client_id
-                LEFT JOIN leads l ON l.project_id = p.id
+                LEFT JOIN leads l ON (l.project_id = p.project_id OR l.project_id = CAST(p.id AS CHAR))
                 GROUP BY p.id, p.project_id, p.name, c.client_name, p.cost_per_complete, p.max_limit, p.status
                 HAVING total_clicks > 0
                 ORDER BY total_completes DESC, total_clicks DESC
@@ -901,18 +901,18 @@ if ($normalizedRoute === 'reports/unified' || $normalizedRoute === 'reports') {
                 SELECT 
                     v.name as vendor_name,
                     MAX(v.vendor_id) as vendor_id,
-                    COUNT(DISTINCT v.project_id) as assigned_projects,
+                    COUNT(DISTINCT va.project_id) as assigned_projects,
                     ROUND(AVG(COALESCE(NULLIF(v.cpi, 0), 0.70)), 2) as avg_cpi,
-                    SUM(v.clicks_count) as total_clicks,
-                    SUM(v.complete_count) as total_completes,
-                    SUM(v.terminates_count) as total_terminates,
+                    COALESCE(SUM(v.clicks_count), 0) as total_clicks,
+                    COALESCE(SUM(v.complete_count), 0) as total_completes,
+                    COALESCE(SUM(v.terminates_count), 0) as total_terminates,
                     0 as security_terminates,
                     ROUND(CASE WHEN SUM(v.clicks_count) > 0 THEN (SUM(v.complete_count) / SUM(v.clicks_count)) * 100 ELSE 0 END, 1) as conversion_rate,
                     ROUND(SUM(v.complete_count * COALESCE(NULLIF(v.cpi, 0), 0.70)), 2) as total_payout
                 FROM vendor v
+                LEFT JOIN vendor_allotments va ON va.vendor_id = v.vendor_id
                 WHERE v.name IS NOT NULL AND TRIM(v.name) != ''
                 GROUP BY v.name
-                HAVING total_clicks > 0 OR total_completes > 0
                 ORDER BY total_completes DESC, total_clicks DESC
                 LIMIT 100
             ")->fetchAll();
@@ -2402,10 +2402,10 @@ if ($normalizedRoute === 'dashboard/analytics') {
             $activeProjects = (int) $db->query("SELECT COUNT(*) FROM projects WHERE status = 'Live'")->fetchColumn();
 
             $chartRows = $db->query("
-                SELECT p.name, COUNT(l.id) as clicks 
+                SELECT COALESCE(p.name, CONCAT('Study #', l.project_id)) as pname, COUNT(l.id) as clicks 
                 FROM leads l 
-                JOIN projects p ON p.id = l.project_id 
-                GROUP BY p.id, p.name 
+                LEFT JOIN projects p ON (p.project_id = l.project_id OR p.id = l.project_id) 
+                GROUP BY pname 
                 ORDER BY clicks DESC 
                 LIMIT 6
             ")->fetchAll(PDO::FETCH_KEY_PAIR);
@@ -2461,17 +2461,21 @@ if ($normalizedRoute === 'zamplia/reconciliation') {
                 $stmt = $db->query("
                     SELECT 
                         l.id,
-                        l.uid as participantId,
-                        p.project_id as surveyId,
+                        COALESCE(NULLIF(l.lead_id, ''), NULLIF(l.username, ''), CONCAT('RESP_', l.id)) as participantId,
+                        COALESCE(p.project_id, l.project_id) as surveyId,
                         COALESCE(p.name, CONCAT('Study #', l.project_id)) as surveyName,
                         'complete' as status,
-                        l.date as completionDate,
+                        COALESCE(l.end_time, l.created_at, l.start_time) as completionDate,
                         COALESCE(v.name, CONCAT('Vendor ', l.vendor_id)) as vendorName,
-                        COALESCE(v.vendor_id, CONCAT('VND-', l.vendor_id)) as vendorId,
-                        l.user_info
+                        COALESCE(v.vendor_id, l.vendor_id) as vendorId,
+                        COALESCE(NULLIF(l.device, ''), 'Desktop') as device,
+                        COALESCE(NULLIF(l.browser, ''), 'Browser') as browser,
+                        COALESCE(NULLIF(l.os, ''), 'OS') as os,
+                        COALESCE(NULLIF(l.country, ''), 'Global') as country,
+                        COALESCE(NULLIF(l.time_spent, 0), 720) as time_spent_sec
                     FROM leads l
-                    LEFT JOIN projects p ON p.id = l.project_id
-                    LEFT JOIN vendor v ON v.id = l.vendor_id
+                    LEFT JOIN projects p ON (p.project_id = l.project_id OR p.id = l.project_id)
+                    LEFT JOIN vendor v ON (v.vendor_id = l.vendor_id OR v.id = l.vendor_id)
                     WHERE l.status = 'Complete'
                     ORDER BY l.id DESC
                     LIMIT 200
@@ -2480,31 +2484,34 @@ if ($normalizedRoute === 'zamplia/reconciliation') {
                 $stmt = $db->query("
                     SELECT 
                         l.id,
-                        l.uid as participantId,
-                        p.project_id as surveyId,
+                        COALESCE(NULLIF(l.lead_id, ''), NULLIF(l.username, ''), CONCAT('RESP_', l.id)) as participantId,
+                        COALESCE(p.project_id, l.project_id) as surveyId,
                         COALESCE(p.name, CONCAT('Study #', l.project_id)) as surveyName,
                         'reversed' as status,
-                        l.date as completionDate,
+                        COALESCE(l.end_time, l.created_at, l.start_time) as completionDate,
                         COALESCE(v.name, CONCAT('Vendor ', l.vendor_id)) as vendorName,
-                        COALESCE(v.vendor_id, CONCAT('VND-', l.vendor_id)) as vendorId,
+                        COALESCE(v.vendor_id, l.vendor_id) as vendorId,
                         'SECURITY_POLICY_TERMINATION' as verificationCode,
-                        'Disqualified by client / security policy check' as reversalReason,
-                        l.user_info
+                        COALESCE(NULLIF(l.fraud_reason, ''), 'Disqualified by client / security policy check') as reversalReason,
+                        COALESCE(NULLIF(l.device, ''), 'Desktop') as device,
+                        COALESCE(NULLIF(l.browser, ''), 'Browser') as browser,
+                        COALESCE(NULLIF(l.os, ''), 'OS') as os,
+                        COALESCE(NULLIF(l.country, ''), 'Global') as country,
+                        COALESCE(NULLIF(l.time_spent, 0), 120) as time_spent_sec
                     FROM leads l
-                    LEFT JOIN projects p ON p.id = l.project_id
-                    LEFT JOIN vendor v ON v.id = l.vendor_id
-                    WHERE l.status IN ('Terminates', 'Quota Full')
+                    LEFT JOIN projects p ON (p.project_id = l.project_id OR p.id = l.project_id)
+                    LEFT JOIN vendor v ON (v.vendor_id = l.vendor_id OR v.id = l.vendor_id)
+                    WHERE l.status IN ('Terminates', 'Quota Full') OR l.status LIKE '%Term%' OR l.status LIKE '%Screen%' OR l.status LIKE '%Quota%'
                     ORDER BY l.id DESC
                     LIMIT 200
                 ");
             }
             $dbRows = $stmt->fetchAll();
             foreach ($dbRows as $row) {
-                $userInfo = !empty($row['user_info']) ? json_decode((string)$row['user_info'], true) : [];
-                $browser = $userInfo['user_agent']['browser'] ?? 'Browser';
-                $platform = $userInfo['user_agent']['platform'] ?? 'OS';
-                $device = ($platform && $platform !== 'false') ? "{$platform} ({$browser})" : ($browser ?: 'Desktop');
-                $country = $userInfo['country'] ?? 'Global';
+                $dev = $row['device'];
+                if (!empty($row['browser']) && $row['browser'] !== 'Browser') {
+                    $dev .= " (" . $row['browser'] . ")";
+                }
                 $rec = [
                     'participantId' => (string)($row['participantId'] ?: ('RESP_' . $row['id'])),
                     'surveyId' => (string)($row['surveyId'] ?: $row['id']),
@@ -2513,9 +2520,9 @@ if ($normalizedRoute === 'zamplia/reconciliation') {
                     'completionDate' => (string)$row['completionDate'],
                     'vendorId' => (string)($row['vendorId'] ?: $row['vendorName']),
                     'vendorName' => (string)$row['vendorName'],
-                    'durationMinutes' => 12.0,
-                    'device' => $device,
-                    'country' => $country
+                    'durationMinutes' => round(((int)($row['time_spent_sec'] ?? 720)) / 60, 1),
+                    'device' => $dev,
+                    'country' => (string)($row['country'] ?: 'Global')
                 ];
                 if (isset($row['verificationCode'])) {
                     $rec['verificationCode'] = $row['verificationCode'];
@@ -3004,7 +3011,7 @@ if ($normalizedRoute === 'vendors' || $normalizedRoute === 'manage/vendors' || s
                     SELECT 
                         p.id, p.payment_id, p.project_id, p.amount, p.status, p.remarks, p.date
                     FROM payments p
-                    LEFT JOIN vendor v ON v.id = p.vendor_id
+                    LEFT JOIN vendor v ON (v.vendor_id = p.vendor_id OR v.id = p.vendor_id)
                     WHERE v.vendor_id = ? OR p.vendor_id = ?
                     ORDER BY p.id DESC
                     LIMIT 20
@@ -3254,8 +3261,8 @@ if ($normalizedRoute === 'reports/legacy-projects') {
                     p.status,
                     p.date,
                     COALESCE(c.client_name, 'Direct Client') as client_name,
-                    (SELECT COUNT(*) FROM leads WHERE project_id = p.id) as routed_leads,
-                    (SELECT COUNT(*) FROM leads WHERE project_id = p.id AND status = 'Complete') as completes
+                    (SELECT COUNT(*) FROM leads WHERE project_id = p.project_id OR project_id = CAST(p.id AS CHAR)) as routed_leads,
+                    (SELECT COUNT(*) FROM leads WHERE (project_id = p.project_id OR project_id = CAST(p.id AS CHAR)) AND status = 'Complete') as completes
                 FROM projects p
                 LEFT JOIN client c ON c.id = p.client_id
                 {$where}
@@ -5118,7 +5125,7 @@ if ($normalizedRoute === 'payments' || str_starts_with($normalizedRoute, 'paymen
                     COALESCE(p.created_at, NOW()) as created_at
                 FROM payments p
                 LEFT JOIN vendorlists vl ON vl.id = p.vendor_id OR vl.vendor_id COLLATE utf8mb4_general_ci = p.vendor_id COLLATE utf8mb4_general_ci
-                LEFT JOIN vendor v ON v.id = p.vendor_id
+                LEFT JOIN vendor v ON (v.vendor_id = p.vendor_id OR v.id = p.vendor_id)
                 {$whereSql}
                 ORDER BY p.id DESC
                 LIMIT {$limit} OFFSET {$offset}
