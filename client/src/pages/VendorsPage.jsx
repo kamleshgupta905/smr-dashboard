@@ -257,15 +257,7 @@ function CountriesSelector({ selected = [], onChange, countries = [] }) {
 function RestrictionsAndContacts({ blockedClients = [], onBlockedChange, contacts = [], onContactsChange, clients = [] }) {
   const [draft, setDraft] = useState({ name: '', email: '', phone: '', role: '' });
 
-  const defaultClientList = clients.length > 0 ? clients : [
-    { id: 'CLI-ZAM-01', client_name: 'Zamplia Global' },
-    { id: 'CLI-MX-02', client_name: 'Market Xcel' },
-    { id: 'CLI-AMG-03', client_name: 'AMG Global Insights' },
-    { id: 'CLI-CINT-04', client_name: 'Cint Enterprise' },
-    { id: 'CLI-LUCID-05', client_name: 'Lucid Holdings' },
-    { id: 'CLI-TOLUNA-06', client_name: 'Toluna Insights' },
-    { id: 'CLI-DYNATA-07', client_name: 'Dynata Buyer Network' }
-  ];
+  const defaultClientList = clients.length > 0 ? clients : [];
 
   const toggleClient = (cId) => {
     if (blockedClients.includes(cId)) {

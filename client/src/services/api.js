@@ -134,8 +134,8 @@ export const getSurveyStats = (surveyId = '') =>
           data: {
             totalSurveys: d.activeProjects || count,
             activeSurveys: d.activeProjects || count,
-            avgCpi: d.avgCpi || 1.05,
-            activeVendors: d.totalVendors || (vendors.length > 0 ? vendors.length : 7)
+            avgCpi: d.avgCpi || 0.00,
+            activeVendors: d.totalVendors || vendors.length
           }
         };
       }
@@ -144,8 +144,8 @@ export const getSurveyStats = (surveyId = '') =>
         data: {
           totalSurveys: count,
           activeSurveys: count,
-          avgCpi: 1.05,
-          activeVendors: vendors.length > 0 ? vendors.length : 7
+          avgCpi: 0.00,
+          activeVendors: vendors.length
         }
       };
     })
@@ -157,8 +157,8 @@ export const getSurveyStats = (surveyId = '') =>
         data: {
           totalSurveys: count,
           activeSurveys: count,
-          avgCpi: 1.05,
-          activeVendors: vendors.length > 0 ? vendors.length : 7
+          avgCpi: 0.00,
+          activeVendors: vendors.length
         }
       };
     });
