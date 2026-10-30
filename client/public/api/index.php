@@ -4689,11 +4689,15 @@ if ($normalizedRoute === 'leads' || str_starts_with($normalizedRoute, 'leads') |
 // -------------------------------------------------------------
 // 8g. Change Password & Staff Login Activity Audit
 // -------------------------------------------------------------
-if ($normalizedRoute === 'auth/change-password' && ($method === 'POST' || $method === 'PUT')) {
+if ($normalizedRoute === 'auth/change-password') {
+    if ($method !== 'POST' && $method !== 'PUT') {
+        echo json_encode(['success' => true, 'action' => 'change-password', 'acceptedMethods' => ['POST', 'PUT']]);
+        exit;
+    }
     $db = getDbConnection();
-    $userId = (int)($body['user_id'] ?? 1);
-    $currentPass = trim($body['current_password'] ?? '');
-    $newPass = trim($body['new_password'] ?? '');
+    $userId = (int)($body['user_id'] ?? $body['id'] ?? 1);
+    $currentPass = trim($body['current_password'] ?? $body['currentPassword'] ?? $body['oldPassword'] ?? $body['old_password'] ?? '');
+    $newPass = trim($body['new_password'] ?? $body['newPassword'] ?? $body['password'] ?? '');
 
     if (!$newPass || strlen($newPass) < 4) {
         echo json_encode(['success' => false, 'message' => 'New password must be at least 4 characters']);
@@ -5296,27 +5300,6 @@ if ($normalizedRoute === 'auth/current-user') {
 }
 
 // -------------------------------------------------------------
-// User Password Change / Update Endpoint
-if ($normalizedRoute === 'auth/change-password') {
-    $db = getDbConnection();
-    $username = trim($body['username'] ?? 'kamlesh');
-    $newPass = $body['newPassword'] ?? $body['new_password'] ?? $body['password'] ?? '';
-    if (empty($newPass)) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'New password is required']);
-        exit;
-    }
-    if ($db) {
-        try {
-            $hashed = password_hash($newPass, PASSWORD_BCRYPT);
-            $db->prepare("UPDATE users SET password = ?, updated_at = NOW() WHERE username = ? OR email = ?")
-               ->execute([$hashed, $username, $username]);
-        } catch (Throwable $e) {}
-    }
-    echo json_encode(['success' => true, 'message' => 'Password updated successfully']);
-    exit;
-}
-
 // 9c. Team Activity Audit Trail & Change Log (Real MySQL `log_table` - 8,814+ Rows)
 // -------------------------------------------------------------
 if ($normalizedRoute === 'audit-logs' || $normalizedRoute === 'reports/audit-logs' || $normalizedRoute === 'logs/audit') {
