@@ -876,10 +876,10 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast, 
         ...formData,
         cpi: formData.cpi !== '' && formData.cpi !== undefined ? Number(formData.cpi) : 0,
         cpi_percentage: formData.cpi_percentage !== '' && formData.cpi_percentage !== undefined ? Number(formData.cpi_percentage) : 0,
-        redirect_complete: formData.redirect_complete || `${origin}/survey/callback?status=10&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
-        redirect_terminate: formData.redirect_terminate || `${origin}/survey/callback?status=20&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
-        redirect_overquota: formData.redirect_overquota || `${origin}/survey/callback?status=30&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
-        redirect_security: formData.redirect_security || `${origin}/survey/callback?status=40&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
+        redirect_complete: formData.redirect_complete ? formData.redirect_complete.trim() : '',
+        redirect_terminate: formData.redirect_terminate ? formData.redirect_terminate.trim() : '',
+        redirect_overquota: formData.redirect_overquota ? formData.redirect_overquota.trim() : '',
+        redirect_security: formData.redirect_security ? formData.redirect_security.trim() : '',
         hash_algorithm: formData.hash_algorithm || 'SHA3-256',
         secret_key: formData.secret_key || `${vidCode.toLowerCase()}_sec_2026`,
         countries: formData.countries || [],
@@ -926,15 +926,19 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast, 
     setEditModalTab('general');
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://api.vmhgroupsmr.com';
     const vidCode = vendor.vendor_code || vendor.vendor_id || vendor.vendorUid || 'VND';
-    const isDummy = (url) => !url || url.includes('vnddyn01.com') || url.includes('supplier.com');
+    const cleanUrl = (url) => {
+      if (!url) return '';
+      if (url.includes('vnddyn01.com') || url.includes('supplier.com') || url.includes('/survey/callback')) return '';
+      return url;
+    };
     setRedirectForm({
       commission_type: vendor.commission_type || 'revenue_share',
       cpi: vendor.cpi !== undefined && vendor.cpi !== null ? vendor.cpi : '',
       cpi_percentage: vendor.cpi_percentage !== undefined && vendor.cpi_percentage !== null ? vendor.cpi_percentage : 30,
-      redirect_complete: !isDummy(vendor.redirect_complete) ? vendor.redirect_complete : `${origin}/survey/callback?status=10&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
-      redirect_terminate: !isDummy(vendor.redirect_terminate) ? vendor.redirect_terminate : `${origin}/survey/callback?status=20&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
-      redirect_overquota: !isDummy(vendor.redirect_overquota) ? vendor.redirect_overquota : `${origin}/survey/callback?status=30&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
-      redirect_security: !isDummy(vendor.redirect_security) ? vendor.redirect_security : `${origin}/survey/callback?status=40&vid=${vidCode}&hash=[HASH]&uid=[UID]`,
+      redirect_complete: cleanUrl(vendor.redirect_complete),
+      redirect_terminate: cleanUrl(vendor.redirect_terminate),
+      redirect_overquota: cleanUrl(vendor.redirect_overquota),
+      redirect_security: cleanUrl(vendor.redirect_security),
       hash_algorithm: vendor.hash_algorithm || 'SHA3-256',
       secret_key: vendor.secret_key || `${vidCode.toLowerCase()}_sec_key_2026`,
       countries: Array.isArray(vendor.countries) ? vendor.countries : (vendor.country_ids || []),

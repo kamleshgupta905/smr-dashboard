@@ -1385,11 +1385,15 @@ if (
             } catch (Throwable $e) {}
         }
 
-        // If study is paused, route to next waterfall study immediately!
+        // If study is paused, route to next waterfall study if available, else redirect to Overquota/Paused callback
         if (($projRow['status'] ?? '') === 'Paused' || ($projRow['status'] ?? '') === 'Pause') {
             $nextWF = getNextWaterfallSurvey($db, $vendorId, $surveyId, $uid);
             if ($nextWF) {
                 header("Location: {$appUrl}/vendor/auth/{$vendorId}/project/{$nextWF}?uid=" . urlencode($uid) . "&waterfall=1", true, 302);
+                exit;
+            } else {
+                $pausedUrl = "{$appUrl}/survey/callback?status=30&vid=" . urlencode($vendorId) . "&pid=" . urlencode($surveyId) . "&reason=study_paused&uid=" . urlencode($uid);
+                header("Location: {$pausedUrl}", true, 302);
                 exit;
             }
         }
@@ -1901,22 +1905,23 @@ if (
 
     $isTest = !empty($_GET['test']) || str_starts_with(strtoupper($uid), 'TEST_') || !empty($_GET['simulate']);
 
-    // Production Waterfall (Bypassed in Testing Mode to Allow Direct Outcome Verification)
-    if (!$isTest) {
-        $nextSurveyId = getNextWaterfallSurvey($db, $vendorId, $surveyId, $uid);
+    // Production Waterfall (Protected from Loops: Max 2 Hops, Never Hijack Completes)
+    $chainCount = (int)($_GET['chain'] ?? 0);
+    $hasCustomVendorReturn = !empty($finalVendorUrl) && 
+        !str_contains($finalVendorUrl, '/survey/callback') && 
+        !str_contains($finalVendorUrl, '/survey/return-preview');
 
-        // 1. Terminate / QuotaFull / Security -> Re-route immediately to next survey without error screen!
-        if ($statusParam !== 'complete' && !empty($nextSurveyId)) {
-            $waterfallUrl = "{$proto}://{$hostName}/vendor/auth/{$vendorId}/project/{$nextSurveyId}?uid=" . urlencode($uid) . "&chain=1";
-            header("Location: {$waterfallUrl}", true, 302);
-            exit;
-        }
-
-        // 2. Complete -> Send to /survey/complete with 5-second countdown timer!
-        if ($statusParam === 'complete' && !empty($nextSurveyId)) {
-            $completeScreenUrl = "{$proto}://{$hostName}/survey/complete?vid=" . urlencode($vendorId) . "&pid=" . urlencode($surveyId) . "&uid=" . urlencode($uid) . "&next=" . urlencode($nextSurveyId) . "&timeout=5";
-            header("Location: {$completeScreenUrl}", true, 302);
-            exit;
+    // Only route to waterfall on Terminate/Overquota IF vendor opted in OR uses internal router, AND chain limit not exceeded
+    if (!$isTest && $statusParam !== 'complete' && $chainCount < 2) {
+        $allowWaterfall = !empty($vendorObj['waterfall_enabled']) || !$hasCustomVendorReturn;
+        if ($allowWaterfall) {
+            $nextSurveyId = getNextWaterfallSurvey($db, $vendorId, $surveyId, $uid);
+            if (!empty($nextSurveyId)) {
+                $nextChain = $chainCount + 1;
+                $waterfallUrl = "{$proto}://{$hostName}/vendor/auth/{$vendorId}/project/{$nextSurveyId}?uid=" . urlencode($uid) . "&chain={$nextChain}";
+                header("Location: {$waterfallUrl}", true, 302);
+                exit;
+            }
         }
     }
 

@@ -468,7 +468,7 @@ export default function App() {
         const raw = Array.isArray(surveysRes.value.data)
           ? surveysRes.value.data
           : (Array.isArray(surveysRes.value) ? surveysRes.value : []);
-        setSurveys(raw.length > 0 ? raw : DEFAULT_SURVEYS);
+        setSurveys(Array.isArray(raw) ? raw : []);
       } else {
         setSurveys(DEFAULT_SURVEYS);
       }

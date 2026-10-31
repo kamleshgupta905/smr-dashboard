@@ -54,7 +54,7 @@ export const getSurveys = (tab = 'allocated') => {
   return api.get(`/zamplia?tab=${tab}`)
     .then(res => {
       const data = res.data?.data || res.data;
-      const rawList = Array.isArray(data) && data.length > 0 ? data : DEFAULT_SURVEYS;
+      const rawList = Array.isArray(data) ? data : DEFAULT_SURVEYS;
       const seen = new Set();
       const merged = [];
       for (const s of [...custom, ...rawList]) {
