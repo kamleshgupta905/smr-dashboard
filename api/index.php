@@ -200,8 +200,27 @@ function zampliaRequest(string $endpoint, array $params = [], string $method = '
 // -------------------------------------------------------------
 // Universal User Assignment & UID Mapping Function
 // -------------------------------------------------------------
-function replaceUID(string $url, string $uid): string {
+function replaceUID(string $url, string $uid, string $projectId = '', string $status = ''): string {
     if (empty($url)) return '';
+
+    // Replace Project ID placeholders if provided
+    if (!empty($projectId)) {
+        $url = str_ireplace(
+            ['[PROJECT_ID]', '[project_id]', '[PID]', '[pid]', '{{PROJECT_ID}}', '{{project_id}}', '{{pid}}'],
+            urlencode($projectId),
+            $url
+        );
+    }
+
+    // Replace Status placeholders if provided
+    if (!empty($status)) {
+        $url = str_ireplace(
+            ['[STATUS]', '[status]', '[OUTCOME]', '[outcome]', '{{STATUS}}', '{{status}}'],
+            urlencode($status),
+            $url
+        );
+    }
+
     $placeholders = [
         '[#UID#]',
         '[UID]',
@@ -249,11 +268,19 @@ function computeSha3Hash(string $baseUrl, string $secretKey = 'mx_secret_sha3_ke
 }
 
 function buildHashedRedirectUrl(string $baseUrl, string $secretKey = 'mx_secret_sha3_key_2026'): string {
-    // If URL already contains a placeholder [HASH], substitute it
-    if (stripos($baseUrl, '[HASH]') !== false) {
-        $cleanBase = str_ireplace(['&hash=[HASH]', '?hash=[HASH]', '[HASH]'], '', $baseUrl);
-        $hash = computeSha3Hash($cleanBase, $secretKey);
-        return str_ireplace('[HASH]', $hash, $baseUrl);
+    // If URL already contains a placeholder [HASH] or [checksum], substitute it
+    $hashPlaceholders = ['[HASH]', '[hash]', '[CHECKSUM]', '[checksum]', '[SIG]', '[sig]', '{{hash}}', '{{HASH}}'];
+    foreach ($hashPlaceholders as $hp) {
+        if (stripos($baseUrl, $hp) !== false) {
+            $cleanBase = str_ireplace([
+                '&hash=' . $hp, '?hash=' . $hp,
+                '&checksum=' . $hp, '?checksum=' . $hp,
+                '&sig=' . $hp, '?sig=' . $hp,
+                $hp
+            ], '', $baseUrl);
+            $hash = computeSha3Hash($cleanBase, $secretKey);
+            return str_ireplace($hp, $hash, $baseUrl);
+        }
     }
     $hash = computeSha3Hash($baseUrl, $secretKey);
     $sep = (strpos($baseUrl, '?') !== false) ? '&' : '?';
@@ -1847,7 +1874,9 @@ if (
     }
 
     // 1. UID Mapping: Replace [UID], [#UID#], vmhgroupss with respondent UID
-    $baseUrlWithUid = replaceUID($vendorReturnUrl, $uid);
+    $statusCodes = ['complete' => 10, 'terminate' => 20, 'overquota' => 30, 'security' => 40];
+    $statusNumCode = $statusCodes[$statusParam] ?? 10;
+    $baseUrlWithUid = replaceUID($vendorReturnUrl, $uid, (string)$surveyId, (string)$statusNumCode);
 
     // 2. Market Xcel Anti-Tamper SHA3-256 Hashing
     $finalVendorUrl = buildHashedRedirectUrl($baseUrlWithUid, $secretKey);
