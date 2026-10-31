@@ -905,28 +905,28 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                 background: '#f8fafc',
                 border: '1px solid #e9ebf8',
                 borderRadius: '8px',
-                padding: '10px 14px',
+                padding: '12px 14px',
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: '8px',
+                gap: '12px',
                 fontSize: '11.5px'
               }}>
                 <div>
-                  <span style={{ fontWeight: 700, color: '#1d2c48', display: 'block' }}>1. Project Feed API:</span>
-                  <span style={{ fontFamily: 'monospace', color: '#64748b', wordBreak: 'break-all' }}>
-                    {client.feed_api_url || client.apiUrl || 'https://api.marketxcel.co.in/webservices/supplier/send_supplier_data'}
+                  <span style={{ fontWeight: 700, color: '#1d2c48', display: 'block', marginBottom: '3px' }}>1. Project Feed API:</span>
+                  <span style={{ fontFamily: 'monospace', color: '#334155', overflowWrap: 'anywhere', wordBreak: 'break-word', display: 'block', background: '#ffffff', padding: '5px 8px', borderRadius: '4px', border: '1px solid #e2e8f0', minHeight: '26px' }}>
+                    {client.feed_api_url || client.apiUrl || '— Not Configured —'}
                   </span>
                 </div>
                 <div>
-                  <span style={{ fontWeight: 700, color: '#1d2c48', display: 'block' }}>2. S2S Callback Webhook:</span>
-                  <span style={{ fontFamily: 'monospace', color: '#64748b', wordBreak: 'break-all' }}>
-                    {client.s2s_callback_url || client.s2sEndpoint || 'https://api.marketxcel.co.in/webservices/callback/updateRespondentStatus'}
+                  <span style={{ fontWeight: 700, color: '#1d2c48', display: 'block', marginBottom: '3px' }}>2. S2S Callback Webhook:</span>
+                  <span style={{ fontFamily: 'monospace', color: '#334155', overflowWrap: 'anywhere', wordBreak: 'break-word', display: 'block', background: '#ffffff', padding: '5px 8px', borderRadius: '4px', border: '1px solid #e2e8f0', minHeight: '26px' }}>
+                    {client.s2s_callback_url || client.s2sEndpoint || '— Not Configured —'}
                   </span>
                 </div>
                 <div>
-                  <span style={{ fontWeight: 700, color: '#1d2c48', display: 'block' }}>3. Master Data Endpoint:</span>
-                  <span style={{ fontFamily: 'monospace', color: '#64748b', wordBreak: 'break-all' }}>
-                    {client.master_data_url || 'https://api.marketxcel.co.in/webservices/supplier/get_master_data/'}
+                  <span style={{ fontWeight: 700, color: '#1d2c48', display: 'block', marginBottom: '3px' }}>3. Master Data Endpoint:</span>
+                  <span style={{ fontFamily: 'monospace', color: '#334155', overflowWrap: 'anywhere', wordBreak: 'break-word', display: 'block', background: '#ffffff', padding: '5px 8px', borderRadius: '4px', border: '1px solid #e2e8f0', minHeight: '26px' }}>
+                    {client.master_data_url || '— Not Configured —'}
                   </span>
                 </div>
               </div>
@@ -1566,7 +1566,6 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                       >
                         <option value="marketxcel">Standard Demand REST API</option>
                         <option value="surveysherpa">SurveySherpa API</option>
-                        <option value="SurveySherpa API">SurveySherpa API</option>
                         <option value="zamplia">S2S Supply / Callback API</option>
                         <option value="custom">Custom Partner REST API</option>
                       </select>
@@ -1581,10 +1580,11 @@ export default function ClientsPage({ onNavigate, globalSearch = '', showToast, 
                         onChange={e => setEditFormData({ ...editFormData, hash_algorithm: e.target.value })}
                         style={{ width: '100%', borderRadius: '6px', border: '1px solid #CBD5E1', padding: '7px 10px', fontSize: '12.5px' }}
                       >
+                        <option value="none">None / Direct Pass</option>
                         <option value="sha3-256">SHA3-256</option>
                         <option value="hmac-sha256">HMAC-SHA256</option>
                         <option value="sha256">SHA-256</option>
-                        <option value="none">None / Direct Pass</option>
+                        <option value="md5">MD5</option>
                       </select>
                     </div>
                   </div>

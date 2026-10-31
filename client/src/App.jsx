@@ -793,7 +793,7 @@ export default function App() {
           )}
 
           {activeTab === 'security' && hasMenuAccess(11) && <SecurityFraudPage onLaunchPreScreener={(data) => openTestPreScreener(data)} />}
-          {activeTab === 'developer-center' && isAdmin && <ApiDeveloperCenterPage showToast={showToast} />}
+          {activeTab === 'developer-center' && (isAdmin || hasMenuAccess(14)) && <ApiDeveloperCenterPage showToast={showToast} />}
           {activeTab === 'projects' && hasMenuAccess(7) && <ProjectsPage showToast={showToast} />}
 
           {activeTab === 'surveys' && hasMenuAccess(7) && (
@@ -849,7 +849,7 @@ export default function App() {
           {!isAdmin && !hasMenuAccess({
             dashboard: 1, users: 2, clients: 6, surveys: 7, projects: 7, bids: 7,
             vendors: 8, reconciliation: 8, leads: 9, payments: 10, security: 11,
-            team: 12, reference: 13, 'developer-center': 1
+            team: 12, reference: 13, 'developer-center': 14
           }[activeTab] ?? 999) && (
             <div style={{ padding: '60px 20px', textAlign: 'center', background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', margin: '20px auto', maxWidth: '580px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
               <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>

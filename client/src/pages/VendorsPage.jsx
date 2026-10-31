@@ -355,16 +355,16 @@ function RestrictionsAndContacts({ blockedClients = [], onBlockedChange, contact
           </div>
         </div>
 
-        {/* Add Contact Draft Inputs (Clean 2-Row Form to prevent horizontal clipping) */}
+        {/* Add Contact Draft Inputs (Clean Responsive Layout) */}
         <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '8px', border: '1px solid #E2E8F0', marginBottom: '10px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '8px', marginBottom: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '8px', marginBottom: '8px' }}>
             <input
               type="text"
               placeholder="Full Name *"
               value={draft.name}
               onChange={e => setDraft({ ...draft, name: e.target.value })}
               className="input-field"
-              style={{ fontSize: '12px', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', width: '100%', boxSizing: 'border-box' }}
+              style={{ fontSize: '12px', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', width: '100%', boxSizing: 'border-box' }}
             />
             <input
               type="email"
@@ -372,17 +372,15 @@ function RestrictionsAndContacts({ blockedClients = [], onBlockedChange, contact
               value={draft.email}
               onChange={e => setDraft({ ...draft, email: e.target.value })}
               className="input-field"
-              style={{ fontSize: '12px', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', width: '100%', boxSizing: 'border-box' }}
+              style={{ fontSize: '12px', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', width: '100%', boxSizing: 'border-box' }}
             />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) auto', gap: '8px', alignItems: 'center' }}>
             <input
               type="text"
               placeholder="Phone Number"
               value={draft.phone}
               onChange={e => setDraft({ ...draft, phone: e.target.value })}
               className="input-field"
-              style={{ fontSize: '12px', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', width: '100%', boxSizing: 'border-box' }}
+              style={{ fontSize: '12px', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', width: '100%', boxSizing: 'border-box' }}
             />
             <input
               type="text"
@@ -390,13 +388,15 @@ function RestrictionsAndContacts({ blockedClients = [], onBlockedChange, contact
               value={draft.role}
               onChange={e => setDraft({ ...draft, role: e.target.value })}
               className="input-field"
-              style={{ fontSize: '12px', padding: '7px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', width: '100%', boxSizing: 'border-box' }}
+              style={{ fontSize: '12px', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', width: '100%', boxSizing: 'border-box' }}
             />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
             <button
               type="button"
               className="btn btn-primary"
               onClick={addContact}
-              style={{ fontSize: '12px', padding: '7px 16px', fontWeight: 700, whiteSpace: 'nowrap', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              style={{ fontSize: '12px', padding: '7px 16px', fontWeight: 700, borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
             >
               <UserPlus size={13} />
               <span>+ Add Contact</span>

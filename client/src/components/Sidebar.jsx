@@ -327,7 +327,7 @@ export default function Sidebar({
                         <span>Reference Data</span>
                       </button>
                     )}
-                    {isAdmin && (
+                    {(isAdmin || isPermitted(14)) && (
                       <button
                         className={`submenu-item ${activeTab === 'developer-center' ? 'active' : ''}`}
                         onClick={() => handleNav('developer-center')}

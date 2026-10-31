@@ -3596,6 +3596,9 @@ if ($normalizedRoute === 'manage/menus') {
     $db = getDbConnection();
     if ($db) {
         try {
+            try {
+                $db->exec("INSERT IGNORE INTO menus (id, name, route, is_parent, parent_id, menu_srl, is_active) VALUES (14, 'API Developer Center', 'developer-center', 'N', NULL, 11, 'Y')");
+            } catch (Throwable $e) {}
             $menus = $db->query("
                 SELECT id, name, route, controller, method, is_parent, parent_id, menu_srl, is_active, icon 
                 FROM menus 
@@ -3620,7 +3623,8 @@ if ($normalizedRoute === 'manage/menus') {
         ['id' => 4, 'name' => 'Menu Permissions', 'route' => 'menupermission', 'is_parent' => 'N', 'parent_id' => 2, 'menu_srl' => 2],
         ['id' => 5, 'name' => 'Change Password', 'route' => 'changepassword', 'is_parent' => 'N', 'parent_id' => 2, 'menu_srl' => 3],
         ['id' => 12, 'name' => 'Team Directory', 'route' => 'team', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 9],
-        ['id' => 13, 'name' => 'Reference Data', 'route' => 'reference', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 10]
+        ['id' => 13, 'name' => 'Reference Data', 'route' => 'reference', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 10],
+        ['id' => 14, 'name' => 'API Developer Center', 'route' => 'developer-center', 'is_parent' => 'N', 'parent_id' => null, 'menu_srl' => 11]
     ]]);
     exit;
 }
@@ -4024,20 +4028,43 @@ if ($normalizedRoute === 'clients' || str_starts_with($normalizedRoute, 'clients
                     $curStmt->execute([$existingId]);
                     $curRow = $curStmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-                    if (empty($cName) && !empty($curRow['client_name'])) $cName = $curRow['client_name'];
-                    if (empty($cCode) && !empty($curRow['client_code'])) $cCode = $curRow['client_code'];
-                    if (empty($cEmail) && !empty($curRow['email'])) $cEmail = $curRow['email'];
-                    if (empty($cPhone) && !empty($curRow['phone'])) $cPhone = $curRow['phone'];
-                    if (empty($apiType) && !empty($curRow['api_type'])) $apiType = $curRow['api_type'];
-                    if (empty($feedUrl) && !empty($curRow['feed_api_url'])) $feedUrl = $curRow['feed_api_url'];
-                    if (empty($s2sUrl) && !empty($curRow['s2s_callback_url'])) $s2sUrl = $curRow['s2s_callback_url'];
-                    if (empty($masterUrl) && !empty($curRow['master_data_url'])) $masterUrl = $curRow['master_data_url'];
-                    if (empty($token) && !empty($curRow['api_token'])) $token = $curRow['api_token'];
-                    if (empty($secKey) && !empty($curRow['secret_key'])) $secKey = $curRow['secret_key'];
-                    if (empty($hashAlg) && !empty($curRow['hash_algorithm'])) $hashAlg = $curRow['hash_algorithm'];
+                    // Explicitly check request body keys so intentional updates/clears are preserved
+                    if (array_key_exists('client_name', $body)) { $cName = trim($body['client_name']); }
+                    else if (empty($cName) && !empty($curRow['client_name'])) { $cName = $curRow['client_name']; }
 
-                    // Strip any bracketed customer names from hash algorithm
+                    if (array_key_exists('client_code', $body)) { $cCode = trim($body['client_code']); }
+                    else if (empty($cCode) && !empty($curRow['client_code'])) { $cCode = $curRow['client_code']; }
+
+                    if (array_key_exists('email', $body)) { $cEmail = trim($body['email']); }
+                    else if (empty($cEmail) && !empty($curRow['email'])) { $cEmail = $curRow['email']; }
+
+                    if (array_key_exists('phone', $body)) { $cPhone = trim($body['phone']); }
+                    else if (empty($cPhone) && !empty($curRow['phone'])) { $cPhone = $curRow['phone']; }
+
+                    if (array_key_exists('apiType', $body) || array_key_exists('api_type', $body)) { $apiType = trim($body['apiType'] ?? $body['api_type']); }
+                    else if (empty($apiType) && !empty($curRow['api_type'])) { $apiType = $curRow['api_type']; }
+
+                    if (array_key_exists('apiUrl', $body) || array_key_exists('feed_api_url', $body)) { $feedUrl = trim($body['apiUrl'] ?? $body['feed_api_url']); }
+                    else if (empty($feedUrl) && !empty($curRow['feed_api_url'])) { $feedUrl = $curRow['feed_api_url']; }
+
+                    if (array_key_exists('s2sEndpoint', $body) || array_key_exists('s2s_callback_url', $body)) { $s2sUrl = trim($body['s2sEndpoint'] ?? $body['s2s_callback_url']); }
+                    else if (empty($s2sUrl) && !empty($curRow['s2s_callback_url'])) { $s2sUrl = $curRow['s2s_callback_url']; }
+
+                    if (array_key_exists('master_data_url', $body)) { $masterUrl = trim($body['master_data_url']); }
+                    else if (empty($masterUrl) && !empty($curRow['master_data_url'])) { $masterUrl = $curRow['master_data_url']; }
+
+                    if (array_key_exists('apiToken', $body) || array_key_exists('api_token', $body)) { $token = trim($body['apiToken'] ?? $body['api_token']); }
+                    else if (empty($token) && !empty($curRow['api_token'])) { $token = $curRow['api_token']; }
+
+                    if (array_key_exists('secretKey', $body) || array_key_exists('secret_key', $body)) { $secKey = trim($body['secretKey'] ?? $body['secret_key']); }
+                    else if (empty($secKey) && !empty($curRow['secret_key'])) { $secKey = $curRow['secret_key']; }
+
+                    if (array_key_exists('hashAlgorithm', $body) || array_key_exists('hash_algorithm', $body)) { $hashAlg = trim($body['hashAlgorithm'] ?? $body['hash_algorithm']); }
+                    else if (empty($hashAlg) && !empty($curRow['hash_algorithm'])) { $hashAlg = $curRow['hash_algorithm']; }
+
+                    // Strip any customer company names from hash algorithm
                     $hashAlg = trim(preg_replace('/\s*\(.*?\)/', '', (string)$hashAlg));
+                    if (empty($hashAlg)) $hashAlg = 'none';
 
                     if (empty($body['complete_redirect']) && !empty($curRow['complete_redirect'])) $rc = $curRow['complete_redirect'];
                     if (empty($body['terminate_redirect']) && !empty($curRow['terminate_redirect'])) $rt = $curRow['terminate_redirect'];

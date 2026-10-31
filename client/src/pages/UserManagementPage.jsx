@@ -158,6 +158,17 @@ export const MENU_TREE = [
       { id: 1302, name: 'Language Master' },
       { id: 1303, name: 'Questions & Qualification Library' }
     ]
+  },
+  {
+    id: 14,
+    name: 'API Developer Center',
+    section: 'System & Team',
+    children: [
+      { id: 1401, name: 'API Documentation & Interactive Spec' },
+      { id: 1402, name: 'REST Endpoints & Testing Tools' },
+      { id: 1403, name: 'Server-to-Server Webhooks & Callbacks' },
+      { id: 1404, name: 'API Keys & Signing Credentials' }
+    ]
   }
 ];
 
@@ -179,7 +190,8 @@ export const MENU_NAMES = {
   10: 'Vendor Payments',
   11: 'Security & Fraud Gate',
   12: 'Team Directory',
-  13: 'Reference Data'
+  13: 'Reference Data',
+  14: 'API Developer Center'
 };
 
 const DEFAULT_ROLES = [
