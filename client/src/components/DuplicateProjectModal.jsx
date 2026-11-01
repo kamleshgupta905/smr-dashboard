@@ -39,6 +39,7 @@ export default function DuplicateProjectModal({ isOpen, project, onClose, onSucc
 
   useEffect(() => {
     if (project) {
+      const srcLiveUrl = project.live_url || project.LiveUrl || project.entry_live_url || project.liveSurveyUrl || '';
       setFormData({
         target_name: `${originalName} (Clone)`,
         country: project.country || 'US',
@@ -50,6 +51,7 @@ export default function DuplicateProjectModal({ isOpen, project, onClose, onSucc
         auto_pause_clicks: 50,
         vendor_id: '',
         rev_share_percent: 30,
+        live_url: srcLiveUrl,
         description: `Duplicated from #${originalId} [${originalName}]`
       });
       setSuccessResult(null);
@@ -276,7 +278,7 @@ export default function DuplicateProjectModal({ isOpen, project, onClose, onSucc
                     style={{ width: '100%', fontSize: '13px', padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', boxSizing: 'border-box' }}
                   />
                   <small style={{ fontSize: '11px', color: '#64748B', display: 'block', marginTop: '3px' }}>
-                    Leave empty to use the interactive SMR Test Runner Bridge. Use [RESPONDENT_ID] for UID insertion.
+                    Client destination survey link. Supports [RESPONDENT_ID], [UID], and [PID] placeholders. Respondents are seamlessly redirected here after pre-screening.
                   </small>
                 </div>
 

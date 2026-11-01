@@ -1573,18 +1573,20 @@ if (
         $targetUrl = '';
     }
 
-    $hasPassedScreener = !empty($_GET['screened']) && $_GET['screened'] === '1';
-    $isTestSession = !empty($_GET['test']) || !empty($_GET['bridge']) || str_starts_with(strtoupper((string)$uid), 'TEST');
+        $hasPassedScreener = !empty($_GET['screened']) && $_GET['screened'] === '1';
+    $isExplicitBridge = !empty($_GET['bridge']);
+    $isTestSession = !empty($_GET['test']) || str_starts_with(strtoupper((string)$uid), 'TEST');
 
-    // 4. Pre-Screener Gate Check: Pre-qualify respondent for live external surveys (Bypassed in test/bridge mode)
-    if (!$isTestSession && !empty($targetUrl) && !$hasPassedScreener) {
-        $screenerUrl = "{$appUrl}/#/prescreener?vid=" . urlencode($vendorId) . "&pid=" . urlencode($surveyId) . "&uid=" . urlencode($uid) . (!empty($targetUrl) ? "&target=" . urlencode($targetUrl) : "");
+    // 4. Pre-Screener Gate Check: Pre-qualify respondent before survey starts
+    // Inbound traffic ALWAYS goes to Pre-Screener unless respondent has already passed screening or explicit bridge was requested
+    if (!$hasPassedScreener && !$isExplicitBridge) {
+        $screenerUrl = "{$appUrl}/#/prescreener?vid=" . urlencode($vendorId) . "&pid=" . urlencode($surveyId) . "&uid=" . urlencode($uid) . ($isTestSession ? "&test=1" : "") . (!empty($targetUrl) ? "&target=" . urlencode($targetUrl) : "");
         header("Location: {$screenerUrl}", true, 302);
         exit;
     }
 
-    // 5. Interactive Test Bridge (rendered for test sessions, explicit bridge requests, or when survey has no external live URL)
-    if ($isTestSession || empty($targetUrl) || !empty($_GET['bridge'])) {
+    // 5. Interactive Test Bridge (rendered ONLY if explicit bridge requested, OR if respondent passed screener but survey has no external live URL)
+    if ($isExplicitBridge || empty($targetUrl)) {
         // Render SMR Survey Interactive Test Runner Bridge
         header('Content-Type: text/html; charset=utf-8');
         $projName = $projRow['name'] ?? "Research Survey Study #{$surveyId}";
@@ -1635,60 +1637,8 @@ if (
         exit;
     }
 
-    // 5. Interactive Test Bridge (if explicitly requested or test with no target)
-    $isBridge = !empty($_GET['bridge']) || (!empty($_GET['test']) && empty($targetUrl));
-    if (empty($targetUrl) || $isBridge) {
-        // Render SMR Survey Interactive Test Runner Bridge
-        header('Content-Type: text/html; charset=utf-8');
-        $projName = $projRow['name'] ?? "Research Survey Study #{$surveyId}";
-        $projCpi = number_format((float)($projRow['cost_per_complete'] ?? 2.50), 2);
-        $vRevShare = 30; // 30% RevShare Standard
-        $vPayout = number_format((float)$projCpi * ($vRevShare / 100), 2);
-        $origin = "{$proto}://{$hostName}";
-
-        echo '<!DOCTYPE html><html><head><title>SMR Survey Test Bridge - ' . htmlspecialchars($surveyId) . '</title>';
-        echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
-        echo '<style>';
-        echo 'body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#0f172a;color:#f8fafc;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}';
-        echo '.bridge-card{background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:680px;width:100%;padding:32px;box-shadow:0 20px 40px rgba(0,0,0,0.5)}';
-        echo '.header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #334155;padding-bottom:16px;margin-bottom:20px}';
-        echo '.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase}';
-        echo '.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}';
-        echo '.info-box{background:#0f172a;border:1px solid #334155;padding:12px;border-radius:8px;font-size:12px}';
-        echo '.info-lbl{color:#94a3b8;font-size:11px;text-transform:uppercase;margin-bottom:4px}';
-        echo '.info-val{font-weight:700;color:#f8fafc;font-family:monospace}';
-        echo '.btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}';
-        echo '.btn-act{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;transition:all 0.2s}';
-        echo '.btn-complete{background:#059669;color:#fff}.btn-complete:hover{background:#10b981}';
-        echo '.btn-term{background:#dc2626;color:#fff}.btn-term:hover{background:#ef4444}';
-        echo '.btn-quota{background:#d97706;color:#fff}.btn-quota:hover{background:#f59e0b}';
-        echo '.btn-sec{background:#7c3aed;color:#fff}.btn-sec:hover{background:#8b5cf6}';
-        echo '</style></head><body>';
-        echo '<div class="bridge-card">';
-        echo '<div class="header">';
-        echo '<div><h2 style="margin:0;font-size:18px;color:#38bdf8">SMR Live Survey Router Bridge</h2><p style="margin:4px 0 0;font-size:12px;color:#94a3b8">Test & Verification Environment Active</p></div>';
-        echo '<span class="badge" style="background:#0284c7;color:#fff">Frame 003 Compatible</span>';
-        echo '</div>';
-        echo '<div class="grid">';
-        echo '<div class="info-box"><div class="info-lbl">Project ID / Study</div><div class="info-val">' . htmlspecialchars($surveyId) . ' (' . htmlspecialchars($projName) . ')</div></div>';
-        echo '<div class="info-box"><div class="info-lbl">Assigned Vendor</div><div class="info-val">' . htmlspecialchars($vendorId) . ' (RevShare: ' . $vRevShare . '%)</div></div>';
-        echo '<div class="info-box"><div class="info-lbl">Respondent UID</div><div class="info-val">' . htmlspecialchars($uid) . '</div></div>';
-        echo '<div class="info-box"><div class="info-lbl">Client CPI / Vendor Payout</div><div class="info-val">$' . $projCpi . ' &rarr; $' . $vPayout . '</div></div>';
-        echo '</div>';
-        echo '<p style="font-size:13px;color:#cbd5e1;margin-bottom:14px">Select an outcome below to test live router settlement, postback logging, and branded return screens:</p>';
-        echo '<div class="btn-grid">';
-        echo '<a href="' . $origin . '/survey/complete?status=10&vid=' . urlencode($vendorId) . '&pid=' . urlencode($surveyId) . '&uid=' . urlencode($uid) . '&test=1" class="btn-act btn-complete">&#10004; Simulate Complete (Status 10)</a>';
-        echo '<a href="' . $origin . '/survey/terminate?status=20&vid=' . urlencode($vendorId) . '&pid=' . urlencode($surveyId) . '&uid=' . urlencode($uid) . '&test=1" class="btn-act btn-term">&#9888; Simulate Terminate (Status 20)</a>';
-        echo '<a href="' . $origin . '/survey/overquota?status=30&vid=' . urlencode($vendorId) . '&pid=' . urlencode($surveyId) . '&uid=' . urlencode($uid) . '&test=1" class="btn-act btn-quota">&#128101; Simulate Quota Full (Status 30)</a>';
-        echo '<a href="' . $origin . '/survey/security?status=40&vid=' . urlencode($vendorId) . '&pid=' . urlencode($surveyId) . '&uid=' . urlencode($uid) . '&test=1" class="btn-act btn-sec">&#128737; Simulate Quality Reject (Status 40)</a>';
-        echo '</div>';
-        echo '<div style="margin-top:20px;text-align:center"><a href="/" style="color:#64748b;font-size:12px;text-decoration:none">&larr; Return to SMR Dashboard</a></div>';
-        echo '</div></body></html>';
-        exit;
-    }
-
     // Replace UID placeholders on client URL
-    $finalSurveyUrl = replaceUID($targetUrl, $uid);
+    $finalSurveyUrl = replaceUID($targetUrl, $uid, (string)$surveyId);
 
     // 302 Fast Redirect to actual survey
     header("Location: {$finalSurveyUrl}", true, 302);
@@ -3442,7 +3392,20 @@ if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 
                     if ($foundCid) $clientId = (int)$foundCid;
                 } catch (Throwable $e) {}
             }
-            $liveUrl = !empty($body['live_url']) ? trim($body['live_url']) : (!empty($orig['live_url']) && !str_contains($orig['live_url'], 'surveysupply.zamplia.com/live/') ? $orig['live_url'] : '');
+            $liveUrl = !empty($body['live_url']) ? trim($body['live_url']) : '';
+            if (empty($liveUrl) && !empty($orig['live_url']) && !str_contains($orig['live_url'], 'surveysupply.zamplia.com/live/')) {
+                $liveUrl = $orig['live_url'];
+            }
+            if (empty($liveUrl) && $db) {
+                try {
+                    $sStmt = $db->prepare("SELECT COALESCE(NULLIF(entry_live_url, ''), NULLIF(LiveUrl, '')) FROM api_surveys WHERE SurveyId = ? OR id = ? LIMIT 1");
+                    $sStmt->execute([$srcId, $srcId]);
+                    $foundS = $sStmt->fetchColumn();
+                    if (!empty($foundS) && !str_contains($foundS, 'surveysupply.zamplia.com/live/')) {
+                        $liveUrl = $foundS;
+                    }
+                } catch (Throwable $e) {}
+            }
             $desc = !empty($body['description']) ? $body['description'] : ($orig['description'] . " [Cloned from Project #{$orig['id']} {$orig['project_id']}]");
 
             $autoPauseClicks = isset($body['auto_pause_clicks']) ? (int)$body['auto_pause_clicks'] : 50;
@@ -3528,11 +3491,22 @@ if ($normalizedRoute === 'manage/projects' || str_starts_with($normalizedRoute, 
         $pIr = isset($body['ir']) && $body['ir'] !== '' ? (int)$body['ir'] : 80;
         $pLimit = isset($body['target_completes']) ? (int)$body['target_completes'] : (isset($body['max_limit']) ? (int)$body['max_limit'] : 1000);
         $pStatus = $body['status'] ?? 'Live';
+        $pLiveUrl = isset($body['live_url']) ? trim($body['live_url']) : null;
         if ($db) {
             try {
-                $db->prepare("REPLACE INTO projects (id, project_id, name, cost_per_complete, loi, ir, max_limit, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-                   ->execute([$pId, $pId, $pName, $pCpi, $pLoi, $pIr, $pLimit, $pStatus]);
-                logActivity($db, 'projects', $pId, 'Update', ['name' => $pName, 'cpi' => $pCpi, 'status' => $pStatus]);
+                $chk = $db->prepare("SELECT id, live_url FROM projects WHERE project_id = ? OR id = ? LIMIT 1");
+                $chk->execute([$pId, $pId]);
+                $existing = $chk->fetch(PDO::FETCH_ASSOC);
+                if ($existing) {
+                    $upLive = $pLiveUrl !== null ? $pLiveUrl : ($existing['live_url'] ?? '');
+                    $db->prepare("UPDATE projects SET name = ?, cost_per_complete = ?, loi = ?, ir = ?, max_limit = ?, live_url = ?, status = ?, updated_at = NOW() WHERE id = ?")
+                       ->execute([$pName, $pCpi, $pLoi, $pIr, $pLimit, $upLive, $pStatus, $existing['id']]);
+                } else {
+                    $upLive = $pLiveUrl !== null ? $pLiveUrl : '';
+                    $db->prepare("INSERT INTO projects (project_id, name, cost_per_complete, loi, ir, max_limit, live_url, status, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())")
+                       ->execute([$pId, $pName, $pCpi, $pLoi, $pIr, $pLimit, $upLive, $pStatus]);
+                }
+                logActivity($db, 'projects', $pId, 'Update', ['name' => $pName, 'cpi' => $pCpi, 'status' => $pStatus, 'live_url' => $pLiveUrl]);
             } catch (Throwable $e) {}
         }
         echo json_encode(['success' => true, 'data' => $body]);
