@@ -173,30 +173,46 @@ export default function PreScreenerGate({
       let finalTargetUrl = '';
 
       // 1. If explicit target URL was passed into the screener
-      if (targetUrl && targetUrl.startsWith('http') && !targetUrl.includes('surveysupply.zamplia.com/live/')) {
+      if (targetUrl && targetUrl.startsWith('http')) {
         finalTargetUrl = targetUrl;
       }
 
-      // 2. If test session and no target, route directly to the backend test bridge
-      if (!finalTargetUrl && isTestSession) {
-        const origin = typeof window !== 'undefined' ? window.location.origin : '';
-        window.location.href = `${origin}/vendor/auth/${encodeURIComponent(vendorId)}/project/${encodeURIComponent(projectId)}?uid=${encodeURIComponent(uid)}&screened=1&bridge=1`;
-        return;
-      }
-
-      // 3. Check if survey has custom target link
+      // 2. Check if survey has custom target link from surveyInfo
       if (!finalTargetUrl) {
         const customUrl = surveyInfo?.liveSurveyUrl || surveyInfo?.entry_live_url || surveyInfo?.live_url;
-        if (customUrl && customUrl.startsWith('http') && !customUrl.includes('surveysupply.zamplia.com/live/')) {
+        if (customUrl && customUrl.startsWith('http')) {
           finalTargetUrl = customUrl;
         }
       }
 
-      // 4. Otherwise route to backend auth with screened=1
+      // 3. Fallback to Zamplia live gateway if numeric survey ID
+      if (!finalTargetUrl && (String(projectId).match(/^\d+$/))) {
+        finalTargetUrl = `https://res.zamplia.com/?vid=2138&isMap=1&sid=${projectId}&username=${vendorId}&cid=42`;
+      }
+
+      // 4. Query backend vendor link generator API
+      if (!finalTargetUrl) {
+        try {
+          const linkRes = await generateVendorLink(projectId, vendorId);
+          const live = linkRes?.liveLink || linkRes?.signedLiveLink || linkRes?.data?.liveUrl;
+          if (live && live.includes('http')) {
+            finalTargetUrl = live;
+          }
+        } catch (e) {
+          console.warn('Backend link generation notice:', e);
+        }
+      }
+
+      // 5. If STILL no target URL:
       if (!finalTargetUrl) {
         const origin = typeof window !== 'undefined' ? window.location.origin : '';
-        window.location.href = `${origin}/router?pid=${encodeURIComponent(projectId)}&vid=${encodeURIComponent(vendorId)}&uid=${encodeURIComponent(uid)}&screened=1&bridge=1`;
-        return;
+        if (isTestSession) {
+          window.location.href = `${origin}/vendor/auth/${encodeURIComponent(vendorId)}/project/${encodeURIComponent(projectId)}?uid=${encodeURIComponent(uid)}&screened=1&bridge=1`;
+          return;
+        } else {
+          window.location.href = `${origin}/survey/callback?status=30&vid=${encodeURIComponent(vendorId)}&pid=${encodeURIComponent(projectId)}&uid=${encodeURIComponent(uid)}&reason=survey_unavailable`;
+          return;
+        }
       }
 
       // Attach respondent UID / transaction_id
@@ -234,7 +250,7 @@ export default function PreScreenerGate({
     } catch (err) {
       console.error('Redirection error:', err);
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      window.location.href = `${origin}/router?pid=${encodeURIComponent(projectId)}&vid=${encodeURIComponent(vendorId)}&uid=${encodeURIComponent(uid)}&screened=1&bridge=1`;
+      window.location.href = `${origin}/vendor/auth/${encodeURIComponent(vendorId)}/project/${encodeURIComponent(projectId)}?uid=${encodeURIComponent(uid)}&screened=1`;
     }
   };
 

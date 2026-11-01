@@ -1568,9 +1568,38 @@ if (
         }
     }
 
-    // Filter out invalid/dead Zamplia live URLs
-    if (!empty($targetUrl) && str_contains($targetUrl, 'surveysupply.zamplia.com/live/')) {
-        $targetUrl = '';
+    // 4. Fallback to Zamplia live gateway if numeric survey ID
+    if (empty($targetUrl) && (ctype_digit((string)$surveyId) || is_numeric($surveyId))) {
+        $targetUrl = "https://res.zamplia.com/?vid=2138&isMap=1&sid={$surveyId}&username={$vendorId}&cid=42";
+    }
+
+    // 5. Fallback for cloned studies: check parent study live URL
+    if (empty($targetUrl) && $db) {
+        try {
+            $pStmt = $db->prepare("SELECT description FROM projects WHERE project_id = ? OR id = ? LIMIT 1");
+            $pStmt->execute([$surveyId, $surveyId]);
+            $pDesc = $pStmt->fetchColumn();
+            if (!empty($pDesc) && preg_match('#(?:Cloned from Study \\#|Cloned from Project \\#)(\\d+)#i', $pDesc, $cm)) {
+                $srcId = $cm[1];
+                $srcStmt = $db->prepare("SELECT live_url FROM projects WHERE id = ? OR project_id = ? LIMIT 1");
+                $srcStmt->execute([$srcId, $srcId]);
+                $srcUrl = $srcStmt->fetchColumn();
+                if (!empty($srcUrl)) {
+                    $targetUrl = $srcUrl;
+                }
+                if (empty($targetUrl)) {
+                    $sStmt = $db->prepare("SELECT COALESCE(NULLIF(entry_live_url, ''), NULLIF(LiveUrl, '')) FROM api_surveys WHERE SurveyId = ? OR id = ? LIMIT 1");
+                    $sStmt->execute([$srcId, $srcId]);
+                    $srcSurv = $sStmt->fetchColumn();
+                    if (!empty($srcSurv)) {
+                        $targetUrl = $srcSurv;
+                    }
+                }
+                if (empty($targetUrl) && (ctype_digit((string)$srcId) || is_numeric($srcId))) {
+                    $targetUrl = "https://res.zamplia.com/?vid=2138&isMap=1&sid={$srcId}&username={$vendorId}&cid=42";
+                }
+            }
+        } catch (Throwable $e) {}
     }
 
         $hasPassedScreener = !empty($_GET['screened']) && $_GET['screened'] === '1';
@@ -1586,7 +1615,7 @@ if (
     }
 
     // 5. Interactive Test Bridge (rendered ONLY if explicit bridge requested, OR if respondent passed screener but survey has no external live URL)
-    if ($isExplicitBridge || empty($targetUrl)) {
+    if ($isExplicitBridge || ($isTestSession && empty($targetUrl))) {
         // Render SMR Survey Interactive Test Runner Bridge
         header('Content-Type: text/html; charset=utf-8');
         $projName = $projRow['name'] ?? "Research Survey Study #{$surveyId}";
@@ -1634,6 +1663,13 @@ if (
         echo '</div>';
         echo '<div style="margin-top:20px;text-align:center"><a href="/" style="color:#94a3b8;font-size:12px;text-decoration:none">&larr; Return to SMR Dashboard</a></div>';
         echo '</div></body></html>';
+        exit;
+    }
+
+    // If no target URL configured and respondent passed screener:
+    if (empty($targetUrl)) {
+        $unavailableUrl = "{$appUrl}/survey/callback?status=30&vid=" . urlencode($vendorId) . "&pid=" . urlencode($surveyId) . "&reason=survey_unavailable&uid=" . urlencode($uid);
+        header("Location: {$unavailableUrl}", true, 302);
         exit;
     }
 
