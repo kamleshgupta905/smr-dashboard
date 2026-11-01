@@ -239,9 +239,9 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
 
-  // Audit Logs State (8,814+ MySQL records)
+  // Audit Logs State (Real MySQL log_table records)
   const [auditLogs, setAuditLogs] = useState([]);
-  const [auditTotal, setAuditTotal] = useState(8814);
+  const [auditTotal, setAuditTotal] = useState(0);
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditTableFilter, setAuditTableFilter] = useState('ALL');
   const [auditActionFilter, setAuditActionFilter] = useState('ALL');
@@ -276,6 +276,10 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
   useEffect(() => {
     loadData();
     loadRolesData();
+    // Load real audit logs count from MySQL database on mount
+    getAuditLogs({ limit: 1 }).then(res => {
+      if (res?.total !== undefined) setAuditTotal(res.total);
+    }).catch(() => {});
   }, []);
 
   const loadAuditLogs = async () => {
@@ -1711,7 +1715,7 @@ export default function UserManagementPage({ currentUser, onImpersonateUser, onE
         </div>
       )}
 
-      {/* TAB 3: TEAM ACTIVITY AUDIT TRAIL (Real MySQL `log_table` - 8,814+ Logs) */}
+      {/* TAB 3: TEAM ACTIVITY AUDIT TRAIL (Real MySQL `log_table` - Real MySQL Logs) */}
       {activeSubTab === 'audit' && (
         <div className="report-card" style={{ padding: 0, overflow: 'hidden' }}>
           {/* Header & Filter Bar */}
