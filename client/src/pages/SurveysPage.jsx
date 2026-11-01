@@ -1301,6 +1301,10 @@ export default function SurveysPage({
               onClick={e => e.stopPropagation()} 
               style={{ maxWidth: '640px', width: '92%', background: '#FFFFFF', borderRadius: '14px', padding: '24px', boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.2)' }}
             >
+              {(() => {
+                const modalSid = linkModalSurvey.survey_id || linkModalSurvey.project_id || linkModalSurvey.id;
+                return (
+                  <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #F1F5F9', paddingBottom: '14px', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{ background: '#0F172A', color: '#FFFFFF', padding: '8px', borderRadius: '8px' }}>
@@ -1311,7 +1315,7 @@ export default function SurveysPage({
                       Survey Router & Entry Link
                     </h3>
                     <p style={{ margin: 0, fontSize: '11.5px', color: '#64748B' }}>
-                      PID: #{linkModalSurvey.survey_id} — {linkModalSurvey.survey_name || linkModalSurvey.name}
+                      PID: #{modalSid} — {linkModalSurvey.survey_name || linkModalSurvey.name || linkModalSurvey.project_name}
                     </p>
                   </div>
                 </div>
@@ -1341,7 +1345,7 @@ export default function SurveysPage({
                     wordBreak: 'break-all',
                     lineHeight: 1.5
                   }}>
-                    {`https://api.vmhgroupsmr.com/router?pid=${linkModalSurvey.survey_id}&vid=VND-DYN-01&uid=[RESPONDENT_ID]`}
+                    {`https://api.vmhgroupsmr.com/router?pid=${modalSid}&vid=VND-DYN-01&uid=[RESPONDENT_ID]`}
                   </div>
                 </div>
 
@@ -1361,7 +1365,7 @@ export default function SurveysPage({
                     wordBreak: 'break-all',
                     lineHeight: 1.5
                   }}>
-                    {`https://api.vmhgroupsmr.com/vendor/auth/VND-DYN-01/project/${linkModalSurvey.survey_id}?uid=[RESPONDENT_ID]`}
+                    {`https://api.vmhgroupsmr.com/vendor/auth/VND-DYN-01/project/${modalSid}?uid=[RESPONDENT_ID]`}
                   </div>
                 </div>
 
@@ -1387,8 +1391,7 @@ export default function SurveysPage({
                     type="button"
                     onClick={() => {
                       const origin = typeof window !== 'undefined' ? window.location.origin : 'https://api.vmhgroupsmr.com';
-                      const sid = linkModalSurvey.survey_id || linkModalSurvey.project_id || linkModalSurvey.id;
-                      const testUrl = `${origin}/vendor/auth/VND-DYN-01/project/${encodeURIComponent(sid)}?uid=TEST_${Date.now()}&test=1`;
+                      const testUrl = `${origin}/vendor/auth/VND-DYN-01/project/${encodeURIComponent(modalSid)}?uid=TEST_${Date.now()}&test=1`;
                       window.open(testUrl, '_blank');
                     }}
                     style={{
@@ -1412,7 +1415,7 @@ export default function SurveysPage({
                   <button
                     type="button"
                     onClick={() => {
-                      const linkToCopy = `https://api.vmhgroupsmr.com/router?pid=${linkModalSurvey.survey_id}&vid=VND-DYN-01&uid=[RESPONDENT_ID]`;
+                      const linkToCopy = `https://api.vmhgroupsmr.com/router?pid=${modalSid}&vid=VND-DYN-01&uid=[RESPONDENT_ID]`;
                       navigator.clipboard.writeText(linkToCopy).catch(() => {});
                       setLinkCopied(true);
                       setTimeout(() => setLinkCopied(false), 2500);
@@ -1437,6 +1440,9 @@ export default function SurveysPage({
                   </button>
                 </div>
               </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
         </ModalPortal>

@@ -1576,11 +1576,20 @@ if (
     // 5. Fallback for cloned studies: check parent study live URL
     if (empty($targetUrl) && $db) {
         try {
-            $pStmt = $db->prepare("SELECT description FROM projects WHERE project_id = ? OR id = ? LIMIT 1");
+            $pStmt = $db->prepare("SELECT project_name, description FROM projects WHERE project_id = ? OR id = ? LIMIT 1");
             $pStmt->execute([$surveyId, $surveyId]);
-            $pDesc = $pStmt->fetchColumn();
+            $pRow = $pStmt->fetch(PDO::FETCH_ASSOC);
+            $pName = $pRow['project_name'] ?? '';
+            $pDesc = $pRow['description'] ?? '';
+
+            $srcId = null;
             if (!empty($pDesc) && preg_match('#(?:Cloned from Study \\#|Cloned from Project \\#)(\\d+)#i', $pDesc, $cm)) {
                 $srcId = $cm[1];
+            } elseif (!empty($pName) && preg_match('#(\\d{6,})#', $pName, $nm)) {
+                $srcId = $nm[1];
+            }
+
+            if ($srcId) {
                 $srcStmt = $db->prepare("SELECT live_url FROM projects WHERE id = ? OR project_id = ? LIMIT 1");
                 $srcStmt->execute([$srcId, $srcId]);
                 $srcUrl = $srcStmt->fetchColumn();
@@ -1602,7 +1611,7 @@ if (
         } catch (Throwable $e) {}
     }
 
-        $hasPassedScreener = !empty($_GET['screened']) && $_GET['screened'] === '1';
+    $hasPassedScreener = !empty($_GET['screened']) && $_GET['screened'] === '1';
     $isExplicitBridge = !empty($_GET['bridge']);
     $isTestSession = !empty($_GET['test']) || str_starts_with(strtoupper((string)$uid), 'TEST');
 
@@ -1614,8 +1623,8 @@ if (
         exit;
     }
 
-    // 5. Interactive Test Bridge (rendered ONLY if explicit bridge requested, OR if respondent passed screener but survey has no external live URL)
-    if ($isExplicitBridge || ($isTestSession && empty($targetUrl))) {
+    // 5. Interactive Test Bridge (rendered ONLY if explicit bridge requested via &bridge=1)
+    if ($isExplicitBridge) {
         // Render SMR Survey Interactive Test Runner Bridge
         header('Content-Type: text/html; charset=utf-8');
         $projName = $projRow['name'] ?? "Research Survey Study #{$surveyId}";

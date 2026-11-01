@@ -185,9 +185,14 @@ export default function PreScreenerGate({
         }
       }
 
-      // 3. Fallback to Zamplia live gateway if numeric survey ID
-      if (!finalTargetUrl && (String(projectId).match(/^\d+$/))) {
-        finalTargetUrl = `https://res.zamplia.com/?vid=2138&isMap=1&sid=${projectId}&username=${vendorId}&cid=42`;
+      // 3. Fallback to Zamplia live gateway if numeric survey ID or parent study ID
+      if (!finalTargetUrl) {
+        const numMatch = String(projectId).match(/^\d+$/) || 
+                         (surveyInfo?.name || surveyInfo?.project_name || surveyInfo?.survey_name || '').match(/(\d{6,})/);
+        if (numMatch) {
+          const sid = numMatch[1] || projectId;
+          finalTargetUrl = `https://res.zamplia.com/?vid=2138&isMap=1&sid=${sid}&username=${vendorId}&cid=42`;
+        }
       }
 
       // 4. Query backend vendor link generator API
@@ -206,13 +211,8 @@ export default function PreScreenerGate({
       // 5. If STILL no target URL:
       if (!finalTargetUrl) {
         const origin = typeof window !== 'undefined' ? window.location.origin : '';
-        if (isTestSession) {
-          window.location.href = `${origin}/vendor/auth/${encodeURIComponent(vendorId)}/project/${encodeURIComponent(projectId)}?uid=${encodeURIComponent(uid)}&screened=1&bridge=1`;
-          return;
-        } else {
-          window.location.href = `${origin}/survey/callback?status=30&vid=${encodeURIComponent(vendorId)}&pid=${encodeURIComponent(projectId)}&uid=${encodeURIComponent(uid)}&reason=survey_unavailable`;
-          return;
-        }
+        window.location.href = `${origin}/survey/callback?status=30&vid=${encodeURIComponent(vendorId)}&pid=${encodeURIComponent(projectId)}&uid=${encodeURIComponent(uid)}&reason=survey_unavailable`;
+        return;
       }
 
       // Attach respondent UID / transaction_id
