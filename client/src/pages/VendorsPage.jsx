@@ -3348,6 +3348,7 @@ export default function VendorsPage({ onNavigate, globalSearch = '', showToast, 
         <VendorIntegrationDocModal 
           isOpen={showSpecModal} 
           onClose={() => setShowSpecModal(false)} 
+          vendors={vendors}
         />
       )}
 
