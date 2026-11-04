@@ -352,6 +352,7 @@ export default function App() {
   const [globalSearch, setGlobalSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [toast, setToast] = useState(null);
@@ -463,6 +464,7 @@ export default function App() {
         getSurveys(),
         getClients()
       ]);
+      setLastSyncedAt(new Date());
 
       if (surveysRes.status === 'fulfilled' && surveysRes.value) {
         const raw = Array.isArray(surveysRes.value.data)
@@ -754,6 +756,7 @@ export default function App() {
               stats={computedStats}
               surveys={filteredSurveys}
               loading={loading}
+              lastSyncedAt={lastSyncedAt}
               onSync={handleSync}
               onNavigate={handleTabChange}
               onOpenQuotas={openQuotas}

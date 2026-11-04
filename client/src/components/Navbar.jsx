@@ -65,6 +65,21 @@ export default function Navbar({
   }, [globalSearch]);
 
   useEffect(() => {
+    const handleKeyboardShortcut = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setSearchOpen(true);
+      }
+      if (event.key === 'Escape') {
+        setSearchOpen(false);
+        if (globalSearch) onGlobalSearch?.('');
+      }
+    };
+    document.addEventListener('keydown', handleKeyboardShortcut);
+    return () => document.removeEventListener('keydown', handleKeyboardShortcut);
+  }, [globalSearch, onGlobalSearch]);
+
+  useEffect(() => {
     if (searchOpen) searchRef.current?.querySelector('input')?.focus();
   }, [searchOpen]);
 
@@ -103,6 +118,7 @@ export default function Navbar({
               title="Search surveys, vendors, clients, and IDs"
             >
               <Search size={17} />
+              <kbd className="smr-search-hint">⌘K</kbd>
             </button>
           ) : (
             <>

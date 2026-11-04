@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Activity,
   ArrowRight,
   ArrowUpRight,
   BarChart3,
@@ -11,6 +12,7 @@ import {
   Globe2,
   Layers3,
   ListFilter,
+  MapPin,
   RefreshCw,
   ShieldCheck,
   Sparkles,
@@ -33,6 +35,15 @@ function formatCompact(value) {
 function formatStudyName(study) {
   const name = String(study?.survey_name || study?.Name || study?.name || `Study #${study?.survey_id || ''}`);
   return name.length > 44 ? `${name.slice(0, 44)}…` : name;
+}
+
+function formatSyncAge(value) {
+  if (!value) return 'Waiting for first sync';
+  const ageSeconds = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 1000));
+  if (ageSeconds < 10) return 'Just now';
+  if (ageSeconds < 60) return `${ageSeconds}s ago`;
+  if (ageSeconds < 3600) return `${Math.floor(ageSeconds / 60)}m ago`;
+  return new Intl.DateTimeFormat('en-IN', { hour: 'numeric', minute: '2-digit' }).format(new Date(value));
 }
 
 function MetricCard({ icon: Icon, label, value, prefix = '', suffix = '', detail, tone = 'ink', onClick }) {
@@ -153,6 +164,7 @@ export default function DashboardPage({
   stats,
   surveys = [],
   loading,
+  lastSyncedAt,
   onSync,
   onNavigate,
   onOpenQuotas,
@@ -179,6 +191,17 @@ export default function DashboardPage({
   const countryCount = new Set(normalized.map((study) => study.country).filter(Boolean)).size;
   const b2bCount = normalized.filter((study) => String(study.studyType || study.StudyTypes || '').toLowerCase().includes('b2b')).length;
   const premiumCount = normalized.filter((study) => Number(study.cpi || 0) >= 5).length;
+  const averageLoi = normalized.length
+    ? Math.round(normalized.reduce((sum, study) => sum + Number(study.loi || 0), 0) / normalized.length)
+    : 0;
+  const topMarket = useMemo(() => {
+    const counts = normalized.reduce((accumulator, study) => {
+      const market = String(study.country || 'Global').trim() || 'Global';
+      accumulator[market] = (accumulator[market] || 0) + 1;
+      return accumulator;
+    }, {});
+    return Object.entries(counts).sort((first, second) => second[1] - first[1])[0]?.[0] || 'Global';
+  }, [normalized]);
 
   const chartData = useMemo(() => {
     const source = analyticsData?.chartData && Object.values(analyticsData.chartData).length
@@ -254,11 +277,39 @@ export default function DashboardPage({
         </div>
       </section>
 
+      <section className="dashboard-command-strip" aria-label="Workspace status">
+        <div className="dashboard-command-primary">
+          <span className="dashboard-command-state"><span className="dashboard-command-dot" /> Control plane online</span>
+          <span className="dashboard-command-divider" aria-hidden="true" />
+          <span>{formatCompact(totalStudies)} studies indexed</span>
+        </div>
+        <div className="dashboard-command-meta">
+          <span><Clock3 size={13} /> Updated {formatSyncAge(lastSyncedAt)}</span>
+          <span className="dashboard-command-refresh"><Activity size={13} /> Auto-refresh 15s</span>
+        </div>
+      </section>
+
       <section className="dashboard-metrics" aria-label="Marketplace metrics">
         <MetricCard icon={Layers3} label="Live inventory" value={activeStudies} detail={`${liveCoverage}% of total studies active`} tone="ink" onClick={() => onNavigate?.('surveys')} />
         <MetricCard icon={WalletCards} label="Average CPI" value={averageCpi} prefix="$" detail={`${premiumCount.toLocaleString()} premium studies above $5`} tone="teal" onClick={() => onNavigate?.('surveys')} />
         <MetricCard icon={Target} label="Open quota" value={totalQuota} detail="Remaining capacity across live supply" tone="amber" onClick={() => onNavigate?.('surveys')} />
         <MetricCard icon={UsersRound} label="Demand sources" value={clientCount} detail={`${countryCount || 0} markets represented in inventory`} tone="blue" onClick={() => onNavigate?.('clients')} />
+      </section>
+
+      <section className="dashboard-brief" aria-label="Operational brief">
+        <div className="dashboard-brief-main">
+          <span className="dashboard-brief-icon"><Activity size={17} /></span>
+          <div>
+            <div className="dashboard-card-kicker">Today's operating brief</div>
+            <h2>{premiumCount ? `${premiumCount} high-yield ${premiumCount === 1 ? 'opportunity is' : 'opportunities are'} ready for a routing decision.` : 'Your inventory is ready for the next routing decision.'}</h2>
+            <p>{topMarket} is the strongest market in view, with an average interview length of {averageLoi || '—'} minutes.</p>
+          </div>
+        </div>
+        <div className="dashboard-brief-facts">
+          <div><span>Top market</span><strong><MapPin size={13} /> {topMarket}</strong></div>
+          <div><span>Quota health</span><strong>{quotaCoverage}% <small>covered</small></strong></div>
+          <button type="button" onClick={() => onNavigate?.('surveys')}>Review supply <ArrowUpRight size={14} /></button>
+        </div>
       </section>
 
       <section className="dashboard-main-grid">
