@@ -1,82 +1,67 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  BriefcaseBusiness,
+  ChevronDown,
   Home,
   LayoutGrid,
   ShieldCheck,
   Terminal,
-    Briefcase,
-  Database,
-  ChevronDown,
-  ChevronRight,
-  X
+  X,
 } from 'lucide-react';
 
-export default function Sidebar({ 
-  activeTab, 
-  currentReportSubTab, 
-  onTabChange, 
-  setActiveTab, 
-  isOpen, 
-  onClose, 
+const groupForTab = {
+  dashboard: 'overview',
+  surveys: 'overview',
+  clients: 'partners',
+  vendors: 'partners',
+  reconciliation: 'operations',
+  payments: 'operations',
+  leads: 'operations',
+  security: 'operations',
+  users: 'management',
+  team: 'management',
+  reference: 'management',
+  'developer-center': 'management',
+};
+
+export default function Sidebar({
+  activeTab,
+  onTabChange,
+  setActiveTab,
+  isOpen,
+  onClose,
   collapsed,
   userPermissions,
-  currentUser
+  currentUser,
 }) {
   const changeTab = onTabChange || setActiveTab || (() => {});
-
-  // Dropdown states for each section
-  const [dashboardOpen, setDashboardOpen] = useState(true);
-  const [appsOpen, setAppsOpen] = useState(true);
-  const [securityOpen, setSecurityOpen] = useState(true);
-  const [developerOpen, setDeveloperOpen] = useState(true);
-  const [opsOpen, setOpsOpen] = useState(true);
+  const [openGroups, setOpenGroups] = useState({
+    overview: true,
+    partners: true,
+    operations: true,
+    management: true,
+  });
 
   const isVendor = currentUser?.role_name === 'Vendor' || currentUser?.role === 'Vendor';
   const isAdmin = Boolean(currentUser) && (
     currentUser.role_id === 1 ||
-    currentUser.role_name === 'Developer' ||
-    currentUser.role === 'Developer' ||
-    currentUser.role_name === 'Admin' ||
-    currentUser.username === 'admin' ||
-    currentUser.username === 'vmhgroup'
+    ['Developer', 'Admin', 'Super Admin'].includes(currentUser.role_name) ||
+    ['Developer', 'Admin', 'Super Admin'].includes(currentUser.role) ||
+    ['admin', 'vmhgroup'].includes(String(currentUser.username || '').toLowerCase())
   );
 
-  // Check if current user has permission for a specific menu ID
   const isPermitted = (menuId) => {
-    if (isVendor) {
-      // Vendor has strictly isolated view: Overview (1), Surveys (7), Leads (9), Payments (10)
-      return [1, 7, 9, 10].includes(Number(menuId));
-    }
-
-    // Super Admin / Developer has full system access
-    if (isAdmin) {
-      return true;
-    }
-
-    // User Management (2, 3, 4, 5) is strictly reserved for Super Admin / Developer
-    if ([2, 3, 4, 5].includes(Number(menuId))) {
-      return false;
-    }
-
-    const perms = userPermissions || (currentUser && currentUser.permissions) || null;
-    if (!perms || !Array.isArray(perms) || perms.length === 0) {
-      return false;
-    }
-
-    return perms.map(Number).includes(Number(menuId));
+    if (isVendor) return [1, 7, 9, 10].includes(Number(menuId));
+    if (isAdmin) return true;
+    if ([2, 3, 4, 5].includes(Number(menuId))) return false;
+    const permissions = userPermissions || currentUser?.permissions || [];
+    if (!Array.isArray(permissions) || permissions.length === 0) return false;
+    return permissions.map(Number).includes(Number(menuId));
   };
 
-  // Auto-expand the dropdown containing the active tab
   useEffect(() => {
-    if (['dashboard', 'surveys'].includes(activeTab)) {
-      setDashboardOpen(true);
-    } else if (['clients', 'vendors'].includes(activeTab)) {
-      setAppsOpen(true);
-    } else if (['bids', 'payments', 'leads', 'security'].includes(activeTab)) {
-      setOpsOpen(true);
-    } else if (['users', 'team', 'reference'].includes(activeTab)) {
-      setDeveloperOpen(true);
-    }
+    const activeGroup = groupForTab[activeTab];
+    if (activeGroup) setOpenGroups((groups) => ({ ...groups, [activeGroup]: true }));
   }, [activeTab]);
 
   const handleNav = (tabKey, subKey) => {
@@ -84,266 +69,128 @@ export default function Sidebar({
     if (onClose) onClose();
   };
 
+  const toggleGroup = (group) => {
+    setOpenGroups((groups) => ({ ...groups, [group]: !groups[group] }));
+  };
+
+  const renderGroup = ({ id, label, icon: Icon, tabs, adminOnly = false }) => {
+    const visibleTabs = tabs.filter((tab) => !tab.hidden && (!tab.permission || isPermitted(tab.permission)));
+    if (adminOnly && !isAdmin) return null;
+    if (!visibleTabs.length) return null;
+
+    const groupActive = visibleTabs.some((tab) => tab.key === activeTab);
+    const expanded = Boolean(openGroups[id]);
+
+    return (
+      <section className="smr-nav-section" key={id}>
+        <button
+          type="button"
+          className={`smr-nav-section-toggle ${groupActive ? 'is-active' : ''}`}
+          onClick={() => toggleGroup(id)}
+          aria-expanded={expanded}
+        >
+          <span className="smr-nav-section-label"><Icon size={16} strokeWidth={1.8} />{label}</span>
+          <ChevronDown size={15} className={`smr-nav-chevron ${expanded ? 'is-open' : ''}`} />
+        </button>
+        <div className={`smr-nav-items ${expanded ? 'is-open' : ''}`}>
+          {visibleTabs.map((tab) => (
+            <button
+              type="button"
+              key={tab.key}
+              className={`smr-nav-item ${activeTab === tab.key ? 'is-active' : ''}`}
+              onClick={() => handleNav(tab.key, tab.subKey)}
+              title={tab.label}
+            >
+              <span className="smr-nav-item-mark" aria-hidden="true" />
+              <span>{tab.label}</span>
+              {tab.badge && <span className="smr-nav-item-badge">{tab.badge}</span>}
+            </button>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
   return (
     <>
-      {/* Mobile Overlay */}
-      <div 
-        className={`sidebar-overlay ${isOpen ? 'mobile-open' : ''}`} 
-        onClick={onClose}
-      />
-
-      {/* VMH Sidebar with Accordion Dropdowns & Collapse Support */}
-      <aside className={`dastone-sidebar ${collapsed ? 'collapsed' : ''} ${isOpen ? 'mobile-open' : ''}`}>
-        
-        {/* Brand Header */}
-        <div className="sidebar-brand-header">
-          <div 
-            className="brand-logo-container" 
-            onClick={() => handleNav('dashboard')}
-            title="VMH Group SMR"
-            style={{ display: 'flex', alignItems: 'center', gap: '9px', cursor: 'pointer' }}
-          >
-            <img 
-              src="/vmh-logo.png" 
-              alt="VMH Group" 
-              style={{ height: '36px', width: 'auto', objectFit: 'contain', display: 'block' }} 
-            />
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
-              <span className="brand-text" style={{ fontSize: '15px', fontWeight: 800, color: '#1d2c48', letterSpacing: '-0.2px' }}>
-                VMH GROUP'S
-              </span>
-              <span style={{ fontSize: '9px', fontWeight: 700, color: '#0F172A', letterSpacing: '0.8px' }}>
-                SMR PLATFORM
-              </span>
-            </div>
-          </div>
+      <div className={`smr-sidebar-overlay ${isOpen ? 'is-visible' : ''}`} onClick={onClose} aria-hidden="true" />
+      <aside className={`smr-sidebar ${collapsed ? 'is-collapsed' : ''} ${isOpen ? 'is-mobile-open' : ''}`}>
+        <div className="smr-sidebar-head">
+          <button type="button" className="smr-brand" onClick={() => handleNav('dashboard')} aria-label="Open overview">
+            <span className="smr-brand-symbol" aria-hidden="true">S</span>
+            <span className="smr-brand-copy">
+              <strong>VMH GROUP</strong>
+              <small>SMR CONTROL PLANE</small>
+            </span>
+          </button>
           {onClose && (
-            <button 
-              onClick={onClose}
-              className="mobile-close-btn"
-              aria-label="Close sidebar"
-            >
+            <button type="button" className="smr-sidebar-close" onClick={onClose} aria-label="Close navigation">
               <X size={18} />
             </button>
           )}
         </div>
 
-        {/* Sidebar Menu Body with Dropdowns */}
-        <div className="sidebar-scrollable-content">
-          
-          {/* Section: MAIN */}
-          {(isPermitted(1) || isPermitted(7)) && (
-            <>
-              <div className="sidebar-section-title">MAIN</div>
-
-              {/* Dropdown 1: Dashboard */}
-              <div className="sidebar-nav-group">
-                <button 
-                  className={`sidebar-nav-heading ${['dashboard', 'surveys'].includes(activeTab) ? 'active' : ''}`}
-                  onClick={() => setDashboardOpen(prev => !prev)}
-                >
-                  <div className="nav-heading-left">
-                    <Home size={16} className="nav-icon" />
-                    <span>Dashboard</span>
-                  </div>
-                  <span className={`dropdown-chevron ${dashboardOpen ? 'rotated' : ''}`}>
-                    <ChevronRight size={14} />
-                  </span>
-                </button>
-
-                <div className={`sidebar-submenu-collapsible ${dashboardOpen ? 'open' : 'closed'}`}>
-                  <div className="sidebar-submenu-inner">
-                    {isPermitted(1) && (
-                      <button
-                        className={`submenu-item ${activeTab === 'dashboard' ? 'active' : ''}`}
-                        onClick={() => handleNav('dashboard')}
-                      >
-                        <span className="bullet-circle" />
-                        <span>Overview</span>
-                      </button>
-                    )}
-                    
-                    {isPermitted(7) && (
-                      <button
-                        className={`submenu-item ${activeTab === 'surveys' ? 'active' : ''}`}
-                        onClick={() => handleNav('surveys')}
-                      >
-                        <span className="bullet-circle" />
-                        {isVendor ? <span>My Allocated Surveys</span> : <span>Surveys</span>}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Section: PARTNERS */}
-          {(isPermitted(6) || isPermitted(8)) && (
-            <div className="sidebar-nav-group">
-              <button 
-                className={`sidebar-nav-heading ${['clients', 'vendors'].includes(activeTab) ? 'active' : ''}`}
-                onClick={() => setAppsOpen(prev => !prev)}
-              >
-                <div className="nav-heading-left">
-                  <LayoutGrid size={16} className="nav-icon" />
-                  <span>Partners</span>
-                </div>
-                <span className={`dropdown-chevron ${appsOpen ? 'rotated' : ''}`}>
-                  <ChevronRight size={14} />
-                </span>
-              </button>
-
-              <div className={`sidebar-submenu-collapsible ${appsOpen ? 'open' : 'closed'}`}>
-                <div className="sidebar-submenu-inner">
-                  {isPermitted(6) && (
-                    <button
-                      className={`submenu-item ${activeTab === 'clients' ? 'active' : ''}`}
-                      onClick={() => handleNav('clients')}
-                    >
-                      <span className="bullet-circle" />
-                      <span>Clients</span>
-                    </button>
-                  )}
-                  {isPermitted(8) && (
-                    <button
-                      className={`submenu-item ${activeTab === 'vendors' ? 'active' : ''}`}
-                      onClick={() => handleNav('vendors')}
-                    >
-                      <span className="bullet-circle" />
-                      <span>Vendors</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Section: OPERATIONS */}
-          {(isPermitted(10) || isPermitted(9) || isPermitted(11) || isAdmin) && (
-            <>
-              <div className="sidebar-dotted-divider" />
-              <div className="sidebar-section-title">OPERATIONS</div>
-
-              <div className="sidebar-nav-group">
-                <button 
-                  className={`sidebar-nav-heading ${['bids', 'payments', 'leads', 'security'].includes(activeTab) ? 'active' : ''}`}
-                  onClick={() => setOpsOpen(prev => !prev)}
-                >
-                  <div className="nav-heading-left">
-                    <Briefcase size={16} className="nav-icon" />
-                    <span>Operations & Payouts</span>
-                  </div>
-                  <span className={`dropdown-chevron ${opsOpen ? 'rotated' : ''}`}>
-                    <ChevronRight size={14} />
-                  </span>
-                </button>
-
-                <div className={`sidebar-submenu-collapsible ${opsOpen ? 'open' : 'closed'}`}>
-                  <div className="sidebar-submenu-inner">
-                    {/* Hidden per user request: Bids & Feasibility */}
-                    {isPermitted(10) && (
-                      <button
-                        className={`submenu-item ${activeTab === 'payments' ? 'active' : ''}`}
-                        onClick={() => handleNav('payments')}
-                      >
-                        <span className="bullet-circle" />
-                        {isVendor ? <span>My Payout Statements</span> : <span>Vendor Payments</span>}
-                      </button>
-                    )}
-                    {isPermitted(9) && (
-                      <button
-                        className={`submenu-item ${activeTab === 'leads' ? 'active' : ''}`}
-                        onClick={() => handleNav('leads')}
-                      >
-                        <span className="bullet-circle" />
-                        {isVendor ? <span>My Traffic Leads & Clicks</span> : <span>Traffic Leads Stream</span>}
-                      </button>
-                    )}
-                    {!isVendor && isPermitted(11) && (
-                      <button
-                        className={`submenu-item ${activeTab === 'security' ? 'active' : ''}`}
-                        onClick={() => handleNav('security')}
-                      >
-                        <span className="bullet-circle" />
-                        <span>Security & Fraud Gate</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
-
-
-          {/* Section: MANAGEMENT */}
-          {!isVendor && (isAdmin || isPermitted(12) || isPermitted(13)) && (
-            <>
-              <div className="sidebar-dotted-divider" />
-              <div className="sidebar-section-title">MANAGEMENT</div>
-
-              {/* Dropdown: System & Team */}
-              <div className="sidebar-nav-group">
-                <button 
-                  className={`sidebar-nav-heading ${['users', 'team', 'reference'].includes(activeTab) ? 'active' : ''}`}
-                  onClick={() => setDeveloperOpen(prev => !prev)}
-                >
-                  <div className="nav-heading-left">
-                    <Terminal size={16} className="nav-icon" />
-                    <span>System & Team</span>
-                  </div>
-                  <span className={`dropdown-chevron ${developerOpen ? 'rotated' : ''}`}>
-                    <ChevronRight size={14} />
-                  </span>
-                </button>
-
-                <div className={`sidebar-submenu-collapsible ${developerOpen ? 'open' : 'closed'}`}>
-                  <div className="sidebar-submenu-inner">
-                    {isAdmin && (
-                      <button
-                        className={`submenu-item ${activeTab === 'users' ? 'active' : ''}`}
-                        onClick={() => handleNav('users')}
-                      >
-                        <span className="bullet-circle" />
-                        <span>User Management</span>
-                      </button>
-                    )}
-                    {(isAdmin || isPermitted(12)) && (
-                      <button
-                        className={`submenu-item ${activeTab === 'team' ? 'active' : ''}`}
-                        onClick={() => handleNav('team')}
-                      >
-                        <span className="bullet-circle" />
-                        <span>Team Directory</span>
-                      </button>
-                    )}
-                    {(isAdmin || isPermitted(13)) && (
-                      <button
-                        className={`submenu-item ${activeTab === 'reference' ? 'active' : ''}`}
-                        onClick={() => handleNav('reference')}
-                      >
-                        <span className="bullet-circle" />
-                        <span>Reference Data</span>
-                      </button>
-                    )}
-                    {(isAdmin || isPermitted(14)) && (
-                      <button
-                        className={`submenu-item ${activeTab === 'developer-center' ? 'active' : ''}`}
-                        onClick={() => handleNav('developer-center')}
-                      >
-                        <span className="bullet-circle" />
-                        <span>API Developer Center</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
+        <div className="smr-sidebar-status">
+          <span className="smr-status-dot" aria-hidden="true" />
+          <span>Operations live</span>
+          <span className="smr-status-code">IN / 01</span>
         </div>
 
+        <nav className="smr-sidebar-nav" aria-label="Primary navigation">
+          <div className="smr-sidebar-kicker">Workspace</div>
+          {renderGroup({
+            id: 'overview',
+            label: 'Overview',
+            icon: Home,
+            tabs: [
+              { key: 'dashboard', label: 'Dashboard', permission: 1 },
+              { key: 'surveys', label: isVendor ? 'My allocated surveys' : 'Survey inventory', permission: 7 },
+            ],
+          })}
+          {renderGroup({
+            id: 'partners',
+            label: 'Partners',
+            icon: LayoutGrid,
+            tabs: [
+              { key: 'clients', label: 'Clients & demand', permission: 6 },
+              { key: 'vendors', label: 'Supply vendors', permission: 8 },
+            ],
+          })}
+
+          <div className="smr-sidebar-kicker smr-sidebar-kicker--spaced">Operations</div>
+          {renderGroup({
+            id: 'operations',
+            label: 'Operations',
+            icon: BriefcaseBusiness,
+            tabs: [
+              { key: 'payments', label: isVendor ? 'My payout statements' : 'Vendor payments', permission: 10 },
+              { key: 'leads', label: isVendor ? 'My traffic & clicks' : 'Traffic & respondent logs', permission: 9 },
+              { key: 'security', label: 'Security & fraud gate', permission: 11 },
+              { key: 'reconciliation', label: 'Reconciliation', permission: 8 },
+            ],
+          })}
+
+          <div className="smr-sidebar-kicker smr-sidebar-kicker--spaced">Administration</div>
+          {renderGroup({
+            id: 'management',
+            label: 'System & team',
+            icon: Terminal,
+            tabs: [
+              { key: 'users', label: 'User management', permission: 2 },
+              { key: 'team', label: 'Team directory', permission: 12 },
+              { key: 'reference', label: 'Reference data', permission: 13 },
+              { key: 'developer-center', label: 'API developer center', permission: 14 },
+            ],
+          })}
+        </nav>
+
+        <div className="smr-sidebar-foot">
+          <div className="smr-sidebar-foot-icon"><ShieldCheck size={16} /></div>
+          <div>
+            <strong>Protected workspace</strong>
+            <span>Admin policies are active</span>
+          </div>
+        </div>
       </aside>
     </>
   );

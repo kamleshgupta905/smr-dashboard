@@ -297,7 +297,7 @@ export default function PreScreenerGate({
     <div style={{
       minHeight: '100vh',
       width: '100%',
-      background: 'radial-gradient(120% 120% at 50% 0%, #1c2b45 0%, #0d1525 60%, #070b13 100%)',
+      background: '#0d1525',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',

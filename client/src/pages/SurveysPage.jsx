@@ -278,7 +278,7 @@ export default function SurveysPage({
               onClick={openBulkModal}
               className="btn btn-primary"
               style={{
-                background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
+                background: '#0F172A',
                 fontSize: '12.5px',
                 fontWeight: 700,
                 padding: '8px 14px',
@@ -346,7 +346,7 @@ export default function SurveysPage({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
+                background: '#0F172A',
                 border: '1px solid #0F172A',
                 color: '#ffffff',
                 borderRadius: '8px',
@@ -1185,7 +1185,7 @@ export default function SurveysPage({
           <button
             onClick={openBulkModal}
             style={{
-              background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
+              background: '#0F172A',
               color: '#ffffff',
               border: 'none',
               borderRadius: '999px',

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { ArrowRight, Check, Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage({ onLogin }) {
   const [username, setUsername] = useState('');
@@ -8,27 +8,27 @@ export default function LoginPage({ onLogin }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      // 1. Universal Auth API (queries Google Sheet via Apps Script)
-      const res = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: username.trim(), password })
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (res.ok && data.success) {
+      if (response.ok && data.success) {
         if (!data.token) {
           setError('Login could not be verified with the server. Please try again.');
           setLoading(false);
           return;
         }
+
         localStorage.setItem('smr_auth_token', data.token);
         localStorage.setItem('smr_auth_user', data.user?.username || data.user?.name || 'Vmhgroup');
         localStorage.setItem('smr_auth_role', data.user?.role_name || data.user?.role || 'admin');
@@ -40,250 +40,146 @@ export default function LoginPage({ onLogin }) {
         }
         onLogin(data.user);
       } else {
-        setError(data.message || 'Access Denied');
+        setError(data.message || 'Access denied. Check your credentials and try again.');
         setLoading(false);
       }
-    } catch (err) {
-      // SECURITY FIX: removed offline fallbacks. Previously, when the server
-      // request failed, hardcoded credentials logged in as full Developer or
-      // Vendor WITHOUT any server check. Login now succeeds only via server.
-      setError('Login could not be verified with the server. Please try again.');
+    } catch (requestError) {
+      // Authentication intentionally has no client-side fallback. A session is
+      // created only after the API verifies the supplied credentials.
+      setError('We could not reach the authentication service. Please try again.');
       setLoading(false);
     }
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      width: '100vw',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#f7f7f7',
-      padding: '24px 16px',
-      fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif"
-    }}>
-      {/* Exact 2-Column VMH Panel Card */}
-      <div style={{
-        width: '100%',
-        maxWidth: '960px',
-        minHeight: '500px',
-        background: '#ffffff',
-        borderRadius: '16px',
-        boxShadow: '0 10px 35px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04)',
-        display: 'flex',
-        flexDirection: 'row',
-        overflow: 'hidden',
-        position: 'relative'
-      }}>
-        {/* Left Side: Login Form */}
-        <div style={{
-          flex: '1.15',
-          padding: '60px 48px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          background: '#ffffff',
-          zIndex: 1
-        }}>
-          <h3 style={{
-            fontSize: '26px',
-            fontWeight: 700,
-            color: '#1e293b',
-            textAlign: 'center',
-            margin: '0 0 10px 0',
-            letterSpacing: '-0.3px'
-          }}>
-            Sign Into Your Account
-          </h3>
-
-          {/* Red Error Text (Matches "Access Denied" in screenshot) */}
-          {error ? (
-            <div style={{
-              color: '#ef4444',
-              fontSize: '14px',
-              fontWeight: 600,
-              textAlign: 'center',
-              marginBottom: '18px'
-            }}>
-              {error}
-            </div>
-          ) : (
-            <div style={{ height: '22px', marginBottom: '8px' }} />
-          )}
-
-          <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: '340px', margin: '0 auto' }}>
-            {/* Username / Email Field */}
-            <div style={{ position: 'relative', marginBottom: '18px' }}>
-              <input
-                type="text"
-                name="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
-                required
-                style={{
-                  width: '100%',
-                  padding: '14px 48px 14px 24px',
-                  background: '#eaf1fb',
-                  border: '1px solid transparent',
-                  borderRadius: '100px',
-                  fontSize: '14.5px',
-                  color: '#1e293b',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  transition: 'all 0.2s ease'
-                }}
-                onFocus={(e) => {
-                  e.target.style.background = '#e1ecf9';
-                  e.target.style.borderColor = '#CBD5E1';
-                }}
-                onBlur={(e) => {
-                  e.target.style.background = '#eaf1fb';
-                  e.target.style.borderColor = 'transparent';
-                }}
-              />
-              <Mail 
-                size={18} 
-                color="#8997bd" 
-                style={{ position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} 
-              />
-            </div>
-
-            {/* Password Field */}
-            <div style={{ position: 'relative', marginBottom: '26px' }}>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                required
-                style={{
-                  width: '100%',
-                  padding: '14px 48px 14px 24px',
-                  background: '#eaf1fb',
-                  border: '1px solid transparent',
-                  borderRadius: '100px',
-                  fontSize: '14.5px',
-                  color: '#1e293b',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  transition: 'all 0.2s ease'
-                }}
-                onFocus={(e) => {
-                  e.target.style.background = '#e1ecf9';
-                  e.target.style.borderColor = '#CBD5E1';
-                }}
-                onBlur={(e) => {
-                  e.target.style.background = '#eaf1fb';
-                  e.target.style.borderColor = 'transparent';
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: 'absolute',
-                  right: '18px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  color: '#8997bd'
-                }}
-                title={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Lock size={18} />}
-              </button>
-            </div>
-
-            {/* Deep Navy Pill Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: '100%',
-                height: '50px',
-                padding: '0 24px',
-                background: '#2a2d8c',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '100px',
-                fontSize: '14px',
-                fontWeight: 700,
-                letterSpacing: '1.2px',
-                textTransform: 'uppercase',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 4px 14px rgba(42, 45, 140, 0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px'
-              }}
-              onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = '#1e206b'; }}
-              onMouseLeave={(e) => { if (!loading) e.currentTarget.style.background = '#2a2d8c'; }}
-            >
-              {loading ? 'AUTHENTICATING...' : 'LOGIN'}
-            </button>
-
-          </form>
-        </div>
-
-        {/* Right Side: Exact img-35.png background with animated waviy text */}
-        <div style={{
-          flex: '0.95',
-          background: 'url(/img-35.png) top left no-repeat',
-          backgroundColor: '#2a2d8c',
-          backgroundSize: 'cover',
-          position: 'relative',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '40px 32px',
-          textAlign: 'center',
-          overflow: 'hidden'
-        }}>
-          {/* Animated Waviy Text Header */}
-          <div className="waviy">
-            <span style={{ '--i': 1, color: '#fbca1a' }}>L</span>
-            <span style={{ '--i': 2, color: '#fbca1a' }}>O</span>
-            <span style={{ '--i': 3, color: '#fbca1a' }}>G</span>
-            <span style={{ '--i': 4, color: '#fbca1a' }}>I</span>
-            <span style={{ '--i': 5, color: '#fbca1a' }}>N</span>
-            <span style={{ '--i': 6, color: '#ffffff', margin: '0 3px' }}>t</span>
-            <span style={{ '--i': 7, color: '#ffffff', marginRight: '6px' }}>o</span>
-            <span style={{ '--i': 8, color: '#fbca1a' }}>V</span>
-            <span style={{ '--i': 9, color: '#fbca1a' }}>M</span>
-            <span style={{ '--i': 10, color: '#fbca1a' }}>H</span>
-            <span style={{ '--i': 11, color: '#fbca1a' }}>G</span>
-            <span style={{ '--i': 12, color: '#fbca1a' }}>R</span>
-            <span style={{ '--i': 13, color: '#fbca1a' }}>O</span>
-            <span style={{ '--i': 14, color: '#fbca1a' }}>U</span>
-            <span style={{ '--i': 15, color: '#fbca1a' }}>P</span>
+    <main className="auth-shell">
+      <section className="auth-panel auth-panel--form" aria-labelledby="login-title">
+        <div className="auth-form-inner">
+          <div className="auth-brand auth-brand--mobile">
+            <span className="auth-brand-mark" aria-hidden="true">S</span>
+            <span>
+              <strong>VMH GROUP</strong>
+              <small>SMR CONTROL PLANE</small>
+            </span>
           </div>
 
-          {/* Exact VMH Trust Statement */}
-          <p style={{
-            color: '#ffffff',
-            fontSize: '14.5px',
-            lineHeight: 1.6,
-            maxWidth: '320px',
-            margin: 0,
-            textAlign: 'center',
-            fontWeight: 400,
-            textShadow: '0 1px 2px rgba(0,0,0,0.2)'
-          }}>
-            Your login information is securely saved on our website. At VMH GROUP, we use advanced encryption and multi-factor authentication to ensure your data remains protected. Thank you for trusting us with your information.
+          <div className="auth-eyebrow">Workspace access</div>
+          <h1 id="login-title">Welcome back.</h1>
+          <p className="auth-intro">
+            Sign in to manage live survey supply, routing quality, and partner operations from one calm workspace.
           </p>
+
+          <form className="auth-form" onSubmit={handleSubmit} noValidate>
+            {error && (
+              <div className="auth-alert" role="alert">
+                <span className="auth-alert-dot" aria-hidden="true" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <label className="auth-field">
+              <span className="auth-field-label">Username or email</span>
+              <span className="auth-input-wrap">
+                <Mail size={17} aria-hidden="true" />
+                <input
+                  type="text"
+                  name="username"
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  placeholder="Enter your username"
+                  autoComplete="username"
+                  required
+                />
+              </span>
+            </label>
+
+            <label className="auth-field">
+              <span className="auth-field-label">Password</span>
+              <span className="auth-input-wrap">
+                <LockKeyhole size={17} aria-hidden="true" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Enter your password"
+                  autoComplete="current-password"
+                  required
+                />
+                <button
+                  className="auth-password-toggle"
+                  type="button"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </span>
+            </label>
+
+            <div className="auth-form-meta">
+              <span className="auth-secure-note"><ShieldCheck size={14} /> Secure admin access</span>
+              <span className="auth-version">SMR v3.4</span>
+            </div>
+
+            <button className="auth-submit" type="submit" disabled={loading}>
+              <span>{loading ? 'Verifying access…' : 'Continue to workspace'}</span>
+              {!loading && <ArrowRight size={17} aria-hidden="true" />}
+              {loading && <span className="auth-loader" aria-hidden="true" />}
+            </button>
+          </form>
+
+          <p className="auth-footnote">Your session is protected by the VMH identity service.</p>
         </div>
-      </div>
-    </div>
+      </section>
+
+      <section className="auth-panel auth-panel--story" aria-label="VMH SMR platform overview">
+        <div className="story-topbar">
+          <div className="auth-brand">
+            <span className="auth-brand-mark" aria-hidden="true">S</span>
+            <span>
+              <strong>VMH GROUP</strong>
+              <small>SMR CONTROL PLANE</small>
+            </span>
+          </div>
+          <span className="story-index">01 / 04</span>
+        </div>
+
+        <div className="story-content">
+          <div className="story-kicker"><span className="story-kicker-line" /> Live survey operations</div>
+          <h2>Make every<br /><em>respondent</em> count.</h2>
+          <p>
+            One connected command center for the supply marketplace, quality gates, payouts, and the people who keep it moving.
+          </p>
+
+          <div className="story-rule" />
+          <div className="story-stats" aria-label="Platform highlights">
+            <div>
+              <strong>LIVE</strong>
+              <span>Study inventory</span>
+            </div>
+            <div>
+              <strong>24/7</strong>
+              <span>Routing watch</span>
+            </div>
+            <div>
+              <strong>1</strong>
+              <span>Protected workspace</span>
+            </div>
+          </div>
+
+          <div className="story-note">
+            <span className="story-note-icon"><Check size={14} /></span>
+            <span><strong>Control without noise.</strong> Clear signals for decisions that matter.</span>
+          </div>
+        </div>
+
+        <div className="story-footer">
+          <span>VMH GROUP'S SURVEY ROUTING &amp; SAMPLE MARKETPLACE</span>
+          <span className="story-footer-dot" aria-hidden="true" />
+          <span>IN / GLOBAL</span>
+        </div>
+      </section>
+    </main>
   );
 }

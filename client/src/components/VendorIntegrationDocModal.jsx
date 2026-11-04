@@ -124,7 +124,7 @@ Step 4: Launch live panel traffic!
           {/* Header */}
           <div style={{
             padding: '20px 24px',
-            background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+            background: '#0F172A',
             color: '#FFFFFF',
             display: 'flex',
             alignItems: 'center',

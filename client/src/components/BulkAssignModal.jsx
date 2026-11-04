@@ -162,7 +162,7 @@ export default function BulkAssignModal({ selectedSurveys = [], isOpen, onClose,
           <div style={{
             padding: '16px 22px',
             borderBottom: '1px solid #e2e8f0',
-            background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+            background: '#f8fafc',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between'
@@ -495,7 +495,7 @@ export default function BulkAssignModal({ selectedSurveys = [], isOpen, onClose,
                     type="submit"
                     disabled={submitting || !selectedSurveys.length}
                     style={{
-                      background: 'linear-gradient(135deg, #2e3094 0%, #1e2060 100%)',
+                      background: '#2e3094',
                       color: '#ffffff',
                       border: 'none',
                       borderRadius: '6px',

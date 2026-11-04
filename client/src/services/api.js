@@ -10,7 +10,7 @@ api.interceptors.request.use((config) => {
   // SECURITY FIX: no default token/role. Logged-out requests carry no auth
   // headers, so the backend gate returns 401 instead of silently passing.
   const token = (typeof localStorage !== 'undefined' && localStorage.getItem('smr_auth_token')) || '';
-  const role = (typeof localStorage !== 'undefined' && localStorage.getItem('smr_user_role')) || '';
+  const role = (typeof localStorage !== 'undefined' && (localStorage.getItem('smr_auth_role') || localStorage.getItem('smr_user_role'))) || '';
   if (token) {
     config.headers['X-SMR-Auth'] = token;
     config.headers['Authorization'] = `Bearer ${token}`;

@@ -118,7 +118,7 @@ export default function StatsCards({ stats, totalSurveys, onNavigate }) {
                 left: 0,
                 right: 0,
                 height: '3px',
-                background: `linear-gradient(90deg, ${item.accent}, transparent)`,
+                background: item.accent,
               }}
             />
 

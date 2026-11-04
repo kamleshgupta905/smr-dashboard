@@ -1,5 +1,18 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Menu, RefreshCw, Search, Bell, User, Settings, LogOut, CheckCircle2, Zap, ShieldAlert, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Bell,
+  CheckCircle2,
+  ChevronDown,
+  LogOut,
+  Menu,
+  Search,
+  Settings,
+  ShieldAlert,
+  User,
+  X,
+  Zap,
+  RefreshCw,
+} from 'lucide-react';
 
 export default function Navbar({
   onToggleSidebar,
@@ -13,361 +26,193 @@ export default function Navbar({
   onOpenSettings,
   globalSearch,
   onGlobalSearch,
-  onRoleChange,
   currentUser,
   isImpersonating,
   onExitImpersonation,
+  pageTitle,
 }) {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [bellOpen, setBellOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  const bellRef = useRef(null);
-  const searchInputRef = useRef(null);
+  const profileRef = useRef(null);
+  const notificationsRef = useRef(null);
+  const searchRef = useRef(null);
 
-  const displayName = currentUser?.name || currentUser?.username || (typeof localStorage !== 'undefined' && localStorage.getItem('smr_auth_user')) || 'Admin';
-  const activeRole = currentUser?.role_name || currentUser?.role || (typeof localStorage !== 'undefined' && (localStorage.getItem('smr_auth_role') || 'Admin')) || 'Admin';
+  const displayName = currentUser?.name || currentUser?.username || localStorage.getItem('smr_auth_user') || 'Admin';
+  const activeRole = currentUser?.role_name || currentUser?.role || localStorage.getItem('smr_auth_role') || 'Admin';
+  const initials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase() || 'A';
 
   const notifications = [
-    { id: 1, icon: Zap, color: '#0F172A', title: 'Zamplia Inventory Synced', text: `${surveyCount || 626} live surveys refreshed with fresh quotas.`, time: 'Just now' },
-    { id: 2, icon: CheckCircle2, color: '#16a34a', title: 'Reconciliation Verified', text: 'Billing audit passed — no discrepancies found.', time: '25 min ago' },
-    { id: 3, icon: ShieldAlert, color: '#f59e0b', title: 'Fraud Attempt Blocked', text: 'Suspicious VPN/proxy click auto-rejected (Risk: 98).', time: '1 hr ago' },
+    { id: 1, icon: Zap, color: '#0f766e', title: 'Inventory synced', text: `${surveyCount || 0} live surveys are available.`, time: 'Just now' },
+    { id: 2, icon: CheckCircle2, color: '#15803d', title: 'Reconciliation verified', text: 'The latest billing audit passed.', time: '25 min ago' },
+    { id: 3, icon: ShieldAlert, color: '#b45309', title: 'Fraud signal blocked', text: 'A suspicious traffic pattern was rejected.', time: '1 hr ago' },
   ];
 
-  // Close dropdowns on outside click
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
-      }
-      if (bellRef.current && !bellRef.current.contains(event.target)) {
-        setBellOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    const handleOutsideClick = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) setProfileOpen(false);
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) setNotificationsOpen(false);
+      if (searchRef.current && !searchRef.current.contains(event.target) && !globalSearch) setSearchOpen(false);
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [globalSearch]);
 
-  // Focus search input when opened
   useEffect(() => {
-    if (searchOpen && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
+    if (searchOpen) searchRef.current?.querySelector('input')?.focus();
   }, [searchOpen]);
 
-  const handleToggle = () => {
-    if (onToggleSidebar) {
-      onToggleSidebar();
-    } else if (onToggleMobileMenu) {
-      onToggleMobileMenu();
-    }
+  const handleMenuToggle = () => {
+    if (onToggleSidebar) onToggleSidebar();
+    else if (onToggleMobileMenu) onToggleMobileMenu();
   };
 
   return (
-    <header className={`dastone-topbar ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-      {/* Left Topbar Content */}
-      <div className="topbar-left-side">
+    <header className={`smr-topbar ${sidebarCollapsed ? 'is-expanded' : ''}`}>
+      <div className="smr-topbar-left">
         <button
-          className={`topbar-menu-toggle ${sidebarCollapsed ? 'active' : ''}`}
-          onClick={handleToggle}
-          aria-label="Toggle navigation menu"
-          title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          type="button"
+          className="smr-icon-button smr-menu-button"
+          onClick={handleMenuToggle}
+          aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Open navigation'}
+          title={sidebarCollapsed ? 'Expand sidebar' : 'Open navigation'}
         >
-          <Menu size={20} color="#475569" />
+          <Menu size={19} />
         </button>
+        <div className="smr-breadcrumbs">
+          <span>Workspace</span>
+          <span className="smr-breadcrumb-divider">/</span>
+          <strong>{pageTitle || 'Dashboard'}</strong>
+        </div>
+      </div>
 
-        {/* Global Marketplace Search (clean icon button when collapsed, input when expanded) */}
-        <div className="topbar-search-wrap" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+      <div className="smr-topbar-right">
+        <div className={`smr-global-search ${searchOpen || globalSearch ? 'is-open' : ''}`} ref={searchRef}>
           {!searchOpen && !globalSearch ? (
             <button
               type="button"
+              className="smr-icon-button"
               onClick={() => setSearchOpen(true)}
-              aria-label="Open search"
-              title="Search surveys, vendors, clients, IDs..."
-              style={{
-                width: '36px',
-                height: '36px',
-                border: '1px solid #e3ebf6',
-                borderRadius: '8px',
-                background: '#ffffff',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                padding: 0,
-                outline: 'none',
-                transition: 'all 0.2s ease',
-              }}
+              aria-label="Search workspace"
+              title="Search surveys, vendors, clients, and IDs"
             >
-              <Search size={16} color="#68728c" />
+              <Search size={17} />
             </button>
           ) : (
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <Search
-                size={15}
-                color="#68728c"
-                style={{
-                  position: 'absolute',
-                  left: '12px',
-                  pointerEvents: 'none',
-                }}
-              />
+            <>
+              <Search size={16} className="smr-search-icon" aria-hidden="true" />
               <input
-                ref={searchInputRef}
-                type="text"
                 value={globalSearch || ''}
-                onChange={(e) => onGlobalSearch && onGlobalSearch(e.target.value)}
-                placeholder="Search surveys, vendors, clients, IDs..."
-                aria-label="Search marketplace"
-                style={{
-                  width: 'min(260px, calc(100vw - 160px))',
-                  height: '36px',
-                  paddingLeft: '38px',
-                  paddingRight: globalSearch ? '28px' : '12px',
-                  border: '1px solid #0F172A',
-                  borderRadius: '8px',
-                  background: '#ffffff',
-                  fontSize: '12.5px',
-                  color: '#303e67',
-                  outline: 'none',
-                  boxShadow: '0 0 0 3px rgba(15, 23, 42, 0.1)',
-                  boxSizing: 'border-box',
-                }}
-                onBlur={() => {
-                  if (!globalSearch) setSearchOpen(false);
-                }}
+                onChange={(event) => onGlobalSearch?.(event.target.value)}
+                placeholder="Search workspace"
+                aria-label="Search workspace"
               />
-              {globalSearch && (
+              {(globalSearch || searchOpen) && (
                 <button
                   type="button"
+                  className="smr-search-clear"
                   onClick={() => {
-                    if (onGlobalSearch) onGlobalSearch('');
+                    onGlobalSearch?.('');
                     setSearchOpen(false);
                   }}
-                  title="Clear search"
-                  style={{
-                    position: 'absolute',
-                    right: '8px',
-                    background: 'none',
-                    border: 'none',
-                    color: '#8997bd',
-                    cursor: 'pointer',
-                    fontSize: '13px',
-                    lineHeight: 1,
-                    padding: '2px',
-                  }}
+                  aria-label="Clear search"
                 >
-                  <X size={13} color="#64748b" />
+                  <X size={14} />
                 </button>
               )}
-            </div>
+            </>
           )}
         </div>
 
-        {/* Sync Button (VMH crisp pill style with animated refresh) */}
         {onSync && (
-          <button
-            className="btn-new-task"
-            onClick={onSync}
-            disabled={syncing}
-            title="Sync live inventory & demand stats"
-          >
-            <RefreshCw size={13} className={syncing ? 'sync-spin' : ''} />
-            <span>{syncing ? 'Syncing...' : 'Sync'}</span>
+          <button type="button" className="smr-sync-button" onClick={onSync} disabled={syncing}>
+            <RefreshCw size={15} className={syncing ? 'is-spinning' : ''} />
+            <span>{syncing ? 'Syncing' : 'Sync inventory'}</span>
           </button>
         )}
-      </div>
 
-      {/* Right Topbar Content */}
-      <div className="topbar-right-side">
+        <div className="smr-topbar-divider" aria-hidden="true" />
 
-        {/* Notifications Bell with Working Dropdown */}
-        <div className="topbar-bell-wrap" ref={bellRef} style={{ position: 'relative' }}>
+        <div className="smr-popover-anchor" ref={notificationsRef}>
           <button
-            className="topbar-bell-btn"
-            title="Notifications"
-            aria-label="Notifications"
-            onClick={() => setBellOpen(prev => !prev)}
+            type="button"
+            className="smr-icon-button smr-notification-button"
+            onClick={() => setNotificationsOpen((open) => !open)}
+            aria-expanded={notificationsOpen}
+            aria-label="Open notifications"
           >
-            <Bell size={19} strokeWidth={2} color="#68728c" />
-            <span style={{
-              position: 'absolute',
-              top: '4px',
-              right: '4px',
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: '#f5325c',
-              border: '2px solid #ffffff',
-            }} />
+            <Bell size={17} />
+            <span className="smr-notification-dot" aria-label="Unread notifications" />
           </button>
-
-          {bellOpen && (
-            <div style={{
-              position: 'absolute',
-              right: 0,
-              top: 'calc(100% + 10px)',
-              width: 'min(320px, calc(100vw - 24px))',
-              background: '#ffffff',
-              border: '1px solid #e3ebf6',
-              borderRadius: '8px',
-              boxShadow: '0 12px 32px rgba(29, 44, 72, 0.14)',
-              zIndex: 60,
-              overflow: 'hidden',
-            }}>
-              <div style={{
-                padding: '12px 16px',
-                borderBottom: '1px solid #f1f5fa',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#1d2c48' }}>Notifications</span>
-                <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#0F172A', background: 'rgba(15, 23, 42,0.08)', padding: '2px 8px', borderRadius: '999px' }}>
-                  {notifications.length} New
-                </span>
+          {notificationsOpen && (
+            <div className="smr-popover smr-notifications-popover">
+              <div className="smr-popover-heading">
+                <div><strong>Notifications</strong><span>Live workspace activity</span></div>
+                <span className="smr-count-badge">{notifications.length} new</span>
               </div>
-              <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                {notifications.map((n) => {
-                  const Icon = n.icon;
+              <div className="smr-notification-list">
+                {notifications.map((notification) => {
+                  const Icon = notification.icon;
                   return (
-                    <div key={n.id} style={{
-                      display: 'flex',
-                      gap: '10px',
-                      padding: '12px 16px',
-                      borderBottom: '1px solid #f8fafc',
-                      cursor: 'pointer',
-                      transition: 'background 0.15s',
-                    }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fafc'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                    >
-                      <div style={{
-                        width: '30px',
-                        height: '30px',
-                        borderRadius: '8px',
-                        background: `${n.color}15`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}>
-                        <Icon size={15} color={n.color} />
-                      </div>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: '12px', fontWeight: 600, color: '#1d2c48' }}>{n.title}</div>
-                        <div style={{ fontSize: '11px', color: '#8997bd', lineHeight: 1.4 }}>{n.text}</div>
-                        <div style={{ fontSize: '10px', color: '#9ba7ca', marginTop: '2px' }}>{n.time}</div>
+                    <div className="smr-notification-item" key={notification.id}>
+                      <span className="smr-notification-icon" style={{ color: notification.color }}><Icon size={15} /></span>
+                      <div>
+                        <strong>{notification.title}</strong>
+                        <p>{notification.text}</p>
+                        <time>{notification.time}</time>
                       </div>
                     </div>
                   );
                 })}
               </div>
+              <button type="button" className="smr-popover-footer" onClick={() => setNotificationsOpen(false)}>Mark all as read</button>
             </div>
           )}
         </div>
 
-        {/* User Profile (Avatar + Admin) with Dropdown */}
-        <div className="user-profile-menu" ref={dropdownRef}>
-          <div
-            className="user-profile-trigger"
-            onClick={() => setDropdownOpen(prev => !prev)}
-            title="VMH Admin Profile & Settings"
+        <div className="smr-popover-anchor" ref={profileRef}>
+          <button
+            type="button"
+            className="smr-profile-trigger"
+            onClick={() => setProfileOpen((open) => !open)}
+            aria-expanded={profileOpen}
           >
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.2 }}>
-              <span className="user-profile-name">
-                {displayName}
-              </span>
-              <span style={{
-                fontSize: '10px',
-                fontWeight: 800,
-                padding: '1px 6px',
-                borderRadius: '4px',
-                background: activeRole === 'Admin' ? 'rgba(15, 23, 42, 0.12)' : activeRole === 'Developer' ? 'rgba(147, 51, 234, 0.12)' : activeRole === 'Customer' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)',
-                color: activeRole === 'Admin' ? '#0F172A' : activeRole === 'Developer' ? '#9333ea' : activeRole === 'Customer' ? '#d97706' : '#10b981'
-              }}>
-                {activeRole}{isImpersonating ? ' (Preview)' : ''}
-              </span>
-            </div>
-            <img
-              src="/vmh-logo.png"
-              alt="VMH Admin"
-              className="user-profile-avatar"
-              style={{ objectFit: 'contain', background: '#ffffff', padding: '1px' }}
-            />
-          </div>
+            <span className="smr-avatar" aria-hidden="true">{initials}</span>
+            <span className="smr-profile-copy"><strong>{displayName}</strong><small>{activeRole}{isImpersonating ? ' · Preview' : ''}</small></span>
+            <ChevronDown size={15} className={`smr-profile-chevron ${profileOpen ? 'is-open' : ''}`} />
+          </button>
 
-          {/* Admin Dropdown Menu with Working Actions */}
-          {dropdownOpen && (
-            <div className="dastone-user-dropdown">
-              <div className="dropdown-header">
-                <div className="name" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span>{displayName}</span>
-                  <span style={{
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    padding: '2px 7px',
-                    borderRadius: '4px',
-                    background: 'rgba(15, 23, 42, 0.1)',
-                    color: '#0F172A'
-                  }}>
-                    {activeRole}{isImpersonating ? ' (Preview)' : ''}
-                  </span>
-                </div>
-                <div className="email">{currentUser?.email || (currentUser?.username ? `${currentUser.username}@vmhgroupsmr.com` : 'admin@vmhgroupsmr.com')}</div>
-                {isImpersonating && (
-                  <button
-                    className="dropdown-item"
-                    onClick={() => {
-                      setDropdownOpen(false);
-                      if (onExitImpersonation) onExitImpersonation();
-                    }}
-                    style={{ color: '#DC2626', fontWeight: 700, padding: '6px 12px', borderRadius: '4px', background: '#FEF2F2', border: 'none', width: '100%', marginTop: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  >
-                    <LogOut size={14} color="#DC2626" />
-                    <span>Exit Preview Mode</span>
-                  </button>
-                )}
+          {profileOpen && (
+            <div className="smr-popover smr-profile-popover">
+              <div className="smr-profile-summary">
+                <span className="smr-avatar smr-avatar--large">{initials}</span>
+                <div><strong>{displayName}</strong><span>{currentUser?.email || `${String(currentUser?.username || 'admin').toLowerCase()}@vmhgroupsmr.com`}</span></div>
               </div>
-
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  setDropdownOpen(false);
-                  if (onOpenProfile) onOpenProfile();
-                }}
-              >
-                <User size={15} color="#0F172A" />
-                <span>Profile</span>
+              <div className="smr-popover-role">{activeRole}{isImpersonating ? ' · Preview mode' : ''}</div>
+              {isImpersonating && (
+                <button type="button" className="smr-popover-action smr-popover-action--warning" onClick={() => { setProfileOpen(false); onExitImpersonation?.(); }}>
+                  <LogOut size={15} /> Exit preview mode
+                </button>
+              )}
+              <button type="button" className="smr-popover-action" onClick={() => { setProfileOpen(false); onOpenProfile?.(); }}>
+                <User size={15} /> Profile &amp; team
               </button>
-
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  setDropdownOpen(false);
-                  if (onOpenSettings) onOpenSettings();
-                }}
-              >
-                <Settings size={15} color="#9ba7ca" />
-                <span>Settings</span>
+              <button type="button" className="smr-popover-action" onClick={() => { setProfileOpen(false); onOpenSettings?.(); }}>
+                <Settings size={15} /> Security settings
               </button>
-
-              <div className="dropdown-divider" />
-
-              <button
-                className="dropdown-item logout"
-                onClick={() => {
-                  setDropdownOpen(false);
-                  if (onLogout) onLogout();
-                }}
-              >
-                <LogOut size={15} color="#f5325c" />
-                <span>Logout</span>
+              <div className="smr-popover-line" />
+              <button type="button" className="smr-popover-action smr-popover-action--danger" onClick={() => { setProfileOpen(false); onLogout?.(); }}>
+                <LogOut size={15} /> Sign out
               </button>
             </div>
           )}
         </div>
-
       </div>
     </header>
   );

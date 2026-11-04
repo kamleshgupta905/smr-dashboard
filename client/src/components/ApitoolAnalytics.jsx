@@ -271,10 +271,6 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
                   <clipPath id="chart-area-clip">
                     <rect x="0" y="0" width={svgWidth} height={svgHeight} />
                   </clipPath>
-                  <linearGradient id="vmh_blue_gradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#0F172A" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="#0F172A" stopOpacity="0.00" />
-                  </linearGradient>
                 </defs>
 
                 {/* Main chart drawing grouped inside clipPath */}
@@ -302,7 +298,7 @@ export default function ApitoolAnalytics({ data, surveys = [] }) {
                   <path 
                     key={`fill-${timeframe}`}
                     d={newVisitsCurve.fillD} 
-                    fill="url(#vmh_blue_gradient)" 
+                    fill="#eef3f2"
                     className="apple-chart-area"
                   />
 

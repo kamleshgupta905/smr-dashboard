@@ -1746,7 +1746,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
             <div style={{
               padding: '16px 24px',
               borderBottom: '1px solid #e2e8f0',
-              background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+              background: '#f8fafc',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between'
@@ -2165,7 +2165,7 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
             <div style={{
               padding: '16px 24px',
               borderBottom: '1px solid #e2e8f0',
-              background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+              background: '#f8fafc',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between'
@@ -2331,10 +2331,10 @@ export default function ReconciliationPage({ initialTab = 'clients' }) {
                           width: `${pacingPercent}%`,
                           height: '100%',
                           background: pacingPercent >= 100 
-                            ? 'linear-gradient(90deg, #10B981 0%, #059669 100%)' 
+                            ? '#059669'
                             : pacingPercent >= 70 
-                              ? 'linear-gradient(90deg, #0F172A 0%, #0F172A 100%)' 
-                              : 'linear-gradient(90deg, #F59E0B 0%, #EA580C 100%)',
+                              ? '#0F172A'
+                              : '#D97706',
                           borderRadius: '5px',
                           transition: 'width 0.4s ease'
                         }} />

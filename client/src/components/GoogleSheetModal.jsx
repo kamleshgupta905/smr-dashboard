@@ -422,7 +422,7 @@ export default function GoogleSheetModal({ isOpen, onClose }) {
 
             {/* Google Sheet Created Card */}
             <div style={{
-              background: 'linear-gradient(135deg, #064E3B 0%, #047857 100%)',
+              background: '#064E3B',
               borderRadius: '10px',
               padding: '16px 18px',
               marginBottom: '18px',

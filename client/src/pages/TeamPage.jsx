@@ -297,7 +297,7 @@ export default function TeamPage() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ 
-              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', 
+              background: '#4f46e5',
               color: '#fff', 
               padding: '10px', 
               borderRadius: '10px', 
@@ -549,7 +549,7 @@ export default function TeamPage() {
                             width: '36px',
                             height: '36px',
                             borderRadius: '50%',
-                            background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
+                            background: '#0F172A',
                             color: '#ffffff',
                             display: 'flex',
                             alignItems: 'center',

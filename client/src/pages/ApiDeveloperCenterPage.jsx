@@ -660,7 +660,7 @@ export default function ApiDeveloperCenterPage() {
 
       {/* SurveySherpa Partner Documentation & Access Key Banner */}
       <div style={{
-        background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+        background: '#0F172A',
         borderRadius: '8px',
         padding: '16px 20px',
         color: '#FFFFFF',
