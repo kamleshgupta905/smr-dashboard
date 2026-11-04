@@ -1,8 +1,7 @@
 {
   "rewrites": [
-    { "source": "/api/zamplia/(.*)", "destination": "/api/index.js" },
-    { "source": "/api/zamplia", "destination": "/api/zamplia.js" },
-    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/api", "destination": "https://api.vmhgroupsmr.com/api" },
+    { "source": "/api/:path*", "destination": "https://api.vmhgroupsmr.com/api/:path*" },
     { "source": "/((?!api/).*)", "destination": "/" }
   ]
 }
