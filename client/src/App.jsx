@@ -708,7 +708,7 @@ export default function App() {
           {/* Live Impersonation Preview Banner */}
           {impersonatedOriginal && (
             <div style={{
-              background: '#0F172A',
+              background: '#172033',
               color: '#FFFFFF',
               padding: '10px 20px',
               borderRadius: '10px',
@@ -716,11 +716,11 @@ export default function App() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              boxShadow: '0 4px 12px rgba(15,23,42,0.18)',
-              border: '1px solid #334155'
+              boxShadow: '0 4px 12px rgba(23,32,51,0.18)',
+              border: '1px solid #303E5D'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ display: 'inline-block', width: '9px', height: '9px', borderRadius: '50%', background: '#10B981', boxShadow: '0 0 6px #10B981' }}></span>
+                <span style={{ display: 'inline-block', width: '9px', height: '9px', borderRadius: '50%', background: '#19A981', boxShadow: '0 0 6px #19A981' }}></span>
                 <span style={{ fontSize: '13px' }}>
                   Live Preview: Viewing Dashboard as <strong>{currentUser?.name || currentUser?.username}</strong> ({currentUser?.role_name || currentUser?.role || 'Staff'})
                 </span>
@@ -732,7 +732,7 @@ export default function App() {
                 type="button"
                 onClick={handleExitImpersonation}
                 style={{
-                  background: '#DC2626',
+                  background: '#C74747',
                   color: '#FFFFFF',
                   border: 'none',
                   padding: '6px 14px',

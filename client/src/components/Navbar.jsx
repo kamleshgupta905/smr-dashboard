@@ -49,9 +49,9 @@ export default function Navbar({
     .toUpperCase() || 'A';
 
   const notifications = [
-    { id: 1, icon: Zap, color: '#0f766e', title: 'Inventory synced', text: `${surveyCount || 0} live surveys are available.`, time: 'Just now' },
-    { id: 2, icon: CheckCircle2, color: '#15803d', title: 'Reconciliation verified', text: 'The latest billing audit passed.', time: '25 min ago' },
-    { id: 3, icon: ShieldAlert, color: '#b45309', title: 'Fraud signal blocked', text: 'A suspicious traffic pattern was rejected.', time: '1 hr ago' },
+    { id: 1, icon: Zap, color: '#5b5ce2', title: 'Inventory synced', text: `${surveyCount || 0} live surveys are available.`, time: 'Just now' },
+    { id: 2, icon: CheckCircle2, color: '#13876c', title: 'Reconciliation verified', text: 'The latest billing audit passed.', time: '25 min ago' },
+    { id: 3, icon: ShieldAlert, color: '#c88a2a', title: 'Fraud signal blocked', text: 'A suspicious traffic pattern was rejected.', time: '1 hr ago' },
   ];
 
   useEffect(() => {
